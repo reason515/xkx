@@ -17,7 +17,7 @@ export class GameSocket {
   constructor(url?: string) {
     const proto = location.protocol === "https:" ? "wss:" : "ws:";
     this.url = url || `${proto}//${location.hostname}:3001/ws`;
-    if (import.meta.env.DEV && location.port === "5173") {
+    if (import.meta.env.DEV && location.port === "5180") {
       this.url = `ws://${location.hostname}:3001/ws`;
     }
   }

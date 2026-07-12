@@ -25,7 +25,7 @@ scripts/
 
 1. FluffOS driver：`./driver config.xkx`（MUD 8888）
 2. 网关：`cd gateway && npm start`（3001）
-3. 前端：Playwright 会自动 `npm run dev`（5173），或手动启动
+3. 前端：Playwright 会自动 `npm run dev`（5180），或手动启动
 4. 环境变量：`XKX_E2E_ID`、`XKX_E2E_PASSWORD`
 
 ## Hook 行为

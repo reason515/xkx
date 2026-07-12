@@ -5,7 +5,7 @@
   "maxConnections": 200,
   "heartbeatIntervalMs": 30000,
   "sessionTimeoutMs": 300000,
-  "corsOrigins": ["http://localhost:5173", "http://127.0.0.1:5173"],
+  "corsOrigins": ["http://localhost:5180", "http://127.0.0.1:5180"],
   "maxConnectionsPerIp": 3,
   "maxRegisterPerHour": 5,
   "logLevel": "info"

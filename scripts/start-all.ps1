@@ -29,8 +29,8 @@ if (-not $SkipGateway) {
 if (-not $SkipWeb) {
   Set-Location "$Root\web\app"
   if (-not (Test-Path "node_modules")) { npm install }
-  Write-Host "启动前端 :5173..." -ForegroundColor Green
+  Write-Host "启动前端 :5180..." -ForegroundColor Green
   Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$Root\web\app'; npm run dev"
 }
 
-Write-Host "完成。浏览器: http://localhost:5173" -ForegroundColor Cyan
+Write-Host "完成。浏览器: http://localhost:5180" -ForegroundColor Cyan
