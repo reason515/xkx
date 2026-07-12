@@ -754,7 +754,7 @@ int valid_cmd(string file, mixed user, string func)
 	// if( member_array(status, authorized_cmds["cmds"])!=-1 ) return 1;
     if( !undefinedp(authorized_cmds["cmds"])) {
         if( member_array(euid, authorized_cmds["cmds"])!=-1 ) return 1;
-        if( member_array(status, authorized_cmds["cmd"])!=-1 ) return 1;
+        if( member_array(status, authorized_cmds["cmds"])!=-1 ) return 1;
     }
 
 	for(i=sizeof(path)-1; i>=0; i--) {

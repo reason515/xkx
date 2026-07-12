@@ -92,6 +92,8 @@ int look_room(object me, object env)
 
 
 	write(str);
+	if (objectp(me) && userp(me))
+		"/adm/daemons/webd"->send_room(me, env);
 	return 1;
 }
 

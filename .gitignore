@@ -4,3 +4,10 @@
 .vscode
 data/*
 tmp/
+node_modules/
+web/app/dist/
+gateway/node_modules/
+web/app/node_modules/
+test-results/
+playwright-report/
+blob-report/

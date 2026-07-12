@@ -1,0 +1,87 @@
+import type { AssistConfig, InvItem, MudEvent, RoomState, SkillRow, Vitals } from "./types";
+import { DIR_MAP } from "./parser";
+
+export const PROTOCOL_VERSION = 1;
+
+export function applyEvent(
+  event: MudEvent,
+  prev: {
+    room: RoomState;
+    vitals: Vitals;
+    skills: SkillRow[];
+    inventory: InvItem[];
+    lookText: string;
+    scoreText: string;
+    assistActive: boolean;
+    assistStatus: string;
+    combatLog: string[];
+    trainLog: string[];
+  }
+) {
+  const next = { ...prev };
+
+  switch (event.type) {
+    case "room.update": {
+      const rawExits = event.exits as { dir: string; name: string }[] | undefined;
+      next.room = {
+        title: (event.title as string) || prev.room.title,
+        desc: (event.long as string) || prev.room.desc,
+        exits: rawExits?.length
+          ? rawExits.map((e) => ({
+              dir: e.dir,
+              label: DIR_MAP[e.dir] || e.dir,
+              name: e.name,
+            }))
+          : prev.room.exits,
+        npcs: (event.npcs as RoomState["npcs"]) || prev.room.npcs,
+        items: (event.items as RoomState["items"]) || prev.room.items,
+      };
+      break;
+    }
+    case "player.vitals":
+      next.vitals = { ...prev.vitals, ...(event.vitals as Vitals) };
+      break;
+    case "player.look":
+      next.lookText = (event.text as string) || prev.lookText;
+      break;
+    case "player.score":
+      next.scoreText = (event.text as string) || prev.scoreText;
+      break;
+    case "skills.update":
+      next.skills = (event.skills as SkillRow[]) || prev.skills;
+      break;
+    case "inv.update":
+      next.inventory = (event.items as InvItem[]) || prev.inventory;
+      break;
+    case "combat.event":
+      if (event.text) {
+        next.combatLog = [...prev.combatLog.slice(-40), event.text as string];
+      }
+      break;
+    case "train.event":
+      if (event.text) {
+        next.trainLog = [...prev.trainLog.slice(-40), event.text as string];
+      }
+      break;
+    case "assist.status":
+      next.assistActive = !!event.active;
+      next.assistStatus = (event.message as string) || "";
+      break;
+    case "assist.config":
+      next.assistActive = !!event.active;
+      break;
+    case "error":
+      next.combatLog = [...prev.combatLog, (event.message as string) || "发生错误"];
+      break;
+  }
+
+  return next;
+}
+
+export function buildAssistPayload(config: AssistConfig) {
+  return {
+    v: PROTOCOL_VERSION,
+    type: "assist.start",
+    config,
+  };
+}

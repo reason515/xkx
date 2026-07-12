@@ -8,6 +8,8 @@
 /adm/daemons/aliasd
 /adm/daemons/fingerd
 /adm/daemons/channeld
+/adm/daemons/webd
+/adm/daemons/assistd
 /adm/daemons/natured
 /adm/daemons/weapond
 /adm/daemons/network/dns_master

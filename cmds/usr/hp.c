@@ -47,6 +47,8 @@ int main(object me, string arg)
         my["water"], ob->max_water_capacity(),
         HIM,
         my["combat_exp"] );
+	if (objectp(ob) && userp(ob))
+		"/adm/daemons/webd"->send_vitals(ob);
 	return 1;
 }
  
