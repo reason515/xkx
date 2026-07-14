@@ -2,6 +2,7 @@ import net from "net";
 import { EventEmitter } from "events";
 import { stripAnsi, ansiToHtml } from "./ansi.js";
 import { LoginFsm } from "./loginFsm.js";
+import { stripTelnet } from "./telnet.js";
 
 export class MudSession extends EventEmitter {
   constructor(id, config, credentials) {
@@ -28,9 +29,15 @@ export class MudSession extends EventEmitter {
         }
       );
 
-      this.socket.setEncoding("utf8");
+      // Keep binary until telnet IAC is stripped
       this.socket.on("data", (chunk) => this.handleData(chunk));
       this.socket.on("error", (err) => {
+        // EPIPE/ECONNRESET：对端已关，避免刷屏；登录阶段仍通知前端
+        if (err.code === "EPIPE" || err.code === "ECONNRESET") {
+          this.closed = true;
+          this.emit("close");
+          return;
+        }
         this.emit("error", err);
         reject(err);
       });
@@ -41,18 +48,35 @@ export class MudSession extends EventEmitter {
     });
   }
 
+  writeSafe(data, encoding) {
+    if (this.closed || !this.socket || this.socket.destroyed) return false;
+    try {
+      return this.socket.write(data, encoding);
+    } catch {
+      return false;
+    }
+  }
+
   handleData(chunk) {
     this.lastActivity = Date.now();
-    this.rawBuffer += chunk;
-    this.buffer += stripAnsi(chunk);
+    const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk, "binary");
+    const { text: cleanBuf, replies } = stripTelnet(buf);
+    for (const r of replies) {
+      this.writeSafe(r);
+    }
+    if (cleanBuf.length === 0) return;
 
-    const html = ansiToHtml(chunk);
-    this.emit("text", { text: stripAnsi(chunk), html, raw: chunk });
+    const chunkText = cleanBuf.toString("utf8");
+    this.rawBuffer += chunkText;
+    this.buffer += stripAnsi(chunkText);
 
-    this.extractJsonEvents(chunk);
+    const html = ansiToHtml(chunkText);
+    this.emit("text", { text: stripAnsi(chunkText), html, raw: chunkText });
+
+    this.extractJsonEvents(chunkText);
 
     if (!this.loginFsm.isInGame()) {
-      const auto = this.loginFsm.onOutput(this.buffer);
+      const auto = this.loginFsm.onOutput(stripAnsi(chunkText));
       if (auto) this.sendRaw(auto);
     }
   }
@@ -76,16 +100,14 @@ export class MudSession extends EventEmitter {
   }
 
   send(command) {
-    if (this.closed || !this.socket) return false;
     const line = command.endsWith("\n") ? command : `${command}\n`;
-    this.socket.write(line);
+    if (!this.writeSafe(line, "utf8")) return false;
     this.lastActivity = Date.now();
     return true;
   }
 
   sendRaw(data) {
-    if (this.closed || !this.socket) return false;
-    this.socket.write(data);
+    if (!this.writeSafe(data, "utf8")) return false;
     this.lastActivity = Date.now();
     return true;
   }

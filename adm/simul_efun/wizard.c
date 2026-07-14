@@ -9,10 +9,30 @@ string wizhood(mixed ob)
 // added by sdong, 11/18/98
 int wizardp(mixed ob)
 {
-	return ( SECURITY_D->get_wiz_level(ob) > 0 );
+	object sec;
+	mixed err, lvl;
+
+	sec = find_object(SECURITY_D);
+	if (!sec) {
+		err = catch(sec = load_object(SECURITY_D));
+		if (err || !sec) return 0;
+	}
+	err = catch(lvl = sec->get_wiz_level(ob));
+	if (err) return 0;
+	return (lvl > 0);
 }
 
 int wiz_level(mixed ob)
 {
-	return SECURITY_D->get_wiz_level(ob);
+	object sec;
+	mixed err, lvl;
+
+	sec = find_object(SECURITY_D);
+	if (!sec) {
+		err = catch(sec = load_object(SECURITY_D));
+		if (err || !sec) return 0;
+	}
+	err = catch(lvl = sec->get_wiz_level(ob));
+	if (err) return 0;
+	return lvl;
 }

@@ -29,7 +29,8 @@ function getIp(req) {
 }
 
 function validateId(id) {
-  return /^[a-z][a-z0-9_]{2,15}$/i.test(id);
+  // 与 mudlib logind.c check_legal_id 一致：3–8 位纯小写字母
+  return typeof id === "string" && /^[a-z]{3,8}$/.test(id);
 }
 
 function validatePassword(pw) {
@@ -50,6 +51,17 @@ const server = http.createServer((req, res) => {
   }
   res.writeHead(404);
   res.end("Not found");
+});
+
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    log(
+      "error",
+      `端口 ${config.listenPort} 已被占用。请先结束旧进程: netstat -ano | findstr :${config.listenPort}`
+    );
+    process.exit(1);
+  }
+  throw err;
 });
 
 const wss = new WebSocketServer({ server, path: "/ws" });
@@ -138,7 +150,10 @@ wss.on("connection", (ws, req) => {
           metrics.incError();
           log("error", sessionId, err.message);
           if (ws.readyState === ws.OPEN) {
-            ws.send(JSON.stringify({ type: "error", message: err.message }));
+            const message = /ECONNREFUSED/.test(err.message)
+              ? "无法连接游戏服务器（请确认 MUD 已启动 :8888）"
+              : err.message;
+            ws.send(JSON.stringify({ type: "error", message }));
           }
         });
         mud.on("close", () => {

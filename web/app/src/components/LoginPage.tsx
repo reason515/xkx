@@ -37,7 +37,9 @@ export function LoginPage({ onLogin, error }: Props) {
             autoComplete="username"
             required
             minLength={3}
-            maxLength={16}
+            maxLength={8}
+            pattern="[a-zA-Z]{3,8}"
+            title="3–8 位英文字母"
           />
         </label>
         <label>

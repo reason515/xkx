@@ -45,6 +45,7 @@ export function useGame() {
   const textBuf = useRef("");
   const [state, setState] = useState<GameState>(initialState);
   const [toast, setToast] = useState("");
+  const [loginError, setLoginError] = useState("");
   const [selectedExit, setSelectedExit] = useState<{
     dir: string;
     name?: string;
@@ -77,13 +78,14 @@ export function useGame() {
   );
 
   useEffect(() => {
-    return socket.current.on((msg) => {
+    const offMsg = socket.current.on((msg) => {
       if (msg.type === "connected") {
+        setLoginError("");
         setState((s) => ({ ...s, connected: true }));
         return;
       }
       if (msg.type === "error") {
-        showToast(msg.message || "连接错误");
+        setLoginError(msg.message || "连接错误");
         return;
       }
       if (msg.type === "disconnected") {
@@ -165,6 +167,15 @@ export function useGame() {
         }
       }
     });
+    const offStatus = socket.current.onStatus((status, detail) => {
+      if (status === "error") {
+        setLoginError(detail || "无法连接网关");
+      }
+    });
+    return () => {
+      offMsg();
+      offStatus();
+    };
   }, [addLog, showToast]);
 
   const login = useCallback(
@@ -175,6 +186,7 @@ export function useGame() {
       gender?: string;
       register?: boolean;
     }) => {
+      setLoginError("");
       socket.current.login(opts);
       setState((s) => ({ ...s, playerName: opts.name || opts.id }));
     },
@@ -246,6 +258,7 @@ export function useGame() {
   return {
     state,
     toast,
+    loginError,
     charTab,
     setCharTab,
     selectedExit,

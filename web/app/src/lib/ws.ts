@@ -1,4 +1,5 @@
 type Handler = (msg: WsMessage) => void;
+type StatusHandler = (status: "connecting" | "open" | "error" | "closed", detail?: string) => void;
 
 export interface WsMessage {
   type: string;
@@ -12,19 +13,30 @@ export interface WsMessage {
 export class GameSocket {
   private ws: WebSocket | null = null;
   private handlers = new Set<Handler>();
+  private statusHandlers = new Set<StatusHandler>();
   private url: string;
 
   constructor(url?: string) {
-    const proto = location.protocol === "https:" ? "wss:" : "ws:";
-    this.url = url || `${proto}//${location.hostname}:3001/ws`;
+    if (url) {
+      this.url = url;
+      return;
+    }
     if (import.meta.env.DEV && location.port === "5180") {
       this.url = `ws://${location.hostname}:3001/ws`;
+      return;
     }
+    const proto = location.protocol === "https:" ? "wss:" : "ws:";
+    this.url = `${proto}//${location.host}/ws`;
   }
 
   connect() {
     if (this.ws?.readyState === WebSocket.OPEN) return;
+    if (this.ws?.readyState === WebSocket.CONNECTING) return;
+    this.emitStatus("connecting");
     this.ws = new WebSocket(this.url);
+    this.ws.onopen = () => this.emitStatus("open");
+    this.ws.onerror = () => this.emitStatus("error", "无法连接网关（请确认 gateway 已启动 :3001）");
+    this.ws.onclose = () => this.emitStatus("closed");
     this.ws.onmessage = (ev) => {
       try {
         const msg = JSON.parse(ev.data) as WsMessage;
@@ -40,6 +52,17 @@ export class GameSocket {
     return () => {
       this.handlers.delete(handler);
     };
+  }
+
+  onStatus(handler: StatusHandler) {
+    this.statusHandlers.add(handler);
+    return () => {
+      this.statusHandlers.delete(handler);
+    };
+  }
+
+  private emitStatus(status: "connecting" | "open" | "error" | "closed", detail?: string) {
+    this.statusHandlers.forEach((h) => h(status, detail));
   }
 
   send(data: unknown) {

@@ -2,6 +2,8 @@
 
 轻量文字 RPG：浏览器 ↔ WebSocket 网关 ↔ FluffOS MUD（端口 8888）。
 
+**仓库**：<https://github.com/reason515/xkx>
+
 ## 前置条件
 
 1. **FluffOS 驱动**：本仓库不含 Windows 驱动。请自行编译或使用 WSL/macOS/Linux 上的 `driver`。
@@ -14,6 +16,8 @@
 ```
 
 Windows 若无驱动，可用 WSL 进入本目录后执行上述命令。
+
+**云服务器部署**见 [docs/deploy-tencentos.md](docs/deploy-tencentos.md)（TencentOS / CentOS 全栈：MUD + Gateway + Nginx）。
 
 ## 一键启动（PowerShell）
 

@@ -1,0 +1,21 @@
+[Unit]
+Description=XKX WebSocket Gateway
+After=network.target xkx-mud.service
+Wants=xkx-mud.service
+
+[Service]
+Type=simple
+User=xkx
+Group=xkx
+WorkingDirectory=/opt/xkx/gateway
+ExecStart=/usr/bin/node src/index.js
+Restart=on-failure
+RestartSec=3
+Environment=NODE_ENV=production
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=xkx-gateway
+
+[Install]
+WantedBy=multi-user.target

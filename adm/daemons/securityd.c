@@ -153,19 +153,24 @@ string get_status(mixed ob)
 {
 	string euid;
 
+	if (!ob) return "(player)";
+
 	if( objectp(ob) ) {
 		euid = geteuid(ob);
 		if( !euid ) euid = getuid(ob);
 	}
 	else if( stringp(ob) ) euid = ob;
+	else return "(player)";
 
+	if( !euid ) return "(player)";
 	if( !undefinedp(wiz_status[euid]) ) return wiz_status[euid];
 	else if( member_array(euid, wiz_levels)!=-1 ) return euid;
 	else return "(player)";
 }
 
-int get_wiz_level(object ob)
+int get_wiz_level(mixed ob)
 {
+	if (!ob) return 0;
 	return member_array(get_status(ob), wiz_levels);
 }
 

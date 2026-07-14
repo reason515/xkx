@@ -9,17 +9,21 @@
 // modified by Xuy for XKX (08/21/97)
 // modified by lbc for mudos v22pre11,less warning message 
 
-object connect()
+// FluffOS 会传入 port；旧 MudOS 无参也可（varargs）
+varargs object connect(int port)
 {
 	object login_ob;
 	mixed err;
-   
+
+	reset_eval_cost();
 	err = catch(login_ob = new(LOGIN_OB));
 
-	if (err) {
-		write("现在有人正在修改使用者连线部份的程式，请待会再来。\n");
-		write(err);
-		destruct(this_object());
+	if (err || !login_ob) {
+		log_file("static/CONNECT_ERR",
+			sprintf("%s connect() failed: %O\n", ctime(time()), err));
+		write("现在有人正在修改使用者连线部分的程式，请待会儿再来。\n");
+		if (err) write(err);
+		return 0;
 	}
 	return login_ob;
 }
@@ -41,10 +45,10 @@ mixed compile_object(string file)
 // This is called when there is a driver segmentation fault or a bus error,
 // etc.  As it's static it can't be called by anything but the driver (and
 // master).
-static void crash(string error, object command_giver, object current_object)
+void crash(string error, object command_giver, object current_object)
 {
-	efun::shout("系统核心发出一声惨叫：哇—哩—咧—\n");
-	efun::shout("系统核心告诉你：要当机了，自己保重吧！\n");
+	efun::shout("?????????????????\n");
+	efun::shout("???????????????????\n");
 	log_file("static/CRASHES", MUD_NAME + " crashed on: " + ctime(time()) +
 		", error: " + error + "\n");
 	if (command_giver)
@@ -61,8 +65,8 @@ static void crash(string error, object command_giver, object current_object)
 // Description:     reads in a file, ignoring lines that begin with '#'
 // Arguements:      file: a string that shows what file to read in.
 // Return:          Array of nonblank lines that don't begin with '#'
-// Note:            must be declared static (else a security hole)
-static string *update_file(string file)
+// Note:            must be private (else a security hole); FluffOS ?? static
+private string *update_file(string file)
 {
 	string *list;
 	string str;
@@ -113,19 +117,9 @@ void preload(string file)
 // 'file', giving the error message 'message'.
 void log_error(string file, string message)
 {
-	string name, home;
-   
-	if( find_object(SIMUL_EFUN_OB) )
-		name = file_owner(file);
-
-	if (name) home = user_path(name);
-	else home = LOG_DIR;
-
-	if(wizardp(this_player(1))&&(strsrch(message,"Warning:")==-1)) efun::write("编译时段错误：" + message+"\n");
-//if(wizardp(this_player(1))) efun::write("编译时段错误：" + message+"\n");	
-
-//  不要向log里面写了,系统要崩溃了
-//	efun::write_file(home + "log", message);
+	// 避免在编译/加载阶段调用 wizardp()/SECURITY_D，否则会触发
+	// "Object cannot be loaded during compilation" 并导致连线失败
+	efun::write_file(LOG_DIR "debug.log", message);
 }
 
 // save_ed_setup and restore_ed_setup are called by the ed to maintain
@@ -163,7 +157,7 @@ void destruct_env_of(object ob)
 {
 	if (!interactive(ob))
 		return;
-	tell_object(ob, "你所存在的空间被毁灭了。\n");
+	tell_object(ob, "????????????\n");
 	ob->move(VOID_OB);
 }
 
@@ -215,14 +209,14 @@ string standard_trace(mapping error, int caught)
 
     /* keep track of number of errors per object...if you're into that */
 
-    res = (caught) ? "错误讯息被拦截: " : "";
-    res = sprintf("%s\n执行时段错误：%s\n程式：%s 第 %i 行\n物件: %O\n",
+    res = (caught) ? "???????: " : "";
+    res = sprintf("%s\n???????%s\n???%s ? %i ?\n??: %O\n",
     	res, error["error"],
         error["program"], error["line"],
         error["object"]);
 
     for (i=0, s = sizeof(error["trace"]); i < s; i++) {
-		res = sprintf("%s呼叫来自：%s 的 %s() 第 %i 行，物件： %O\n",
+		res = sprintf("%s?????%s ? %s() ? %i ????? %O\n",
 			res,
 			error["trace"][i]["program"],
             error["trace"][i]["function"],
@@ -239,7 +233,7 @@ string error_handler( mapping error, int caught )
 	if(wizardp(this_player(1)))
         	tell_object(this_player(1), standard_trace(error, caught));
 	else
-		tell_object(this_player(1), "[1;33m你发现事情不大对了，可是又说不上来。[2;37;0m\n");
+		tell_object(this_player(1), "[1;33m??????????????????[2;37;0m\n");
 	log_file("debug.log", (string)ALIAS_D->get_current_alias() + "\n");
     }
 

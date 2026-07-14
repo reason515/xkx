@@ -117,8 +117,12 @@ void logon(object ob)
 {
 	object *usr;
 	int i, wiz_cnt, ppl_cnt, login_cnt;
+	object ban_d;
 
-	if (BAN_D->is_banned(query_ip_name(ob)) == 1) {
+	ban_d = find_object(BAN_D);
+	if (!ban_d)
+		catch(ban_d = load_object(BAN_D));
+	if (ban_d && ban_d->is_banned(query_ip_name(ob)) == 1) {
 		write_ob(ob,"你的地址在本 MUD 不受欢迎。Your IP not welcome in this MUD.\n");
 		destruct(ob);
 		return;
@@ -712,24 +716,16 @@ int check_legal_id(string id,object ob)
 
 string check_legal_name(string name,object ob)
 {
-	int i,j;
+	int i;
 
+	// FluffOS UTF-8：strlen 多为字符数；旧 MudOS/GBK 为字节数（1 汉字≈2）
+	// 放宽到 1–8 以兼容两种计量。
+	// is_chinese() 在本 driver 上仍偏 GB 字节判断，会误拒 UTF-8 中文；
+	// 旧逻辑 name[j]+=128 在 FluffOS 上会 Bad Argument，已移除。
 	i = strlen(name);
-
-	if( (strlen(name) < 2) || (strlen(name) > 8 ) || i % 2) {
+	if( !stringp(name) || i < 1 || i > 8 ) {
 		write_ob(ob,"对不起，你的中文名字必须是 1 到 4 个中文字。\n");
 		return 0;
-	}
-	for (j = 0; j < i; j++) {
-//		if( name[i]<=' ' ) {
-//			write_ob(ob,"对不起，你的中文名字不能用控制字元。\n");
-//			return 0;
-//		}
-		if( j%2==0 && !is_chinese(name[j..j+1]) ) {
-			name[j]+=128; name[j+1]+=128;
-//			write_ob(ob,"对不起，请您用「中文」取名字。\n");
-//			return 0;
-		}
 	}
 	if( member_array(name, banned_name)!=-1 ) {
 		write_ob(ob,"对不起，这种名字会造成其他人的困扰。\n");

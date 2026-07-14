@@ -23,7 +23,7 @@ export default function App() {
     return (
       <LoginPage
         onLogin={g.login}
-        error={state.connected ? undefined : toast || undefined}
+        error={g.loginError || undefined}
       />
     );
   }

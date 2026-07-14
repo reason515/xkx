@@ -2,6 +2,8 @@
 
 基于经典 MUD 库 **xkx2001** 的 UTF-8 现代化版本，并扩展 **Web 浏览器客户端**（React + WebSocket 网关 + FluffOS 服务端）。
 
+**仓库**：<https://github.com/reason515/xkx>
+
 > 原版来源 [mudchina/xkx2011](https://github.com/mudchina/xkx2011)（GBK）。本仓库将编码统一为 UTF-8，修复部分兼容问题，并新增轻量 Web 游玩体验。仅供学习交流；如认为涉及版权请联系维护者处理。
 
 ## 特性
@@ -105,6 +107,7 @@ cd web/app && npm run test:e2e
 | [docs/PLAYER.md](docs/PLAYER.md) | 玩家操作说明 |
 | [docs/launch-area.md](docs/launch-area.md) | Web 首发区范围 |
 | [docs/protocol-v1.md](docs/protocol-v1.md) | JSON 事件协议 |
+| [docs/deploy-tencentos.md](docs/deploy-tencentos.md) | **TencentOS 云服务器部署** |
 
 ## 已知限制
 
