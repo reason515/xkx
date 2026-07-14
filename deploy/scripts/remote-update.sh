@@ -1,56 +1,65 @@
 #!/usr/bin/env bash
 # Run on the server as root: bash deploy/scripts/remote-update.sh
+# Pulls code, applies FluffOS mudlib fixes, rebuilds web, restarts services,
+# then REQUIRES e2e login smoke to pass before exiting 0.
 set -euo pipefail
 
 NODE_BIN="/home/xkx/.nvm/versions/node/v20.20.2/bin/node"
+ROOT="/opt/xkx"
 
 echo "=== 1. backup ==="
-cp -a /opt/xkx/gateway/config.json /tmp/xkx-gw-config.json
-cp -a /opt/xkx/driver /tmp/xkx-driver.bin
+cp -a "$ROOT/gateway/config.json" /tmp/xkx-gw-config.json
+cp -a "$ROOT/driver" /tmp/xkx-driver.bin
 chmod +x /tmp/xkx-driver.bin
 
 echo "=== 2. git fetch + hard reset ==="
-sudo -u xkx bash -lc 'cd /opt/xkx && git fetch origin && git reset --hard origin/master && git log -1 --oneline'
+sudo -u xkx bash -lc "cd $ROOT && git fetch origin && git reset --hard origin/master && git log -1 --oneline"
 
 echo "=== 3. restore prod files ==="
-cp -a /tmp/xkx-gw-config.json /opt/xkx/gateway/config.json
-cp -a /tmp/xkx-driver.bin /opt/xkx/driver
-chown xkx:xkx /opt/xkx/gateway/config.json /opt/xkx/driver
-chmod +x /opt/xkx/driver
+cp -a /tmp/xkx-gw-config.json "$ROOT/gateway/config.json"
+cp -a /tmp/xkx-driver.bin "$ROOT/driver"
+chown xkx:xkx "$ROOT/gateway/config.json" "$ROOT/driver"
+chmod +x "$ROOT/driver"
 
-echo "=== 4. npm install + frontend build ==="
-sudo -u xkx bash -lc '
+echo "=== 4. FluffOS mudlib prepare (static -> nosave) ==="
+bash "$ROOT/deploy/scripts/prepare-mudlib.sh" "$ROOT"
+python3 "$ROOT/deploy/scripts/fix-static-to-nosave.py" "$ROOT"
+chown -R xkx:xkx "$ROOT/feature" "$ROOT/inherit" "$ROOT/clone" "$ROOT/adm" "$ROOT/cmds" "$ROOT/kungfu" 2>/dev/null || true
+
+echo "=== 5. npm install + frontend build ==="
+sudo -u xkx bash -lc "
 set -euo pipefail
-export NVM_DIR="$HOME/.nvm"
-# shellcheck disable=SC1091
-. "$NVM_DIR/nvm.sh"
-cd /opt/xkx/gateway && npm install --production
-cd /opt/xkx/web/app && npm install && npm run build
-ls -la /opt/xkx/web/app/dist | head
-'
+export NVM_DIR=\"\$HOME/.nvm\"
+. \"\$NVM_DIR/nvm.sh\"
+cd $ROOT/gateway && npm install --omit=dev
+cd $ROOT/web/app && npm install && npm run build
+"
 
-echo "=== 5. install systemd units ==="
+echo "=== 6. install systemd units ==="
 ln -sfn "$NODE_BIN" /usr/local/bin/node
-sed "s|/usr/bin/node|/usr/local/bin/node|" /opt/xkx/deploy/systemd/xkx-gateway.service \
+sed "s|/usr/bin/node|/usr/local/bin/node|" "$ROOT/deploy/systemd/xkx-gateway.service" \
   > /etc/systemd/system/xkx-gateway.service
-cp /opt/xkx/deploy/systemd/xkx-mud.service /etc/systemd/system/xkx-mud.service
+cp "$ROOT/deploy/systemd/xkx-mud.service" /etc/systemd/system/xkx-mud.service
 systemctl daemon-reload
 systemctl enable xkx-mud xkx-gateway
 
-echo "=== 6. restart services ==="
+echo "=== 7. restart services ==="
 pkill -u xkx -f "node src/index.js" || true
 pkill -u xkx -f "./driver config.xkx" || true
 sleep 2
 systemctl restart xkx-mud
-sleep 2
+sleep 3
 systemctl restart xkx-gateway
 systemctl reload nginx || true
 
-echo "=== 7. verify ==="
+echo "=== 8. health ==="
 sleep 2
 systemctl is-active xkx-mud xkx-gateway nginx
-curl -sS http://127.0.0.1:3001/health || true
+curl -sS http://127.0.0.1:3001/health
 echo
 curl -sS -o /dev/null -w "http_root=%{http_code}\n" http://127.0.0.1/
-ss -lntp | grep -E "80|3001|8888" || true
-echo DONE
+
+echo "=== 9. e2e login smoke (required) ==="
+bash "$ROOT/deploy/scripts/run-e2e-smoke.sh"
+
+echo "DEPLOY OK"

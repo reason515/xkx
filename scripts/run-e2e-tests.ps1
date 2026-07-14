@@ -39,8 +39,8 @@ if (-not (Test-GatewayHealth)) {
   exit 0
 }
 
-if (-not $env:XKX_E2E_ID -or -not $env:XKX_E2E_PASSWORD) {
-  Write-Host "Skip e2e: set XKX_E2E_ID and XKX_E2E_PASSWORD" -ForegroundColor Yellow
+if (-not $env:XKX_E2E_REGISTER -and (-not $env:XKX_E2E_ID -or -not $env:XKX_E2E_PASSWORD)) {
+  Write-Host "Skip e2e: set XKX_E2E_REGISTER=1 or XKX_E2E_ID + XKX_E2E_PASSWORD" -ForegroundColor Yellow
   exit 0
 }
 

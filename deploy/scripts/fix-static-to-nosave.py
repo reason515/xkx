@@ -3,7 +3,10 @@
 from pathlib import Path
 import re
 
-root = Path("/opt/xkx")
+import os
+import sys
+
+root = Path(os.environ.get("XKX_ROOT") or (sys.argv[1] if len(sys.argv) > 1 else "/opt/xkx"))
 paths = []
 for sub in ("feature", "inherit", "clone", "adm", "cmds", "kungfu"):
     p = root / sub

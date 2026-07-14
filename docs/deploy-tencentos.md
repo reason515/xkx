@@ -571,20 +571,30 @@ sudo systemctl restart xkx-gateway
 
 ### 更新代码后如何重新部署
 
+**推荐（root 一键，含 FluffOS `static→nosave` 补丁 + 登录 e2e 门禁）：**
+
 ```bash
-sudo su - xkx
-cd /opt/xkx
-git pull
+# 本地已 push 到 github.com/reason515/xkx 后，在服务器执行：
+bash /opt/xkx/deploy/scripts/remote-update.sh
+```
 
-# 若 MUD 库有变，一般只需重启 MUD
-# 若 gateway 有变：
-cd gateway && npm install --production
+该脚本会：`git reset --hard origin/master` → 恢复 `gateway/config.json` 与 `driver` →  
+跑 `fix-static-to-nosave.py`（**必做**，否则 `/feature/dbase` 加载失败、登录无响应）→  
+构建前端 → 重启 systemd → **跑 `deploy/scripts/run-e2e-smoke.sh`，失败则部署失败**。
 
-# 若前端有变：
-cd ../web/app && npm install && npm run build
+仅手动检查登录链路：
 
-sudo systemctl restart xkx-mud xkx-gateway
-sudo systemctl reload nginx
+```bash
+bash /opt/xkx/deploy/scripts/run-e2e-smoke.sh
+```
+
+针对公网页面的 Playwright（在开发机，需本机有 Chromium）：
+
+```powershell
+$env:XKX_E2E_BASE_URL = "http://119.45.224.68"
+$env:XKX_E2E_REGISTER = "1"
+cd web\app
+npm run test:e2e
 ```
 
 ---
