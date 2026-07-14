@@ -6,20 +6,35 @@ set -euo pipefail
 
 NODE_BIN="/home/xkx/.nvm/versions/node/v20.20.2/bin/node"
 ROOT="/opt/xkx"
+# Linux driver must live outside the git worktree — repo `driver` is macOS.
+LINUX_DRIVER="${XKX_LINUX_DRIVER:-/home/xkx/bin/driver}"
 
-echo "=== 1. backup ==="
+echo "=== 1. backup gateway config ==="
 cp -a "$ROOT/gateway/config.json" /tmp/xkx-gw-config.json
-cp -a "$ROOT/driver" /tmp/xkx-driver.bin
-chmod +x /tmp/xkx-driver.bin
+
+if [[ ! -x "$LINUX_DRIVER" ]]; then
+  echo "Missing Linux driver at $LINUX_DRIVER"
+  echo "Build FluffOS and: cp build/src/driver $LINUX_DRIVER"
+  exit 1
+fi
+if file "$LINUX_DRIVER" | grep -qi 'Mach-O'; then
+  echo "LINUX_DRIVER is not a Linux ELF binary: $LINUX_DRIVER"
+  exit 1
+fi
 
 echo "=== 2. git fetch + hard reset ==="
 sudo -u xkx bash -lc "cd $ROOT && git fetch origin && git reset --hard origin/master && git log -1 --oneline"
 
 echo "=== 3. restore prod files ==="
 cp -a /tmp/xkx-gw-config.json "$ROOT/gateway/config.json"
-cp -a /tmp/xkx-driver.bin "$ROOT/driver"
+# Always reinstall Linux driver after reset (git has macOS binary)
+cp -a "$LINUX_DRIVER" "$ROOT/driver"
 chown xkx:xkx "$ROOT/gateway/config.json" "$ROOT/driver"
 chmod +x "$ROOT/driver"
+file "$ROOT/driver" | grep -qi 'ELF' || {
+  echo "Restored driver is not ELF"
+  exit 1
+}
 
 echo "=== 4. FluffOS mudlib prepare (static -> nosave) ==="
 bash "$ROOT/deploy/scripts/prepare-mudlib.sh" "$ROOT"
@@ -48,12 +63,29 @@ pkill -u xkx -f "node src/index.js" || true
 pkill -u xkx -f "./driver config.xkx" || true
 sleep 2
 systemctl restart xkx-mud
-sleep 3
+# Wait until MUD accepts TCP (preload can take a while)
+for i in $(seq 1 60); do
+  if ss -lntp | grep -q ':8888'; then
+    echo "MUD listening on :8888 (try $i)"
+    break
+  fi
+  sleep 1
+done
+ss -lntp | grep ':8888' || {
+  echo "MUD failed to listen on 8888"
+  journalctl -u xkx-mud -n 40 --no-pager || true
+  exit 1
+}
 systemctl restart xkx-gateway
 systemctl reload nginx || true
 
 echo "=== 8. health ==="
-sleep 2
+for i in $(seq 1 20); do
+  if curl -sf http://127.0.0.1:3001/health >/dev/null; then
+    break
+  fi
+  sleep 1
+done
 systemctl is-active xkx-mud xkx-gateway nginx
 curl -sS http://127.0.0.1:3001/health
 echo
