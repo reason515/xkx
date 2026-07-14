@@ -1,22 +1,27 @@
 interface Props {
+  id: string;
   name: string;
   kind: "npc" | "item";
   onClose: () => void;
   onAction: (cmd: string) => void;
 }
 
-export function EntitySheet({ name, kind, onClose, onAction }: Props) {
-  const npcActions = [
-    ["看", `look ${name}`],
-    ["问", `ask ${name}`],
-    ["打", `kill ${name}`],
-    ["拿", `get ${name}`],
+export function EntitySheet({ id, name, kind, onClose, onAction }: Props) {
+  // Prefer english id for mud commands when available
+  const target =
+    id && /^[a-z][\w\s]*$/i.test(id) && id !== name ? id : name;
+
+  const npcActions: [string, string][] = [
+    ["看", `look ${target}`],
+    ["跟随", `follow ${target}`],
+    ["问", `ask ${target}`],
+    ["打", `kill ${target}`],
   ];
-  const itemActions = [
-    ["看", `look ${name}`],
-    ["拿", `get ${name}`],
-    ["用", `use ${name}`],
-    ["丢", `drop ${name}`],
+  const itemActions: [string, string][] = [
+    ["看", `look ${target}`],
+    ["拿", `get ${target}`],
+    ["用", `use ${target}`],
+    ["丢", `drop ${target}`],
   ];
   const actions = kind === "npc" ? npcActions : itemActions;
 

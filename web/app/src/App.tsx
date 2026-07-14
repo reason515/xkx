@@ -107,7 +107,11 @@ export default function App() {
                       type="button"
                       className="chip npc"
                       onClick={() => {
-                        g.setSelectedEntity({ name: n.name, kind: "npc" });
+                        g.setSelectedEntity({
+                          id: n.id,
+                          name: n.name,
+                          kind: "npc",
+                        });
                         g.openSheet("entity");
                       }}
                     >
@@ -128,11 +132,33 @@ export default function App() {
                       type="button"
                       className="chip item"
                       onClick={() => {
-                        g.setSelectedEntity({ name: it.name, kind: "item" });
+                        g.setSelectedEntity({
+                          id: it.id,
+                          name: it.name,
+                          kind: "item",
+                        });
                         g.openSheet("entity");
                       }}
                     >
                       {it.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {state.suggestedActions.length > 0 && (
+              <div className="ctx-block">
+                <h2>动作</h2>
+                <div className="chips">
+                  {state.suggestedActions.map((a) => (
+                    <button
+                      key={a.command}
+                      type="button"
+                      className="chip action"
+                      onClick={() => g.cmd(a.command)}
+                    >
+                      {a.label}
                     </button>
                   ))}
                 </div>
@@ -208,6 +234,7 @@ export default function App() {
       )}
       {state.sheet === "entity" && g.selectedEntity && (
         <EntitySheet
+          id={g.selectedEntity.id}
           name={g.selectedEntity.name}
           kind={g.selectedEntity.kind}
           onClose={g.closeSheet}

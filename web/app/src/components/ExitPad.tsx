@@ -1,6 +1,5 @@
-import { PAD_SLOTS } from "../lib/parser";
+import { DIR_MAP, PAD_SLOTS } from "../lib/parser";
 import type { ExitInfo } from "../lib/types";
-import { DIR_MAP } from "../lib/parser";
 
 interface Props {
   exits: ExitInfo[];
@@ -25,12 +24,9 @@ export function ExitPad({ exits, onSelect }: Props) {
             );
           }
           const ex = byDir[dir];
+          // 无出口方位留空，避免像可点方向一样误导
           if (!ex) {
-            return (
-              <div key={dir} className="cell">
-                <span className="d">{DIR_MAP[dir] || dir}</span>
-              </div>
-            );
+            return <div key={dir} className="cell empty" aria-hidden />;
           }
           return (
             <button

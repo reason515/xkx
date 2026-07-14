@@ -183,6 +183,12 @@ button {
   color: #c5d7e0;
 }
 
+.chip.action {
+  border-color: rgba(95, 143, 120, 0.55);
+  color: var(--jade-bright);
+  background: rgba(95, 143, 120, 0.12);
+}
+
 .log {
   margin-top: 18px;
   padding-top: 14px;
@@ -341,6 +347,13 @@ button {
   align-items: center;
   justify-content: center;
   color: var(--paper-dim);
+}
+
+.exit-pad .cell.empty {
+  border: none;
+  background: transparent;
+  min-height: 52px;
+  pointer-events: none;
 }
 
 .exit-pad .cell.open {

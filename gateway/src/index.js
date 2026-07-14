@@ -141,6 +141,16 @@ wss.on("connection", (ws, req) => {
             ws.send(JSON.stringify({ type: "text", ...payload }));
           }
         });
+        mud.on("ready", () => {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: "ready" }));
+          }
+        });
+        mud.on("login_error", (message) => {
+          if (ws.readyState === ws.OPEN) {
+            ws.send(JSON.stringify({ type: "error", message }));
+          }
+        });
         mud.on("event", (event) => {
           if (ws.readyState === ws.OPEN) {
             ws.send(JSON.stringify({ type: "event", event }));

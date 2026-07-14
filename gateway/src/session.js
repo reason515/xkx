@@ -4,6 +4,18 @@ import { stripAnsi, ansiToHtml } from "./ansi.js";
 import { LoginFsm } from "./loginFsm.js";
 import { stripTelnet } from "./telnet.js";
 
+const LOGIN_ERROR_RE =
+  /密码错误|英文名字必须是|英文名字只能用|使用者已经太多|不受欢迎|有人也在创造这个人物|不欢迎你创造|储存挡出了一些问题|已经自杀了|找不到这个|请从登记的地址|限制巫师等级|无法进行复制|两次输入的密码并不一样|密码的长度至少/;
+
+function extractLoginError(text) {
+  if (!LOGIN_ERROR_RE.test(text)) return null;
+  const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  for (const line of lines) {
+    if (LOGIN_ERROR_RE.test(line)) return line;
+  }
+  return "登录失败";
+}
+
 export class MudSession extends EventEmitter {
   constructor(id, config, credentials) {
     super();
@@ -17,6 +29,7 @@ export class MudSession extends EventEmitter {
     this.loginFsm = new LoginFsm(credentials);
     this.lastActivity = Date.now();
     this.jsonBuffer = "";
+    this.markedWeb = false;
   }
 
   connect() {
@@ -68,16 +81,33 @@ export class MudSession extends EventEmitter {
 
     const chunkText = cleanBuf.toString("utf8");
     this.rawBuffer += chunkText;
-    this.buffer += stripAnsi(chunkText);
+    const plain = stripAnsi(chunkText);
+    this.buffer += plain;
 
-    const html = ansiToHtml(chunkText);
-    this.emit("text", { text: stripAnsi(chunkText), html, raw: chunkText });
-
-    this.extractJsonEvents(chunkText);
-
-    if (!this.loginFsm.isInGame()) {
-      const auto = this.loginFsm.onOutput(stripAnsi(chunkText));
+    const wasInGame = this.loginFsm.isInGame();
+    if (!wasInGame) {
+      const auto = this.loginFsm.onOutput(plain);
       if (auto) this.sendRaw(auto);
+    }
+    const nowInGame = this.loginFsm.isInGame();
+
+    if (!wasInGame && nowInGame) {
+      this.emit("ready");
+      // Mark web_client ASAP so the client's follow-up look gets room.update
+      if (!this.markedWeb) {
+        this.markedWeb = true;
+        this.send("webassist stop");
+      }
+    }
+
+    if (nowInGame) {
+      const html = ansiToHtml(chunkText);
+      this.emit("text", { text: plain, html, raw: chunkText });
+      this.extractJsonEvents(chunkText);
+    } else {
+      // Suppress welcome/BIG5 banners; surface login failures to the UI
+      const err = extractLoginError(plain);
+      if (err) this.emit("login_error", err);
     }
   }
 

@@ -43,16 +43,22 @@ export function CombatSheet({
                 附近暂无可战目标
               </span>
             ) : (
-              npcs.map((n) => (
-                <button
-                  key={n.id}
-                  type="button"
-                  className={`chip npc ${target === n.name ? "on" : ""}`}
-                  onClick={() => setTarget(n.name)}
-                >
-                  {n.name}
-                </button>
-              ))
+              npcs.map((n) => {
+                const cmdTarget =
+                  n.id && /^[a-z]/i.test(n.id) && n.id !== n.name
+                    ? n.id
+                    : n.name;
+                return (
+                  <button
+                    key={n.id}
+                    type="button"
+                    className={`chip npc ${target === cmdTarget ? "on" : ""}`}
+                    onClick={() => setTarget(cmdTarget)}
+                  >
+                    {n.name}
+                  </button>
+                );
+              })
             )}
           </div>
           <div style={{ marginBottom: 14, fontSize: 13 }}>

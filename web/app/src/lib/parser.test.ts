@@ -1,12 +1,17 @@
 import { describe, expect, it } from "vitest";
 import {
+  extractLookBlock,
   isCombatLine,
+  isLoginNoise,
   isTrainLine,
+  labelSuggestedAction,
+  parseEntityShort,
   parseExits,
   parseHp,
   parseInventory,
   parseRoom,
   parseSkills,
+  parseSuggestedActions,
 } from "./parser";
 
 describe("parseExits", () => {
@@ -20,8 +25,43 @@ describe("parseExits", () => {
     ]);
   });
 
+  it("parses real look.c dir-only exits", () => {
+    const text = "这里明显的出口是 east、up 和 west。";
+    expect(parseExits(text)).toEqual([
+      { dir: "east", label: "东" },
+      { dir: "up", label: "上" },
+      { dir: "west", label: "西" },
+    ]);
+  });
+
+  it("parses unique exit", () => {
+    expect(parseExits("这里唯一的出口是 north。")).toEqual([
+      { dir: "north", label: "北" },
+    ]);
+  });
+
   it("returns empty array when no exit line", () => {
     expect(parseExits("扬州客店\n这里是扬州城。")).toEqual([]);
+  });
+});
+
+describe("extractLookBlock", () => {
+  it("strips login banner and keeps the look block", () => {
+    const dirty = `有任何意见，请 email 给 xkx@egroups.com
+Do you want to use BIG5 code?(y/n)
+目前权限：(player)
+－－－－－－－－
+沙滩 -
+    这里是侠客岛外的沙滩。
+    这里明显的出口是 north、east 和 west。
+  木老七（Mu laoqi）
+  店小二(Xiao er)
+`;
+    const block = extractLookBlock(dirty);
+    expect(block).not.toContain("BIG5");
+    expect(block).not.toContain("有任何意见");
+    expect(block).toContain("沙滩");
+    expect(block).toContain("木老七（Mu laoqi）");
   });
 });
 
@@ -39,6 +79,90 @@ describe("parseRoom", () => {
     expect(room.exits).toHaveLength(2);
     expect(room.npcs).toEqual([{ id: "店小二", name: "店小二", kind: "npc" }]);
     expect(room.items).toEqual([{ id: "一张木桌", name: "一张木桌", kind: "item" }]);
+  });
+
+  it("parses real look output even when login noise precedes it", () => {
+    const text = `有任何意见，请 email 给 xkx@egroups.com
+Do you want to use BIG5 code?(y/n)
+沙滩 -
+    这里是侠客岛外的一片沙滩，海风扑面。
+    这里明显的出口是 north、east 和 west。
+  木老七（Mu laoqi）
+  店小二(Xiao er)
+  一块石头`;
+
+    const room = parseRoom(text);
+    expect(room.title).toBe("沙滩");
+    expect(room.desc).toContain("一片沙滩");
+    expect(room.desc).not.toContain("BIG5");
+    expect(room.exits?.map((e) => e.dir)).toEqual(["north", "east", "west"]);
+    expect(room.npcs?.some((n) => n.name.includes("木老七"))).toBe(true);
+    expect(room.npcs?.some((n) => n.name.includes("店小二"))).toBe(true);
+    expect(room.items?.some((i) => i.name.includes("石头"))).toBe(true);
+  });
+});
+
+describe("isLoginNoise", () => {
+  it("detects welcome and BIG5 lines", () => {
+    expect(isLoginNoise("Do you want to use BIG5 code?(y/n)")).toBe(true);
+    expect(isLoginNoise("有任何意见，请 email 给 xkx@egroups.com")).toBe(true);
+    expect(isLoginNoise("店小二说道：客官里面请")).toBe(false);
+  });
+});
+
+describe("parseEntityShort", () => {
+  it("splits chinese name and english id", () => {
+    expect(parseEntityShort("木老七（Mu laoqi）")).toEqual({
+      id: "mu laoqi",
+      name: "木老七",
+      kind: "npc",
+    });
+  });
+});
+
+describe("parseSuggestedActions", () => {
+  it("extracts follow hint and labels with npc name", () => {
+    const text =
+      "木老七说道：请跟我来。\n    (follow mu laoqi)\n请快跟我来。(请键入follow mu laoqi)";
+    const npcs = [{ id: "mu laoqi", name: "木老七", kind: "npc" as const }];
+    const actions = parseSuggestedActions(text, npcs);
+    expect(actions).toEqual([
+      { command: "follow mu laoqi", label: "跟随木老七" },
+    ]);
+  });
+
+  it("extracts enter and ask hints", () => {
+    const text =
+      "快上船吧。别被别人看到了。(enter)\n(ask fu about 侠客岛)";
+    const actions = parseSuggestedActions(text, [
+      { id: "fu", name: "渔夫", kind: "npc" },
+    ]);
+    expect(actions.map((a) => a.command)).toEqual([
+      "enter",
+      "ask fu about 侠客岛",
+    ]);
+    expect(labelSuggestedAction("enter")).toBe("上船");
+    expect(labelSuggestedAction("ask fu about 侠客岛", [
+      { id: "fu", name: "渔夫", kind: "npc" },
+    ])).toBe("向渔夫打听侠客岛");
+  });
+
+  it("ignores help and unknown verbs", () => {
+    expect(parseSuggestedActions("(help rules) (foobar baz)")).toEqual([]);
+  });
+});
+
+describe("parseRoom inventory ids", () => {
+  it("stores english id separately for follow", () => {
+    const text = `沙滩 -
+    这里是沙滩。
+    这里明显的出口是 north。
+  木老七（Mu laoqi）`;
+    const room = parseRoom(text);
+    expect(room.npcs?.[0]).toMatchObject({
+      id: "mu laoqi",
+      name: "木老七",
+    });
   });
 });
 

@@ -30,6 +30,12 @@ export interface Entity {
   kind: "npc" | "item";
 }
 
+/** Context action hinted by room/NPC text (e.g. follow mu laoqi). */
+export interface SuggestedAction {
+  label: string;
+  command: string;
+}
+
 export interface RoomState {
   title?: string;
   desc?: string;
@@ -92,6 +98,7 @@ export interface GameState {
   playerName: string;
   vitals: Vitals;
   room: RoomState;
+  suggestedActions: SuggestedAction[];
   logs: LogEntry[];
   lookText: string;
   scoreText: string;

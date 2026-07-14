@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GUIDE_STEPS } from "../data/maps";
 import {
+  extractLookBlock,
   isCombatLine,
+  isLoginNoise,
   isTrainLine,
+  mergeSuggestedActions,
   parseHp,
   parseInventory,
   parseRoom,
   parseSkills,
+  parseSuggestedActions,
 } from "../lib/parser";
 import { applyEvent } from "../lib/protocol";
 import type {
@@ -24,6 +28,7 @@ const initialState = (): GameState => ({
   playerName: "侠客",
   vitals: {},
   room: { exits: [], npcs: [], items: [] },
+  suggestedActions: [],
   logs: [],
   lookText: "",
   scoreText: "",
@@ -43,6 +48,8 @@ let logId = 0;
 export function useGame() {
   const socket = useRef(new GameSocket());
   const textBuf = useRef("");
+  const roomFromEvent = useRef(false);
+  const enteredGame = useRef(false);
   const [state, setState] = useState<GameState>(initialState);
   const [toast, setToast] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -51,6 +58,7 @@ export function useGame() {
     name?: string;
   } | null>(null);
   const [selectedEntity, setSelectedEntity] = useState<{
+    id: string;
     name: string;
     kind: "npc" | "item";
   } | null>(null);
@@ -63,6 +71,7 @@ export function useGame() {
 
   const addLog = useCallback((text: string, kind?: LogEntry["kind"]) => {
     if (!text.trim()) return;
+    if (isLoginNoise(text)) return;
     setState((s) => ({
       ...s,
       logs: [...s.logs.slice(-80), { id: ++logId, text, kind: kind || "normal" }],
@@ -77,6 +86,20 @@ export function useGame() {
     [addLog]
   );
 
+  const enterGame = useCallback((clearBuf = true) => {
+    if (enteredGame.current) return;
+    enteredGame.current = true;
+    // ready 先于首包 text：可清空。text 回退路径已 append，勿清以免丢掉 look。
+    if (clearBuf) textBuf.current = "";
+    roomFromEvent.current = false;
+    setState((s) => ({ ...s, inGame: true }));
+    // Gateway already marks web on ready; refresh look after mark takes effect
+    setTimeout(() => {
+      socket.current.cmd("look");
+      socket.current.cmd("hp");
+    }, 350);
+  }, []);
+
   useEffect(() => {
     const offMsg = socket.current.on((msg) => {
       if (msg.type === "connected") {
@@ -89,38 +112,58 @@ export function useGame() {
         return;
       }
       if (msg.type === "disconnected") {
+        enteredGame.current = false;
+        roomFromEvent.current = false;
+        textBuf.current = "";
         setState((s) => ({ ...s, connected: false, inGame: false }));
         showToast("与服务器断开");
         return;
       }
+      if (msg.type === "ready") {
+        enterGame(true);
+        return;
+      }
       if (msg.type === "event" && msg.event) {
+        const ev = msg.event as MudEvent;
+        if (ev.type === "room.update") roomFromEvent.current = true;
         setState((s) => {
-          const applied = applyEvent(msg.event as MudEvent, s);
-          return { ...s, ...applied };
+          const applied = applyEvent(ev, s);
+          const roomChanged =
+            ev.type === "room.update" &&
+            !!applied.room.title &&
+            applied.room.title !== s.room.title;
+          return {
+            ...s,
+            ...applied,
+            inGame: true,
+            suggestedActions: roomChanged
+              ? []
+              : mergeSuggestedActions(
+                  s.suggestedActions,
+                  [],
+                  applied.room.npcs
+                ),
+          };
         });
+        if (!enteredGame.current) enterGame(false);
         return;
       }
       if (msg.type === "text" && msg.text) {
         const chunk = msg.text;
         textBuf.current += chunk;
 
-        if (/欢迎|重新连线|> $/m.test(textBuf.current)) {
-          setState((s) => {
-            if (!s.inGame) {
-              setTimeout(() => {
-                socket.current.cmd("look");
-                socket.current.cmd("hp");
-                socket.current.cmd("webassist stop");
-              }, 300);
-            }
-            return { ...s, inGame: true };
-          });
+        // Fallback if gateway did not emit ready (older build)
+        if (!enteredGame.current && /目前权限|重新连线回到这个世界/.test(textBuf.current)) {
+          enterGame(false);
         }
+
+        if (!enteredGame.current) return;
 
         const lines = chunk.split("\n").filter((l) => l.trim());
         for (const line of lines) {
           if (line.length < 2) continue;
           if (/^>{0,1}\s*$/.test(line)) continue;
+          if (isLoginNoise(line)) continue;
           if (isCombatLine(line)) {
             setState((s) => ({
               ...s,
@@ -135,16 +178,46 @@ export function useGame() {
           addLog(line);
         }
 
-        if (/这里是| obvious|明显的出口/.test(chunk) || /这里(?:有|摆着)/.test(chunk)) {
-          const room = parseRoom(textBuf.current.slice(-2000));
+        const hinted = parseSuggestedActions(chunk);
+        if (hinted.length) {
           setState((s) => ({
             ...s,
-            room: {
-              ...s.room,
-              ...room,
-              exits: room.exits?.length ? room.exits : s.room.exits,
-            },
+            suggestedActions: mergeSuggestedActions(
+              s.suggestedActions,
+              hinted,
+              s.room.npcs
+            ),
           }));
+        }
+
+        if (
+          EXIT_HINT.test(chunk) ||
+          /这里(?:有|摆着)/.test(chunk) ||
+          ROOM_TITLE_HINT.test(chunk)
+        ) {
+          // Structured room.update wins over text fallback
+          if (!roomFromEvent.current) {
+            const room = parseRoom(extractLookBlock(textBuf.current));
+            setState((s) => {
+              const roomChanged =
+                !!room.title && room.title !== s.room.title;
+              return {
+                ...s,
+                room: {
+                  ...s.room,
+                  ...room,
+                  exits: room.exits?.length ? room.exits : s.room.exits,
+                },
+                suggestedActions: roomChanged
+                  ? parseSuggestedActions(chunk, room.npcs || s.room.npcs)
+                  : mergeSuggestedActions(
+                      s.suggestedActions,
+                      hinted,
+                      room.npcs || s.room.npcs
+                    ),
+              };
+            });
+          }
         }
 
         if (/精[：:]/.test(chunk) && /气[：:]/.test(chunk)) {
@@ -157,13 +230,11 @@ export function useGame() {
         }
         if (/所学过的|武功|技能/.test(chunk) || /初学乍练|粗通皮毛/.test(chunk)) {
           const skills = parseSkills(textBuf.current.slice(-4000));
-          if (skills.length)
-            setState((s) => ({ ...s, skills }));
+          if (skills.length) setState((s) => ({ ...s, skills }));
         }
         if (/目前身上|携带|物品/.test(chunk)) {
           const inventory = parseInventory(textBuf.current.slice(-4000));
-          if (inventory.length)
-            setState((s) => ({ ...s, inventory }));
+          if (inventory.length) setState((s) => ({ ...s, inventory }));
         }
       }
     });
@@ -176,7 +247,7 @@ export function useGame() {
       offMsg();
       offStatus();
     };
-  }, [addLog, showToast]);
+  }, [addLog, showToast, enterGame]);
 
   const login = useCallback(
     (opts: {
@@ -187,8 +258,11 @@ export function useGame() {
       register?: boolean;
     }) => {
       setLoginError("");
+      enteredGame.current = false;
+      roomFromEvent.current = false;
+      textBuf.current = "";
       socket.current.login(opts);
-      setState((s) => ({ ...s, playerName: opts.name || opts.id }));
+      setState((s) => ({ ...s, playerName: opts.name || opts.id, inGame: false }));
     },
     []
   );
@@ -224,6 +298,8 @@ export function useGame() {
 
   const confirmGo = useCallback(
     (dir: string) => {
+      roomFromEvent.current = false;
+      setState((s) => ({ ...s, suggestedActions: [] }));
       cmd(`go ${dir}`);
       closeSheet();
       if (state.guideStep === 2) {
@@ -278,3 +354,6 @@ export function useGame() {
     refreshCharacter,
   };
 }
+
+const EXIT_HINT = /明显的出口|唯一的出口|没有任何明显的出路/;
+const ROOM_TITLE_HINT = /^.+?\s*-\s*$/m;

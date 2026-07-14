@@ -30,8 +30,9 @@ const GIFT_PROMPT = /接受这一组天赋|同意这一组天赋/;
 const EMAIL_PROMPT = /电子邮件地址/;
 const GENDER_PROMPT = /男性\(m\).*女性\(f\)|只能选择男性\(m\)或女性\(f\)/;
 const RELOGIN_PROMPT = /赶出去，取而代之/;
+// enter_world writes「目前权限」before MOTD/look; reconnect uses「重新连线」
 const IN_GAME_HINT =
-  /重新连线|进入世界|欢迎你来到|欢迎再次|进入游戏|目前所在/m;
+  /目前权限|重新连线|进入世界|欢迎你来到|欢迎再次|进入游戏|目前所在/m;
 
 function genderReply(gender) {
   if (gender === "女" || gender === "female" || gender === "f") return "f\n";

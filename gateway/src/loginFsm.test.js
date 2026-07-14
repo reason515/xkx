@@ -82,10 +82,23 @@ describe("LoginFsm", () => {
     assert.equal(fsm.onOutput("more text"), null);
   });
 
+  it("transitions to in_game on 目前权限 from enter_world", () => {
+    const fsm = new LoginFsm({ id: "hero", password: "secret" });
+    fsm.state = LoginState.PASSWORD;
+    fsm.onOutput("\n目前权限：(player)\n");
+    assert.equal(fsm.isInGame(), true);
+  });
+
   it("does not treat lone prompt as in-game during login", () => {
     const fsm = new LoginFsm({ id: "hero", password: "secret" });
     fsm.state = LoginState.BIG5;
     fsm.onOutput("Ok, use GB code.\n\n> ");
+    assert.equal(fsm.isInGame(), false);
+  });
+
+  it("does not treat BIG5 banner as in-game", () => {
+    const fsm = new LoginFsm({ id: "hero", password: "secret" });
+    fsm.onOutput("Do you want to use BIG5 code?(y/n)\n");
     assert.equal(fsm.isInGame(), false);
   });
 
