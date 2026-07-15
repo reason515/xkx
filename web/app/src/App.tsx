@@ -49,13 +49,17 @@ function EventLog({ logs }: { logs: LogEntry[] }) {
       </div>
       <div aria-live="polite" aria-relevant="additions text">
         {logs.slice(-20).map((l) => (
-          <p
-            key={l.id}
-            className={l.kind === "combat" ? "hl" : ""}
-            {...(l.html ? { dangerouslySetInnerHTML: { __html: l.html } } : {})}
-          >
-            {!l.html && l.text}
-          </p>
+          l.html ? (
+            <p
+              key={l.id}
+              className={l.kind === "combat" ? "hl" : ""}
+              dangerouslySetInnerHTML={{ __html: l.html }}
+            />
+          ) : (
+            <p key={l.id} className={l.kind === "combat" ? "hl" : ""}>
+              {l.text}
+            </p>
+          )
         ))}
       </div>
     </section>
