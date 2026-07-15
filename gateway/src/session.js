@@ -97,6 +97,10 @@ export class MudSession extends EventEmitter {
       if (!this.markedWeb) {
         this.markedWeb = true;
         this.send("webassist stop");
+        // Re-look after mark so starter rooms emit room.update (first look may race)
+        setTimeout(() => {
+          if (!this.closed) this.send("look");
+        }, 500);
       }
     }
 

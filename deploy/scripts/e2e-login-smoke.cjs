@@ -94,13 +94,24 @@ function sendCmd(cmd) {
 
 function tryFollow() {
   if (sentFollow || SKIP_FOLLOW || MODE !== "register") return;
-  const m = buf.match(/follow\s+(zhang san|li si)/i);
-  if (!m) return;
-  followTarget = m[1].toLowerCase();
+  // Prefer explicit hint; else infer from look inventory (问候可能落在 ready 前被吞)
+  const hinted = buf.match(/follow\s+(zhang san|li si)/i);
+  let target = hinted ? hinted[1].toLowerCase() : "";
+  if (!target) {
+    if (/张三\s*\(\s*Zhang san\s*\)/i.test(buf) || /Zhang san/i.test(buf)) {
+      target = "zhang san";
+    } else if (/李四\s*\(\s*Li si\s*\)/i.test(buf) || /Li si/i.test(buf)) {
+      target = "li si";
+    }
+  }
+  if (!target || !/沙滩/.test(buf)) return;
+  followTarget = target;
   sentFollow = true;
   phase = "follow";
   console.log("follow", followTarget);
   sendCmd(`follow ${followTarget}`);
+  // 传送约 5s；之后再 look 以拿到挂名处 room.update
+  setTimeout(() => sendCmd("look"), 6000);
 }
 
 function checkPass() {
@@ -165,7 +176,8 @@ ws.on("message", (raw) => {
   if (msg.type === "ready") {
     gotReady = true;
     phase = "beach";
-    setTimeout(() => sendCmd("look"), 400);
+    // 等 webassist mark_web 生效后再 look，避免 look 抢在 mark 之前导致无 room.update
+    setTimeout(() => sendCmd("look"), 1200);
   }
   if (msg.type === "event" && msg.event?.type === "room.update") {
     gotRoom = true;
