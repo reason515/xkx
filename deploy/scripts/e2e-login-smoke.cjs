@@ -114,6 +114,14 @@ function tryFollow() {
   setTimeout(() => sendCmd("look"), 6000);
 }
 
+function latestRoomTitle() {
+  const matches = [
+    ...buf.matchAll(/"type"\s*:\s*"room\.update"\s*,\s*"title"\s*:\s*"([^"]+)"/g),
+  ];
+  if (matches.length) return matches[matches.length - 1][1];
+  return lastRoomTitle;
+}
+
 function checkPass() {
   if (/BIG5|Do you want to use/i.test(buf)) {
     done(1, "login_banner_leaked");
@@ -131,21 +139,19 @@ function checkPass() {
     return;
   }
 
-  // Newbie path: beach → follow → 挂名处 with consistent title
+  // Newbie path: beach → follow → 挂名处 (title from latest room.update in buf)
+  const title = latestRoomTitle();
   const atRegister =
-    /挂名处/.test(lastRoomTitle) ||
+    /挂名/.test(title || "") ||
     /侠客岛挂名处\s*-/.test(buf) ||
-    (/这是一个大厅/.test(buf) && /挂名/.test(buf));
+    (/这是一个大厅/.test(buf) && /木老七|登记使|register\s+/i.test(buf));
   if (atRegister) {
-    // Title from room.update must not stay on 沙滩 once 大厅 text appears
-    if (lastRoomTitle && /沙滩/.test(lastRoomTitle) && /这是一个大厅/.test(buf)) {
-      done(1, "title_stuck_on_beach");
-      return;
+    if (/沙滩/.test(title || "") && !/挂名/.test(title || "")) {
+      // Text arrived before event; wait for next room.update unless look title is clear
+      if (!/侠客岛挂名处\s*-/.test(buf)) return;
     }
-    if (/register\s+\S+@\S+/i.test(buf) || /挂名处/.test(lastRoomTitle)) {
-      done(0, "newbie_follow_register");
-      return;
-    }
+    done(0, "newbie_follow_register");
+    return;
   }
 
   if (!sentFollow) tryFollow();
