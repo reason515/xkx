@@ -125,7 +125,7 @@ test.describe("smoke", () => {
     await expect(page.locator(".room-title")).not.toHaveText("…", {
       timeout: 90_000,
     });
-    const err = page.locator(".login-error, .error, [role='alert']");
+    const err = page.locator(".login-form .err");
     if ((await err.count()) > 0) {
       await expect(err.first()).not.toContainText(/密码错误/);
     }
