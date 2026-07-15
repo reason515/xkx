@@ -5,6 +5,7 @@ export interface WsMessage {
   type: string;
   text?: string;
   html?: string;
+  htmlLines?: string[];
   event?: Record<string, unknown>;
   message?: string;
   sessionId?: string;

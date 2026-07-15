@@ -87,4 +87,11 @@ describe("stripJsonFrames", () => {
   it("leaves normal text unchanged", () => {
     assert.equal(stripJsonFrames("你好\n世界"), "你好\n世界");
   });
+
+  it("preserves ANSI in player text for the presentation conversion", () => {
+    const cleaned = stripJsonFrames(
+      "\x1b[31m警讯\x1b[0m@@JSON@@{\"type\":\"room.update\"}@@ENDJSON@@"
+    );
+    assert.equal(cleaned, "\x1b[31m警讯\x1b[0m");
+  });
 });

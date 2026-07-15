@@ -131,8 +131,38 @@ button {
 .main {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow: hidden;
   padding: 14px 16px 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.game-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scene-panel,
+.log-panel {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.log-panel {
+  flex: 0 1 38%;
+  margin: 0;
+  padding: 0 2px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.scene-panel {
+  flex: 1 1 62%;
+  padding: 2px 2px 14px;
 }
 
 .room-title {
@@ -190,9 +220,31 @@ button {
 }
 
 .log {
-  margin-top: 18px;
-  padding-top: 14px;
-  border-top: 1px solid var(--line);
+  color: var(--paper-dim);
+}
+
+.log-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+.log h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.18em;
+}
+
+.log-head button {
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: var(--jade-bright);
+  background: rgba(95, 143, 120, 0.12);
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .log p {
@@ -200,6 +252,73 @@ button {
   line-height: 1.7;
   color: rgba(232, 223, 208, 0.7);
   margin-bottom: 6px;
+}
+
+.log p.hl,
+.log .mud-fg-danger {
+  color: var(--cinnabar);
+}
+
+.log .mud-fg-jade {
+  color: var(--jade-bright);
+}
+
+.log .mud-fg-gold {
+  color: var(--stat-food);
+}
+
+.log .mud-fg-spirit {
+  color: var(--stat-jing);
+}
+
+.log .mud-fg-exp {
+  color: var(--stat-exp);
+}
+
+.log .mud-fg-cyan {
+  color: var(--mastery-4);
+}
+
+.log .mud-fg-paper {
+  color: var(--paper);
+}
+
+.log .mud-fg-dim {
+  color: var(--paper-dim);
+}
+
+.log .mud-bold {
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .phone {
+    max-width: 1040px;
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+  }
+
+  .game-body {
+    flex-direction: row;
+    gap: 20px;
+  }
+
+  .log-panel,
+  .scene-panel {
+    flex: 1 1 0;
+  }
+
+  .log-panel {
+    order: 2;
+    padding: 2px 0 14px 20px;
+    border-bottom: 0;
+    border-left: 1px solid var(--line);
+  }
+
+  .scene-panel {
+    order: 1;
+    padding-right: 4px;
+  }
 }
 
 .dock {

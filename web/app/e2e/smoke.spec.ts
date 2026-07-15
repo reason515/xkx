@@ -125,6 +125,53 @@ test.describe("smoke", () => {
     }
   });
 
+  test("手机端见闻置顶且与场景独立滚动", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page);
+
+    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
+    const layout = await page.evaluate(() => {
+      const body = document.querySelector(".game-body");
+      const log = document.querySelector(".log-panel");
+      const scene = document.querySelector(".scene-panel");
+      if (!body || !log || !scene) return null;
+      const logRect = log.getBoundingClientRect();
+      const sceneRect = scene.getBoundingClientRect();
+      return {
+        direction: getComputedStyle(body).flexDirection,
+        logAboveScene: logRect.top < sceneRect.top,
+        logScrollable: log.scrollHeight >= log.clientHeight,
+        sceneScrollable: scene.scrollHeight >= scene.clientHeight,
+      };
+    });
+    expect(layout).toEqual({
+      direction: "column",
+      logAboveScene: true,
+      logScrollable: true,
+      sceneScrollable: true,
+    });
+  });
+
+  test("桌面端场景与见闻并列", async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await loginAsNewbie(page);
+
+    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
+    const layout = await page.evaluate(() => {
+      const body = document.querySelector(".game-body");
+      const log = document.querySelector(".log-panel");
+      const scene = document.querySelector(".scene-panel");
+      if (!body || !log || !scene) return null;
+      const logRect = log.getBoundingClientRect();
+      const sceneRect = scene.getBoundingClientRect();
+      return {
+        direction: getComputedStyle(body).flexDirection,
+        sideBySide: sceneRect.right <= logRect.left,
+      };
+    });
+    expect(layout).toEqual({ direction: "row", sideBySide: true });
+  });
+
   test("新注册进可走动沙滩且原密码可重登", async ({ page }) => {
     // Web 已跳过迎宾/挂名：应直接落在有出口的沙滩，密码不变可重登
     test.skip(!register && !!e2eId, "需要 XKX_E2E_REGISTER=1");

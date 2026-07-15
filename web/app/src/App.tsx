@@ -7,11 +7,59 @@ import { CombatSheet } from "./components/CombatSheet";
 import { EntitySheet } from "./components/EntitySheet";
 import { GUIDE_STEPS } from "./data/maps";
 import { useGame } from "./hooks/useGame";
-import type { ExitInfo } from "./lib/types";
+import { useEffect, useRef, useState } from "react";
+import type { ExitInfo, LogEntry } from "./lib/types";
 
 function pct(cur?: number, max?: number) {
   if (!cur || !max) return "0%";
   return `${Math.min(100, Math.round((cur / max) * 100))}%`;
+}
+
+function EventLog({ logs }: { logs: LogEntry[] }) {
+  const panelRef = useRef<HTMLElement>(null);
+  const [following, setFollowing] = useState(true);
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (panel && following) panel.scrollTop = panel.scrollHeight;
+  }, [logs, following]);
+
+  return (
+    <section
+      ref={panelRef}
+      className="log log-panel"
+      aria-label="见闻"
+      onScroll={() => {
+        const panel = panelRef.current;
+        if (!panel) return;
+        setFollowing(panel.scrollHeight - panel.scrollTop - panel.clientHeight < 24);
+      }}
+    >
+      <div className="log-head">
+        <h2>见闻</h2>
+        {!following && (
+          <button type="button" onClick={() => {
+            const panel = panelRef.current;
+            if (panel) panel.scrollTop = panel.scrollHeight;
+            setFollowing(true);
+          }}>
+            最新
+          </button>
+        )}
+      </div>
+      <div aria-live="polite" aria-relevant="additions text">
+        {logs.slice(-20).map((l) => (
+          <p
+            key={l.id}
+            className={l.kind === "combat" ? "hl" : ""}
+            {...(l.html ? { dangerouslySetInnerHTML: { __html: l.html } } : {})}
+          >
+            {!l.html && l.text}
+          </p>
+        ))}
+      </div>
+    </section>
+  );
 }
 
 export default function App() {
@@ -82,10 +130,13 @@ export default function App() {
             </div>
           )}
 
-          <h1 className="room-title">{state.room.title || "…"}</h1>
-          <p className="room-desc">{state.room.desc || "环顾四周以了解所处之地。"}</p>
+          <div className="game-body">
+            <EventLog logs={state.logs} />
+            <section className="scene-panel" aria-label="场景">
+              <h1 className="room-title">{state.room.title || "…"}</h1>
+              <p className="room-desc">{state.room.desc || "环顾四周以了解所处之地。"}</p>
 
-          <section className="context">
+              <section className="context">
             <div className="ctx-block">
               <h2>出口</h2>
               <ExitPad
@@ -164,15 +215,8 @@ export default function App() {
                 </div>
               </div>
             )}
-          </section>
-
-          <div className="log">
-            <h2>见闻</h2>
-            {state.logs.slice(-20).map((l) => (
-              <p key={l.id} className={l.kind === "combat" ? "hl" : ""}>
-                {l.text}
-              </p>
-            ))}
+              </section>
+            </section>
           </div>
         </main>
 

@@ -71,12 +71,19 @@ export function useGame() {
     setTimeout(() => setToast(""), 2200);
   }, []);
 
-  const addLog = useCallback((text: string, kind?: LogEntry["kind"]) => {
+  const addLog = useCallback((
+    text: string,
+    kind?: LogEntry["kind"],
+    html?: string
+  ) => {
     if (!text.trim()) return;
     if (isLoginNoise(text) || isProtocolNoise(text)) return;
     setState((s) => ({
       ...s,
-      logs: [...s.logs.slice(-80), { id: ++logId, text, kind: kind || "normal" }],
+      logs: [
+        ...s.logs.slice(-80),
+        { id: ++logId, text, html, kind: kind || "normal" },
+      ],
     }));
   }, []);
 
@@ -178,8 +185,10 @@ export function useGame() {
 
         if (!enteredGame.current) return;
 
-        const lines = chunk.split("\n").filter((l) => l.trim());
-        for (const line of lines) {
+        const lines = chunk.split("\n");
+        for (const [index, line] of lines.entries()) {
+          const html = msg.htmlLines?.[index];
+          if (!line.trim()) continue;
           if (line.length < 2) continue;
           if (/^>{0,1}\s*$/.test(line)) continue;
           if (isLoginNoise(line) || isProtocolNoise(line)) continue;
@@ -194,7 +203,7 @@ export function useGame() {
               trainLog: [...s.trainLog.slice(-40), line],
             }));
           }
-          addLog(line);
+          addLog(line, undefined, html);
         }
 
         const hinted = parseSuggestedActions(chunk);

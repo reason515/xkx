@@ -80,6 +80,8 @@ export interface MudEvent {
 export interface LogEntry {
   id: number;
   text: string;
+  /** Gateway-sanitized ANSI markup, never sourced directly from MUD text in the DOM. */
+  html?: string;
   kind?: "combat" | "train" | "sys" | "normal";
 }
 

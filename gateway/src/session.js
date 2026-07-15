@@ -128,8 +128,11 @@ export class MudSession extends EventEmitter {
       this.extractJsonEvents(chunkText);
       const forLog = stripJsonFrames(plain);
       if (forLog.trim()) {
-        const html = ansiToHtml(forLog);
-        this.emit("text", { text: forLog, html, raw: chunkText });
+        const rawForLog = stripJsonFrames(chunkText);
+        const htmlLines = rawForLog
+          .split("\n")
+          .map((line) => ansiToHtml(line));
+        this.emit("text", { text: forLog, htmlLines, raw: chunkText });
       }
     } else {
       // Suppress welcome/BIG5 banners; surface login failures to the UI
