@@ -35,19 +35,40 @@ const ROOM_TITLE_RE = /^(.+?)\s*-\s*\S*\s*$/;
 
 /** Pull the latest look block out of a noisy buffer (MOTD / login / prior rooms). */
 export function extractLookBlock(text: string): string {
-  const matches = [...text.matchAll(new RegExp(EXIT_LINE_RE.source, "g"))];
-  const last = matches[matches.length - 1];
-  if (!last || last.index === undefined) {
-    return text.length > 4000 ? text.slice(-4000) : text;
+  // Prefer the latest exit line (classic look), else the latest room title
+  // so rooms without exits (e.g. 挂名处 before exits were set) still update.
+  const exitMatches = [...text.matchAll(new RegExp(EXIT_LINE_RE.source, "g"))];
+  const lastExit = exitMatches[exitMatches.length - 1];
+  const titleMatches = [
+    ...text.matchAll(new RegExp(ROOM_TITLE_RE.source, "gm")),
+  ];
+  const lastTitle = titleMatches[titleMatches.length - 1];
+
+  let start = -1;
+  if (lastExit?.index !== undefined) {
+    const before = text.slice(0, lastExit.index);
+    const titlesBefore = [
+      ...before.matchAll(new RegExp(ROOM_TITLE_RE.source, "gm")),
+    ];
+    const title = titlesBefore[titlesBefore.length - 1];
+    start =
+      title?.index !== undefined
+        ? title.index
+        : Math.max(0, lastExit.index - 1200);
+    // If a newer title appears after the last exit line, that look has no exits yet
+    if (
+      lastTitle?.index !== undefined &&
+      lastTitle.index > lastExit.index
+    ) {
+      start = lastTitle.index;
+    }
+  } else if (lastTitle?.index !== undefined) {
+    start = lastTitle.index;
   }
 
-  const before = text.slice(0, last.index);
-  const titleMatches = [...before.matchAll(new RegExp(ROOM_TITLE_RE.source, "gm"))];
-  const title = titleMatches[titleMatches.length - 1];
-  const start =
-    title?.index !== undefined
-      ? title.index
-      : Math.max(0, last.index - 1200);
+  if (start < 0) {
+    return text.length > 4000 ? text.slice(-4000) : text;
+  }
 
   let block = text.slice(start);
   // Drop trailing non-look command echoes / prompts
@@ -128,11 +149,19 @@ function parseLookInventory(text: string): {
     return { npcs, items };
   }
 
-  // Real look.c: each inventory short on its own line after the exit line
+  // Real look.c: inventory shorts after the exit line; if no exit line, scan
+  // lines after the room title (no-exit rooms like 挂名处).
+  let invLines: string;
   const afterExit = text.split(EXIT_LINE_RE)[1];
-  if (!afterExit) return { npcs, items };
-  const exitTail = afterExit.replace(/^[^\n]*\n/, "");
-  for (const line of exitTail.split("\n")) {
+  if (afterExit) {
+    invLines = afterExit.replace(/^[^\n]*\n/, "");
+  } else {
+    const titleIdx = text.search(new RegExp(ROOM_TITLE_RE.source, "m"));
+    if (titleIdx < 0) return { npcs, items };
+    const afterTitle = text.slice(titleIdx).split("\n").slice(1);
+    invLines = afterTitle.join("\n");
+  }
+  for (const line of invLines.split("\n")) {
     const name = line
       .trim()
       .replace(/^挡着往.+/, "")
@@ -143,10 +172,12 @@ function parseLookInventory(text: string): {
     if (!name || name.length < 2) continue;
     if (/^>/.test(name)) break;
     if (/精[：:]|气[：:]|目前权限|上次连线/.test(name)) break;
+    // Skip long description paragraphs (no entity id)
+    if (name.length > 40 && !/\([A-Za-z]|（[A-Za-z]/.test(name)) continue;
     // Living shorts usually carry english id in () / （）
     if (/\([A-Za-z][\w\s]*\)|（[A-Za-z][\w\s]*）/.test(name)) {
       npcs.push(parseEntityShort(name, "npc"));
-    } else {
+    } else if (!/^[这那你我他她其极海阳]/.test(name)) {
       items.push(parseEntityShort(name, "item"));
     }
   }
@@ -213,6 +244,7 @@ export function isLoginNoise(line: string): boolean {
 /** Verbs commonly hinted in room/NPC text; unknown english verbs are skipped. */
 const ACTION_VERBS: Record<string, string> = {
   follow: "跟随",
+  register: "挂名登记",
   ask: "打听",
   enter: "进入",
   knock: "敲",
@@ -269,6 +301,9 @@ export function labelSuggestedAction(
 
   if (verb === "follow" && parts[1]) {
     return `${verbLabel}${displayNameForTarget(parts.slice(1).join(" "), npcs)}`;
+  }
+  if (verb === "register") {
+    return "挂名登记";
   }
   if (verb === "ask" && parts[1]) {
     const who = displayNameForTarget(parts[1], npcs);

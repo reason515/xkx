@@ -39,6 +39,22 @@ describe("applyEvent", () => {
     expect(next.room.exits[0]).toEqual({ dir: "south", label: "南", name: "客店" });
   });
 
+  it("replaces exits with empty array for no-exit rooms", () => {
+    const prev = basePrev();
+    const next = applyEvent(
+      {
+        v: 1,
+        type: "room.update",
+        title: "侠客岛挂名处",
+        long: "这是一个大厅。",
+        exits: [],
+      },
+      prev
+    );
+    expect(next.room.title).toBe("侠客岛挂名处");
+    expect(next.room.exits).toEqual([]);
+  });
+
   it("merges vitals from player.vitals event", () => {
     const prev = basePrev();
     const next = applyEvent(

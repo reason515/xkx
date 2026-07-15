@@ -80,8 +80,21 @@ export function useGame() {
 
   const cmd = useCallback(
     (command: string) => {
+      const verb = command.trim().split(/\s+/)[0]?.toLowerCase();
+      // follow/enter 会换房：清掉旧建议动作，并允许文本 look 回退更新标题
+      if (verb === "follow" || verb === "enter" || verb === "register") {
+        roomFromEvent.current = false;
+        setState((s) => ({ ...s, suggestedActions: [] }));
+      }
       socket.current.cmd(command);
       addLog(`> ${command}`, "sys");
+      // 张三传送约 5s；补一次 look，避免 room.update 迟到时标题仍停在沙滩
+      if (verb === "follow") {
+        window.setTimeout(() => {
+          roomFromEvent.current = false;
+          socket.current.cmd("look");
+        }, 5500);
+      }
     },
     [addLog]
   );
@@ -201,12 +214,17 @@ export function useGame() {
             setState((s) => {
               const roomChanged =
                 !!room.title && room.title !== s.room.title;
+              const parsedLook = EXIT_HINT.test(chunk) || roomChanged;
               return {
                 ...s,
                 room: {
                   ...s.room,
                   ...room,
-                  exits: room.exits?.length ? room.exits : s.room.exits,
+                  exits: parsedLook
+                    ? room.exits ?? []
+                    : room.exits?.length
+                      ? room.exits
+                      : s.room.exits,
                 },
                 suggestedActions: roomChanged
                   ? parseSuggestedActions(chunk, room.npcs || s.room.npcs)

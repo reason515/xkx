@@ -63,6 +63,22 @@ Do you want to use BIG5 code?(y/n)
     expect(block).toContain("沙滩");
     expect(block).toContain("木老七（Mu laoqi）");
   });
+
+  it("anchors to a newer no-exit room after an older beach look", () => {
+    const dirty = `沙滩 -
+    极目远眺，海上只见几点淡淡的帆影。
+    这里没有任何明显的出路。
+  张三(Zhang san)
+侠客岛挂名处 - 
+这是一个大厅，厅的中央是一张大桌子，桌上摆着一个厚厚的本
+子。
+  木老七（Mu laoqi）
+`;
+    const block = extractLookBlock(dirty);
+    expect(block).toContain("侠客岛挂名处");
+    expect(block).toContain("这是一个大厅");
+    expect(block).not.toMatch(/^沙滩/);
+  });
 });
 
 describe("parseRoom", () => {
@@ -99,6 +115,23 @@ Do you want to use BIG5 code?(y/n)
     expect(room.npcs?.some((n) => n.name.includes("木老七"))).toBe(true);
     expect(room.npcs?.some((n) => n.name.includes("店小二"))).toBe(true);
     expect(room.items?.some((i) => i.name.includes("石头"))).toBe(true);
+  });
+
+  it("parses 挂名处 after 沙滩 without keeping the old title", () => {
+    const text = `沙滩 -
+    极目远眺，海上只见几点淡淡的帆影。
+    这里没有任何明显的出路。
+  张三(Zhang san)
+侠客岛挂名处 - 
+这是一个大厅，厅的中央是一张大桌子。
+    这里没有任何明显的出路。
+  木老七（Mu laoqi）`;
+
+    const room = parseRoom(text);
+    expect(room.title).toBe("侠客岛挂名处");
+    expect(room.desc).toContain("这是一个大厅");
+    expect(room.exits).toEqual([]);
+    expect(room.npcs?.some((n) => n.name.includes("木老七"))).toBe(true);
   });
 });
 
@@ -149,6 +182,15 @@ describe("parseSuggestedActions", () => {
 
   it("ignores help and unknown verbs", () => {
     expect(parseSuggestedActions("(help rules) (foobar baz)")).toEqual([]);
+  });
+
+  it("extracts register hint for 挂名处", () => {
+    const text =
+      "请到这边来登个记吧。\n\t\t(register xxxxx@yyyy.zzz)\n千万不能有错";
+    const actions = parseSuggestedActions(text);
+    expect(actions).toEqual([
+      { command: "register xxxxx@yyyy.zzz", label: "挂名登记" },
+    ]);
   });
 });
 

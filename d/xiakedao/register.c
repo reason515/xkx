@@ -17,6 +17,9 @@ LONG);
                 "/d/xiakedao/npc/mux" : 1,
         ]));
 
+        // 空 exits 让 look 打出「没有任何明显的出路」，便于 Web 文本解析锚定本房间
+        set("exits", ([
+        ]));
         set("invalid_startroom", 1);
         set("no_fight", "1");
         setup();
@@ -38,7 +41,8 @@ int block_cmd()
 {
         string cmd;
         cmd = query_verb();
-        if ( cmd == "quit" || cmd == "goto" || cmd == "suicide" || cmd == "register" || cmd == "tell" || cmd == "say" || cmd == "reply" || cmd == "look")
+        // webassist/hp：Web 端结构化房间/气血；follow 已无用但勿静默吞掉造成「只回显无响应」
+        if ( cmd == "quit" || cmd == "goto" || cmd == "suicide" || cmd == "register" || cmd == "tell" || cmd == "say" || cmd == "reply" || cmd == "look" || cmd == "webassist" || cmd == "hp" || cmd == "follow" )
                 return 0;
         return 1;
 }

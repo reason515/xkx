@@ -26,7 +26,8 @@ export function applyEvent(
       next.room = {
         title: (event.title as string) || prev.room.title,
         desc: (event.long as string) || prev.room.desc,
-        exits: rawExits?.length
+        // Empty exits must replace prior room exits (no-exit rooms like 挂名处)
+        exits: Array.isArray(rawExits)
           ? rawExits.map((e) => ({
               dir: e.dir,
               label: DIR_MAP[e.dir] || e.dir,
