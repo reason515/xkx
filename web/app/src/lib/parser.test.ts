@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  beachGreeterActions,
   extractLookBlock,
   isCombatLine,
   isLoginNoise,
@@ -191,6 +192,24 @@ describe("parseSuggestedActions", () => {
     expect(actions).toEqual([
       { command: "register xxxxx@yyyy.zzz", label: "挂名登记" },
     ]);
+  });
+});
+
+describe("beachGreeterActions", () => {
+  it("offers follow when 张三 is on the beach", () => {
+    expect(
+      beachGreeterActions("沙滩", [
+        { id: "zhang san", name: "张三", kind: "npc" },
+      ])
+    ).toEqual([{ command: "follow zhang san", label: "跟随张三" }]);
+  });
+
+  it("is empty outside the beach", () => {
+    expect(
+      beachGreeterActions("侠客岛挂名处", [
+        { id: "zhang san", name: "张三", kind: "npc" },
+      ])
+    ).toEqual([]);
   });
 });
 

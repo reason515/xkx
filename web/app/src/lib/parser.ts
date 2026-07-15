@@ -382,6 +382,32 @@ export function mergeSuggestedActions(
   return [...map.values()].slice(-limit);
 }
 
+/**
+ * Newbie beach greeters (张三/李四): if their greeting was swallowed before
+ * the client entered the game, still expose a follow chip from room NPCs.
+ */
+export function beachGreeterActions(
+  roomTitle: string | undefined,
+  npcs: Entity[] = []
+): SuggestedAction[] {
+  if (!roomTitle || !/沙滩/.test(roomTitle)) return [];
+  const out: SuggestedAction[] = [];
+  for (const n of npcs) {
+    const id = (n.id || "").toLowerCase();
+    if (id === "zhang san" || id === "li si" || /张三|李四/.test(n.name)) {
+      const command = `follow ${id.includes(" ") || /^[a-z]/.test(id) ? id : n.id}`;
+      const cmd =
+        id === "zhang san" || /张三/.test(n.name)
+          ? "follow zhang san"
+          : id === "li si" || /李四/.test(n.name)
+            ? "follow li si"
+            : command;
+      out.push({ command: cmd, label: labelSuggestedAction(cmd, npcs) });
+    }
+  }
+  return out;
+}
+
 export function parseHp(text: string): Vitals {
   const v: Vitals = {};
   const jing = text.match(/精[：:]\s*(\d+)\/\s*(\d+)/);

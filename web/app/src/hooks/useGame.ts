@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GUIDE_STEPS } from "../data/maps";
 import {
+  beachGreeterActions,
   extractLookBlock,
   isCombatLine,
   isLoginNoise,
@@ -145,15 +146,19 @@ export function useGame() {
             ev.type === "room.update" &&
             !!applied.room.title &&
             applied.room.title !== s.room.title;
+          const greeter = beachGreeterActions(
+            applied.room.title,
+            applied.room.npcs
+          );
           return {
             ...s,
             ...applied,
             inGame: true,
             suggestedActions: roomChanged
-              ? []
+              ? greeter
               : mergeSuggestedActions(
                   s.suggestedActions,
-                  [],
+                  greeter,
                   applied.room.npcs
                 ),
           };
@@ -215,6 +220,11 @@ export function useGame() {
               const roomChanged =
                 !!room.title && room.title !== s.room.title;
               const parsedLook = EXIT_HINT.test(chunk) || roomChanged;
+              const npcs = room.npcs || s.room.npcs;
+              const greeter = beachGreeterActions(room.title, npcs);
+              const fromText = roomChanged
+                ? parseSuggestedActions(chunk, npcs)
+                : hinted;
               return {
                 ...s,
                 room: {
@@ -227,11 +237,11 @@ export function useGame() {
                       : s.room.exits,
                 },
                 suggestedActions: roomChanged
-                  ? parseSuggestedActions(chunk, room.npcs || s.room.npcs)
+                  ? mergeSuggestedActions(fromText, greeter, npcs)
                   : mergeSuggestedActions(
                       s.suggestedActions,
-                      hinted,
-                      room.npcs || s.room.npcs
+                      [...fromText, ...greeter],
+                      npcs
                     ),
               };
             });
