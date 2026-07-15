@@ -112,5 +112,4 @@ export interface GameState {
   assistActive: boolean;
   assistStatus: string;
   sheet: SheetKind;
-  guideStep: number;
 }

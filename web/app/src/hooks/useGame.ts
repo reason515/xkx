@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { GUIDE_STEPS } from "../data/maps";
 import {
   beachGreeterActions,
   extractLookBlock,
@@ -42,7 +41,6 @@ const initialState = (): GameState => ({
   assistActive: false,
   assistStatus: "",
   sheet: null,
-  guideStep: 0,
 });
 
 let logId = 0;
@@ -340,11 +338,8 @@ export function useGame() {
       setState((s) => ({ ...s, suggestedActions: [] }));
       cmd(`go ${dir}`);
       closeSheet();
-      if (state.guideStep === 2) {
-        setState((s) => ({ ...s, guideStep: 3 }));
-      }
     },
-    [cmd, closeSheet, state.guideStep]
+    [cmd, closeSheet]
   );
 
   const startAssist = useCallback(
@@ -361,13 +356,6 @@ export function useGame() {
     cmd("halt");
     setState((s) => ({ ...s, assistActive: false, assistStatus: "已停止" }));
   }, [cmd]);
-
-  const advanceGuide = useCallback(() => {
-    setState((s) => ({
-      ...s,
-      guideStep: Math.min(s.guideStep + 1, GUIDE_STEPS.length - 1),
-    }));
-  }, []);
 
   return {
     state,
@@ -388,7 +376,6 @@ export function useGame() {
     startAssist,
     stopAssist,
     showToast,
-    advanceGuide,
     refreshCharacter,
   };
 }

@@ -96,6 +96,7 @@ test.describe("smoke", () => {
     const roomTitle = page.locator(".room-title");
     await expect(roomTitle).toBeVisible({ timeout: 90_000 });
     await expect(roomTitle).not.toHaveText("…", { timeout: 90_000 });
+    await expect(page.getByText(/新手引导/)).toHaveCount(0);
 
     const roomDesc = page.locator(".room-desc");
     await expect(roomDesc).toBeVisible();

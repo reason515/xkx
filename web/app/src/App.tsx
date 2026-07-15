@@ -5,7 +5,6 @@ import { MapSheet } from "./components/MapSheet";
 import { TrainSheet } from "./components/TrainSheet";
 import { CombatSheet } from "./components/CombatSheet";
 import { EntitySheet } from "./components/EntitySheet";
-import { GUIDE_STEPS } from "./data/maps";
 import { useGame } from "./hooks/useGame";
 import { useEffect, useRef, useState } from "react";
 import type { ExitInfo, LogEntry } from "./lib/types";
@@ -114,26 +113,6 @@ export default function App() {
         </header>
 
         <main className="main">
-          {state.guideStep < GUIDE_STEPS.length && (
-            <div className="guide-banner">
-              新手引导 {state.guideStep + 1}/{GUIDE_STEPS.length}：{GUIDE_STEPS[state.guideStep]}
-              <button
-                type="button"
-                style={{
-                  marginLeft: 8,
-                  border: "none",
-                  background: "transparent",
-                  color: "var(--paper)",
-                  cursor: "pointer",
-                  fontSize: 12,
-                }}
-                onClick={g.advanceGuide}
-              >
-                下一步
-              </button>
-            </div>
-          )}
-
           <div className="game-body">
             <EventLog logs={state.logs} />
             <section className="scene-panel" aria-label="场景">
@@ -227,10 +206,7 @@ export default function App() {
         <footer className="dock">
           <button
             type="button"
-            onClick={() => {
-              g.cmd("look");
-              g.advanceGuide();
-            }}
+            onClick={() => g.cmd("look")}
           >
             环顾
           </button>

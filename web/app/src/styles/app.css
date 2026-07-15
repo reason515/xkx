@@ -687,12 +687,3 @@ button {
   background: linear-gradient(180deg, rgba(95, 143, 120, 0.45), rgba(60, 100, 80, 0.55));
 }
 
-.guide-banner {
-  margin-bottom: 12px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(95, 143, 120, 0.35);
-  background: rgba(95, 143, 120, 0.1);
-  font-size: 13px;
-  color: var(--jade-bright);
-}
