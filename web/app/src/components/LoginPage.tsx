@@ -1,4 +1,9 @@
 import { useState } from "react";
+import {
+  clearSavedCredentials,
+  loadSavedCredentials,
+  saveCredentials,
+} from "../lib/savedCredentials";
 
 interface Props {
   onLogin: (opts: {
@@ -11,22 +16,62 @@ interface Props {
   error?: string;
 }
 
+type Mode = "login" | "register";
+
 export function LoginPage({ onLogin, error }: Props) {
-  const [id, setId] = useState("");
-  const [password, setPassword] = useState("");
+  const [mode, setMode] = useState<Mode>("login");
+  const [id, setId] = useState(() => loadSavedCredentials()?.id ?? "");
+  const [password, setPassword] = useState(
+    () => loadSavedCredentials()?.password ?? ""
+  );
   const [name, setName] = useState("");
   const [gender, setGender] = useState("男");
-  const [register, setRegister] = useState(false);
+  const [remember, setRemember] = useState(() => Boolean(loadSavedCredentials()));
+
+  const isRegister = mode === "register";
 
   return (
     <div className="login-page">
       <h1>侠客行</h1>
       <p className="sub">轻量文字武侠 · 手机优先</p>
+
+      <div className="login-tabs" role="tablist" aria-label="登录或注册">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "login"}
+          className={mode === "login" ? "active" : undefined}
+          onClick={() => setMode("login")}
+        >
+          登录
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={mode === "register"}
+          className={mode === "register" ? "active" : undefined}
+          onClick={() => setMode("register")}
+        >
+          注册
+        </button>
+      </div>
+
       <form
         className="login-form"
         onSubmit={(e) => {
           e.preventDefault();
-          onLogin({ id, password, name: name || id, gender, register });
+          if (remember) {
+            saveCredentials({ id, password });
+          } else {
+            clearSavedCredentials();
+          }
+          onLogin({
+            id,
+            password,
+            name: name || id,
+            gender,
+            register: isRegister,
+          });
         }}
       >
         <label>
@@ -48,20 +93,12 @@ export function LoginPage({ onLogin, error }: Props) {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
+            autoComplete={isRegister ? "new-password" : "current-password"}
             required
             minLength={4}
           />
         </label>
-        <label>
-          <input
-            type="checkbox"
-            checked={register}
-            onChange={(e) => setRegister(e.target.checked)}
-          />{" "}
-          新玩家注册
-        </label>
-        {register && (
+        {isRegister && (
           <>
             <label>
               中文名字
@@ -76,8 +113,20 @@ export function LoginPage({ onLogin, error }: Props) {
             </label>
           </>
         )}
+        <label className="login-check">
+          <input
+            type="checkbox"
+            checked={remember}
+            onChange={(e) => {
+              const next = e.target.checked;
+              setRemember(next);
+              if (!next) clearSavedCredentials();
+            }}
+          />
+          记住账号和密码
+        </label>
         {error && <p className="err">{error}</p>}
-        <button type="submit">{register ? "注册并进入" : "进入游戏"}</button>
+        <button type="submit">{isRegister ? "注册并进入" : "进入游戏"}</button>
       </form>
     </div>
   );

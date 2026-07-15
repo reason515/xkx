@@ -25,16 +25,13 @@ async function loginAsNewbie(
     if (asRegister && attempt > 0) id = randomId();
     await page.goto("/");
 
-    if (asRegister) {
-      await page.getByLabel(/新玩家注册/).check();
-      await page.getByLabel("中文名字").fill("测试");
-    } else {
-      const box = page.getByLabel(/新玩家注册/);
-      if (await box.isChecked()) await box.uncheck();
-    }
+    await page.getByRole("tab", { name: asRegister ? "注册" : "登录" }).click();
 
     await page.getByLabel("账号（英文 ID）").fill(id);
     await page.getByLabel("密码").fill(password);
+    if (asRegister) {
+      await page.getByLabel("中文名字").fill("测试");
+    }
     await page
       .getByRole("button", { name: asRegister ? "注册并进入" : "进入游戏" })
       .click();
@@ -56,6 +53,41 @@ async function loginAsNewbie(
 }
 
 test.describe("smoke", () => {
+  test("勾选记住账号后刷新可回填", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("tab", { name: "登录" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.getByRole("tab", { name: "登录" }).click();
+    await page.getByLabel("账号（英文 ID）").fill("abcdef");
+    await page.getByLabel("密码").fill("Test1234");
+    await page.getByLabel("记住账号和密码").check();
+    // 提交会写入 localStorage；立刻离开，避免无效账号卡在登录连接
+    await page.getByRole("button", { name: "进入游戏" }).click();
+    await expect
+      .poll(async () =>
+        page.evaluate(() => localStorage.getItem("xkx.login.saved"))
+      )
+      .toContain("abcdef");
+
+    await page.goto("/");
+    await expect(page.getByLabel("账号（英文 ID）")).toHaveValue("abcdef");
+    await expect(page.getByLabel("密码")).toHaveValue("Test1234");
+    await expect(page.getByLabel("记住账号和密码")).toBeChecked();
+
+    await page.getByLabel("记住账号和密码").uncheck();
+    await expect
+      .poll(async () =>
+        page.evaluate(() => localStorage.getItem("xkx.login.saved"))
+      )
+      .toBeNull();
+
+    await page.goto("/");
+    await expect(page.getByLabel("账号（英文 ID）")).toHaveValue("");
+    await expect(page.getByLabel("密码")).toHaveValue("");
+    await expect(page.getByLabel("记住账号和密码")).not.toBeChecked();
+  });
+
   test("登录后可见场景且不含登录横幅", async ({ page }) => {
     await loginAsNewbie(page);
 
