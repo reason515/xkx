@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
  * Server-side login/register smoke against local gateway + MUD.
- * Register mode: 沙滩 → follow → 挂名处 → register email → re-login with same password.
+ * Register mode（默认）：进游戏即可（Web 已跳过迎宾/挂名）。
  * Env:
  *   XKX_E2E_WS   default ws://127.0.0.1:3001/ws
  *   XKX_E2E_MODE login | register (default register)
  *   XKX_E2E_ID / XKX_E2E_PASSWORD  required for login mode
- *   XKX_E2E_SKIP_FOLLOW=1  skip newbie follow / register / re-login
+ *   XKX_E2E_SKIP_FOLLOW=0  强制走旧：沙滩 → follow → 挂名 → 重登
+ *   （默认跳过跟随/挂名，等同 SKIP_FOLLOW=1）
  */
 const path = require("path");
 const WebSocket = require(
@@ -15,7 +16,7 @@ const WebSocket = require(
 
 const WS_URL = process.env.XKX_E2E_WS || "ws://127.0.0.1:3001/ws";
 const MODE = process.env.XKX_E2E_MODE || "register";
-const SKIP_FOLLOW = process.env.XKX_E2E_SKIP_FOLLOW === "1";
+const SKIP_FOLLOW = process.env.XKX_E2E_SKIP_FOLLOW !== "0";
 const TIMEOUT_MS = Number(
   process.env.XKX_E2E_TIMEOUT_MS || (MODE === "register" ? 120000 : 45000)
 );

@@ -5,6 +5,7 @@ import {
   extractLookBlock,
   isCombatLine,
   isLoginNoise,
+  isProtocolNoise,
   isTrainLine,
   mergeSuggestedActions,
   parseHp,
@@ -72,7 +73,7 @@ export function useGame() {
 
   const addLog = useCallback((text: string, kind?: LogEntry["kind"]) => {
     if (!text.trim()) return;
-    if (isLoginNoise(text)) return;
+    if (isLoginNoise(text) || isProtocolNoise(text)) return;
     setState((s) => ({
       ...s,
       logs: [...s.logs.slice(-80), { id: ++logId, text, kind: kind || "normal" }],
@@ -181,7 +182,7 @@ export function useGame() {
         for (const line of lines) {
           if (line.length < 2) continue;
           if (/^>{0,1}\s*$/.test(line)) continue;
-          if (isLoginNoise(line)) continue;
+          if (isLoginNoise(line) || isProtocolNoise(line)) continue;
           if (isCombatLine(line)) {
             setState((s) => ({
               ...s,

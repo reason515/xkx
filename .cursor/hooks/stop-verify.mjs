@@ -65,28 +65,16 @@ function runPowerShell(scriptRel) {
   );
 }
 
-function testMudTcp(host = "127.0.0.1", port = 8888) {
+/** Playwright e2e 默认打生产站；可达则跑 scripts/run-e2e-tests.ps1 */
+function testProdWeb(url = "http://119.45.224.68") {
   const r = spawnSync(
     "powershell",
     [
       "-NoProfile",
       "-Command",
-      `try { $t = New-Object Net.Sockets.TcpClient; $t.Connect('${host}',${port}); $ok=$t.Connected; $t.Close(); if($ok){exit 0}else{exit 1} } catch { exit 1 }`,
+      `try { Invoke-WebRequest -Uri '${url}' -TimeoutSec 10 -UseBasicParsing | Out-Null; exit 0 } catch { exit 1 }`,
     ],
-    { encoding: "utf8", timeout: 10_000 }
-  );
-  return r.status === 0;
-}
-
-function testGatewayHealth(url = "http://127.0.0.1:3001/health") {
-  const r = spawnSync(
-    "powershell",
-    [
-      "-NoProfile",
-      "-Command",
-      `try { Invoke-RestMethod -Uri '${url}' -TimeoutSec 5 | Out-Null; exit 0 } catch { exit 1 }`,
-    ],
-    { encoding: "utf8", timeout: 10_000 }
+    { encoding: "utf8", timeout: 15_000 }
   );
   return r.status === 0;
 }
@@ -119,18 +107,12 @@ if (unit.status !== 0) {
   process.exit(0);
 }
 
-const canE2e =
-  testMudTcp() &&
-  testGatewayHealth() &&
-  process.env.XKX_E2E_ID &&
-  process.env.XKX_E2E_PASSWORD;
-
-if (canE2e) {
+if (testProdWeb()) {
   const e2e = runPowerShell("scripts/run-e2e-tests.ps1");
   if (e2e.status !== 0) {
     const detail = [e2e.stdout, e2e.stderr].filter(Boolean).join("\n").slice(-4000);
     emit({
-      followup_message: `[xkx-testing] e2e 冒烟失败。请先阅读 .cursor/skills/xkx-testing/SKILL.md，修复问题后重新运行 scripts/run-e2e-tests.ps1。\n\n${detail}`,
+      followup_message: `[xkx-testing] e2e 冒烟失败（默认生产站）。请先阅读 .cursor/skills/xkx-testing/SKILL.md，修复问题后重新运行 scripts/run-e2e-tests.ps1。\n\n${detail}`,
     });
     process.exit(0);
   }

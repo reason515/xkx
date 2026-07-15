@@ -571,6 +571,8 @@ sudo systemctl restart xkx-gateway
 
 ### 更新代码后如何重新部署
 
+**现阶段：服务器即测试环境。** 可运行改动应部署到本机对应的公网站后再用 e2e 验证（见 `.cursor/rules/server-as-test-env.mdc`）。
+
 **推荐（root 一键，含 FluffOS `static→nosave` 补丁 + 登录 e2e 门禁）：**
 
 ```bash
@@ -597,13 +599,11 @@ chown xkx:xkx /home/xkx/bin/driver && chmod +x /home/xkx/bin/driver
 bash /opt/xkx/deploy/scripts/run-e2e-smoke.sh
 ```
 
-针对公网页面的 Playwright（在开发机，需本机有 Chromium）：
+Playwright e2e **默认打生产站**（开发机需 Chromium）：
 
 ```powershell
-$env:XKX_E2E_BASE_URL = "http://119.45.224.68"
-$env:XKX_E2E_REGISTER = "1"
-cd web\app
-npm run test:e2e
+.\scripts\run-e2e-tests.ps1
+# 等价：cd web\app; npm run test:e2e
 ```
 
 ---

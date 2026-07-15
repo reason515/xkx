@@ -441,7 +441,10 @@ private void get_email(string email, object ob, mapping my)
 		return;
 	}
 	ob->set("email", email);
-	ob->set("registered", "no");
+	if (strsrch(email, "@xkx.local") != -1)
+		ob->set("registered", "yes");
+	else
+		ob->set("registered", "no");
 
 	// If you want do race stuff, ask player to choose one here, then you can
 	// set the user's body after the question is answered. The following are
@@ -453,9 +456,12 @@ private void get_email(string email, object ob, mapping my)
 	user->set("dex", my["dex"]);
 	user->set("con", my["con"]);
 	user->set("int", my["int"]);
-	ob->set("registered", "no");
-	user->set("registered", "no");
-
+	if (ob->query("registered") == "yes") {
+		user->set("registered", "yes");
+	} else {
+		ob->set("registered", "no");
+		user->set("registered", "no");
+	}
 	write_ob(ob,"您要扮演男性(m)的角色或女性(f)的角色？");
 	input_to("get_gender", ob, user);
 }

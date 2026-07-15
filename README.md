@@ -69,9 +69,7 @@ npm run dev
 # 单元测试（gateway + web/app）
 .\scripts\run-unit-tests.ps1
 
-# e2e 冒烟（需 MUD + 网关 + 测试账号）
-$env:XKX_E2E_ID = "your_id"
-$env:XKX_E2E_PASSWORD = "your_password"
+# Playwright e2e（默认打生产站，自动随机注册）
 .\scripts\run-e2e-tests.ps1
 ```
 
@@ -80,7 +78,7 @@ $env:XKX_E2E_PASSWORD = "your_password"
 ```bash
 cd gateway && npm test
 cd web/app && npm test
-cd web/app && npm run test:e2e
+cd web/app && npm run test:e2e   # 默认 http://119.45.224.68
 ```
 
 ## 目录结构

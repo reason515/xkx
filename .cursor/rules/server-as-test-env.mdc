@@ -1,0 +1,25 @@
+---
+description: 现阶段以服务器为测试环境；改完默认部署再验，不依赖本机 MUD
+alwaysApply: true
+---
+
+# 服务器即测试环境（现阶段）
+
+本机目前**无法**稳定跑 FluffOS/MUD，因此 **把线上服务器当成测试环境**使用，不要默认假设本地能登录联调。
+
+## 强制工作流
+
+1. **改完就部署**：涉及 `web/app`、`gateway`、LPC（`adm/` `cmds/` `d/` 等会进游戏的逻辑）的可运行改动，完成后**默认部署到服务器**再验证，不要只停在本地改完。
+2. **部署后再验**：部署成功后跑 Playwright e2e（默认 `http://119.45.224.68`，见 `scripts/run-e2e-tests.ps1`）和/或服务器 `deploy/scripts/run-e2e-smoke.sh`。
+3. **推荐部署路径**：
+   - 代码已上 `origin/master` 后，在服务器执行：`bash /opt/xkx/deploy/scripts/remote-update.sh`（含门禁 smoke）。
+   - 未 push 时：先按用户许可提交/推送，或说明需用户执行部署；勿假装本地已验通。
+4. **纯文档 / 仅本地 Playwright 用例**：可不部署服务器；但若改了生产会执行的前端/网关/MUD 代码，必须部署。
+
+## 反例
+
+- 以「本地 MUD 起不来」为由跳过验证。
+- 只改代码、不部署、只口头说「应该没问题」。
+- 把生产当测试环境却故意不跑已有 e2e / smoke。
+
+细则见 `.cursor/skills/xkx-testing/SKILL.md` 与 `docs/deploy-tencentos.md`。

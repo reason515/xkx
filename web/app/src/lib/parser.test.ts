@@ -4,6 +4,7 @@ import {
   extractLookBlock,
   isCombatLine,
   isLoginNoise,
+  isProtocolNoise,
   isTrainLine,
   labelSuggestedAction,
   parseEntityShort,
@@ -141,6 +142,18 @@ describe("isLoginNoise", () => {
     expect(isLoginNoise("Do you want to use BIG5 code?(y/n)")).toBe(true);
     expect(isLoginNoise("有任何意见，请 email 给 xkx@egroups.com")).toBe(true);
     expect(isLoginNoise("店小二说道：客官里面请")).toBe(false);
+  });
+});
+
+describe("isProtocolNoise", () => {
+  it("filters JSON protocol markers and payloads", () => {
+    expect(isProtocolNoise('@@JSON@@{"v":1,"type":"room.update"}@@ENDJSON@@')).toBe(
+      true
+    );
+    expect(
+      isProtocolNoise('{"v":1,"type":"player.vitals","vitals":{"qi":1}}')
+    ).toBe(true);
+    expect(isProtocolNoise("你来到了沙滩。")).toBe(false);
   });
 });
 

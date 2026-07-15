@@ -96,7 +96,16 @@ int register_char(string who, string where)
 			tell_object(body, "您的新密码是"+pass+"\n请用新的密码连线：）\n");
 		body->set("registered", "yes");
 		body->save();
-		// 不再强制断线；Web 端挂名后应能继续玩
+		// Web：挂名完成后脱出锁房，进入可走动沙滩
+		if (body->query_temp("web_client") && pass == "(unchanged)") {
+			body->delete("block");
+			body->delete_temp("xkd/sign");
+			body->move("/d/xiakedao/shatan");
+			body->set("startroom", "/d/xiakedao/shatan");
+			tell_object(body, "登记完成，你可以在岛上自由活动了。\n");
+			"/adm/daemons/webd"->send_room(body, environment(body));
+		}
+		// 非 Web / 老流程改密：仍断线要求用新密码重登
 		if (pass != "(unchanged)")
 			destruct(body);
 	}

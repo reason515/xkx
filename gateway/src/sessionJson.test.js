@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { stripJsonFrames } from "./session.js";
 
 /**
  * Mirror of MudSession.extractJsonEvents — guards against infinite loop / OOM
@@ -63,5 +64,27 @@ describe("extractJsonEvents", () => {
     const big = "x".repeat(5000);
     extractJsonEvents(state, big);
     assert.ok(state.jsonBuffer.length <= 2000);
+  });
+});
+
+describe("stripJsonFrames", () => {
+  it("removes JSON frames so escaped newlines do not leak to 见闻", () => {
+    const raw =
+      '你来到沙滩。\n@@JSON@@{"v":1,"type":"room.update","long":"蓝蓝的大海\\n岸边"}@@ENDJSON@@\n渔夫朝你微笑。';
+    const cleaned = stripJsonFrames(raw);
+    assert.equal(cleaned.includes("@@JSON@@"), false);
+    assert.equal(cleaned.includes("@@ENDJSON@@"), false);
+    assert.equal(cleaned.includes("\\n"), false);
+    assert.match(cleaned, /你来到沙滩/);
+    assert.match(cleaned, /渔夫朝你微笑/);
+  });
+
+  it("drops incomplete frame from marker onward", () => {
+    const cleaned = stripJsonFrames('前缀@@JSON@@{"type":"room.update"');
+    assert.equal(cleaned, "前缀");
+  });
+
+  it("leaves normal text unchanged", () => {
+    assert.equal(stripJsonFrames("你好\n世界"), "你好\n世界");
   });
 });

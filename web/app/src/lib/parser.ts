@@ -241,6 +241,13 @@ export function isLoginNoise(line: string): boolean {
   );
 }
 
+/** Structured Web protocol frames / payloads that must not appear in 见闻. */
+export function isProtocolNoise(line: string): boolean {
+  return /@@JSON@@|@@ENDJSON@@|"type"\s*:\s*"(?:room\.update|player\.vitals|assist\.status|train\.event|combat\.event)"/.test(
+    line
+  );
+}
+
 /** Verbs commonly hinted in room/NPC text; unknown english verbs are skipped. */
 const ACTION_VERBS: Record<string, string> = {
   follow: "跟随",

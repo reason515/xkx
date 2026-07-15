@@ -16,26 +16,41 @@ async function loginAsNewbie(
   opts?: { id?: string; password?: string; asRegister?: boolean }
 ) {
   const asRegister = opts?.asRegister ?? (register || !e2eId);
-  const id = opts?.id ?? (asRegister || !e2eId ? randomId() : e2eId!);
+  let id = opts?.id ?? (asRegister || !e2eId ? randomId() : e2eId!);
   const password =
     opts?.password ??
     (asRegister || !e2ePassword ? "Test1234" : e2ePassword!);
 
-  await page.goto("/");
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (asRegister && attempt > 0) id = randomId();
+    await page.goto("/");
 
-  if (asRegister) {
-    await page.getByLabel(/新玩家注册/).check();
-    await page.getByLabel("中文名字").fill("测试");
-  } else {
-    const box = page.getByLabel(/新玩家注册/);
-    if (await box.isChecked()) await box.uncheck();
+    if (asRegister) {
+      await page.getByLabel(/新玩家注册/).check();
+      await page.getByLabel("中文名字").fill("测试");
+    } else {
+      const box = page.getByLabel(/新玩家注册/);
+      if (await box.isChecked()) await box.uncheck();
+    }
+
+    await page.getByLabel("账号（英文 ID）").fill(id);
+    await page.getByLabel("密码").fill(password);
+    await page
+      .getByRole("button", { name: asRegister ? "注册并进入" : "进入游戏" })
+      .click();
+
+    const rateLimited = page.locator(".login-form .err").filter({
+      hasText: /过于频繁/,
+    });
+    try {
+      await expect(rateLimited).toBeVisible({ timeout: 2_500 });
+      await page.waitForTimeout(15_000 * (attempt + 1));
+      continue;
+    } catch {
+      /* not rate-limited */
+    }
+    break;
   }
-
-  await page.getByLabel("账号（英文 ID）").fill(id);
-  await page.getByLabel("密码").fill(password);
-  await page
-    .getByRole("button", { name: asRegister ? "注册并进入" : "进入游戏" })
-    .click();
 
   return { id, password };
 }
@@ -56,6 +71,7 @@ test.describe("smoke", () => {
     const logs = await page.locator(".log p").allTextContents();
     const logBlob = logs.join("\n");
     expect(logBlob).not.toMatch(/Do you want to use BIG5/i);
+    expect(logBlob).not.toMatch(/@@JSON@@|@@ENDJSON@@/);
 
     // Optional move if exits exist
     const firstExit = page.locator(".exit-pad .cell.open").first();
@@ -75,50 +91,24 @@ test.describe("smoke", () => {
     }
   });
 
-  test("新手沙滩跟随挂名后原密码仍可重登", async ({ page }) => {
-    // 必须用新号，否则已注册角色不会落在沙滩新手链
-    test.skip(!register && !!e2eId, "需要 XKX_E2E_REGISTER=1 以走新手沙滩");
+  test("新注册进可走动沙滩且原密码可重登", async ({ page }) => {
+    // Web 已跳过迎宾/挂名：应直接落在有出口的沙滩，密码不变可重登
+    test.skip(!register && !!e2eId, "需要 XKX_E2E_REGISTER=1");
 
     const { id, password } = await loginAsNewbie(page, { asRegister: true });
 
     const roomTitle = page.locator(".room-title");
     await expect(roomTitle).toBeVisible({ timeout: 90_000 });
-    await expect(roomTitle).toHaveText(/沙滩|挂名/, { timeout: 90_000 });
+    await expect(roomTitle).toHaveText(/沙滩/, { timeout: 90_000 });
+    expect(((await roomTitle.textContent()) || "").trim()).not.toMatch(/挂名/);
 
-    const followBtn = page
-      .locator(".chips .chip.action")
-      .filter({ hasText: /跟随/ });
-    const registerBtn = page
-      .locator(".chips .chip.action")
-      .filter({ hasText: /挂名登记|register/i });
-
-    // 未自动传送时点跟随；已在挂名处则直接验标题
-    const titleNow = ((await roomTitle.textContent()) || "").trim();
-    if (/沙滩/.test(titleNow)) {
-      await expect(followBtn.first()).toBeVisible({ timeout: 60_000 });
-      const logsBefore = (await page.locator(".log p").allTextContents()).join(
-        "\n"
-      );
-      expect(logsBefore).not.toMatch(/这是一个大厅/);
-      await followBtn.first().click();
-    }
-
-    await expect(roomTitle).toHaveText(/挂名/, { timeout: 90_000 });
-    await expect(page.locator(".room-desc")).toContainText(/大厅|桌子|本子/, {
-      timeout: 30_000,
+    await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({
+      timeout: 60_000,
     });
-    await expect(registerBtn.first()).toBeVisible({ timeout: 60_000 });
-    expect(((await roomTitle.textContent()) || "").trim()).not.toMatch(/沙滩/);
 
-    await registerBtn.first().click();
+    const logs = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(logs).not.toMatch(/@@JSON@@|@@ENDJSON@@/);
 
-    await expect(async () => {
-      const logs = (await page.locator(".log p").allTextContents()).join("\n");
-      expect(logs).not.toMatch(/您的新密码是|请用新的密码连线/);
-      expect(logs).toMatch(/挂名登记完成|原来的密码|register\s+\S+@/i);
-    }).toPass({ timeout: 30_000 });
-
-    // 断开后用同一密码重新登录，不得出现「密码错误」
     await page.goto("/");
     await loginAsNewbie(page, { id, password, asRegister: false });
     await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
@@ -133,5 +123,6 @@ test.describe("smoke", () => {
       "\n"
     );
     expect(postLogs).not.toMatch(/密码错误/);
+    expect(postLogs).not.toMatch(/@@JSON@@|@@ENDJSON@@/);
   });
 });

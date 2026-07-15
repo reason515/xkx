@@ -16,6 +16,25 @@ function extractLoginError(text) {
   return "登录失败";
 }
 
+/** Strip @@JSON@@...@@ENDJSON@@ frames from text shown in 见闻. Incomplete frame: cut from marker. */
+export function stripJsonFrames(text) {
+  if (!text || !text.includes("@@JSON@@")) return text || "";
+  let out = "";
+  let rest = text;
+  while (true) {
+    const start = rest.indexOf("@@JSON@@");
+    if (start === -1) {
+      out += rest;
+      break;
+    }
+    out += rest.slice(0, start);
+    const end = rest.indexOf("@@ENDJSON@@", start);
+    if (end === -1) break;
+    rest = rest.slice(end + "@@ENDJSON@@".length);
+  }
+  return out;
+}
+
 export class MudSession extends EventEmitter {
   constructor(id, config, credentials) {
     super();
@@ -106,9 +125,12 @@ export class MudSession extends EventEmitter {
     }
 
     if (nowInGame) {
-      const html = ansiToHtml(chunkText);
-      this.emit("text", { text: plain, html, raw: chunkText });
       this.extractJsonEvents(chunkText);
+      const forLog = stripJsonFrames(plain);
+      if (forLog.trim()) {
+        const html = ansiToHtml(forLog);
+        this.emit("text", { text: forLog, html, raw: chunkText });
+      }
     } else {
       // Suppress welcome/BIG5 banners; surface login failures to the UI
       const err = extractLoginError(plain);
