@@ -140,7 +140,10 @@ test.describe("smoke", () => {
       timeout: 60_000,
     });
 
+    const itemNames = await page.locator(".chip.item").allTextContents();
+    expect(itemNames.every((n) => !/^\?+$/.test(n.trim()))).toBe(true);
     const logs = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(logs).not.toMatch(/^\?{6,}$/m);
     expect(logs).not.toMatch(/@@JSON@@|@@ENDJSON@@/);
 
     await page.goto("/");

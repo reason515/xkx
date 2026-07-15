@@ -47,8 +47,8 @@ mixed compile_object(string file)
 // master).
 void crash(string error, object command_giver, object current_object)
 {
-	efun::shout("?????????????????\n");
-	efun::shout("???????????????????\n");
+	efun::shout("系统核心发出一声惨叫：哇—哩—咧—\n");
+	efun::shout("系统核心告诉你：要当机了，自己保重吧！\n");
 	log_file("static/CRASHES", MUD_NAME + " crashed on: " + ctime(time()) +
 		", error: " + error + "\n");
 	if (command_giver)
@@ -157,7 +157,7 @@ void destruct_env_of(object ob)
 {
 	if (!interactive(ob))
 		return;
-	tell_object(ob, "????????????\n");
+	tell_object(ob, "你所存在的空间被毁灭了。\n");
 	ob->move(VOID_OB);
 }
 
@@ -209,14 +209,14 @@ string standard_trace(mapping error, int caught)
 
     /* keep track of number of errors per object...if you're into that */
 
-    res = (caught) ? "???????: " : "";
-    res = sprintf("%s\n???????%s\n???%s ? %i ?\n??: %O\n",
+    res = (caught) ? "错误讯息被拦截: " : "";
+    res = sprintf("%s\n执行时段错误：%s\n程式：%s 第 %i 行\n物件: %O\n",
     	res, error["error"],
         error["program"], error["line"],
         error["object"]);
 
     for (i=0, s = sizeof(error["trace"]); i < s; i++) {
-		res = sprintf("%s?????%s ? %s() ? %i ????? %O\n",
+		res = sprintf("%s呼叫来自：%s 的 %s() 第 %i 行，物件： %O\n",
 			res,
 			error["trace"][i]["program"],
             error["trace"][i]["function"],
@@ -233,7 +233,7 @@ string error_handler( mapping error, int caught )
 	if(wizardp(this_player(1)))
         	tell_object(this_player(1), standard_trace(error, caught));
 	else
-		tell_object(this_player(1), "[1;33m??????????????????[2;37;0m\n");
+		tell_object(this_player(1), "[1;33m你发现事情不大对了，可是又说不上来。[2;37;0m\n");
 	log_file("debug.log", (string)ALIAS_D->get_current_alias() + "\n");
     }
 

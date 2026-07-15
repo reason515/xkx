@@ -7,6 +7,8 @@
 
 inherit F_DBASE;
 
+void send_room(object me, object env);
+
 void create()
 {
 	seteuid(getuid());
@@ -32,7 +34,6 @@ void emit_raw(object me, string json)
 void emit(object me, mapping data)
 {
 	string *pairs, k, v;
-	mapping m;
 
 	if (!mapp(data)) return;
 	pairs = ({ sprintf("\"v\":1") });
@@ -75,14 +76,14 @@ void mark_web(object me)
 			tell_object(me, "已跳过挂名手续，你可以直接在岛上活动了。\n");
 			me->move("/d/xiakedao/shatan");
 			me->set("startroom", "/d/xiakedao/shatan");
-			send_room(me, environment(me));
+			this_object()->send_room(me, environment(me));
 		}
 	}
 }
 
 void send_room(object me, object env)
 {
-	mapping exits, ex;
+	mapping exits;
 	string *dirs, *elist, dir, dest;
 	object *inv, ob;
 	mapping event;

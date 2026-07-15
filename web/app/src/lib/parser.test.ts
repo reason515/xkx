@@ -119,6 +119,20 @@ Do you want to use BIG5 code?(y/n)
     expect(room.items?.some((i) => i.name.includes("石头"))).toBe(true);
   });
 
+  it("ignores question-mark-only inventory lines from garbled encoding", () => {
+    const text = `沙滩 -
+    这里是侠客岛外的一片沙滩。
+    这里明显的出口是 north。
+  渔夫(Yu fu)
+  ????????????????
+  一块石头`;
+
+    const room = parseRoom(text);
+    expect(room.npcs?.some((n) => n.name.includes("渔夫"))).toBe(true);
+    expect(room.items?.some((i) => i.name.includes("石头"))).toBe(true);
+    expect(room.items?.every((i) => !/^\?+$/.test(i.name))).toBe(true);
+  });
+
   it("parses 挂名处 after 沙滩 without keeping the old title", () => {
     const text = `沙滩 -
     极目远眺，海上只见几点淡淡的帆影。

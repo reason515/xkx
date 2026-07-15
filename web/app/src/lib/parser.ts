@@ -170,6 +170,7 @@ function parseLookInventory(text: string): {
       .replace(/坐在镖车上$/, "")
       .trim();
     if (!name || name.length < 2) continue;
+    if (/^\?+$/.test(name)) continue;
     if (/^>/.test(name)) break;
     if (/精[：:]|气[：:]|目前权限|上次连线/.test(name)) break;
     // Skip long description paragraphs (no entity id)
