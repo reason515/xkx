@@ -80,9 +80,10 @@ export class MudSession extends EventEmitter {
     if (cleanBuf.length === 0) return;
 
     const chunkText = cleanBuf.toString("utf8");
-    this.rawBuffer += chunkText;
+    // Cap retained buffers — unbounded growth OOMs the gateway under load
+    this.rawBuffer = (this.rawBuffer + chunkText).slice(-65536);
     const plain = stripAnsi(chunkText);
-    this.buffer += plain;
+    this.buffer = (this.buffer + plain).slice(-65536);
 
     const wasInGame = this.loginFsm.isInGame();
     if (!wasInGame) {
@@ -117,11 +118,18 @@ export class MudSession extends EventEmitter {
 
   extractJsonEvents(chunk) {
     this.jsonBuffer += chunk;
-    const plain = stripAnsi(this.jsonBuffer);
+    if (this.jsonBuffer.length > 200000) {
+      this.jsonBuffer = this.jsonBuffer.slice(-100000);
+    }
+    let plain = stripAnsi(this.jsonBuffer);
     let start;
     while ((start = plain.indexOf("@@JSON@@")) !== -1) {
       const end = plain.indexOf("@@ENDJSON@@", start);
-      if (end === -1) break;
+      if (end === -1) {
+        // Keep a tail so a marker split across chunks can still complete
+        this.jsonBuffer = this.jsonBuffer.slice(-8000);
+        return;
+      }
       const payload = plain.slice(start + 8, end).trim();
       try {
         const event = JSON.parse(payload);
@@ -129,8 +137,12 @@ export class MudSession extends EventEmitter {
       } catch {
         /* ignore malformed */
       }
-      this.jsonBuffer = plain.slice(end + 11);
+      // Advance past this frame — must update plain or we loop forever on one JSON
+      plain = plain.slice(end + 11);
     }
+    this.jsonBuffer = plain.includes("@@JSON@@")
+      ? plain
+      : plain.slice(-2000);
   }
 
   send(command) {
