@@ -27,7 +27,7 @@ button {
 
 .phone {
   width: 100%;
-  min-height: 100dvh;
+  height: 100dvh;
   max-width: 480px;
   margin: 0 auto;
   background: var(--ink);

@@ -134,13 +134,16 @@ test.describe("smoke", () => {
       const body = document.querySelector(".game-body");
       const log = document.querySelector(".log-panel");
       const scene = document.querySelector(".scene-panel");
-      if (!body || !log || !scene) return null;
+      const dock = document.querySelector(".dock");
+      if (!body || !log || !scene || !dock) return null;
       const logRect = log.getBoundingClientRect();
       const sceneRect = scene.getBoundingClientRect();
+      const dockRect = dock.getBoundingClientRect();
       return {
         direction: getComputedStyle(body).flexDirection,
         logAboveScene: logRect.top < sceneRect.top,
         sceneVisible: sceneRect.top < window.innerHeight,
+        sceneAboveDock: sceneRect.bottom <= dockRect.top,
         logScrollable: log.scrollHeight >= log.clientHeight,
         sceneScrollable: scene.scrollHeight >= scene.clientHeight,
       };
@@ -149,6 +152,7 @@ test.describe("smoke", () => {
       direction: "column",
       logAboveScene: true,
       sceneVisible: true,
+      sceneAboveDock: true,
       logScrollable: true,
       sceneScrollable: true,
     });

@@ -590,10 +590,38 @@ sudo systemctl restart xkx-gateway
 
 **现阶段：服务器即测试环境。** 可运行改动应部署到本机对应的公网站后再用 e2e 验证（见 `.cursor/rules/server-as-test-env.mdc`）。
 
-**推荐（root 一键，含 FluffOS `static→nosave` 补丁 + 登录 e2e 门禁）：**
+**默认方式：从开发机同步文件。** 服务器访问 GitHub 不稳定，日常部署不要依赖服务器端 `git fetch` / `remote-update.sh`。先在本地完成测试并 push 留存，再用 SSH 私钥把本次变更的文件同步到 `/opt/xkx`。
+
+前端样式或组件改动示例：
+
+```powershell
+$key = "D:\docs\tencent-cloud-key\reason515.pem"
+$hostName = "root@119.45.224.68"
+
+# 只同步本次变更的生产文件；不要上传 .git、node_modules、私钥或本地临时文件。
+scp -i $key -o IdentitiesOnly=yes `
+  D:\code\xkx\xkx2001-utf8\web\app\src\styles\app.css `
+  "${hostName}:/opt/xkx/web/app/src/styles/app.css"
+
+# 在服务器重建前端，并跑登录冒烟。
+ssh -i $key -o IdentitiesOnly=yes $hostName `
+  "chown xkx:xkx /opt/xkx/web/app/src/styles/app.css; `
+   sudo -u xkx env PATH=/home/xkx/.nvm/versions/node/v20.20.2/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin `
+   /home/xkx/.nvm/versions/node/v20.20.2/bin/npm --prefix /opt/xkx/web/app run build; `
+   bash /opt/xkx/deploy/scripts/run-e2e-smoke.sh"
+```
+
+同步规则：
+
+- Web 前端：同步改动的 `web/app` 源文件后执行 `npm run build`；Nginx 会直接提供新的 `dist`，无需重启。
+- Gateway：同步 `gateway` 文件，执行 `npm install --omit=dev`（依赖变化时）并 `systemctl restart xkx-gateway`。
+- MUD/LPC：同步改动的 LPC 文件，执行 `prepare-mudlib.sh`、`fix-static-to-nosave.py`，然后重启 MUD 与 gateway。
+- 每次同步后运行 `bash /opt/xkx/deploy/scripts/run-e2e-smoke.sh`；涉及 UI、登录、场景或出口时，再从本地执行 `.\scripts\run-e2e-tests.ps1`。
+
+**仅在文件同步不可用时**，才使用服务器 Git 拉取的一键脚本（含 FluffOS `static→nosave` 补丁 + 登录 e2e 门禁）：
 
 ```bash
-# 本地已 push 到 github.com/reason515/xkx 后，在服务器执行：
+# 本地已 push 到 github.com/reason515/xkx，且服务器能连 GitHub 时：
 bash /opt/xkx/deploy/scripts/remote-update.sh
 ```
 
