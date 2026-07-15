@@ -28,7 +28,7 @@ async function loginAsNewbie(
     await page.getByRole("tab", { name: asRegister ? "注册" : "登录" }).click();
 
     await page.getByLabel("账号（英文 ID）").fill(id);
-    await page.getByLabel("密码").fill(password);
+    await page.getByLabel("密码", { exact: true }).fill(password);
     if (asRegister) {
       await page.getByLabel("中文名字").fill("测试");
     }
@@ -60,7 +60,7 @@ test.describe("smoke", () => {
     });
     await page.getByRole("tab", { name: "登录" }).click();
     await page.getByLabel("账号（英文 ID）").fill("abcdef");
-    await page.getByLabel("密码").fill("Test1234");
+    await page.getByLabel("密码", { exact: true }).fill("Test1234");
     await page.getByLabel("记住账号和密码").check();
     // 提交会写入 localStorage；立刻离开，避免无效账号卡在登录连接
     await page.getByRole("button", { name: "进入游戏" }).click();
@@ -72,7 +72,9 @@ test.describe("smoke", () => {
 
     await page.goto("/");
     await expect(page.getByLabel("账号（英文 ID）")).toHaveValue("abcdef");
-    await expect(page.getByLabel("密码")).toHaveValue("Test1234");
+    await expect(page.getByLabel("密码", { exact: true })).toHaveValue(
+      "Test1234"
+    );
     await expect(page.getByLabel("记住账号和密码")).toBeChecked();
 
     await page.getByLabel("记住账号和密码").uncheck();
@@ -84,7 +86,7 @@ test.describe("smoke", () => {
 
     await page.goto("/");
     await expect(page.getByLabel("账号（英文 ID）")).toHaveValue("");
-    await expect(page.getByLabel("密码")).toHaveValue("");
+    await expect(page.getByLabel("密码", { exact: true })).toHaveValue("");
     await expect(page.getByLabel("记住账号和密码")).not.toBeChecked();
   });
 
