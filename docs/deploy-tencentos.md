@@ -13,6 +13,23 @@
 
 **安全原则**：只对外开放 80/443（和 SSH 22），**不要**在安全组放行 8888、3001。
 
+### 当前服务器连接信息
+
+| 项目 | 值 |
+|------|----|
+| 公网地址 / Web 站点 | `http://119.45.224.68` |
+| SSH 用户 | `root` |
+| SSH 私钥（本机，不提交仓库） | `D:\docs\tencent-cloud-key\reason515.pem` |
+| 应用目录 | `/opt/xkx` |
+
+Windows PowerShell 连接命令：
+
+```powershell
+ssh -i "D:\docs\tencent-cloud-key\reason515.pem" -o IdentitiesOnly=yes root@119.45.224.68
+```
+
+> 私钥仅保留在本机安全目录，禁止复制到仓库、提交 Git 或贴入聊天记录。
+
 ### 两个账号，别搞混
 
 | 账号 | 什么时候用 | 能 sudo 吗 |

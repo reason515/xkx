@@ -140,6 +140,7 @@ test.describe("smoke", () => {
       return {
         direction: getComputedStyle(body).flexDirection,
         logAboveScene: logRect.top < sceneRect.top,
+        sceneVisible: sceneRect.top < window.innerHeight,
         logScrollable: log.scrollHeight >= log.clientHeight,
         sceneScrollable: scene.scrollHeight >= scene.clientHeight,
       };
@@ -147,6 +148,7 @@ test.describe("smoke", () => {
     expect(layout).toEqual({
       direction: "column",
       logAboveScene: true,
+      sceneVisible: true,
       logScrollable: true,
       sceneScrollable: true,
     });
