@@ -578,9 +578,18 @@ sudo systemctl restart xkx-gateway
 bash /opt/xkx/deploy/scripts/remote-update.sh
 ```
 
-该脚本会：`git reset --hard origin/master` → 恢复 `gateway/config.json` 与 `driver` →  
+该脚本会：`git reset --hard origin/master` → 恢复 `gateway/config.json` →  
+从 **`/home/xkx/bin/driver`**（Linux ELF，勿用仓库里的 macOS `driver`）覆盖 `/opt/xkx/driver` →  
 跑 `fix-static-to-nosave.py`（**必做**，否则 `/feature/dbase` 加载失败、登录无响应）→  
 构建前端 → 重启 systemd → **跑 `deploy/scripts/run-e2e-smoke.sh`，失败则部署失败**。
+
+首次部署请先放好 Linux 驱动：
+
+```bash
+mkdir -p /home/xkx/bin
+cp /path/to/fluffos/build/src/driver /home/xkx/bin/driver
+chown xkx:xkx /home/xkx/bin/driver && chmod +x /home/xkx/bin/driver
+```
 
 仅手动检查登录链路：
 
