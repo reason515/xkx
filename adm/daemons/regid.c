@@ -77,17 +77,28 @@ int register_char(string who, string where)
         if (file_size(LOCKDATA) != -1)
                 return notify_fail("请等一会儿再来登记！\n");
 	ob->set("email", where);
-	ob->set("password", crypt(pass = random_password(), 0));
+	// Web 玩家创建角色时已自设密码；勿再改成随机串，否则「挂名登记」后无法用原密码登录。
+	// 仅当存档里没有密码时才生成临时密码（兼容极老流程）。
+	if (!stringp(ob->query("password")) || ob->query("password") == "") {
+		ob->set("password", crypt(pass = random_password(), 0));
+	} else {
+		pass = "(unchanged)";
+	}
 	ob->set("registered", "yes");
 	save_data(ob->query("id"), where, pass);
 	CHANNEL_D->do_channel(this_object(), "sys", sprintf("%s(%s)完成注册，电子邮件地址：%s", ob->query("name"), who, where));
 	if (objectp(body = find_player(who)) && geteuid(body) == who) {
 		log_file("REGISTER", sprintf("[%s] %s registered as %s from %s.\n", 
 			ctime(time()), body->query("id"), where, query_ip_name(body)));
-		tell_object(body, "您的新密码是"+pass+"\n请用新的密码连线：）\n");
+		if (pass == "(unchanged)")
+			tell_object(body, "挂名登记完成。请继续使用你原来的密码登录。\n");
+		else
+			tell_object(body, "您的新密码是"+pass+"\n请用新的密码连线：）\n");
 		body->set("registered", "yes");
 		body->save();
-		destruct(body);
+		// 不再强制断线；Web 端挂名后应能继续玩
+		if (pass != "(unchanged)")
+			destruct(body);
 	}
 	ob->save();
 	destruct(ob);
