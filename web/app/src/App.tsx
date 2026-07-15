@@ -69,6 +69,7 @@ export default function App() {
   const g = useGame();
   const { state, toast } = g;
   const v = state.vitals;
+  const [actionsOpen, setActionsOpen] = useState(false);
 
   if (!state.inGame) {
     return (
@@ -203,23 +204,41 @@ export default function App() {
           </div>
         </main>
 
-        <footer className="dock">
-          <button
-            type="button"
-            onClick={() => g.cmd("look")}
-          >
-            环顾
-          </button>
-          <button
-            type="button"
-            className={state.assistActive ? "busy" : ""}
-            onClick={() => g.openSheet("train")}
-          >
-            修炼
-          </button>
-          <button type="button" className="fight" onClick={() => g.openSheet("combat")}>
-            动手
-          </button>
+        <footer className={`dock ${actionsOpen ? "open" : "collapsed"}`}>
+          {actionsOpen ? (
+            <>
+              <button type="button" onClick={() => g.cmd("look")}>
+                环顾
+              </button>
+              <button
+                type="button"
+                className={state.assistActive ? "busy" : ""}
+                onClick={() => g.openSheet("train")}
+              >
+                修炼
+              </button>
+              <button type="button" className="fight" onClick={() => g.openSheet("combat")}>
+                动手
+              </button>
+              <button
+                type="button"
+                className="dock-handle"
+                aria-label="收起操作"
+                onClick={() => setActionsOpen(false)}
+              >
+                收起
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              className={state.assistActive ? "dock-handle busy" : "dock-handle"}
+              aria-expanded={actionsOpen}
+              onClick={() => setActionsOpen(true)}
+            >
+              {state.assistActive ? "修炼中 · 操作" : "操作"}
+            </button>
+          )}
         </footer>
       </div>
 

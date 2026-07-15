@@ -289,6 +289,27 @@ const SKIP_ACTION_VERBS = new Set([
   "l",
 ]);
 
+/** Verbs that need a target; bare `(get)`-style tutorial hints are not actionable. */
+const TARGET_REQUIRED_VERBS = new Set([
+  "get",
+  "wield",
+  "wear",
+  "open",
+  "push",
+  "pull",
+  "trap",
+  "knock",
+  "follow",
+  "ask",
+  "feed",
+  "give",
+  "drop",
+  "steal",
+  "hit",
+  "kill",
+  "accept",
+]);
+
 function displayNameForTarget(target: string, npcs: Entity[] = []): string {
   const key = target.toLowerCase();
   const npc = npcs.find(
@@ -331,16 +352,26 @@ export function labelSuggestedAction(
   return `${verbLabel}${parts.slice(1).join(" ")}`;
 }
 
+/** Split "(ask fu about 侠客岛，ask fu about 离岛)" into separate commands. */
+function splitCombinedHint(raw: string): string[] {
+  return raw
+    .split(/[,，;；]\s*(?=[a-z])/i)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
 function normalizeActionCommand(raw: string): string | null {
   const cmd = raw
     .replace(/^请键入\s*/i, "")
     .replace(/\s+/g, " ")
     .trim();
   if (!cmd || cmd.length > 80) return null;
-  const verb = cmd.split(/\s+/)[0]?.toLowerCase();
+  const parts = cmd.split(/\s+/);
+  const verb = parts[0]?.toLowerCase();
   if (!verb || !/^[a-z][a-z0-9_\-]*$/.test(verb)) return null;
   if (SKIP_ACTION_VERBS.has(verb)) return null;
   if (!ACTION_VERBS[verb]) return null;
+  if (TARGET_REQUIRED_VERBS.has(verb) && parts.length === 1) return null;
   return cmd;
 }
 
@@ -363,8 +394,10 @@ export function parseSuggestedActions(
   };
 
   // Highlighted hints: (follow mu laoqi) / (ask fu about 侠客岛)
-  for (const m of text.matchAll(/\(([a-z][a-z0-9_\-]*(?:\s+[^()\n]{0,40})?)\)/gi)) {
-    consider(m[1]);
+  for (const m of text.matchAll(/\(([a-z][a-z0-9_\-]*(?:\s+[^()\n]{0,80})?)\)/gi)) {
+    for (const part of splitCombinedHint(m[1])) {
+      consider(part);
+    }
   }
   // 「请键入 follow mu laoqi」— capture until punctuation / line end
   for (const m of text.matchAll(/请键入\s*([a-z][^。)\n\]]{0,60})/gi)) {

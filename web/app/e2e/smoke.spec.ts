@@ -11,6 +11,23 @@ function randomId() {
   return id;
 }
 
+async function waitForInGame(page: import("@playwright/test").Page) {
+  const deadline = Date.now() + 90_000;
+  while (Date.now() < deadline) {
+    const roomTitle = page.locator(".room-title");
+    if (await roomTitle.isVisible()) return;
+
+    const loginErr = page.locator(".login-form .err");
+    if (await loginErr.isVisible()) {
+      const message = ((await loginErr.textContent()) || "").trim();
+      throw new Error(message || "登录失败");
+    }
+
+    await page.waitForTimeout(500);
+  }
+  throw new Error("登录/注册超时：未进入游戏");
+}
+
 async function loginAsNewbie(
   page: import("@playwright/test").Page,
   opts?: { id?: string; password?: string; asRegister?: boolean }
@@ -21,7 +38,8 @@ async function loginAsNewbie(
     opts?.password ??
     (asRegister || !e2ePassword ? "Test1234" : e2ePassword!);
 
-  for (let attempt = 0; attempt < 4; attempt++) {
+  const maxAttempts = asRegister ? 6 : 4;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     if (asRegister && attempt > 0) id = randomId();
     await page.goto("/");
 
@@ -36,62 +54,83 @@ async function loginAsNewbie(
       .getByRole("button", { name: asRegister ? "注册并进入" : "进入游戏" })
       .click();
 
-    const rateLimited = page.locator(".login-form .err").filter({
-      hasText: /过于频繁/,
-    });
     try {
-      await expect(rateLimited).toBeVisible({ timeout: 2_500 });
-      await page.waitForTimeout(15_000 * (attempt + 1));
-      continue;
-    } catch {
-      /* not rate-limited */
+      await waitForInGame(page);
+      return { id, password };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (/过于频繁/.test(message) && attempt < maxAttempts - 1) {
+        await page.waitForTimeout(30_000 * (attempt + 1));
+        continue;
+      }
+      throw err;
     }
-    break;
   }
 
-  return { id, password };
+  throw new Error("登录/注册失败：重试次数已用尽");
 }
 
-test.describe("smoke", () => {
-  test("勾选记住账号后刷新可回填", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.getByRole("tab", { name: "登录" })).toBeVisible({
-      timeout: 15_000,
-    });
-    await page.getByRole("tab", { name: "登录" }).click();
-    await page.getByLabel("账号（英文 ID）").fill("abcdef");
-    await page.getByLabel("密码", { exact: true }).fill("Test1234");
-    await page.getByLabel("记住账号和密码").check();
-    // 提交会写入 localStorage；立刻离开，避免无效账号卡在登录连接
-    await page.getByRole("button", { name: "进入游戏" }).click();
-    await expect
-      .poll(async () =>
-        page.evaluate(() => localStorage.getItem("xkx.login.saved"))
-      )
-      .toContain("abcdef");
-
-    await page.goto("/");
-    await expect(page.getByLabel("账号（英文 ID）")).toHaveValue("abcdef");
-    await expect(page.getByLabel("密码", { exact: true })).toHaveValue(
-      "Test1234"
-    );
-    await expect(page.getByLabel("记住账号和密码")).toBeChecked();
-
-    await page.getByLabel("记住账号和密码").uncheck();
-    await expect
-      .poll(async () =>
-        page.evaluate(() => localStorage.getItem("xkx.login.saved"))
-      )
-      .toBeNull();
-
-    await page.goto("/");
-    await expect(page.getByLabel("账号（英文 ID）")).toHaveValue("");
-    await expect(page.getByLabel("密码", { exact: true })).toHaveValue("");
-    await expect(page.getByLabel("记住账号和密码")).not.toBeChecked();
+test("勾选记住账号后刷新可回填", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("tab", { name: "登录" })).toBeVisible({
+    timeout: 15_000,
   });
+  await page.getByRole("tab", { name: "登录" }).click();
+  await page.getByLabel("账号（英文 ID）").fill("abcdef");
+  await page.getByLabel("密码", { exact: true }).fill("Test1234");
+  await page.getByLabel("记住账号和密码").check();
+  // 提交会写入 localStorage；立刻离开，避免无效账号卡在登录连接
+  await page.getByRole("button", { name: "进入游戏" }).click();
+  await expect
+    .poll(async () =>
+      page.evaluate(() => localStorage.getItem("xkx.login.saved"))
+    )
+    .toContain("abcdef");
+
+  await page.goto("/");
+  await expect(page.getByLabel("账号（英文 ID）")).toHaveValue("abcdef");
+  await expect(page.getByLabel("密码", { exact: true })).toHaveValue(
+    "Test1234"
+  );
+  await expect(page.getByLabel("记住账号和密码")).toBeChecked();
+
+  await page.getByLabel("记住账号和密码").uncheck();
+  await expect
+    .poll(async () =>
+      page.evaluate(() => localStorage.getItem("xkx.login.saved"))
+    )
+    .toBeNull();
+
+  await page.goto("/");
+  await expect(page.getByLabel("账号（英文 ID）")).toHaveValue("");
+  await expect(page.getByLabel("密码", { exact: true })).toHaveValue("");
+  await expect(page.getByLabel("记住账号和密码")).not.toBeChecked();
+});
+
+test.describe.serial("game smoke", () => {
+  test.describe.configure({ timeout: 300_000 });
+
+  let sharedId = e2eId || "";
+  let sharedPassword = e2ePassword || "Test1234";
+
+  test.beforeAll(async ({ browser }) => {
+    if (e2eId && e2ePassword) return;
+    const page = await browser.newPage();
+    try {
+      const creds = await loginAsNewbie(page, { asRegister: true });
+      sharedId = creds.id;
+      sharedPassword = creds.password;
+    } finally {
+      await page.close();
+    }
+  }, { timeout: 300_000 });
 
   test("登录后可见场景且不含登录横幅", async ({ page }) => {
-    await loginAsNewbie(page);
+    await loginAsNewbie(page, {
+      id: sharedId,
+      password: sharedPassword,
+      asRegister: false,
+    });
 
     const roomTitle = page.locator(".room-title");
     await expect(roomTitle).toBeVisible({ timeout: 90_000 });
@@ -126,9 +165,13 @@ test.describe("smoke", () => {
     }
   });
 
-  test("手机端见闻置顶且与场景独立滚动", async ({ page }) => {
+  test("手机端见闻置顶、占比更高且操作可展开", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    await loginAsNewbie(page);
+    await loginAsNewbie(page, {
+      id: sharedId,
+      password: sharedPassword,
+      asRegister: false,
+    });
 
     await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
     const layout = await page.evaluate(() => {
@@ -143,25 +186,40 @@ test.describe("smoke", () => {
       return {
         direction: getComputedStyle(body).flexDirection,
         logAboveScene: logRect.top < sceneRect.top,
+        logTallerThanScene: logRect.height > sceneRect.height,
         sceneVisible: sceneRect.top < window.innerHeight,
         sceneAboveDock: sceneRect.bottom <= dockRect.top,
         logScrollable: log.scrollHeight >= log.clientHeight,
         sceneScrollable: scene.scrollHeight >= scene.clientHeight,
+        dockCollapsed: dock.classList.contains("collapsed"),
       };
     });
     expect(layout).toEqual({
       direction: "column",
       logAboveScene: true,
+      logTallerThanScene: true,
       sceneVisible: true,
       sceneAboveDock: true,
       logScrollable: true,
       sceneScrollable: true,
+      dockCollapsed: true,
     });
+
+    await page.getByRole("button", { name: "操作" }).click();
+    await expect(page.getByRole("button", { name: "环顾" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "修炼" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "动手" })).toBeVisible();
+    await page.getByRole("button", { name: "收起操作" }).click();
+    await expect(page.getByRole("button", { name: "操作" })).toBeVisible();
   });
 
   test("桌面端场景与见闻并列", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
-    await loginAsNewbie(page);
+    await loginAsNewbie(page, {
+      id: sharedId,
+      password: sharedPassword,
+      asRegister: false,
+    });
 
     await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
     const layout = await page.evaluate(() => {
@@ -193,6 +251,7 @@ test.describe("smoke", () => {
     await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({
       timeout: 60_000,
     });
+    await expect(page.getByRole("button", { name: "拿起" })).toHaveCount(0);
 
     const itemNames = await page.locator(".chip.item").allTextContents();
     expect(itemNames.every((n) => !/^\?+$/.test(n.trim()))).toBe(true);

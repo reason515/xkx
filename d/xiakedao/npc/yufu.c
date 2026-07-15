@@ -85,7 +85,7 @@ void greeting(object me)
     (get)收着。你可以先查查(i or inventory)看你现在身上有些什
     麽。你要不时地查查(hp)你的身体状态，要是饿了或渴了就去找
     些吃的喝的吧。你要是有什麽问题可以问我。
-    "+HBRED+HIW"(ask fu about 侠客岛，ask fu about 离岛)"NOR);
+    "+HBRED+HIW"(ask fu about 侠客岛)(ask fu about 离岛)"NOR);
 			me->set_temp(this_object()->query("id"), 1);
 
 		}

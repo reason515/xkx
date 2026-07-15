@@ -208,6 +208,21 @@ describe("parseSuggestedActions", () => {
     ])).toBe("向渔夫打听侠客岛");
   });
 
+  it("splits comma-joined ask hints from fisherman greeting", () => {
+    const text =
+      "你要是有什麽问题可以问我。\n(ask fu about 侠客岛，ask fu about 离岛)";
+    const npcs = [{ id: "fu", name: "渔夫", kind: "npc" as const }];
+    const actions = parseSuggestedActions(text, npcs);
+    expect(actions.map((a) => a.command)).toEqual([
+      "ask fu about 侠客岛",
+      "ask fu about 离岛",
+    ]);
+    expect(actions.map((a) => a.label)).toEqual([
+      "向渔夫打听侠客岛",
+      "向渔夫打听离岛",
+    ]);
+  });
+
   it("ignores help and unknown verbs", () => {
     expect(parseSuggestedActions("(help rules) (foobar baz)")).toEqual([]);
   });
@@ -218,6 +233,17 @@ describe("parseSuggestedActions", () => {
     const actions = parseSuggestedActions(text);
     expect(actions).toEqual([
       { command: "register xxxxx@yyyy.zzz", label: "挂名登记" },
+    ]);
+  });
+
+  it("ignores bare get from fisherman newbie tutorial on beach", () => {
+    const text =
+      "地上有什麽东西你都可以捡起来\n    (get)收着。(ask fu about 侠客岛，ask fu about 离岛)";
+    const npcs = [{ id: "fu", name: "渔夫", kind: "npc" as const }];
+    const actions = parseSuggestedActions(text, npcs);
+    expect(actions.map((a) => a.command)).toEqual([
+      "ask fu about 侠客岛",
+      "ask fu about 离岛",
     ]);
   });
 });

@@ -7,6 +7,6 @@
   "sessionTimeoutMs": 300000,
   "corsOrigins": ["https://your.domain.com", "http://your.domain.com"],
   "maxConnectionsPerIp": 5,
-  "maxRegisterPerHour": 10,
+  "maxRegisterPerHour": 30,
   "logLevel": "info"
 }
