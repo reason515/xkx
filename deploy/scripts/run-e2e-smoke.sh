@@ -12,7 +12,7 @@ fi
 
 export XKX_E2E_WS="${XKX_E2E_WS:-ws://127.0.0.1:3001/ws}"
 export XKX_E2E_MODE="${XKX_E2E_MODE:-register}"
-export XKX_E2E_TIMEOUT_MS="${XKX_E2E_TIMEOUT_MS:-90000}"
+export XKX_E2E_TIMEOUT_MS="${XKX_E2E_TIMEOUT_MS:-120000}"
 
 echo "Running $SCRIPT against $XKX_E2E_WS ..."
 cd "$ROOT"

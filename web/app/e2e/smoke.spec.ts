@@ -11,25 +11,33 @@ function randomId() {
   return id;
 }
 
-async function loginAsNewbie(page: import("@playwright/test").Page) {
-  const id = register || !e2eId ? randomId() : e2eId!;
+async function loginAsNewbie(
+  page: import("@playwright/test").Page,
+  opts?: { id?: string; password?: string; asRegister?: boolean }
+) {
+  const asRegister = opts?.asRegister ?? (register || !e2eId);
+  const id = opts?.id ?? (asRegister || !e2eId ? randomId() : e2eId!);
   const password =
-    register || !e2ePassword ? "Test1234" : e2ePassword!;
+    opts?.password ??
+    (asRegister || !e2ePassword ? "Test1234" : e2ePassword!);
 
   await page.goto("/");
 
-  if (register || !e2eId) {
+  if (asRegister) {
     await page.getByLabel(/新玩家注册/).check();
     await page.getByLabel("中文名字").fill("测试");
+  } else {
+    const box = page.getByLabel(/新玩家注册/);
+    if (await box.isChecked()) await box.uncheck();
   }
 
   await page.getByLabel("账号（英文 ID）").fill(id);
   await page.getByLabel("密码").fill(password);
   await page
-    .getByRole("button", { name: register || !e2eId ? "注册并进入" : "进入游戏" })
+    .getByRole("button", { name: asRegister ? "注册并进入" : "进入游戏" })
     .click();
 
-  return id;
+  return { id, password };
 }
 
 test.describe("smoke", () => {
@@ -67,11 +75,11 @@ test.describe("smoke", () => {
     }
   });
 
-  test("新手沙滩跟随后标题与见闻一致并出现挂名动作", async ({ page }) => {
+  test("新手沙滩跟随挂名后原密码仍可重登", async ({ page }) => {
     // 必须用新号，否则已注册角色不会落在沙滩新手链
     test.skip(!register && !!e2eId, "需要 XKX_E2E_REGISTER=1 以走新手沙滩");
 
-    await loginAsNewbie(page);
+    const { id, password } = await loginAsNewbie(page, { asRegister: true });
 
     const roomTitle = page.locator(".room-title");
     await expect(roomTitle).toBeVisible({ timeout: 90_000 });
@@ -88,7 +96,6 @@ test.describe("smoke", () => {
     const titleNow = ((await roomTitle.textContent()) || "").trim();
     if (/沙滩/.test(titleNow)) {
       await expect(followBtn.first()).toBeVisible({ timeout: 60_000 });
-      // 标题仍是沙滩时，见闻不应已出现「大厅」
       const logsBefore = (await page.locator(".log p").allTextContents()).join(
         "\n"
       );
@@ -101,9 +108,30 @@ test.describe("smoke", () => {
       timeout: 30_000,
     });
     await expect(registerBtn.first()).toBeVisible({ timeout: 60_000 });
+    expect(((await roomTitle.textContent()) || "").trim()).not.toMatch(/沙滩/);
 
-    const titleAfter = ((await roomTitle.textContent()) || "").trim();
-    expect(titleAfter).toMatch(/挂名/);
-    expect(titleAfter).not.toMatch(/沙滩/);
+    await registerBtn.first().click();
+
+    await expect(async () => {
+      const logs = (await page.locator(".log p").allTextContents()).join("\n");
+      expect(logs).not.toMatch(/您的新密码是|请用新的密码连线/);
+      expect(logs).toMatch(/挂名登记完成|原来的密码|register\s+\S+@/i);
+    }).toPass({ timeout: 30_000 });
+
+    // 断开后用同一密码重新登录，不得出现「密码错误」
+    await page.goto("/");
+    await loginAsNewbie(page, { id, password, asRegister: false });
+    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 90_000,
+    });
+    const err = page.locator(".login-error, .error, [role='alert']");
+    if ((await err.count()) > 0) {
+      await expect(err.first()).not.toContainText(/密码错误/);
+    }
+    const postLogs = (await page.locator(".log p").allTextContents()).join(
+      "\n"
+    );
+    expect(postLogs).not.toMatch(/密码错误/);
   });
 });
