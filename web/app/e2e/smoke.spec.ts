@@ -50,8 +50,8 @@ async function goByExitLabel(
     .filter({ has: page.locator(".d", { hasText: exact }) })
     .or(
       page
-        .locator(".exit-extra .chip.exit")
-        .filter({ has: page.locator(".dir", { hasText: exact }) })
+        .locator(".exit-extra .cell.open")
+        .filter({ has: page.locator(".d", { hasText: exact }) })
     )
     .first();
   await expect(cell).toBeVisible({ timeout: 15_000 });
@@ -125,8 +125,8 @@ async function hasExit(
     .filter({ has: page.locator(".d", { hasText: exact }) })
     .or(
       page
-        .locator(".exit-extra .chip.exit")
-        .filter({ has: page.locator(".dir", { hasText: exact }) })
+        .locator(".exit-extra .cell.open")
+        .filter({ has: page.locator(".d", { hasText: exact }) })
     )
     .first();
   return cell.isVisible().catch(() => false);
@@ -271,8 +271,8 @@ async function walkToDadongBoard(page: import("@playwright/test").Page) {
     if (!/瀑布/.test((await page.locator(".room-title").textContent()) || "")) {
       // 被 NPC 拖走时退回望海亭再上瀑布
       const south = page
-        .locator(".exit-extra .chip.exit")
-        .filter({ has: page.locator(".dir", { hasText: /^南下$/ }) });
+        .locator(".exit-extra .cell.open")
+        .filter({ has: page.locator(".d", { hasText: /^南下$/ }) });
       if (await south.first().isVisible().catch(() => false)) {
         await goByExitLabel(page, "南下");
       }
@@ -596,6 +596,115 @@ test.describe.serial("game smoke", () => {
     expect(logBlob).not.toMatch(/^[┌└│]/m);
     expect(logBlob).not.toMatch(/初学乍练|粗通皮毛/);
     expect(logBlob).not.toMatch(/^【[^】]{1,12}】.+\([A-Za-z]/m);
+
+    await page.getByRole("button", { name: "武功" }).click();
+    await expect
+      .poll(async () => {
+        const panel = page.locator(".panel.on");
+        if (!(await panel.count())) return "";
+        return ((await panel.first().textContent()) || "").trim();
+      }, { timeout: 15_000 })
+      .toMatch(/暂无武功数据|Lv\d+/);
+    const skillText = (
+      (await page.locator(".panel.on").first().textContent()) || ""
+    ).trim();
+    expect(skillText).not.toMatch(/指令格式|这个指令可以让你/);
+    expect(skillText).toMatch(/已激发/);
+    if (/Lv\d+/.test(skillText)) {
+      expect(skillText).toMatch(
+        /初学乍练|粗通皮毛|半生不熟|马马虎虎|驾轻就熟|出类拔萃|神乎其技|出神入化|登峰造极|一代宗师|深不可测|新学乍用|初窥门径|略知一二|已有小成|心领神会|了然|豁然贯通|举世无双|震古铄今/
+      );
+      expect(skillText).toMatch(/\d+\/\d+/);
+      expect(skillText).not.toMatch(/还差|升级/);
+      const row = page.locator(".skill-row-btn").first();
+      if (await row.count()) {
+        await row.click();
+        const actions = page.locator(".skill-actions");
+        await expect(actions).toBeVisible();
+        const actText = ((await actions.textContent()) || "").trim();
+        expect(actText).toMatch(/无需激发|激发为|卸下|准备出招|知识技能/);
+      }
+    }
+
+    await page.getByRole("button", { name: "行囊" }).click();
+    await expect
+      .poll(async () => {
+        const panel = page.locator(".panel.on");
+        if (!(await panel.count())) return "";
+        return ((await panel.first().textContent()) || "").trim();
+      }, { timeout: 15_000 })
+      .toMatch(/行囊空空如也|布衣|□/);
+    const bagText = (
+      (await page.locator(".panel.on").first().textContent()) || ""
+    ).trim();
+    expect(bagText).not.toMatch(/指令格式|可列出你|此指令可以/);
+    expect(bagText).not.toMatch(/主题目录|新手指南|常用指令/);
+
+    const clothBtn = page
+      .locator(".bag-item-btn")
+      .filter({ hasText: /布衣/ })
+      .first();
+    if (await clothBtn.count()) {
+      await clothBtn.click();
+      const actions = page.locator(".bag-item.open .skill-actions");
+      await expect(actions).toBeVisible();
+      const actText = ((await actions.textContent()) || "").trim();
+      expect(actText).toMatch(/脱下|穿上/);
+      if (/脱下/.test(actText)) {
+        await page
+          .locator(".bag-item.open .skill-act")
+          .filter({ hasText: "脱下" })
+          .click();
+        await expect
+          .poll(async () => {
+            const t = (
+              (await page.locator(".panel.on").first().textContent()) || ""
+            ).trim();
+            return t;
+          }, { timeout: 15_000 })
+          .toMatch(/布衣/);
+      }
+    }
+  });
+
+  test("查阅帮助后行囊不混入说明文案", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, {
+      id: sharedId,
+      password: sharedPassword,
+      asRegister: false,
+    });
+
+    await expect(page.getByRole("tab", { name: "见闻" })).toBeVisible({
+      timeout: 90_000,
+    });
+
+    await page.getByRole("button", { name: "帮助" }).click();
+    await page.getByRole("button", { name: "常用指令" }).click();
+    await expect
+      .poll(async () => {
+        const body = page.locator(".doc-body");
+        if (!(await body.count())) return "";
+        return ((await body.first().textContent()) || "").trim();
+      }, { timeout: 20_000 })
+      .not.toEqual("");
+
+    await page.locator(".sheet .close").click();
+    await page.locator(".hero-btn").click();
+    await page.getByRole("button", { name: "行囊" }).click();
+
+    await expect
+      .poll(async () => {
+        const panel = page.locator(".panel.on");
+        if (!(await panel.count())) return "";
+        return ((await panel.first().textContent()) || "").trim();
+      }, { timeout: 15_000 })
+      .toMatch(/行囊空空如也|布衣|□/);
+
+    const bagText = (
+      (await page.locator(".panel.on").first().textContent()) || ""
+    ).trim();
+    expect(bagText).not.toMatch(/指令格式|可列出你|此指令可以|主题目录|新手指南/);
   });
 
   test("pickup 拾起地上物品后场景列表不再显示该物", async ({ page }) => {

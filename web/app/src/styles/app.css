@@ -715,52 +715,80 @@ button {
 .exit-pad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
-  max-width: 280px;
-  margin: 0 auto 10px;
+  gap: 4px;
+  max-width: 228px;
+  margin: 0 auto 6px;
 }
 
-.exit-pad .cell {
-  min-height: 52px;
-  border-radius: 10px;
+.exit-pad .cell,
+.exit-extra .cell {
+  min-height: 40px;
+  border-radius: 8px;
   border: 1px solid var(--line);
   background: rgba(232, 223, 208, 0.04);
-  font-size: 11px;
+  font-size: 10px;
+  line-height: 1.25;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1px;
+  padding: 4px 3px;
   color: var(--paper-dim);
+  font-family: inherit;
 }
 
 .exit-pad .cell.empty {
   border: none;
   background: transparent;
-  min-height: 52px;
+  min-height: 40px;
   pointer-events: none;
 }
 
-.exit-pad .cell.open {
+.exit-pad .cell.open,
+.exit-extra .cell.open {
   border-color: rgba(95, 143, 120, 0.45);
   background: rgba(95, 143, 120, 0.12);
   color: #d5ebe0;
   cursor: pointer;
 }
 
+.exit-pad .cell.open:active,
+.exit-extra .cell.open:active {
+  background: rgba(95, 143, 120, 0.22);
+}
+
 .exit-pad .cell.here {
   border-color: rgba(181, 74, 58, 0.4);
   background: rgba(181, 74, 58, 0.15);
+  color: #f0d8d0;
 }
 
-.exit-pad .cell .d {
+.exit-pad .cell .d,
+.exit-extra .cell .d {
   font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
   color: var(--jade-bright);
+}
+
+.exit-pad .cell.here .d {
+  color: #e8b4aa;
 }
 
 .exit-extra {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  justify-content: center;
+  gap: 4px;
+  max-width: 228px;
+  margin: 0 auto;
+}
+
+.exit-extra .cell {
+  flex: 1 1 68px;
+  max-width: 110px;
+  min-width: 68px;
 }
 
 .toast {
@@ -911,6 +939,236 @@ button {
   border-radius: 99px;
   background: rgba(0, 0, 0, 0.35);
   overflow: hidden;
+}
+
+.skills-panel .skill-slots {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.skills-panel .skill-slots h4 {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: rgba(185, 173, 152, 0.75);
+  margin: 0 0 8px;
+}
+
+.skills-panel .slot-list {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+}
+
+.skills-panel .slot-list li {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 13px;
+}
+
+.skills-panel .slot-name {
+  color: var(--jade-bright);
+}
+
+.skills-panel .slot-skill {
+  color: var(--paper);
+}
+
+.skills-panel .slot-lv {
+  color: var(--paper-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.skill-hint {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--paper-dim);
+}
+
+.skill-row {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.skill-row-btn {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.skill-row-btn:active {
+  opacity: 0.85;
+}
+
+.skill-actions {
+  padding: 0 0 10px 2px;
+}
+
+.skill-act-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.skill-act {
+  border: 1px solid var(--line-strong);
+  background: rgba(95, 143, 120, 0.12);
+  color: var(--jade-bright);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.skill-act.chip.on {
+  border-color: rgba(95, 143, 120, 0.55);
+  background: rgba(95, 143, 120, 0.22);
+}
+
+.skill-act.ghost {
+  background: transparent;
+  color: var(--paper-dim);
+  margin-top: 4px;
+}
+
+.bag-item {
+  border-bottom: 1px solid var(--line);
+  padding: 4px 0;
+}
+
+.bag-item-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+
+.bag-item-btn:active {
+  opacity: 0.85;
+}
+
+.bag-name {
+  font-family: var(--font-display);
+  letter-spacing: 0.04em;
+  font-size: 14px;
+}
+
+.bag-name .eq {
+  margin-right: 4px;
+  color: var(--item-equipped);
+}
+
+.bag-kind {
+  font-size: 12px;
+  color: var(--paper-dim);
+  flex-shrink: 0;
+}
+
+.skill-row .name {
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  font-size: 14px;
+}
+
+.skill-row .eq {
+  margin-right: 4px;
+  color: var(--item-equipped);
+}
+
+.skill-row.force .skname {
+  color: var(--skill-force);
+}
+.skill-row.weapon .skname {
+  color: var(--skill-weapon);
+}
+.skill-row.dodge .skname {
+  color: var(--skill-dodge);
+}
+.skill-row.parry .skname {
+  color: var(--skill-parry);
+}
+.skill-row.knowledge .skname {
+  color: var(--skill-knowledge);
+}
+.skill-row.misc .skname {
+  color: var(--skill-misc);
+}
+
+.skill-row .meta {
+  text-align: right;
+}
+
+.skill-row .meta .mastery {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 2px;
+}
+
+.skill-row .meta .mastery.m1 {
+  color: var(--mastery-1);
+}
+.skill-row .meta .mastery.m2 {
+  color: var(--mastery-2);
+}
+.skill-row .meta .mastery.m3 {
+  color: var(--mastery-3);
+}
+.skill-row .meta .mastery.m4 {
+  color: var(--mastery-4);
+}
+.skill-row .meta .mastery.m5 {
+  color: var(--mastery-5);
+}
+.skill-row .meta .mastery.m6 {
+  color: var(--mastery-6);
+}
+
+.skill-row .meta .num {
+  font-size: 12px;
+  color: var(--paper-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.skill-row .meta .prog {
+  margin-left: 6px;
+  color: rgba(185, 173, 152, 0.75);
+}
+
+.skill-row .barline {
+  height: 4px;
+  border-radius: 99px;
+  background: rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.skill-row .barline i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--jade), var(--jade-bright));
+  border-radius: 99px;
 }
 
 .meter-fill {

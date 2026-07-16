@@ -24,6 +24,8 @@ import {
   parseScore,
   parseSkills,
   parseSuggestedActions,
+  parseSceneryFromDesc,
+  roomUtilityActions,
   reflowSoftWrappedEntries,
   shouldJoinSoftWrap,
   stripScoreBanner,
@@ -32,6 +34,12 @@ import {
   buildLearnTopicActions,
   labelLearnTopic,
   parseSkillsPanelLearnActions,
+  parseEnableMap,
+  suggestEnableSlots,
+  isBasicSkillId,
+  reconcileEnableMap,
+  classifyInvEquip,
+  bagItemActions,
 } from "./parser";
 
 describe("parseExits", () => {
@@ -404,6 +412,28 @@ describe("parseSuggestedActions", () => {
     expect(parseSuggestedActions("(foobar baz)")).toEqual([]);
   });
 
+  it("extracts sleep hint from rest room prose", () => {
+    const text =
+      "如果你累了，就可以在这里睡觉(sleep)。墙上好象贴着一张小条子(tiaozi)。";
+    expect(parseSuggestedActions(text).map((a) => a.command)).toEqual([
+      "sleep",
+    ]);
+    expect(labelSuggestedAction("sleep")).toBe("睡觉");
+  });
+
+  it("parses scenery item_desc ids into lookable items", () => {
+    const desc =
+      "如果你累了，就可以在这里睡觉(sleep)。墙上好象贴着一张小条子(tiaozi)。";
+    expect(parseSceneryFromDesc(desc)).toEqual([
+      { id: "tiaozi", name: "小条子", kind: "item" },
+    ]);
+    expect(
+      roomUtilityActions({ title: "休息室", desc, canSleep: true }).map(
+        (a) => a.command
+      )
+    ).toEqual(["sleep"]);
+  });
+
   it("extracts register hint for 挂名处", () => {
     const text =
       "请到这边来登个记吧。\n\t\t(register xxxxx@yyyy.zzz)\n千万不能有错";
@@ -720,6 +750,89 @@ describe("parseSkills", () => {
     expect(rows[0]).toMatchObject({ name: "基本拳脚", level: 50, equipped: true });
     expect(rows[1]).toMatchObject({ name: "基本剑法", level: 30, equipped: false });
   });
+
+  it("parses real skills.c boxed rows with id and mastery", () => {
+    const text = `你目前所学过的技能：（共2项技能）
+
+┌三项基本功夫    ──────────────────────┐
+│□基本轻功 (dodge)                    - 初学乍练     5/    12│
+│  基本内功 (force)                   - 粗通皮毛    40/   100│
+└────────────────────────────────┘
+`;
+    const rows = parseSkills(text);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({
+      id: "dodge",
+      name: "基本轻功",
+      level: 5,
+      learned: 12,
+      equipped: true,
+      category: "dodge",
+      mastery: 1,
+      masteryLabel: "初学乍练",
+    });
+    expect(rows[1]).toMatchObject({
+      id: "force",
+      name: "基本内功",
+      level: 40,
+      learned: 100,
+      equipped: false,
+      category: "force",
+      mastery: 2,
+      masteryLabel: "粗通皮毛",
+    });
+    // next level costs (5+1)^2 = 36
+    expect(rows[0].learned).toBeLessThan((rows[0].level + 1) ** 2);
+  });
+});
+
+describe("enable / jifa helpers", () => {
+  it("treats basic skills as non-enableable", () => {
+    expect(isBasicSkillId("force")).toBe(true);
+    expect(isBasicSkillId("dodge")).toBe(true);
+    expect(isBasicSkillId("taiji-jian")).toBe(false);
+    expect(suggestEnableSlots("force")).toEqual([]);
+    expect(suggestEnableSlots("taiji-jian")).toEqual(
+      expect.arrayContaining(["sword", "parry"])
+    );
+    expect(suggestEnableSlots("taiji-shengong")).toEqual(["force"]);
+  });
+
+  it("parses enable panel and reconciles chinese names to ids", () => {
+    const text = `以下是你目前使用中的特殊技能。
+  内功 (force)          ： 太极神功              有效等级：180
+  剑法 (sword)          ： 太极剑                有效等级：120
+  轻功 (dodge)          ： 无                    有效等级： 45
+`;
+    const raw = parseEnableMap(text);
+    expect(raw.force).toMatchObject({ name: "太极神功", level: 180 });
+    expect(raw.sword).toMatchObject({ name: "太极剑", level: 120 });
+    expect(raw.dodge).toBeUndefined();
+    const reconciled = reconcileEnableMap(raw, [
+      {
+        id: "taiji-shengong",
+        name: "太极神功",
+        level: 180,
+        learned: 0,
+        category: "force",
+        mastery: 5,
+      },
+      {
+        id: "taiji-jian",
+        name: "太极剑",
+        level: 120,
+        learned: 0,
+        category: "weapon",
+        mastery: 4,
+      },
+    ]);
+    expect(reconciled.force.skill).toBe("taiji-shengong");
+    expect(reconciled.sword.skill).toBe("taiji-jian");
+  });
+
+  it("empty enable notify yields empty map", () => {
+    expect(parseEnableMap("你现在没有使用任何特殊技能。\n")).toEqual({});
+  });
 });
 
 describe("parseInventory", () => {
@@ -730,6 +843,65 @@ describe("parseInventory", () => {
     expect(items).toHaveLength(2);
     expect(items[0]).toMatchObject({ name: "长剑", type: "武器", equipped: true });
     expect(items[1]).toMatchObject({ name: "布衣", type: "防具", equipped: false });
+  });
+
+  it("parses real inventory.c shorts with english ids", () => {
+    const text = `你身上带著下列这些东西(负重 3%)：
+□布衣(cloth)
+  米饭(rice)
+√毒针(needle)
+  长剑(changjian)
+`;
+    const items = parseInventory(text);
+    expect(items).toHaveLength(4);
+    expect(items[0]).toMatchObject({
+      id: "cloth",
+      name: "布衣",
+      equipped: true,
+      equipKind: "armor",
+    });
+    expect(items[1]).toMatchObject({
+      id: "rice",
+      name: "米饭",
+      equipped: false,
+      equipKind: "other",
+    });
+    expect(items[2]).toMatchObject({
+      id: "needle",
+      name: "毒针",
+      equipped: false,
+      embedded: true,
+    });
+    expect(items[3]).toMatchObject({
+      id: "changjian",
+      name: "长剑",
+      equipped: false,
+      equipKind: "weapon",
+    });
+    expect(bagItemActions(items[0])).toEqual([
+      { label: "脱下", command: "remove cloth" },
+    ]);
+    expect(bagItemActions(items[3])).toEqual([
+      { label: "装备", command: "wield changjian" },
+    ]);
+    expect(bagItemActions(items[1])).toEqual([]);
+    expect(bagItemActions(items[2])).toEqual([]);
+  });
+
+  it("classifies wear vs wield by id and name", () => {
+    expect(classifyInvEquip("cloth", "布衣")).toBe("armor");
+    expect(classifyInvEquip("gangdao", "钢刀")).toBe("weapon");
+    expect(classifyInvEquip("rice", "米饭")).toBe("other");
+  });
+
+  it("ignores help inventory prose", () => {
+    const help = `指令格式: inventory
+
+可列出你(你)目前身上所携带的所有物品。
+
+注 : 此指令可以 " i " 代替。
+`;
+    expect(parseInventory(help)).toEqual([]);
   });
 });
 

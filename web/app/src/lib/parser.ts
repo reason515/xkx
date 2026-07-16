@@ -1,5 +1,7 @@
 import type {
+  EnabledSkill,
   ExitInfo,
+  InvEquipKind,
   InvItem,
   RoomState,
   ScoreAttr,
@@ -234,13 +236,28 @@ export function parseRoom(text: string): Partial<RoomState> {
       if (/这里(?:有|摆着|放着)/.test(lines[i])) break;
       descLines.push(lines[i]);
     }
-    if (descLines.length) room.desc = descLines.join("\n");
+    if (descLines.length) {
+      room.desc = descLines.join("\n");
+      room.canSleep = roomAllowsSleep({
+        title: room.title,
+        desc: room.desc,
+      });
+    }
   }
 
   room.exits = parseExits(block);
   const inv = parseLookInventory(block);
   room.npcs = inv.npcs;
-  room.items = inv.items;
+  room.items = mergeRoomItems(
+    inv.items,
+    parseSceneryFromDesc(room.desc || block)
+  );
+  if (
+    room.canSleep == null &&
+    roomAllowsSleep({ title: room.title, desc: room.desc })
+  ) {
+    room.canSleep = true;
+  }
 
   return room;
 }
@@ -304,6 +321,7 @@ const ACTION_VERBS: Record<string, string> = {
   climb: "爬",
   jump: "跳",
   remove: "脱下",
+  sleep: "睡觉",
 };
 
 /** Common skill ids → Chinese when prose does not supply a name. */
@@ -479,6 +497,7 @@ export function labelSuggestedAction(
     return `${verbLabel}${parts.slice(1).join(" ")}`;
   }
   if (verb === "accept" && parts[1]) return `${verbLabel}${parts.slice(1).join(" ")}`;
+  if (verb === "sleep") return "睡觉";
   if (parts.length === 1) return verbLabel;
   return `${verbLabel}${parts.slice(1).join(" ")}`;
 }
@@ -908,6 +927,81 @@ export function waterfallPassageActions(
   ];
 }
 
+const SLEEP_TITLE_HINT = /休息室|卧室|厢房|禅房|睡房|寝室|雅房|客店/;
+
+/** Whether this room likely allows `sleep` (LPC flag or title/desc). */
+export function roomAllowsSleep(room: {
+  title?: string;
+  desc?: string;
+  canSleep?: boolean;
+}): boolean {
+  if (room.canSleep) return true;
+  if (room.title && SLEEP_TITLE_HINT.test(room.title)) return true;
+  if (room.desc && /睡觉\s*[（(]\s*sleep\s*[）)]|\(sleep\)|可以在这里睡觉|在这里睡觉/.test(room.desc))
+    return true;
+  return false;
+}
+
+/** Room-scoped utility chips (sleep 等)，不依赖见闻里刚刷出的提示。 */
+export function roomUtilityActions(room: {
+  title?: string;
+  desc?: string;
+  canSleep?: boolean;
+}): SuggestedAction[] {
+  if (!roomAllowsSleep(room)) return [];
+  return [{ command: "sleep", label: "睡觉" }];
+}
+
+/**
+ * Scenery in room long / item_desc hints: 小条子(tiaozi) → lookable item chip.
+ * Skips known action verbs like sleep / enter.
+ */
+export function parseSceneryFromDesc(desc: string): Entity[] {
+  if (!desc) return [];
+  const found = new Map<string, Entity>();
+  const addScenery = (idRaw: string, name: string) => {
+    const id = idRaw.toLowerCase();
+    if (ACTION_VERBS[id] || SKIP_ACTION_VERBS.has(id) || DIR_MAP[id]) return;
+    if (NON_SKILL_IDS.has(id) || found.has(id)) return;
+    found.set(id, { id, name, kind: "item" });
+  };
+  // …一张小条子(tiaozi) — measure word helps cut the noun
+  for (const m of desc.matchAll(
+    /[一两几數数]?[张条个块面扇座间片本封只株棵]([\u4e00-\u9fff]{2,6})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
+  )) {
+    addScenery(m[2], m[1]);
+  }
+  // 告示牌(board) / 石碑(stele) without measure word
+  for (const m of desc.matchAll(
+    /([\u4e00-\u9fff]{2,4})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
+  )) {
+    addScenery(m[2], m[1]);
+  }
+  // bare (tiaozi) without chinese label (avoid matching 条子(tiaozi) twice)
+  for (const m of desc.matchAll(
+    /(^|[^（(\u4e00-\u9fff])\(([a-z][a-z0-9_\-]{1,30})\)/gi
+  )) {
+    const id = m[2].toLowerCase();
+    if (ACTION_VERBS[id] || SKIP_ACTION_VERBS.has(id) || DIR_MAP[id]) continue;
+    if (NON_SKILL_IDS.has(id) || found.has(id)) continue;
+    found.set(id, { id, name: id, kind: "item" });
+  }
+  return [...found.values()];
+}
+
+export function mergeRoomItems(
+  items: Entity[],
+  scenery: Entity[]
+): Entity[] {
+  const map = new Map<string, Entity>();
+  for (const it of items) map.set(it.id.toLowerCase(), it);
+  for (const it of scenery) {
+    const key = it.id.toLowerCase();
+    if (!map.has(key)) map.set(key, it);
+  }
+  return [...map.values()];
+}
+
 export function parseHp(text: string): Vitals {
   const v: Vitals = {};
   const jing = text.match(/精[：:]\s*(\d+)\/\s*(\d+)/);
@@ -952,19 +1046,115 @@ export function parseHp(text: string): Vitals {
   return v;
 }
 
+const MASTERY_RANK: Record<string, number> = {
+  初学乍练: 1,
+  新学乍用: 1,
+  粗通皮毛: 2,
+  初窥门径: 2,
+  半生不熟: 2,
+  略知一二: 2,
+  马马虎虎: 3,
+  驾轻就熟: 3,
+  已有小成: 3,
+  出类拔萃: 4,
+  心领神会: 4,
+  神乎其技: 4,
+  了然於胸: 4,
+  了然于胸: 4,
+  出神入化: 5,
+  豁然贯通: 5,
+  登峰造极: 5,
+  举世无双: 5,
+  一代宗师: 6,
+  震古铄今: 6,
+  深不可测: 6,
+};
+
+const WEAPON_SKILL_IDS = new Set([
+  "sword",
+  "blade",
+  "stick",
+  "staff",
+  "whip",
+  "hammer",
+  "axe",
+  "spear",
+  "club",
+  "pike",
+  "hook",
+  "throwing",
+  "archery",
+  "cuff",
+  "strike",
+  "finger",
+  "claw",
+  "hand",
+  "kick",
+  "unarmed",
+]);
+
+function skillCategory(id: string): string {
+  if (id === "force") return "force";
+  if (id === "dodge") return "dodge";
+  if (id === "parry") return "parry";
+  if (WEAPON_SKILL_IDS.has(id)) return "weapon";
+  if (id === "literate" || id.endsWith("-lore") || id.includes("knowledge"))
+    return "knowledge";
+  return "misc";
+}
+
+function masteryRank(desc: string): number {
+  const key = desc.replace(/\s+/g, "");
+  return MASTERY_RANK[key] ?? 1;
+}
+
+/**
+ * Parse `skills` / `cha` panel rows.
+ * Real skills.c lines look like:
+ *   │□基本拳脚 (unarmed)                   - 初学乍练     1/     0│
+ * Also accepts plain rows without box borders.
+ */
 export function parseSkills(text: string): SkillRow[] {
   const rows: SkillRow[] = [];
-  const lines = text.split("\n");
-  for (const line of lines) {
-    const m = line.match(/^([□\s]*)([\u4e00-\u9fff]+)\s+[-─]+\s*(\d+)/);
+  const seen = new Set<string>();
+  for (const line of text.split("\n")) {
+    const t = line.replace(/[│┃]/g, "").trim();
+    // skills.c: 中文 (id) - 精通  level/learned
+    let m = t.match(
+      /^([□√])?\s*([\u4e00-\u9fff][\u4e00-\u9fffA-Za-z0-9_\-·\s]{0,24}?)\s*\(([a-z][a-z0-9_\-]{1,30})\)\s*[-–—]\s*(\S+)\s+(\d+)\s*\/\s*(\d+)/i
+    );
     if (m) {
+      const id = m[3].toLowerCase();
+      if (NON_SKILL_IDS.has(id) || seen.has(id)) continue;
+      seen.add(id);
+      const name = m[2].replace(/\s+/g, "").trim();
+      const label = m[4].replace(/\s+/g, "");
       rows.push({
-        id: m[2],
-        name: m[2],
+        id,
+        name: name || SKILL_LABELS[id] || id,
+        level: +m[5],
+        learned: +m[6],
+        category: skillCategory(id),
+        mastery: masteryRank(label),
+        masteryLabel: label,
+        equipped: m[1] === "□",
+      });
+      continue;
+    }
+    // legacy / simplified: □ 基本拳脚 ── 50
+    m = t.match(/^([□√\s]*)([\u4e00-\u9fff]{2,12})\s+[-─]{2,}\s*(\d+)\s*$/);
+    if (m) {
+      const name = m[2];
+      if (seen.has(name)) continue;
+      seen.add(name);
+      rows.push({
+        id: name,
+        name,
         level: +m[3],
         learned: 0,
         category: "misc",
         mastery: 1,
+        masteryLabel: "初学乍练",
         equipped: m[1].includes("□"),
       });
     }
@@ -972,22 +1162,333 @@ export function parseSkills(text: string): SkillRow[] {
   return rows;
 }
 
+/** enable/jifa slots (cmds/skill/enable.c valid_types). */
+export const ENABLE_SLOTS: { id: string; label: string }[] = [
+  { id: "force", label: "内功" },
+  { id: "dodge", label: "轻功" },
+  { id: "parry", label: "招架" },
+  { id: "unarmed", label: "拳脚" },
+  { id: "strike", label: "掌法" },
+  { id: "cuff", label: "拳法" },
+  { id: "finger", label: "指法" },
+  { id: "hand", label: "手法" },
+  { id: "claw", label: "爪法" },
+  { id: "kick", label: "腿法" },
+  { id: "sword", label: "剑法" },
+  { id: "blade", label: "刀法" },
+  { id: "stick", label: "棒法" },
+  { id: "staff", label: "杖法" },
+  { id: "club", label: "棍法" },
+  { id: "whip", label: "鞭法" },
+  { id: "hammer", label: "锤法" },
+  { id: "hook", label: "钩法" },
+  { id: "pike", label: "枪法" },
+  { id: "magic", label: "法术" },
+];
+
+const ENABLE_SLOT_IDS = new Set(ENABLE_SLOTS.map((s) => s.id));
+
+/** Basic skill ids that are slots themselves — no enable needed. */
+const BASIC_SKILL_IDS = new Set([
+  ...ENABLE_SLOT_IDS,
+  "axe",
+  "archery",
+  "throwing",
+  "begging",
+  "training",
+  "checking",
+  "digging",
+  "swimming",
+  "feixing-shu",
+  "jinshe-zhuifa",
+  "beidou-zhenfa",
+  "literate",
+]);
+
+/** Fist/palm slots that can be prepare/bei'd after enable. */
+const PREPARE_SLOTS = new Set([
+  "finger",
+  "hand",
+  "cuff",
+  "claw",
+  "strike",
+  "kick",
+]);
+
+export function enableSlotLabel(slot: string): string {
+  return ENABLE_SLOTS.find((s) => s.id === slot)?.label || slot;
+}
+
+export function isBasicSkillId(id: string): boolean {
+  return BASIC_SKILL_IDS.has(id.toLowerCase());
+}
+
+export function isKnowledgeSkill(sk: SkillRow): boolean {
+  return sk.category === "knowledge" || idLooksKnowledge(sk.id);
+}
+
+function idLooksKnowledge(id: string): boolean {
+  const s = id.toLowerCase();
+  return (
+    s === "literate" ||
+    s.endsWith("-lore") ||
+    s.includes("knowledge") ||
+    s.includes("literate")
+  );
+}
+
+/** Heuristic slots a special skill can likely enable into. */
+export function suggestEnableSlots(skillId: string): string[] {
+  const id = skillId.toLowerCase();
+  if (isBasicSkillId(id) || idLooksKnowledge(id)) return [];
+
+  const hits: string[] = [];
+  const add = (...slots: string[]) => {
+    for (const s of slots) {
+      if (ENABLE_SLOT_IDS.has(s) && !hits.includes(s)) hits.push(s);
+    }
+  };
+
+  if (/force|shengong|xuangong|xinfa|qigong|neigong/.test(id)) add("force");
+  if (/dodge|shenfa|bu$|shenxing|xiaoyao|lingbo/.test(id)) add("dodge");
+  if (/jian|sword/.test(id)) add("sword", "parry");
+  if (/(?:^|-)dao$|blade|daofa/.test(id)) add("blade", "parry");
+  if (/(?:^|-)stick$|dagou-bang|bangfa/.test(id)) add("stick", "parry");
+  if (/(?:^|-)staff$|gunzhang/.test(id)) add("staff", "parry");
+  if (/(?:^|-)club$|gunfa/.test(id)) add("club", "parry");
+  if (/whip|bianfa|(?:^|-)bian$/.test(id)) add("whip", "parry");
+  if (/hammer|chui/.test(id)) add("hammer", "parry");
+  if (/hook|goufa|(?:^|-)gou$/.test(id)) add("hook", "parry");
+  if (/pike|qiang|spear/.test(id)) add("pike", "parry");
+  if (/quan|cuff/.test(id)) add("cuff", "unarmed", "parry");
+  if (/strike|palm|(?:^|-)zhang$/.test(id)) add("strike", "unarmed", "parry");
+  if (/finger|zhi/.test(id)) add("finger", "parry");
+  if (/hand|shou/.test(id) && !/shenfa|shengong/.test(id)) add("hand", "parry");
+  if (/claw|zhua/.test(id)) add("claw", "parry");
+  if (/kick|tui|leg/.test(id)) add("kick", "parry");
+  if (/unarmed|quanjiao/.test(id)) add("unarmed", "parry");
+  if (/parry|zhaojia|zhao$/.test(id)) add("parry");
+  if (/magic|spells|fashu/.test(id)) add("magic");
+
+  // Prefer a weapon/force/dodge primary; always allow 招架 as alternate if empty
+  if (!hits.length) add("parry", "force", "dodge", "unarmed");
+  else if (!hits.includes("parry") && !hits.includes("force") && !hits.includes("dodge"))
+    add("parry");
+
+  return hits;
+}
+
+export function canPrepareSkill(
+  skillId: string,
+  enabled: Record<string, EnabledSkill>
+): string | null {
+  const id = skillId.toLowerCase();
+  for (const [slot, ent] of Object.entries(enabled)) {
+    if (PREPARE_SLOTS.has(slot) && ent.skill === id) return slot;
+  }
+  return null;
+}
+
+export function findEnabledSlot(
+  skillId: string,
+  enabled: Record<string, EnabledSkill>
+): string | null {
+  const id = skillId.toLowerCase();
+  for (const [slot, ent] of Object.entries(enabled)) {
+    if (ent.skill === id) return slot;
+  }
+  return null;
+}
+
+/**
+ * Parse bare `enable` / `jifa` panel:
+ *   内功 (force)          ： 太极神功              有效等级：180
+ */
+export function parseEnableMap(text: string): Record<string, EnabledSkill> {
+  const map: Record<string, EnabledSkill> = {};
+  if (/你现在没有使用任何特殊技能/.test(text)) return map;
+  for (const line of text.split("\n")) {
+    const m = line.match(
+      /^\s*([\u4e00-\u9fff]+)\s*\(([a-z][a-z0-9_\-]*)\)\s*[：:]\s*(\S+)\s+有效等级[：:]?\s*(\d+)/i
+    );
+    if (!m) continue;
+    const slot = m[2].toLowerCase();
+    const name = m[3];
+    if (!ENABLE_SLOT_IDS.has(slot) || name === "无") continue;
+    map[slot] = {
+      skill: guessSkillIdFromName(name),
+      name,
+      level: +m[4],
+    };
+  }
+  return map;
+}
+
+/** Best-effort: keep chinese name; id filled later from skills list when possible. */
+function guessSkillIdFromName(name: string): string {
+  // Placeholder until reconciled with skills list; UI matches by name too.
+  return name;
+}
+
+/** Attach english skill ids from known SkillRow list onto enable map entries. */
+export function reconcileEnableMap(
+  enabled: Record<string, EnabledSkill>,
+  skills: SkillRow[]
+): Record<string, EnabledSkill> {
+  const byName = new Map(skills.map((s) => [s.name, s.id]));
+  const next: Record<string, EnabledSkill> = {};
+  for (const [slot, ent] of Object.entries(enabled)) {
+    const id = byName.get(ent.name || ent.skill) || ent.skill;
+    next[slot] = { ...ent, skill: id };
+  }
+  return next;
+}
+
+/**
+ * Parse `prepare` / `bei` panel lines:
+ *   掌法 (strike)   降龙十八掌
+ */
+export function parsePrepareMap(text: string): Record<string, string> {
+  const map: Record<string, string> = {};
+  if (/你现在没有组合任何特殊拳术技能/.test(text)) return map;
+  for (const line of text.split("\n")) {
+    const m = line.match(
+      /^\s*([\u4e00-\u9fff]+)\s*\(([a-z]+)\)\s+([\u4e00-\u9fff][\u4e00-\u9fffA-Za-z0-9_\-·]*)/
+    );
+    if (!m) continue;
+    const slot = m[2].toLowerCase();
+    if (!PREPARE_SLOTS.has(slot)) continue;
+    map[slot] = m[3].replace(/\s+/g, "");
+  }
+  return map;
+}
+
+/** Classify bag item for wear/wield vs non-equip consumables. */
+export function classifyInvEquip(id: string, name: string, type = ""): InvEquipKind {
+  const blob = `${id} ${name} ${type}`.toLowerCase();
+  if (/武器/.test(type) || /武器/.test(name)) return "weapon";
+  if (/防具|衣物|护甲/.test(type) || /防具/.test(name)) return "armor";
+  if (
+    /(?:^|[\s_-])(?:sword|jian|blade|dao|stick|bang|staff|club|gun|whip|bian|hammer|chui|hook|gou|pike|qiang|spear|axe|fu|bow|arrow|zhen|bi$|xiao|qin|falun|dagger|needle)(?:$|[\s_-])/i.test(
+      blob
+    ) ||
+    /[剑刀棍棒杖鞭锤枪斧弓箭匕箫琴轮钩]/.test(name)
+  )
+    return "weapon";
+  if (
+    /(?:^|[\s_-])(?:cloth|armor|boots|shoes|hat|cap|helmet|robe|beixin|surcoat|belt|waist|necklace|ring|wrists|hands|glove|coat|skirt|shoe|jia|pao|shan|yi)(?:$|[\s_-])/i.test(
+      blob
+    ) ||
+    /[衣甲袍衫靴鞋帽盔带环腕手套裙]/.test(name)
+  )
+    return "armor";
+  return "other";
+}
+
+function invItem(
+  id: string,
+  name: string,
+  type: string,
+  opts: { equipped?: boolean; embedded?: boolean }
+): InvItem {
+  return {
+    id,
+    name,
+    type,
+    equipped: !!opts.equipped,
+    embedded: !!opts.embedded,
+    equipKind: classifyInvEquip(id, name, type),
+  };
+}
+
+/**
+ * Parse `inventory` / `i` item shorts.
+ * Real inventory.c uses ob->short(): □布衣(cloth) / "  米饭(rice)"
+ * Also accepts fullwidth type tags: 长剑（武器）
+ */
 export function parseInventory(text: string): InvItem[] {
   const items: InvItem[] = [];
-  const lines = text.split("\n");
-  for (const line of lines) {
-    const m = line.match(/^([□\s]*)(.+?)（(.+?)）/);
+  const seen = new Set<string>();
+  for (const line of text.split("\n")) {
+    const raw = line.replace(/\r/g, "");
+    const t = raw.trim();
+    if (!t) continue;
+    if (
+      /身上带[着著]下列|目前你身上没有任何东西|身上没有携带任何东西|负重\s*\d+\s*%|指令格式|可列出/.test(
+        t
+      )
+    )
+      continue;
+
+    // equipped / embedded: □布衣(cloth) or √毒针(needle)
+    let m = t.match(/^([□√])\s*(.+?)\s*\(([A-Za-z][A-Za-z0-9_\- ]*)\)\s*$/);
     if (m) {
-      const type = m[3];
-      items.push({
-        id: m[2],
-        name: m[2],
-        type,
-        equipped: m[1].includes("□"),
-      });
+      const id = m[3].trim().toLowerCase();
+      const name = m[2].trim();
+      const key = `${id}|${name}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      items.push(
+        invItem(id, name, id, {
+          equipped: m[1] === "□",
+          embedded: m[1] === "√",
+        })
+      );
+      continue;
+    }
+
+    // unequipped shorts are indented in inventory.c ("  name(id)")
+    m = raw.match(/^\s{2,}(.+?)\s*\(([A-Za-z][A-Za-z0-9_\- ]*)\)\s*$/);
+    if (m) {
+      const id = m[2].trim().toLowerCase();
+      const name = m[1].trim();
+      if (/说道|问道|喊道/.test(name)) continue;
+      const key = `${id}|${name}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      items.push(invItem(id, name, id, {}));
+      continue;
+    }
+
+    // fullwidth type label (tests / alternate dumps): □ 长剑（武器）
+    m = t.match(/^([□√\s]*)(.+?)（(.+?)）\s*$/);
+    if (m) {
+      const name = m[2].trim();
+      const type = m[3].trim();
+      if (!name || /指令|格式|技能|帮助/.test(name)) continue;
+      const key = `${name}|${type}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const mark = m[1];
+      items.push(
+        invItem(name, name, type, {
+          equipped: mark.includes("□"),
+          embedded: mark.includes("√"),
+        })
+      );
     }
   }
   return items;
+}
+
+/** Commands to equip / unequip a bag item (Chinese labels, mud ids). */
+export function bagItemActions(it: InvItem): { label: string; command: string }[] {
+  const target = /^[a-z]/i.test(it.id) ? it.id : it.name;
+  if (it.embedded) return [];
+  const kind = it.equipKind || classifyInvEquip(it.id, it.name, it.type);
+  if (it.equipped) {
+    if (kind === "weapon") return [{ label: "收起", command: `unwield ${target}` }];
+    if (kind === "armor") return [{ label: "脱下", command: `remove ${target}` }];
+    return [
+      { label: "脱下", command: `remove ${target}` },
+      { label: "收起武器", command: `unwield ${target}` },
+    ];
+  }
+  if (kind === "weapon") return [{ label: "装备", command: `wield ${target}` }];
+  if (kind === "armor") return [{ label: "穿上", command: `wear ${target}` }];
+  // unknown: offer both; food/misc will just fail with toast
+  if (kind === "other") return [];
+  return [];
 }
 
 export function isCombatLine(text: string): boolean {
@@ -1014,6 +1515,10 @@ export function isSheetDumpChunk(chunk: string): boolean {
     )
   )
     return true;
+  if (/以下是你目前使用中的特殊技能|你现在没有使用任何特殊技能/.test(chunk))
+    return true;
+  if (/以下是你目前组合中的特殊拳术技能|你现在没有组合任何特殊拳术技能/.test(chunk))
+    return true;
   return false;
 }
 
@@ -1022,7 +1527,8 @@ export function isSheetDumpLine(line: string, chunk?: string): boolean {
   const t = line.trim();
   if (!t) return false;
   if (/你要看什么？/.test(t)) return true;
-  if (/^>\s*(look\s+me|hp|score|skills|inventory|i)\b/i.test(t)) return true;
+  if (/^>\s*(look\s+me|hp|score|skills|inventory|i|enable|jifa|prepare|bei)\b/i.test(t))
+    return true;
   if (/【侠客行个人档案】/.test(t)) return true;
   if (/个人档案/.test(t) && /中文/.test(t)) return true;
   // score rank + short: 【 布  衣 】张三(Zhang San) — 勿单靠【】以免误伤【公告】等
@@ -1043,6 +1549,15 @@ export function isSheetDumpLine(line: string, chunk?: string): boolean {
       t
     )
   )
+    return true;
+  if (
+    /以下是你目前使用中的特殊技能|你现在没有使用任何特殊技能|有效等级|以下是你目前组合中的特殊拳术技能|你现在没有组合任何特殊拳术技能|取消全部技能准备|完成技能准备/.test(
+      t
+    )
+  )
+    return true;
+  if (/好吧，只用基本功夫|你从现在起用.+作为.+的特殊技能/.test(t)) return true;
+  if (/这个技能不能当成这种用途|不需要 enable|尚未激发或目前不能准备/.test(t))
     return true;
   // skills boxed UI (cmds/skill/skills.c)
   if (/[┌└│]/.test(t) && (/项(?:知识|基本功夫|特殊功夫)/.test(t) || /[─━]{4,}/.test(t) || /\d+\s*\/\s*\d+/.test(t) || SKILL_MASTERY.test(t)))

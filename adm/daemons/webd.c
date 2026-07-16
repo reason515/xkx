@@ -117,10 +117,11 @@ void send_room(object me, object env)
 	}
 
 	emit_raw(me, sprintf(
-		"{\"v\":1,\"type\":\"room.update\",\"title\":\"%s\",\"long\":\"%s\",\"area\":\"%s\",\"exits\":%s,\"npcs\":[%s],\"items\":[%s]}",
+		"{\"v\":1,\"type\":\"room.update\",\"title\":\"%s\",\"long\":\"%s\",\"area\":\"%s\",\"canSleep\":%d,\"exits\":%s,\"npcs\":[%s],\"items\":[%s]}",
 		json_escape(env->query("short") || ""),
 		json_escape(env->query("long") || ""),
 		json_escape(area),
+		(env->query("sleep_room") && !env->query("no_sleep_room")) ? 1 : 0,
 		event["exits_json"],
 		implode(npcs, ","),
 		implode(items, ",")

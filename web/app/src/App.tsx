@@ -277,6 +277,7 @@ export default function App() {
           tab={g.charTab}
           onTab={g.setCharTab}
           onClose={g.closeSheet}
+          onCmd={(c) => g.cmd(c, { silent: true })}
         />
       )}
       {state.sheet === "map" && (

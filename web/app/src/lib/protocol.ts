@@ -1,5 +1,10 @@
 import type { AssistConfig, InvItem, MudEvent, RoomState, SkillRow, Vitals } from "./types";
-import { DIR_MAP } from "./parser";
+import {
+  DIR_MAP,
+  mergeRoomItems,
+  parseSceneryFromDesc,
+  roomAllowsSleep,
+} from "./parser";
 
 export const PROTOCOL_VERSION = 1;
 
@@ -25,13 +30,23 @@ export function applyEvent(
   switch (event.type) {
     case "room.update": {
       const rawExits = event.exits as { dir: string; name: string }[] | undefined;
+      const title = (event.title as string) || prev.room.title;
+      const desc = (event.long as string) || prev.room.desc;
+      const baseItems = Array.isArray(event.items)
+        ? (event.items as RoomState["items"])
+        : prev.room.items;
+      const canSleepFlag =
+        typeof event.canSleep === "boolean"
+          ? event.canSleep
+          : event.canSleep === 1 || event.canSleep === "1";
       next.room = {
-        title: (event.title as string) || prev.room.title,
-        desc: (event.long as string) || prev.room.desc,
+        title,
+        desc,
         area:
           typeof event.area === "string" && event.area
             ? event.area
             : prev.room.area,
+        canSleep: canSleepFlag || roomAllowsSleep({ title, desc }),
         // Empty exits must replace prior room exits (no-exit rooms like 挂名处)
         exits: Array.isArray(rawExits)
           ? rawExits.map((e) => ({
@@ -44,9 +59,7 @@ export function applyEvent(
         npcs: Array.isArray(event.npcs)
           ? (event.npcs as RoomState["npcs"])
           : prev.room.npcs,
-        items: Array.isArray(event.items)
-          ? (event.items as RoomState["items"])
-          : prev.room.items,
+        items: mergeRoomItems(baseItems, parseSceneryFromDesc(desc || "")),
       };
       break;
     }

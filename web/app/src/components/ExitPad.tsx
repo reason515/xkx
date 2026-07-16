@@ -48,10 +48,10 @@ export function ExitPad({ exits, onSelect }: Props) {
             <button
               key={ex.dir}
               type="button"
-              className="chip exit"
+              className="cell open"
               onClick={() => onSelect(ex)}
             >
-              <span className="dir">{ex.label}</span>
+              <span className="d">{ex.label || DIR_MAP[ex.dir] || ex.dir}</span>
               {ex.name}
             </button>
           ))}

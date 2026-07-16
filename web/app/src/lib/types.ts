@@ -41,6 +41,8 @@ export interface RoomState {
   desc?: string;
   /** MUD area key from outdoors /d/<area>/… (e.g. xiakedao). */
   area?: string;
+  /** From room sleep_room (LPC) or desc/title heuristics. */
+  canSleep?: boolean;
   exits: ExitInfo[];
   npcs: Entity[];
   items: Entity[];
@@ -50,10 +52,23 @@ export interface SkillRow {
   id: string;
   name: string;
   level: number;
+  /** Points toward next level; next costs (level+1)^2. */
   learned: number;
   category: string;
+  /** 1–6 tone band for --mastery-N. */
   mastery: number;
+  /** MUD text like 初学乍练 / 深不可测. */
+  masteryLabel?: string;
   equipped?: boolean;
+}
+
+/** One enable/jifa slot (内功/轻功/剑法…). */
+export interface EnabledSkill {
+  /** Special skill id, e.g. taiji-jian */
+  skill: string;
+  /** Chinese name when known from enable panel. */
+  name?: string;
+  level: number;
 }
 
 export interface ScoreAttr {
@@ -83,11 +98,18 @@ export interface ScoreInfo {
   defense?: number;
 }
 
+export type InvEquipKind = "weapon" | "armor" | "other";
+
 export interface InvItem {
   id: string;
   name: string;
   type: string;
+  /** □ worn/wielded in inventory panel */
   equipped?: boolean;
+  /** √ embedded (e.g. 毒针), not normal wear */
+  embedded?: boolean;
+  /** Heuristic for wear vs wield */
+  equipKind?: InvEquipKind;
 }
 
 export interface AssistConfig {
@@ -142,7 +164,10 @@ export interface GameState {
   score?: ScoreInfo;
   skills: SkillRow[];
   inventory: InvItem[];
-  enabled: Record<string, { skill: string; level: number }>;
+  /** enable/jifa map: slot id → special skill. */
+  enabled: Record<string, EnabledSkill>;
+  /** prepare/bei map: basic fist slot → special skill id. */
+  prepared: Record<string, string>;
   combatLog: string[];
   trainLog: string[];
   assistActive: boolean;

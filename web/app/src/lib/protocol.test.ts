@@ -43,6 +43,27 @@ describe("applyEvent", () => {
     expect(next.room.exits[0]).toEqual({ dir: "south", label: "南", name: "客店" });
   });
 
+  it("merges scenery and canSleep from rest-room room.update", () => {
+    const prev = basePrev();
+    const next = applyEvent(
+      {
+        v: 1,
+        type: "room.update",
+        title: "休息室",
+        long: "这里可以睡觉(sleep)。墙上贴着一张小条子(tiaozi)。",
+        canSleep: 1,
+        exits: [{ dir: "east", name: "甬道" }],
+        items: [],
+        npcs: [],
+      },
+      prev
+    );
+    expect(next.room.canSleep).toBe(true);
+    expect(next.room.items).toEqual(
+      expect.arrayContaining([{ id: "tiaozi", name: "小条子", kind: "item" }])
+    );
+  });
+
   it("replaces exits with empty array for no-exit rooms", () => {
     const prev = basePrev();
     const next = applyEvent(

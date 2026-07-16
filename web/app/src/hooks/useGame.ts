@@ -11,13 +11,17 @@ import {
   isSheetDumpLine,
   isTrainLine,
   mergeSuggestedActions,
+  parseEnableMap,
   parseHp,
   parseInventory,
+  parsePrepareMap,
   parseRoom,
   parseScore,
   parseSkills,
   parseSuggestedActions,
+  reconcileEnableMap,
   reflowSoftWrappedEntries,
+  roomUtilityActions,
   stripScoreBanner,
   waterfallPassageActions,
   parseLearnOfferActions,
@@ -49,6 +53,7 @@ const initialState = (): GameState => ({
   skills: [],
   inventory: [],
   enabled: {},
+  prepared: {},
   combatLog: [],
   trainLog: [],
   assistActive: false,
@@ -269,6 +274,7 @@ export function useGame() {
           const greeter = [
             ...beachGreeterActions(applied.room.title, applied.room.npcs),
             ...waterfallPassageActions(applied.room.title),
+            ...roomUtilityActions(applied.room),
           ];
           return {
             ...s,
@@ -409,9 +415,19 @@ export function useGame() {
                 !!room.title && room.title !== s.room.title;
               const parsedLook = EXIT_HINT.test(chunk) || roomChanged;
               const npcs = room.npcs || s.room.npcs;
+              const nextRoom = {
+                ...s.room,
+                ...room,
+                exits: parsedLook
+                  ? room.exits ?? []
+                  : room.exits?.length
+                    ? room.exits
+                    : s.room.exits,
+              };
               const greeter = [
-                ...beachGreeterActions(room.title, npcs),
-                ...waterfallPassageActions(room.title),
+                ...beachGreeterActions(nextRoom.title, npcs),
+                ...waterfallPassageActions(nextRoom.title),
+                ...roomUtilityActions(nextRoom),
               ];
               const fromText = [
                 ...parseSuggestedActions(chunk, npcs),
@@ -419,15 +435,7 @@ export function useGame() {
               ];
               return {
                 ...s,
-                room: {
-                  ...s.room,
-                  ...room,
-                  exits: parsedLook
-                    ? room.exits ?? []
-                    : room.exits?.length
-                      ? room.exits
-                      : s.room.exits,
-                },
+                room: nextRoom,
                 suggestedActions: roomChanged
                   ? mergeSuggestedActions(fromText, greeter, npcs)
                   : mergeSuggestedActions(
@@ -459,16 +467,145 @@ export function useGame() {
                 : s.score,
           }));
         }
-        if (/所学过的|武功|技能/.test(chunk) || /初学乍练|粗通皮毛/.test(chunk)) {
-          // 查师父 skills 时文案也会命中，勿覆盖角色卡武功
-          if (!expectDoc.current) {
-            const skills = parseSkills(textBuf.current.slice(-4000));
-            if (skills.length) setState((s) => ({ ...s, skills }));
+        // 仅同步「自己的」skills 面板；师父/帮助文案勿写入角色卡
+        // TCP 可能分片：头在上一包、行在下一包，故从近期缓冲截取最后一次自己的面板
+        if (!expectDoc.current) {
+          const recent = textBuf.current.slice(-8000);
+          const selfSkillsEmpty =
+            /你目前并没有学会任何技能|你不会任何技能/.test(chunk);
+          const selfSkillsHeader = /你目前所学过的技能/.test(recent);
+          const looksLikeSkillRows =
+            /\d+\s*\/\s*\d+/.test(chunk) &&
+            (/初学乍练|粗通皮毛|半生不熟|马马虎虎|驾轻就熟|出类拔萃|神乎其技|出神入化|登峰造极|一代宗师|深不可测|新学乍用|初窥门径|略知一二|已有小成|心领神会|了然[於于]胸|豁然贯通|举世无双|震古铄今/.test(
+              chunk
+            ) ||
+              /[│┃]/.test(chunk));
+          if (selfSkillsEmpty) {
+            setState((s) => ({ ...s, skills: [] }));
+          } else if (selfSkillsHeader && ( /你目前所学过的技能/.test(chunk) || looksLikeSkillRows)) {
+            const idx = recent.lastIndexOf("你目前所学过的技能");
+            const panel = idx >= 0 ? recent.slice(idx) : chunk;
+            const skills = parseSkills(panel);
+            if (skills.length) {
+              setState((s) => ({
+                ...s,
+                skills,
+                enabled: reconcileEnableMap(s.enabled, skills),
+              }));
+            }
           }
-        }
-        if (/目前身上|携带|物品/.test(chunk)) {
-          const inventory = parseInventory(textBuf.current.slice(-4000));
-          if (inventory.length) setState((s) => ({ ...s, inventory }));
+
+          // 真实 inventory 头：身上带著下列…；勿用「目前身上/物品」以免命中 help
+          const invEmpty =
+            /目前你身上没有任何东西|身上没有携带任何东西/.test(chunk);
+          const invHeader = /身上带[着著]下列/.test(recent);
+          const looksLikeInvRows =
+            /^[□√]/.test(chunk.trim()) ||
+            /^\s{2,}.+\([A-Za-z]/.test(chunk);
+          if (invEmpty) {
+            setState((s) => ({ ...s, inventory: [] }));
+          } else if (invHeader && (/身上带[着著]下列/.test(chunk) || looksLikeInvRows)) {
+            const idx = Math.max(
+              recent.lastIndexOf("身上带著下列"),
+              recent.lastIndexOf("身上带着下列")
+            );
+            const panel = idx >= 0 ? recent.slice(idx) : chunk;
+            const inventory = parseInventory(panel);
+            if (inventory.length) setState((s) => ({ ...s, inventory }));
+          }
+
+          // enable / jifa 槽位
+          if (
+            /以下是你目前使用中的特殊技能|你现在没有使用任何特殊技能/.test(chunk)
+          ) {
+            setState((s) => ({
+              ...s,
+              enabled: reconcileEnableMap(parseEnableMap(chunk), s.skills),
+            }));
+          } else if (/有效等级/.test(chunk) && /\([a-z]+\)/.test(chunk)) {
+            const idx = recent.lastIndexOf("以下是你目前使用中的特殊技能");
+            if (idx >= 0) {
+              const panel = recent.slice(idx);
+              setState((s) => ({
+                ...s,
+                enabled: reconcileEnableMap(parseEnableMap(panel), s.skills),
+              }));
+            }
+          }
+
+          if (
+            /以下是你目前组合中的特殊拳术技能|你现在没有组合任何特殊拳术技能/.test(
+              chunk
+            )
+          ) {
+            setState((s) => ({ ...s, prepared: parsePrepareMap(chunk) }));
+          }
+
+          // 激发 / 准备反馈 → 提示并刷新武功面板
+          if (/你从现在起用.+作为.+的特殊技能/.test(chunk)) {
+            const m = chunk.match(/你从现在起用(.+?)作为(.+?)的特殊技能/);
+            showToast(
+              m ? `已激发「${m[1]}」为${m[2]}` : "已激发特殊武功"
+            );
+            window.setTimeout(() => {
+              cmd("skills", { silent: true });
+              cmd("enable", { silent: true });
+            }, 200);
+          } else if (/好吧，只用基本功夫/.test(chunk)) {
+            showToast("已卸下特殊武功");
+            window.setTimeout(() => {
+              cmd("skills", { silent: true });
+              cmd("enable", { silent: true });
+            }, 200);
+          } else if (/完成技能准备/.test(chunk)) {
+            showToast("已准备拳术组合");
+            window.setTimeout(() => {
+              cmd("prepare", { silent: true });
+              cmd("skills", { silent: true });
+            }, 200);
+          } else if (/取消全部技能准备/.test(chunk)) {
+            showToast("已取消准备");
+            window.setTimeout(() => cmd("prepare", { silent: true }), 200);
+          } else if (/这个技能不能当成这种用途/.test(chunk)) {
+            showToast("该武功不能用于此门类");
+          } else if (/不需要 enable|是所有.+的基础/.test(chunk)) {
+            showToast("基本功夫无需激发");
+          } else if (/你不会这种技能/.test(chunk) && /enable|jifa|准备|激发/.test(recent.slice(-500))) {
+            showToast("你还不会这种武功");
+          } else if (/尚未激发或目前不能准备/.test(chunk)) {
+            showToast("请先激发该武功再准备");
+          }
+
+          // 穿戴 / 装备武器反馈 → 刷新行囊
+          if (
+            /穿上|戴上|绑在腰间|装备.+作武器|装备著|装备着/.test(chunk) &&
+            /你/.test(chunk)
+          ) {
+            if (/已经装备/.test(chunk)) {
+              showToast("已经装备着了");
+            } else if (/作武器/.test(chunk) || /手中的/.test(chunk)) {
+              showToast("已装备武器");
+              window.setTimeout(() => cmd("inventory", { silent: true }), 200);
+            } else if (/穿上|戴上|绑在腰间|装备/.test(chunk)) {
+              showToast("已穿戴");
+              window.setTimeout(() => cmd("inventory", { silent: true }), 200);
+            }
+          } else if (/将.+脱了下来|卸除.+的装备|放下手中的/.test(chunk)) {
+            showToast(/放下手中的/.test(chunk) ? "已收起武器" : "已脱下");
+            window.setTimeout(() => cmd("inventory", { silent: true }), 200);
+          } else if (/并没有装备这样东西作为武器/.test(chunk)) {
+            showToast("这不是手中的武器");
+          } else if (/并没有装备这样东西/.test(chunk)) {
+            showToast("目前没有穿戴此物");
+          } else if (/身上没有这样东西/.test(chunk)) {
+            showToast("行囊里没有此物");
+          } else if (/这里不是你能睡的地方/.test(chunk)) {
+            showToast("这里不能睡觉");
+          } else if (/战斗中不能睡觉|正忙着/.test(chunk) && /睡/.test(recent.slice(-200))) {
+            showToast("现在还不能睡觉");
+          } else if (/你往床上一躺|进入了梦乡|倒在床上/.test(chunk)) {
+            showToast("已入睡");
+          }
         }
       }
     });
@@ -481,7 +618,7 @@ export function useGame() {
       offMsg();
       offStatus();
     };
-  }, [addLog, appendDocText, showToast, enterGame]);
+  }, [addLog, appendDocText, showToast, enterGame, cmd]);
 
   const login = useCallback(
     (opts: {
@@ -535,6 +672,8 @@ export function useGame() {
     cmd("hp", { silent: true });
     cmd("score", { silent: true });
     cmd("skills", { silent: true });
+    cmd("enable", { silent: true });
+    cmd("prepare", { silent: true });
     cmd("inventory", { silent: true });
   }, [cmd]);
 
