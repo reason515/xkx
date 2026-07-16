@@ -252,6 +252,13 @@ export function useGame() {
       }
       if (msg.type === "event" && msg.event) {
         const ev = msg.event as MudEvent;
+        // look 方向预览邻房时勿把邻房当成当前场景（旧 LPC 仍可能误发）
+        if (
+          ev.type === "room.update" &&
+          expectDoc.current?.target === "exit"
+        ) {
+          return;
+        }
         if (ev.type === "room.update") roomFromEvent.current = true;
         setState((s) => {
           const applied = applyEvent(ev, s);
@@ -370,26 +377,29 @@ export function useGame() {
           addLog(entry.text, undefined, entry.html);
         }
 
-        setState((s) => {
-          const fromText = [
-            ...parseSuggestedActions(chunk, s.room.npcs),
-            ...parseLearnOfferActions(chunk, s.room.npcs),
-          ];
-          if (!fromText.length) return s;
-          return {
-            ...s,
-            suggestedActions: mergeSuggestedActions(
-              s.suggestedActions,
-              fromText,
-              s.room.npcs
-            ),
-          };
-        });
+        if (!capturingDoc) {
+          setState((s) => {
+            const fromText = [
+              ...parseSuggestedActions(chunk, s.room.npcs),
+              ...parseLearnOfferActions(chunk, s.room.npcs),
+            ];
+            if (!fromText.length) return s;
+            return {
+              ...s,
+              suggestedActions: mergeSuggestedActions(
+                s.suggestedActions,
+                fromText,
+                s.room.npcs
+              ),
+            };
+          });
+        }
 
         if (
-          EXIT_HINT.test(chunk) ||
-          /这里(?:有|摆着)/.test(chunk) ||
-          ROOM_TITLE_HINT.test(chunk)
+          !capturingDoc &&
+          (EXIT_HINT.test(chunk) ||
+            /这里(?:有|摆着)/.test(chunk) ||
+            ROOM_TITLE_HINT.test(chunk))
         ) {
           // Structured room.update wins over text fallback
           if (!roomFromEvent.current) {

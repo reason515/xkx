@@ -94,7 +94,8 @@ int look_room(object me, object env)
 
 
 	write(str);
-	if (objectp(me) && userp(me))
+	/* 仅当前所在房间推送 room.update；look 方向预览邻房时勿改 Web 场景。 */
+	if (objectp(me) && userp(me) && environment(me) == env)
 		"/adm/daemons/webd"->send_room(me, env);
 	return 1;
 }

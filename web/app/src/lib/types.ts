@@ -124,8 +124,8 @@ export type SheetKind =
   | "exit"
   | null;
 
-/** Where long-form MUD text (help / board list·read) is being captured. */
-export type DocTarget = "help" | "entity";
+/** Where long-form MUD text (help / board / exit look) is being captured. */
+export type DocTarget = "help" | "entity" | "exit";
 
 export interface GameState {
   connected: boolean;

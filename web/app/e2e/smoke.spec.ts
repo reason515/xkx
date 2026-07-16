@@ -57,10 +57,15 @@ async function goByExitLabel(
   await expect(cell).toBeVisible({ timeout: 15_000 });
   await cell.click();
   await page.getByRole("button", { name: "前往" }).click();
+  await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  await expect(page.locator(".log-panel")).toBeVisible();
+  await openSceneTab(page);
   await expect(page.locator(".room-title")).not.toHaveText("…", {
     timeout: 20_000,
   });
-  await openSceneTab(page);
 }
 
 async function clickActionChip(
@@ -489,6 +494,56 @@ test.describe.serial("game smoke", () => {
       );
       await expect(page.locator(".log-panel")).toBeVisible();
     }
+  });
+
+  test("点出口先远眺邻房，确认前往后切见闻", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, {
+      id: sharedId,
+      password: sharedPassword,
+      asRegister: false,
+    });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    const roomTitle = page.locator(".room-title");
+    const titleBefore = ((await roomTitle.textContent()) || "").trim();
+    expect(titleBefore.length).toBeGreaterThan(0);
+
+    const firstExit = page.locator(".exit-pad .cell.open").first();
+    await expect(firstExit).toBeVisible({ timeout: 15_000 });
+    await firstExit.click();
+
+    const sheet = page.locator(".sheet");
+    await expect(sheet).toBeVisible();
+    await expect(page.getByRole("button", { name: "前往" })).toBeVisible();
+
+    await expect
+      .poll(
+        async () => {
+          const preview = sheet.locator(".exit-preview, .doc-body");
+          if (!(await preview.count())) return "";
+          return ((await preview.first().textContent()) || "").trim();
+        },
+        { timeout: 15_000 }
+      )
+      .toMatch(/.{12,}/);
+
+    const previewText = (
+      (await sheet.locator(".exit-preview, .doc-body").first().textContent()) ||
+      ""
+    ).trim();
+    expect(previewText).toMatch(/出口|这里|你|路|门|北|南|东|西|上|下/);
+
+    await expect(roomTitle).toHaveText(titleBefore);
+    await page.getByRole("button", { name: "前往" }).click();
+    await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    await expect(page.locator(".log-panel")).toBeVisible();
+    await openSceneTab(page);
+    await expect(roomTitle).not.toHaveText(titleBefore, { timeout: 20_000 });
   });
 
   test("角色卡片查询不进见闻，档案无横幅标题", async ({ page }) => {

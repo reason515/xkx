@@ -184,8 +184,10 @@ export default function App() {
                     <ExitPad
                       exits={state.room.exits}
                       onSelect={(ex: ExitInfo) => {
+                        g.clearDoc();
                         g.setSelectedExit({ dir: ex.dir, name: ex.name });
                         g.openSheet("exit");
+                        g.docCmd(`look ${ex.dir}`, "exit");
                       }}
                     />
                   </div>
@@ -343,15 +345,31 @@ export default function App() {
               </button>
             </div>
             <div className="sheet-scroll">
-              <p style={{ color: "var(--paper-dim)", lineHeight: 1.75 }}>
-                向{g.selectedExit.dir}可至「{g.selectedExit.name}」。
-              </p>
+              {state.docTarget === "exit" &&
+              state.docLoading &&
+              !state.docText ? (
+                <p className="doc-status">正在远眺…</p>
+              ) : state.docTarget === "exit" && state.docText ? (
+                <pre className="doc-body exit-preview">{state.docText}</pre>
+              ) : (
+                <p style={{ color: "var(--paper-dim)", lineHeight: 1.75 }}>
+                  可至「{g.selectedExit.name || g.selectedExit.dir}」。
+                </p>
+              )}
+              {state.docTarget === "exit" &&
+              state.docLoading &&
+              state.docText ? (
+                <p className="doc-status">继续载入…</p>
+              ) : null}
             </div>
             <div className="sheet-acts">
               <button
                 type="button"
                 className="go"
-                onClick={() => g.confirmGo(g.selectedExit!.dir)}
+                onClick={() => {
+                  g.confirmGo(g.selectedExit!.dir);
+                  setMainTab("log");
+                }}
               >
                 前往
               </button>
