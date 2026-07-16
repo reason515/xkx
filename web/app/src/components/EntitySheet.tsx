@@ -1,4 +1,10 @@
-import { parseBoardReadActions } from "../lib/parser";
+import { useState } from "react";
+import {
+  buildAskTopicActions,
+  mudCommandTarget,
+  parseBoardReadActions,
+} from "../lib/parser";
+import type { SuggestedAction } from "../lib/types";
 
 interface Props {
   id: string;
@@ -6,11 +12,15 @@ interface Props {
   kind: "npc" | "item";
   docText?: string;
   docLoading?: boolean;
+  /** Scene ask chips already known for this NPC (e.g. beach hints). */
+  askHints?: SuggestedAction[];
   onClose: () => void;
   /** Ordinary entity actions (look / get / …); sheet may close after. */
   onAction: (cmd: string) => void;
   /** Board list/read — keep sheet open and show captured text. */
   onDocAction?: (cmd: string) => void;
+  /** Bare `ask <who>` to list inquiry topics into docText. */
+  onAskList?: (cmd: string) => void;
   onClearDoc?: () => void;
 }
 
@@ -25,23 +35,31 @@ export function EntitySheet({
   kind,
   docText = "",
   docLoading = false,
+  askHints = [],
   onClose,
   onAction,
   onDocAction,
+  onAskList,
   onClearDoc,
 }: Props) {
+  const [asking, setAsking] = useState(false);
+
   // Prefer english id for mud commands when available
   const target =
     id && /^[a-z][\w\s]*$/i.test(id) && id !== name ? id : name;
+  const askTarget = mudCommandTarget(id, name);
 
   const board = kind === "item" && isBulletinBoard(id, name);
   const reading = board && (!!docText || docLoading);
   const readActions = reading ? parseBoardReadActions(docText) : [];
+  const askTopics = asking
+    ? buildAskTopicActions(id, name, askHints, docText)
+    : [];
 
   const npcActions: [string, string][] = [
     ["看", `look ${target}`],
     ["跟随", `follow ${target}`],
-    ["问", `ask ${target}`],
+    ["问", `__ask__`],
     ["打", `kill ${target}`],
   ];
   const boardActions: [string, string][] = [
@@ -57,17 +75,55 @@ export function EntitySheet({
   ];
   const actions = kind === "npc" ? npcActions : board ? boardActions : itemActions;
 
+  const leaveAskMode = () => {
+    setAsking(false);
+    onClearDoc?.();
+  };
+
   return (
     <div className="overlay open" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-top">
-          <h3>{reading ? "留言" : name}</h3>
+          <h3>{asking ? `打听「${name}」` : reading ? "留言" : name}</h3>
           <button type="button" className="close" onClick={onClose}>
             ×
           </button>
         </div>
         <div className="sheet-scroll">
-          {reading ? (
+          {asking ? (
+            <>
+              <button type="button" className="doc-back" onClick={leaveAskMode}>
+                ← 返回
+              </button>
+              <p
+                style={{
+                  color: "var(--paper-dim)",
+                  fontSize: 13,
+                  marginBottom: 12,
+                }}
+              >
+                想打听什么？
+              </p>
+              {docLoading && askTopics.length <= 3 ? (
+                <p className="doc-status">正在列出可问之事…</p>
+              ) : null}
+              <div className="help-topics">
+                {askTopics.map((a) => (
+                  <button
+                    key={a.command}
+                    type="button"
+                    className="help-topic"
+                    onClick={() => {
+                      onAction(a.command);
+                      onClose();
+                    }}
+                  >
+                    {a.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : reading ? (
             <>
               <button
                 type="button"
@@ -115,13 +171,18 @@ export function EntitySheet({
             </p>
           )}
         </div>
-        {!reading && (
+        {!reading && !asking && (
           <div className="sheet-acts">
             {actions.map(([label, command]) => (
               <button
                 key={label}
                 type="button"
                 onClick={() => {
+                  if (command === "__ask__") {
+                    setAsking(true);
+                    onAskList?.(`ask ${askTarget}`);
+                    return;
+                  }
                   if (
                     board &&
                     onDocAction &&

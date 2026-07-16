@@ -150,10 +150,7 @@ async function completeIntroFollow(page: import("@playwright/test").Page) {
   // 若已在主沙滩（有出口且有渔夫），跳过
   const alreadyMain =
     (await page.locator(".exit-pad .cell.open").count()) > 0 &&
-    ((await page.locator(".chip.npc").filter({ hasText: /渔夫/ }).count()) > 0 ||
-      (await page
-        .getByRole("button", { name: /向渔夫打听/ })
-        .count()) > 0);
+    (await page.locator(".chip.npc").filter({ hasText: /渔夫/ }).count()) > 0;
   if (alreadyMain) return;
 
   const followChip = page
@@ -189,6 +186,21 @@ async function completeIntroFollow(page: import("@playwright/test").Page) {
   await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({
     timeout: 20_000,
   });
+}
+
+/** 场景人物 → 问 → 点选话题（完整打听列表在面板内，不依赖场景动作 chip） */
+async function askNpcViaEntitySheet(
+  page: import("@playwright/test").Page,
+  npcName: RegExp | string,
+  topic: string
+) {
+  await openSceneTab(page);
+  await page.locator(".chip.npc").filter({ hasText: npcName }).click();
+  await expect(page.getByRole("button", { name: "问", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "问", exact: true }).click();
+  const topicBtn = page.getByRole("button", { name: topic, exact: true });
+  await expect(topicBtn).toBeVisible({ timeout: 15_000 });
+  await topicBtn.click();
 }
 
 /** 获许可后：等船 → 上船 → 靠岸 → 下船到对岸 */
@@ -578,13 +590,7 @@ test.describe.serial("game smoke", () => {
     await expect(page.getByRole("button", { name: "档案" })).toBeVisible();
     await page.locator(".sheet .close").click();
 
-    await openSceneTab(page);
-    const askBtn = page.getByRole("button", {
-      name: "向渔夫打听侠客岛",
-      exact: true,
-    });
-    await expect(askBtn).toBeVisible({ timeout: 30_000 });
-    await askBtn.click();
+    await askNpcViaEntitySheet(page, /渔夫/, "侠客岛");
 
     await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
       "aria-selected",
@@ -594,6 +600,51 @@ test.describe.serial("game smoke", () => {
       .poll(async () => {
         const logs = await page.locator(".log p").allTextContents();
         return logs.join("\n");
+      }, { timeout: 20_000 })
+      .toMatch(/这里就是侠客岛|打听有关『侠客岛』/);
+  });
+
+  test("人物面板问可点选打听话题", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 60_000,
+    });
+    await expect(page.locator(".chip.npc").filter({ hasText: /渔夫/ })).toBeVisible({
+      timeout: 30_000,
+    });
+    // 无见闻提示时，场景动作区不应常驻打听 chip（完整列表在人物「问」）
+    const logs = (await page.locator(".log p").allTextContents()).join("\n");
+    if (!/\(ask fu about|ask fu about/.test(logs)) {
+      await expect(
+        page.locator(".chip.action").filter({ hasText: /向渔夫打听/ })
+      ).toHaveCount(0);
+    }
+
+    await page.locator(".chip.npc").filter({ hasText: /渔夫/ }).click();
+    await expect(page.getByRole("button", { name: "问", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "问", exact: true }).click();
+
+    await expect(page.getByRole("heading", { name: /打听「渔夫」/ })).toBeVisible();
+    const topic侠客岛 = page.getByRole("button", { name: "侠客岛", exact: true });
+    await expect(topic侠客岛).toBeVisible({ timeout: 15_000 });
+    // LPC 列出的 inquiry 话题也应出现
+    await expect(page.getByRole("button", { name: "船", exact: true })).toBeVisible({
+      timeout: 15_000,
+    });
+    await topic侠客岛.click();
+
+    await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    await expect
+      .poll(async () => {
+        const replyLogs = await page.locator(".log p").allTextContents();
+        return replyLogs.join("\n");
       }, { timeout: 20_000 })
       .toMatch(/这里就是侠客岛|打听有关『侠客岛』/);
   });
@@ -608,12 +659,7 @@ test.describe.serial("game smoke", () => {
       timeout: 60_000,
     });
 
-    const askLeave = page.getByRole("button", {
-      name: "向渔夫打听离岛",
-      exact: true,
-    });
-    await expect(askLeave).toBeVisible({ timeout: 30_000 });
-    await askLeave.click();
+    await askNpcViaEntitySheet(page, /渔夫/, "离岛");
 
     await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
       "aria-selected",
@@ -724,11 +770,7 @@ test.describe.serial("game smoke", () => {
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
 
-    await openSceneTab(page);
-    await expect(
-      page.getByRole("button", { name: "向渔夫打听离岛", exact: true })
-    ).toBeVisible({ timeout: 30_000 });
-    await page.getByRole("button", { name: "向渔夫打听离岛", exact: true }).click();
+    await askNpcViaEntitySheet(page, /渔夫/, "离岛");
     await waitForLogPattern(
       page,
       /要去中原可得要岛主同意|岛主就会让你离岛/,

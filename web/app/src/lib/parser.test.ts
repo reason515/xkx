@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   beachGreeterActions,
+  buildAskTopicActions,
   buildScoreHtml,
   extractLookBlock,
   isCombatLine,
@@ -11,7 +12,9 @@ import {
   isSelfLookLine,
   isSheetDumpLine,
   isTrainLine,
+  labelAskTopic,
   labelSuggestedAction,
+  mudCommandTarget,
   parseBoardReadActions,
   parseEntityShort,
   parseExits,
@@ -455,12 +458,12 @@ describe("beachGreeterActions", () => {
     ).toEqual([{ command: "follow zhang san", label: "跟随张三" }]);
   });
 
-  it("offers ask chips when fisherman is on the beach", () => {
+  it("does not inject fisherman ask chips without text hints", () => {
     expect(
       beachGreeterActions("沙滩", [
         { id: "yu fu", name: "渔夫", kind: "npc" },
-      ]).map((a) => a.command)
-    ).toEqual(["ask fu about 侠客岛", "ask fu about 离岛"]);
+      ])
+    ).toEqual([]);
   });
 
   it("is empty outside the beach", () => {
@@ -469,6 +472,74 @@ describe("beachGreeterActions", () => {
         { id: "zhang san", name: "张三", kind: "npc" },
       ])
     ).toEqual([]);
+  });
+});
+
+describe("mudCommandTarget / buildAskTopicActions", () => {
+  it("prefers short english alias for multi-word ids", () => {
+    expect(mudCommandTarget("yu fu", "渔夫")).toBe("fu");
+    expect(mudCommandTarget("fu", "渔夫")).toBe("fu");
+    expect(mudCommandTarget("店小二", "店小二")).toBe("店小二");
+    expect(mudCommandTarget("xiao er", "店小二")).toBe("er");
+  });
+
+  it("labels universal ask topics in Chinese", () => {
+    expect(labelAskTopic("ask fu about name")).toBe("姓名");
+    expect(labelAskTopic("ask fu about here")).toBe("此地");
+    expect(labelAskTopic("ask fu about rumors")).toBe("江湖传闻");
+    expect(labelAskTopic("ask fu about 侠客岛")).toBe("侠客岛");
+    expect(labelSuggestedAction("ask fu about name", [
+      { id: "fu", name: "渔夫", kind: "npc" },
+    ])).toBe("向渔夫打听姓名");
+  });
+
+  it("merges scene hints, ask-list output, and universal topics", () => {
+    const hints = [
+      { command: "ask fu about 侠客岛", label: "向渔夫打听侠客岛" },
+      { command: "ask fu about 离岛", label: "向渔夫打听离岛" },
+    ];
+    const listText = `你可以向渔夫打听下列话题：
+    (ask fu about 侠客岛)
+    (ask fu about 船)
+    (ask fu about name)
+    (ask fu about here)
+    (ask fu about rumors)`;
+    const topics = buildAskTopicActions("yu fu", "渔夫", hints, listText);
+    expect(topics.map((a) => a.command)).toEqual([
+      "ask fu about 侠客岛",
+      "ask fu about 离岛",
+      "ask fu about 船",
+      "ask fu about name",
+      "ask fu about here",
+      "ask fu about rumors",
+    ]);
+    expect(topics.map((a) => a.label)).toContain("姓名");
+    expect(topics.map((a) => a.label)).toContain("船");
+  });
+
+  it("parses ask-list lines that use Chinese who", () => {
+    const listText = `你可以向渔夫打听下列话题：
+    (ask 渔夫 about 船)
+    (ask 渔夫 about 离岛)`;
+    expect(
+      buildAskTopicActions("yu fu", "渔夫", [], listText).map((a) => a.command)
+    ).toEqual([
+      "ask fu about 船",
+      "ask fu about 离岛",
+      "ask fu about name",
+      "ask fu about here",
+      "ask fu about rumors",
+    ]);
+  });
+
+  it("still offers universal topics when no hints exist", () => {
+    expect(
+      buildAskTopicActions("xiao er", "店小二").map((a) => a.command)
+    ).toEqual([
+      "ask er about name",
+      "ask er about here",
+      "ask er about rumors",
+    ]);
   });
 });
 

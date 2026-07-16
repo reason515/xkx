@@ -309,6 +309,13 @@ const HELP_TOPIC_LABELS: Record<string, string> = {
   rules: "查看规则说明",
 };
 
+/** Universal ask topics from INQUIRY_D; prefer Chinese labels in UI. */
+const ASK_TOPIC_LABELS: Record<string, string> = {
+  name: "姓名",
+  here: "此地",
+  rumors: "江湖传闻",
+};
+
 const SKIP_ACTION_VERBS = new Set([
   "look",
   "go",
@@ -411,7 +418,9 @@ export function labelSuggestedAction(
     const who = displayNameForTarget(parts[1], npcs);
     const aboutIdx = parts.findIndex((p) => p.toLowerCase() === "about");
     if (aboutIdx >= 0 && parts[aboutIdx + 1]) {
-      return `向${who}打听${parts.slice(aboutIdx + 1).join(" ")}`;
+      const topic = parts.slice(aboutIdx + 1).join(" ");
+      const topicLabel = ASK_TOPIC_LABELS[topic.toLowerCase()] || topic;
+      return `向${who}打听${topicLabel}`;
     }
     return `向${who}打听`;
   }
@@ -446,6 +455,92 @@ function normalizeActionCommand(raw: string): string | null {
   if (!ACTION_VERBS[verb]) return null;
   if (TARGET_REQUIRED_VERBS.has(verb) && parts.length === 1) return null;
   return cmd;
+}
+
+/**
+ * Pick a single token for mud commands that use `sscanf("%s about %s")`
+ * (multi-word english ids like `yu fu` break bare ask). Prefer last id token.
+ */
+export function mudCommandTarget(id: string, name: string): string {
+  const idTrim = (id || "").trim();
+  if (idTrim && /^[a-z][\w]*$/i.test(idTrim)) return idTrim.toLowerCase();
+  // Multi-word english id: last token is usually the short alias (yu fu → fu)
+  if (idTrim && /^[a-z][\w]*(\s+[a-z][\w]*)+$/i.test(idTrim)) {
+    const parts = idTrim.toLowerCase().split(/\s+/).filter(Boolean);
+    return parts[parts.length - 1];
+  }
+  const nameTrim = (name || "").trim();
+  if (nameTrim && !/\s/.test(nameTrim)) return nameTrim;
+  return nameTrim || idTrim;
+}
+
+/** Topic-only label for ask chips inside the entity sheet. */
+export function labelAskTopic(command: string): string {
+  const parts = command.trim().split(/\s+/);
+  const aboutIdx = parts.findIndex((p) => p.toLowerCase() === "about");
+  if (aboutIdx < 0 || !parts[aboutIdx + 1]) return "打听";
+  const topic = parts.slice(aboutIdx + 1).join(" ");
+  return ASK_TOPIC_LABELS[topic.toLowerCase()] || topic;
+}
+
+function askCommandMatchesEntity(
+  command: string,
+  id: string,
+  name: string
+): boolean {
+  const m = command.trim().match(/^ask\s+(.+?)\s+about\s+\S+/i);
+  if (!m) return false;
+  const who = m[1].trim().toLowerCase();
+  const idL = (id || "").trim().toLowerCase();
+  const nameL = (name || "").trim().toLowerCase();
+  const targetL = mudCommandTarget(id, name).toLowerCase();
+  if (who === targetL || who === idL || who === nameL) return true;
+  if (!idL) return false;
+  const idParts = idL.split(/\s+/).filter(Boolean);
+  return idParts.includes(who) || idL.endsWith(` ${who}`);
+}
+
+/**
+ * Ask topics the player can tap for a given NPC: known scene hints,
+ * optional list output from bare `ask <who>`, plus name/here/rumors.
+ */
+export function buildAskTopicActions(
+  id: string,
+  name: string,
+  hinted: SuggestedAction[] = [],
+  listText = "",
+  npcs: Entity[] = []
+): SuggestedAction[] {
+  const target = mudCommandTarget(id, name);
+  const found = new Map<string, SuggestedAction>();
+
+  const consider = (command: string) => {
+    const cmd = command.trim().replace(/\s+/g, " ");
+    if (!/^ask\s+\S.+\s+about\s+\S/i.test(cmd)) return;
+    if (
+      !askCommandMatchesEntity(cmd, id, name) &&
+      !cmd.toLowerCase().startsWith(`ask ${target.toLowerCase()} about`)
+    ) {
+      return;
+    }
+    // Normalize who → preferred target so duplicate hints collapse
+    const aboutIdx = cmd.toLowerCase().indexOf(" about ");
+    const topic = aboutIdx >= 0 ? cmd.slice(aboutIdx + 7).trim() : "";
+    if (!topic) return;
+    const normalized = `ask ${target} about ${topic}`;
+    if (found.has(normalized)) return;
+    found.set(normalized, {
+      command: normalized,
+      label: labelAskTopic(normalized),
+    });
+  };
+
+  for (const a of hinted) consider(a.command);
+  for (const a of parseSuggestedActions(listText, npcs)) consider(a.command);
+  for (const topic of ["name", "here", "rumors"]) {
+    consider(`ask ${target} about ${topic}`);
+  }
+  return [...found.values()];
 }
 
 /**
@@ -529,6 +624,7 @@ export function mergeSuggestedActions(
 /**
  * Newbie beach greeters (张三/李四): if their greeting was swallowed before
  * the client entered the game, still expose a follow chip from room NPCs.
+ * Ask topics are not injected here — only text hints go to 场景动作；其余走人物「问」。
  */
 export function beachGreeterActions(
   roomTitle: string | undefined,
@@ -547,12 +643,6 @@ export function beachGreeterActions(
             ? "follow li si"
             : command;
       out.push({ command: cmd, label: labelSuggestedAction(cmd, npcs) });
-    }
-  }
-  // 渔夫常驻主沙滩：不依赖 greeting 文本也能点「打听」；上船仅在出口/提示出现后由 parseSuggestedActions 露出
-  if (npcs.some((n) => /渔夫/.test(n.name) || /^(yu fu|fu)$/i.test(n.id))) {
-    for (const command of ["ask fu about 侠客岛", "ask fu about 离岛"]) {
-      out.push({ command, label: labelSuggestedAction(command, npcs) });
     }
   }
   return out;

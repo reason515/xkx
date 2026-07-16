@@ -324,9 +324,11 @@ export default function App() {
           kind={g.selectedEntity.kind}
           docText={state.docTarget === "entity" ? state.docText : ""}
           docLoading={state.docTarget === "entity" && state.docLoading}
+          askHints={state.suggestedActions}
           onClose={g.closeSheet}
           onAction={afterEntityAction}
           onDocAction={afterBoardDocAction}
+          onAskList={(command) => g.docCmd(command, "entity")}
           onClearDoc={g.clearDoc}
         />
       )}

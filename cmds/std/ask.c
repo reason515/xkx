@@ -28,6 +28,30 @@ string *msg_foreign = ({
 });
 
 
+int list_ask_topics(object me, object ob, string dest)
+{
+	mapping inquiry;
+	string *topics;
+	int i;
+
+	if( !ob->is_character() )
+		return notify_fail("这不是个活人，问也没用。\n");
+	if( ob == me )
+		return notify_fail("何必问自己？\n");
+
+	write("你可以向" + ob->name() + "打听下列话题：\n");
+	inquiry = ob->query("inquiry");
+	if( mapp(inquiry) && sizeof(inquiry) ) {
+		topics = keys(inquiry);
+		for( i = 0; i < sizeof(topics); i++ )
+			write(sprintf("    (ask %s about %s)\n", dest, topics[i]));
+	}
+	write(sprintf("    (ask %s about name)\n", dest));
+	write(sprintf("    (ask %s about here)\n", dest));
+	write(sprintf("    (ask %s about rumors)\n", dest));
+	return 1;
+}
+
 int main(object me, string arg)
 {
 	string dest, topic, msg, att;
@@ -38,8 +62,15 @@ int main(object me, string arg)
 
 	seteuid(getuid());
 
-	if( !arg || sscanf(arg, "%s about %s", dest, topic)!=2 )
+	if( !arg )
 		return notify_fail("你要问谁什么事？\n");
+
+	if( sscanf(arg, "%s about %s", dest, topic)!=2 ) {
+		dest = arg;
+		if( !objectp(ob = present(dest, environment(me))) )
+			return notify_fail("这里没有这个人。\n");
+		return list_ask_topics(me, ob, dest);
+	}
 
 	if( !objectp(ob = present(dest, environment(me))) )
 		return notify_fail("这里没有这个人。\n");
@@ -137,9 +168,10 @@ int help(object me)
 {
    write( @HELP
 指令格式: ask <someone> about <something>
+          ask <someone>
 
 这个指令在解谜时很重要, 通常必须藉由此一指令才能
-获得进一步的资讯。
+获得进一步的资讯。只写 ask <someone> 时可列出可打听的话题。
 HELP
    );
    return 1;
