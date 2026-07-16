@@ -1,4 +1,4 @@
-import type { GameState } from "../lib/types";
+import type { GameState, ScoreAttr, ScoreInfo } from "../lib/types";
 
 interface Props {
   state: GameState;
@@ -10,6 +10,137 @@ interface Props {
 function pct(cur?: number, max?: number) {
   if (!cur || !max) return 0;
   return Math.min(100, Math.round((cur / max) * 100));
+}
+
+function attrTone(a?: ScoreAttr): "up" | "down" | "same" {
+  if (!a) return "same";
+  if (a.cur > a.base) return "up";
+  if (a.cur < a.base) return "down";
+  return "same";
+}
+
+function ScorePanel({ score, fallbackHtml, fallbackText }: {
+  score?: ScoreInfo;
+  fallbackHtml?: string;
+  fallbackText?: string;
+}) {
+  if (!score || (!score.bio && !score.attrs && score.exp == null && !score.headline)) {
+    if (fallbackHtml) {
+      return (
+        <div
+          className="look-block score-block"
+          dangerouslySetInnerHTML={{ __html: fallbackHtml }}
+        />
+      );
+    }
+    return (
+      <div className="look-block score-block">
+        {fallbackText || "档案数据将在进入游戏后自动同步。"}
+      </div>
+    );
+  }
+
+  const attrs = [
+    ["膂力", "str", score.attrs?.str],
+    ["悟性", "int", score.attrs?.int],
+    ["根骨", "con", score.attrs?.con],
+    ["身法", "dex", score.attrs?.dex],
+  ] as const;
+
+  return (
+    <div className="score-panel">
+      {score.headline && <div className="score-headline">{score.headline}</div>}
+      {(score.bio || score.master || score.spouse) && (
+        <div className="profile-line">
+          {score.bio && <p>{score.bio}</p>}
+          {score.master && <p>师父：{score.master}</p>}
+          {score.spouse && <p>{score.spouse}</p>}
+        </div>
+      )}
+
+      {(score.attack != null || score.defense != null) && (
+        <div className="combat-grid">
+          {score.attack != null && (
+            <div className="combat-pill atk">
+              <div className="k">攻击</div>
+              <div className="v">{score.attack}</div>
+            </div>
+          )}
+          {score.defense != null && (
+            <div className="combat-pill def">
+              <div className="k">防御</div>
+              <div className="v">{score.defense}</div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {score.attrs && (
+        <div className="attr-list">
+          <div className="attr-row head">
+            <span className="name" />
+            <span className="nums">
+              <span className="cur">当前</span>
+              <span className="sep">/</span>
+              <span className="base">先天</span>
+            </span>
+          </div>
+          {attrs.map(([label, cls, a]) =>
+            a ? (
+              <div key={cls} className={`attr-row ${cls}`}>
+                <span className="name">{label}</span>
+                <span className={`nums tone-${attrTone(a)}`}>
+                  <span className="cur">{a.cur}</span>
+                  <span className="sep">/</span>
+                  <span className="base">{a.base}</span>
+                </span>
+              </div>
+            ) : null
+          )}
+        </div>
+      )}
+
+      <div className="scalar-grid">
+        {score.exp != null && (
+          <div className="scalar exp">
+            <span>经验</span>
+            <span className="v">{score.exp}</span>
+          </div>
+        )}
+        {score.shen != null && (
+          <div className="scalar shen">
+            <span>神</span>
+            <span className="v">{score.shen}</span>
+          </div>
+        )}
+        {score.questExp != null && (
+          <div className="scalar">
+            <span>阅历</span>
+            <span className="v">{score.questExp}</span>
+          </div>
+        )}
+        {score.kills != null && (
+          <div className="scalar">
+            <span>杀敌</span>
+            <span className="v">
+              {score.kills}
+              {score.playerKills != null ? `（玩家 ${score.playerKills}）` : ""}
+            </span>
+          </div>
+        )}
+        {score.deaths != null && (
+          <div className="scalar">
+            <span>死亡</span>
+            <span className="v">
+              {score.deaths}
+              {score.normalDeaths != null ? `（正常 ${score.normalDeaths}）` : ""}
+            </span>
+          </div>
+        )}
+      </div>
+      <p className="attr-legend">当前含装备与临时加成；气血详见上一页。</p>
+    </div>
+  );
 }
 
 export function CharacterSheet({ state, tab, onTab, onClose }: Props) {
@@ -39,9 +170,16 @@ export function CharacterSheet({ state, tab, onTab, onClose }: Props) {
         </div>
         <div className="sheet-scroll">
           <div className={`panel ${tab === 0 ? "on" : ""}`}>
-            <div className="look-block">
-              {state.lookText || "你看起来平平无奇，似乎需要环顾或刷新面板。"}
-            </div>
+            {state.lookHtml ? (
+              <div
+                className="look-block"
+                dangerouslySetInnerHTML={{ __html: state.lookHtml }}
+              />
+            ) : (
+              <div className="look-block">
+                {state.lookText || "你看起来平平无奇，似乎需要环顾或刷新面板。"}
+              </div>
+            )}
           </div>
           <div className={`panel ${tab === 1 ? "on" : ""}`}>
             <div className="meter-list">
@@ -79,9 +217,11 @@ export function CharacterSheet({ state, tab, onTab, onClose }: Props) {
             </div>
           </div>
           <div className={`panel ${tab === 2 ? "on" : ""}`}>
-            <div className="look-block">
-              {state.scoreText || "档案数据将在进入游戏后自动同步。"}
-            </div>
+            <ScorePanel
+              score={state.score}
+              fallbackHtml={state.scoreHtml}
+              fallbackText={state.scoreText}
+            />
           </div>
           <div className={`panel ${tab === 3 ? "on" : ""}`}>
             {state.skills.length === 0 ? (

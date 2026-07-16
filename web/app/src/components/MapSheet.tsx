@@ -1,18 +1,54 @@
-import { useState } from "react";
-import { WORLD_SPOTS, YANGZHOU_CELLS } from "../data/maps";
+import { useMemo, useState } from "react";
+import {
+  getMapLabel,
+  getMapText,
+  highlightMapText,
+  resolveRegionMapKey,
+  worldHighlightMarkers,
+} from "../data/maps";
 
 interface Props {
+  roomTitle?: string;
+  roomArea?: string;
   onClose: () => void;
 }
 
-export function MapSheet({ onClose }: Props) {
+export function MapSheet({ roomTitle, roomArea, onClose }: Props) {
   const [mode, setMode] = useState<"region" | "world">("region");
+
+  const regionKey = useMemo(
+    () => resolveRegionMapKey(roomArea, roomTitle),
+    [roomArea, roomTitle]
+  );
+  const regionText = getMapText(regionKey);
+  const regionLabel = getMapLabel(regionKey);
+
+  const worldText = getMapText("all") || "";
+  const regionHtml = useMemo(() => {
+    if (!regionText) return "";
+    return highlightMapText(regionText, [roomTitle]);
+  }, [regionText, roomTitle]);
+
+  const worldHtml = useMemo(() => {
+    if (!worldText) return "";
+    return highlightMapText(
+      worldText,
+      worldHighlightMarkers(roomArea, roomTitle)
+    );
+  }, [worldText, roomArea, roomTitle]);
+
+  const title =
+    mode === "world"
+      ? "世界地图"
+      : regionKey
+        ? `${regionLabel}${roomTitle ? ` · ${roomTitle}` : ""}`
+        : "区域地图";
 
   return (
     <div className="overlay open" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
+      <div className="sheet map-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-top">
-          <h3>地图</h3>
+          <h3>{title}</h3>
           <button type="button" className="close" onClick={onClose}>
             ×
           </button>
@@ -35,67 +71,28 @@ export function MapSheet({ onClose }: Props) {
         </div>
         <div className="sheet-scroll">
           {mode === "region" ? (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: 6,
-              }}
-            >
-              {YANGZHOU_CELLS.map((c) => (
-                <div
-                  key={c.id}
-                  style={{
-                    minHeight: 52,
-                    borderRadius: 8,
-                    border: "1px solid var(--line)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 11,
-                    background:
-                      c.kind === "here"
-                        ? "rgba(181,74,58,0.35)"
-                        : c.kind === "landmark"
-                          ? "rgba(106,143,158,0.18)"
-                          : "rgba(95,143,120,0.12)",
-                  }}
-                >
-                  {c.label}
-                </div>
-              ))}
-            </div>
+            regionText ? (
+              <>
+                <p className="map-legend">◎ 当前位置已高亮　图源同 MUD「map」</p>
+                <pre
+                  className="map-ascii"
+                  dangerouslySetInnerHTML={{ __html: regionHtml }}
+                />
+              </>
+            ) : (
+              <p className="map-empty">
+                暂无此区域地图
+                {roomTitle ? `（${roomTitle}）` : ""}。可切换「世界」查看总图。
+              </p>
+            )
           ) : (
-            <div
-              style={{
-                position: "relative",
-                minHeight: 320,
-                borderRadius: 12,
-                border: "1px solid var(--line-strong)",
-                background: "rgba(0,0,0,0.25)",
-              }}
-            >
-              {WORLD_SPOTS.map((s) => (
-                <div
-                  key={s.id}
-                  style={{
-                    position: "absolute",
-                    left: `${s.x}%`,
-                    top: `${s.y}%`,
-                    transform: "translate(-50%,-50%)",
-                    padding: "5px 8px",
-                    borderRadius: 8,
-                    fontSize: 10,
-                    border: "1px solid var(--line-strong)",
-                    background: s.here
-                      ? "rgba(181,74,58,0.35)"
-                      : "rgba(26,23,20,0.85)",
-                  }}
-                >
-                  {s.label}
-                </div>
-              ))}
-            </div>
+            <>
+              <p className="map-legend">侠客行第一阶段总图　当前区域地标已高亮</p>
+              <pre
+                className="map-ascii"
+                dangerouslySetInnerHTML={{ __html: worldHtml }}
+              />
+            </>
           )}
         </div>
       </div>

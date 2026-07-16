@@ -11,7 +11,9 @@ export function applyEvent(
     skills: SkillRow[];
     inventory: InvItem[];
     lookText: string;
+    lookHtml?: string;
     scoreText: string;
+    scoreHtml?: string;
     assistActive: boolean;
     assistStatus: string;
     combatLog: string[];
@@ -26,6 +28,10 @@ export function applyEvent(
       next.room = {
         title: (event.title as string) || prev.room.title,
         desc: (event.long as string) || prev.room.desc,
+        area:
+          typeof event.area === "string" && event.area
+            ? event.area
+            : prev.room.area,
         // Empty exits must replace prior room exits (no-exit rooms like 挂名处)
         exits: Array.isArray(rawExits)
           ? rawExits.map((e) => ({
@@ -44,9 +50,11 @@ export function applyEvent(
       break;
     case "player.look":
       next.lookText = (event.text as string) || prev.lookText;
+      if (typeof event.html === "string") next.lookHtml = event.html;
       break;
     case "player.score":
       next.scoreText = (event.text as string) || prev.scoreText;
+      if (typeof event.html === "string") next.scoreHtml = event.html;
       break;
     case "skills.update":
       next.skills = (event.skills as SkillRow[]) || prev.skills;

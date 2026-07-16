@@ -1,17 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   beachGreeterActions,
+  buildScoreHtml,
   extractLookBlock,
   isCombatLine,
   isLoginNoise,
   isProtocolNoise,
+  isSelfLookLine,
+  isSheetDumpLine,
   isTrainLine,
   mergeSuggestedActions,
   parseHp,
   parseInventory,
   parseRoom,
+  parseScore,
   parseSkills,
   parseSuggestedActions,
+  stripScoreBanner,
 } from "../lib/parser";
 import { applyEvent } from "../lib/protocol";
 import type {
@@ -32,7 +37,10 @@ const initialState = (): GameState => ({
   suggestedActions: [],
   logs: [],
   lookText: "",
+  lookHtml: "",
   scoreText: "",
+  scoreHtml: "",
+  score: undefined,
   skills: [],
   inventory: [],
   enabled: {},
@@ -50,6 +58,8 @@ export function useGame() {
   const textBuf = useRef("");
   const roomFromEvent = useRef(false);
   const enteredGame = useRef(false);
+  /** Suppress look-me narrative from 见闻 while capturing 仪容. */
+  const expectLookMe = useRef(false);
   const [state, setState] = useState<GameState>(initialState);
   const [toast, setToast] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -75,7 +85,7 @@ export function useGame() {
     html?: string
   ) => {
     if (!text.trim()) return;
-    if (isLoginNoise(text) || isProtocolNoise(text)) return;
+    if (isLoginNoise(text) || isProtocolNoise(text) || isSheetDumpLine(text)) return;
     setState((s) => ({
       ...s,
       logs: [
@@ -86,7 +96,7 @@ export function useGame() {
   }, []);
 
   const cmd = useCallback(
-    (command: string) => {
+    (command: string, opts?: { silent?: boolean }) => {
       const verb = command.trim().split(/\s+/)[0]?.toLowerCase();
       // follow/enter 会换房：清掉旧建议动作，并允许文本 look 回退更新标题
       if (verb === "follow" || verb === "enter" || verb === "register") {
@@ -94,7 +104,7 @@ export function useGame() {
         setState((s) => ({ ...s, suggestedActions: [] }));
       }
       socket.current.cmd(command);
-      addLog(`> ${command}`, "sys");
+      if (!opts?.silent) addLog(`> ${command}`, "sys");
       // 张三传送约 5s；补一次 look，避免 room.update 迟到时标题仍停在沙滩
       if (verb === "follow") {
         window.setTimeout(() => {
@@ -173,7 +183,7 @@ export function useGame() {
         return;
       }
       if (msg.type === "text" && msg.text) {
-        const chunk = msg.text;
+        const chunk = msg.text.replace(/\0/g, "");
         textBuf.current += chunk;
 
         // Fallback if gateway did not emit ready (older build)
@@ -184,12 +194,55 @@ export function useGame() {
         if (!enteredGame.current) return;
 
         const lines = chunk.split("\n");
+        // Only bind 仪容 when the chunk itself looks like look-me output.
+        // Never swallow unrelated NPC speech (e.g. 打听侠客岛) into lookText /
+        // out of 见闻 — that was breaking beach ask replies after opening 角色卡.
+        let suppressSelfLook = false;
+        if (expectLookMe.current) {
+          const lookFailed = /你要看什么？/.test(chunk);
+          const looksLikeSelfLook =
+            /你看起来|你身上带[着著]|看起来约.+[岁歲]/.test(chunk) &&
+            !/打听有关|向.+打听/.test(chunk);
+          if (lookFailed) {
+            // keep waiting for a real look-me reply
+          } else if (looksLikeSelfLook) {
+            expectLookMe.current = false;
+            suppressSelfLook = true;
+            const lookPlain = lines
+              .filter((l) => {
+                const t = l.trim();
+                if (!t) return false;
+                if (isSheetDumpLine(t)) return false;
+                return true;
+              })
+              .join("\n");
+            const lookHtml = (msg.htmlLines || [])
+              .filter((h, i) => {
+                const plain =
+                  (lines[i] ?? "").trim() || h.replace(/<[^>]+>/g, "").trim();
+                if (!plain) return false;
+                if (isSheetDumpLine(plain)) return false;
+                return true;
+              })
+              .join("\n");
+            if (lookPlain.trim()) {
+              setState((s) => ({
+                ...s,
+                lookText: lookPlain,
+                lookHtml: lookHtml || s.lookHtml,
+              }));
+            }
+          }
+        }
+
         for (const [index, line] of lines.entries()) {
           const html = msg.htmlLines?.[index];
           if (!line.trim()) continue;
           if (line.length < 2) continue;
           if (/^>{0,1}\s*$/.test(line)) continue;
           if (isLoginNoise(line) || isProtocolNoise(line)) continue;
+          if (isSheetDumpLine(line)) continue;
+          if (suppressSelfLook && isSelfLookLine(line)) continue;
           if (isCombatLine(line)) {
             setState((s) => ({
               ...s,
@@ -262,7 +315,18 @@ export function useGame() {
         }
 
         if (/个人档案|膂力|悟性|根骨|身法/.test(chunk)) {
-          setState((s) => ({ ...s, scoreText: chunk }));
+          const scoreText = stripScoreBanner(chunk);
+          const scoreHtml = buildScoreHtml(chunk, msg.htmlLines);
+          const score = parseScore(chunk);
+          setState((s) => ({
+            ...s,
+            scoreText: scoreText.trim() ? scoreText : s.scoreText,
+            scoreHtml: scoreHtml.trim() ? scoreHtml : s.scoreHtml,
+            score:
+              score.bio || score.attrs || score.exp != null || score.headline
+                ? score
+                : s.score,
+          }));
         }
         if (/所学过的|武功|技能/.test(chunk) || /初学乍练|粗通皮毛/.test(chunk)) {
           const skills = parseSkills(textBuf.current.slice(-4000));
@@ -314,11 +378,15 @@ export function useGame() {
   }, []);
 
   const refreshCharacter = useCallback(() => {
-    cmd("look me");
-    cmd("hp");
-    cmd("score");
-    cmd("skills");
-    cmd("inventory");
+    expectLookMe.current = true;
+    window.setTimeout(() => {
+      expectLookMe.current = false;
+    }, 4000);
+    cmd("look me", { silent: true });
+    cmd("hp", { silent: true });
+    cmd("score", { silent: true });
+    cmd("skills", { silent: true });
+    cmd("inventory", { silent: true });
   }, [cmd]);
 
   const onOpenCharacter = useCallback(() => {

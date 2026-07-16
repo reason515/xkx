@@ -165,7 +165,7 @@ test.describe.serial("game smoke", () => {
     }
   });
 
-  test("手机端见闻置顶、占比更高且操作可展开", async ({ page }) => {
+  test("手机端见闻置顶、场景占比更高且操作可展开", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, {
       id: sharedId,
@@ -186,7 +186,7 @@ test.describe.serial("game smoke", () => {
       return {
         direction: getComputedStyle(body).flexDirection,
         logAboveScene: logRect.top < sceneRect.top,
-        logTallerThanScene: logRect.height > sceneRect.height,
+        sceneTallerThanLog: sceneRect.height > logRect.height,
         sceneVisible: sceneRect.top < window.innerHeight,
         sceneAboveDock: sceneRect.bottom <= dockRect.top,
         logScrollable: log.scrollHeight >= log.clientHeight,
@@ -197,7 +197,7 @@ test.describe.serial("game smoke", () => {
     expect(layout).toEqual({
       direction: "column",
       logAboveScene: true,
-      logTallerThanScene: true,
+      sceneTallerThanLog: true,
       sceneVisible: true,
       sceneAboveDock: true,
       logScrollable: true,
@@ -211,6 +211,99 @@ test.describe.serial("game smoke", () => {
     await expect(page.getByRole("button", { name: "动手" })).toBeVisible();
     await page.getByRole("button", { name: "收起操作" }).click();
     await expect(page.getByRole("button", { name: "操作" })).toBeVisible();
+  });
+
+  test("角色卡片查询不进见闻，档案无横幅标题", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, {
+      id: sharedId,
+      password: sharedPassword,
+      asRegister: false,
+    });
+
+    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
+    await page.locator(".hero-btn").click();
+
+    await expect(page.getByRole("button", { name: "仪容" })).toBeVisible();
+    await expect
+      .poll(async () => {
+        const look = page.locator(".panel.on .look-block");
+        if (!(await look.count())) return "";
+        return ((await look.first().textContent()) || "").trim();
+      }, { timeout: 20_000 })
+      .not.toMatch(/你要看什么/);
+
+    await page.getByRole("button", { name: "档案" }).click();
+
+    await expect
+      .poll(async () => {
+        const score = page.locator(".score-panel, .score-block");
+        if (!(await score.count())) return "";
+        return ((await score.first().textContent()) || "").trim();
+      }, { timeout: 20_000 })
+      .toMatch(/膂力|当前|经验|神/);
+
+    const scoreText = (
+      (await page.locator(".score-panel, .score-block").first().textContent()) ||
+      ""
+    ).trim();
+    expect(scoreText).not.toMatch(/【侠客行个人档案】/);
+    expect(scoreText).not.toMatch(/GB中文|BIG5中文/);
+    expect(scoreText).not.toMatch(/■|□{3,}/);
+    const logs = await page.locator(".log p").allTextContents();
+    const logBlob = logs.join("\n");
+    expect(logBlob).not.toMatch(/^>\s*(look me|hp|score|skills|inventory)\b/m);
+    expect(logBlob).not.toMatch(/【侠客行个人档案】/);
+    expect(logBlob).not.toMatch(/膂力[：:].*悟性/);
+    expect(logBlob).not.toMatch(/你要看什么/);
+  });
+
+  test("打开角色卡后仍可向渔夫打听侠客岛", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    // 新号落在沙滩，保证有渔夫；避免共用号已走开
+    await loginAsNewbie(page, { asRegister: true });
+
+    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 60_000 });
+
+    // 先打开角色卡（会静默 look me / hp / score），这是此前误吞打听回显的路径
+    await page.locator(".hero-btn").click();
+    await expect(page.getByRole("button", { name: "档案" })).toBeVisible();
+    await page.locator(".sheet .close").click();
+
+    const askBtn = page.getByRole("button", {
+      name: "向渔夫打听侠客岛",
+      exact: true,
+    });
+    await expect(askBtn).toBeVisible({ timeout: 30_000 });
+    await askBtn.click();
+
+    await expect
+      .poll(async () => {
+        const logs = await page.locator(".log p").allTextContents();
+        return logs.join("\n");
+      }, { timeout: 20_000 })
+      .toMatch(/这里就是侠客岛|打听有关『侠客岛』/);
+  });
+
+  test("地图浮层显示侠客岛真图与世界总图", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+
+    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 60_000 });
+
+    await page.getByRole("button", { name: "地图" }).click();
+    await expect(page.locator(".map-sheet")).toBeVisible();
+    await expect(page.locator(".map-ascii")).toContainText(/望海亭|迎宾厅/, {
+      timeout: 10_000,
+    });
+    await expect(page.locator(".map-here")).toBeVisible();
+
+    await page.getByRole("button", { name: "世界" }).click();
+    await expect(page.locator(".map-ascii")).toContainText(/扬州城|侠客岛/, {
+      timeout: 10_000,
+    });
   });
 
   test("桌面端场景与见闻并列", async ({ page }) => {

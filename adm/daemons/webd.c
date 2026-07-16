@@ -88,8 +88,24 @@ void send_room(object me, object env)
 	object *inv, ob;
 	mapping event;
 	string *npcs, *items;
+	string area, file, *parts;
+	int i;
 
 	if (!objectp(me) || !objectp(env)) return;
+
+	area = env->query("outdoors");
+	if (!stringp(area) || area == "") {
+		file = base_name(env);
+		parts = explode(file, "/");
+		/* /d/<area>/... → take segment after "d" */
+		for (i = 0; i < sizeof(parts) - 1; i++) {
+			if (parts[i] == "d" && stringp(parts[i + 1]) && parts[i + 1] != "") {
+				area = parts[i + 1];
+				break;
+			}
+		}
+	}
+	if (!stringp(area)) area = "";
 
 	event = ([
 		"type": "room.update",
@@ -123,9 +139,10 @@ void send_room(object me, object env)
 	}
 
 	emit_raw(me, sprintf(
-		"{\"v\":1,\"type\":\"room.update\",\"title\":\"%s\",\"long\":\"%s\",\"exits\":%s,\"npcs\":[%s],\"items\":[%s]}",
+		"{\"v\":1,\"type\":\"room.update\",\"title\":\"%s\",\"long\":\"%s\",\"area\":\"%s\",\"exits\":%s,\"npcs\":[%s],\"items\":[%s]}",
 		json_escape(env->query("short") || ""),
 		json_escape(env->query("long") || ""),
+		json_escape(area),
 		event["exits_json"],
 		implode(npcs, ","),
 		implode(items, ",")

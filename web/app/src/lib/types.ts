@@ -39,6 +39,8 @@ export interface SuggestedAction {
 export interface RoomState {
   title?: string;
   desc?: string;
+  /** MUD area key from outdoors /d/<area>/… (e.g. xiakedao). */
+  area?: string;
   exits: ExitInfo[];
   npcs: Entity[];
   items: Entity[];
@@ -52,6 +54,33 @@ export interface SkillRow {
   category: string;
   mastery: number;
   equipped?: boolean;
+}
+
+export interface ScoreAttr {
+  cur: number;
+  base: number;
+}
+
+export interface ScoreInfo {
+  headline?: string;
+  bio?: string;
+  master?: string;
+  spouse?: string;
+  attrs?: {
+    str?: ScoreAttr;
+    int?: ScoreAttr;
+    con?: ScoreAttr;
+    dex?: ScoreAttr;
+  };
+  exp?: number;
+  shen?: number;
+  questExp?: number;
+  kills?: number;
+  playerKills?: number;
+  deaths?: number;
+  normalDeaths?: number;
+  attack?: number;
+  defense?: number;
 }
 
 export interface InvItem {
@@ -103,7 +132,10 @@ export interface GameState {
   suggestedActions: SuggestedAction[];
   logs: LogEntry[];
   lookText: string;
+  lookHtml: string;
   scoreText: string;
+  scoreHtml: string;
+  score?: ScoreInfo;
   skills: SkillRow[];
   inventory: InvItem[];
   enabled: Record<string, { skill: string; level: number }>;

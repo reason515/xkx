@@ -2,6 +2,8 @@ import type {
   ExitInfo,
   InvItem,
   RoomState,
+  ScoreAttr,
+  ScoreInfo,
   SkillRow,
   SuggestedAction,
   Vitals,
@@ -446,6 +448,12 @@ export function beachGreeterActions(
       out.push({ command: cmd, label: labelSuggestedAction(cmd, npcs) });
     }
   }
+  // 渔夫常驻沙滩：不依赖 greeting 文本（含 \0）也能点「打听」
+  if (npcs.some((n) => /渔夫/.test(n.name) || /^(yu fu|fu)$/i.test(n.id))) {
+    for (const command of ["ask fu about 侠客岛", "ask fu about 离岛"]) {
+      out.push({ command, label: labelSuggestedAction(command, npcs) });
+    }
+  }
   return out;
 }
 
@@ -536,7 +544,168 @@ export function isCombatLine(text: string): boolean {
 }
 
 export function isTrainLine(text: string): boolean {
-  return /(?:打坐|吐纳|练功|内力|潜能|精力|缓缓|盘膝|调息)/.test(text);
+  return /(?:打坐|吐纳|练功|缓缓|盘膝|调息)/.test(text);
+}
+
+/** Character-panel dumps (hp / score / skills / inventory) belong in 角色卡片, not 见闻. */
+export function isSheetDumpLine(line: string): boolean {
+  const t = line.trim();
+  if (!t) return false;
+  if (/你要看什么？/.test(t)) return true;
+  if (/^>\s*(look\s+me|hp|score|skills|inventory|i)\b/i.test(t)) return true;
+  if (/【侠客行个人档案】/.test(t)) return true;
+  if (/个人档案/.test(t) && /中文/.test(t)) return true;
+  if (/膂力/.test(t) && /悟性/.test(t) && /根骨/.test(t)) return true;
+  if (/你是一.+岁.+个月的/.test(t)) return true;
+  if (/你的师父是|你到目前为止总共(?:杀了|死了)/.test(t)) return true;
+  if (/攻击力/.test(t) && /防御力/.test(t)) return true;
+  if (/^[ \t]*精\s*[：:]/.test(t) && (/\d/.test(t) || /[■□]/.test(t))) return true;
+  if (/^[ \t]*气\s*[：:]/.test(t) && (/\d/.test(t) || /[■□]/.test(t))) return true;
+  if (/^[ \t]*(精力|内力)\s*[：:]/.test(t) && (/\d/.test(t) || /[■□+]/.test(t))) return true;
+  if (/^[ \t]*食物\s*[：:]/.test(t) && /(?:潜能|\d)/.test(t)) return true;
+  if (/^[ \t]*饮水\s*[：:]/.test(t) && /(?:经验|\d)/.test(t)) return true;
+  if (/^[ \t]*潜能\s*[：:]/.test(t) && /\d/.test(t)) return true;
+  if (/^[ \t]*经验\s*[：:]/.test(t) && /\d/.test(t)) return true;
+  if (/^[ \t]*神\s*[：:]/.test(t)) return true;
+  if (/^[ \t]*阅历\s*[：:]/.test(t)) return true;
+  if (/你目前所学过的技能|你不会任何技能|你身上带着下列|目前身上带着|你身上没有携带任何东西/.test(t))
+    return true;
+  if (/^[□\s]*[\u4e00-\u9fff][\u4e00-\u9fff\s]*\s+[-─]{2,}\s*\d+/.test(t)) return true;
+  if (/^[□].+（[^）]+）\s*$/.test(t)) return true;
+  if (
+    /^.{1,40}（(?:武器|防具|衣物|食物|饮料|药物|钱币|金钱|杂物|其它|其他|物品)）\s*$/.test(
+      t
+    )
+  )
+    return true;
+  return false;
+}
+
+/** Self look-me narrative lines (仪容), not room/NPC chatter. */
+export function isSelfLookLine(line: string): boolean {
+  const t = line.trim();
+  if (!t) return false;
+  if (/^你看起来/.test(t)) return true;
+  if (/身上带[着著]：/.test(t)) return true;
+  if (/看起来约.+[岁歲]/.test(t)) return true;
+  if (/并没有受伤|气血充盈|受了点伤|气血和畅/.test(t) && /^你/.test(t))
+    return true;
+  if (/^[□\s]+.+\([A-Za-z][^)]*\)\s*$/.test(t)) return true;
+  return false;
+}
+
+/** Drop decorative score banner; keep the rest of the dump. */
+export function stripScoreBanner(text: string): string {
+  return text
+    .replace(/^[^\n]*【侠客行个人档案】[^\n]*\n*/m, "")
+    .replace(/^[^\n]*个人档案[^\n]*中文[^\n]*\n*/m, "")
+    .replace(/^\s*\n+/, "");
+}
+
+function parseAttrPair(block: string, label: string): ScoreAttr | undefined {
+  const re = new RegExp(
+    `${label}[：:]\\s*\\[\\s*(\\d+)\\s*/\\s*(\\d+)\\s*\\]`
+  );
+  const m = block.match(re);
+  if (!m) return undefined;
+  return { cur: +m[1], base: +m[2] };
+}
+
+/** Parse score dump into structured archive fields (skip terminal bar clutter). */
+export function parseScore(text: string): ScoreInfo {
+  const body = stripScoreBanner(text);
+  const info: ScoreInfo = {};
+
+  const bio = body.match(/你是一[^。\n]+。/);
+  if (bio) info.bio = bio[0].trim();
+
+  const master = body.match(/你的师父是([^。\n]+)/);
+  if (master) info.master = master[1].trim();
+
+  const spouse = body.match(/你的(妻子|丈夫|配偶)是([^。\n]+)/);
+  if (spouse) info.spouse = `${spouse[1]}：${spouse[2].trim()}`;
+
+  const attrs: ScoreInfo["attrs"] = {};
+  const str = parseAttrPair(body, "膂力");
+  const intel = parseAttrPair(body, "悟性");
+  const con = parseAttrPair(body, "根骨");
+  const dex = parseAttrPair(body, "身法");
+  if (str) attrs.str = str;
+  if (intel) attrs.int = intel;
+  if (con) attrs.con = con;
+  if (dex) attrs.dex = dex;
+  if (Object.keys(attrs).length) info.attrs = attrs;
+
+  const exp = body.match(/经验[：:]\s*(-?\d+)/);
+  if (exp) info.exp = +exp[1];
+  const shen = body.match(/神\s*[：:]\s*(-?\d+)/);
+  if (shen) info.shen = +shen[1];
+  const quest = body.match(/阅历[：:]\s*(-?\d+)/);
+  if (quest) info.questExp = +quest[1];
+
+  const atk = body.match(/攻击力\s*[：:]\s*(-?\d+)/);
+  if (atk) info.attack = +atk[1];
+  const def = body.match(/防御力\s*[：:]\s*(-?\d+)/);
+  if (def) info.defense = +def[1];
+
+  const kills = body.match(/总共杀了\s*(\d+)\s*个人[^，\n]*，其中有\s*(\d+)\s*个/);
+  if (kills) {
+    info.kills = +kills[1];
+    info.playerKills = +kills[2];
+  }
+  const deaths = body.match(/总共死了\s*(\d+)\s*次[^，\n]*，其中\s*(\d+)\s*次/);
+  if (deaths) {
+    info.deaths = +deaths[1];
+    info.normalDeaths = +deaths[2];
+  }
+
+  // Headline: first meaningful line before bio / attrs
+  for (const line of body.split("\n")) {
+    const t = line.trim();
+    if (!t) continue;
+    if (/你是一|膂力|精\s*[：:]|气\s*[：:]|经验|神\s*[：:]/.test(t)) break;
+    if (/^[■□\s]+$/.test(t)) continue;
+    info.headline = t;
+    break;
+  }
+
+  return info;
+}
+
+/** @deprecated Prefer parseScore + structured UI; kept for fallback plain text. */
+export function buildScoreHtml(text: string, htmlLines?: string[]): string {
+  const plain = stripScoreBanner(text);
+  if (!plain.trim()) return "";
+
+  // Drop terminal graph lines and banner leftovers; keep prose / attrs / totals.
+  const lines = plain.split("\n").filter((line) => {
+    const t = line.trim();
+    if (!t) return false;
+    if (/[■□]/.test(t)) return false;
+    if (/^[ \t]*(精|气|精力|内力|食物|饮水|潜能)\s*[：:]/.test(t)) return false;
+    return true;
+  });
+
+  if (htmlLines?.length) {
+    const kept: string[] = [];
+    for (const html of htmlLines) {
+      const plainLine = html.replace(/<[^>]+>/g, "");
+      if (/【侠客行个人档案】/.test(plainLine)) continue;
+      if (/个人档案/.test(plainLine) && /中文/.test(plainLine)) continue;
+      if (/[■□]/.test(plainLine)) continue;
+      if (/^[ \t]*(精|气|精力|内力|食物|饮水|潜能)\s*[：:]/.test(plainLine))
+        continue;
+      if (!plainLine.trim()) continue;
+      kept.push(html);
+    }
+    return kept.join("\n");
+  }
+
+  return lines
+    .join("\n")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 export { PAD_SLOTS, DIR_MAP };

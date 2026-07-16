@@ -14,7 +14,9 @@ const basePrev = () => ({
   skills: [] as SkillRow[],
   inventory: [] as InvItem[],
   lookText: "",
+  lookHtml: "",
   scoreText: "",
+  scoreHtml: "",
   assistActive: false,
   assistStatus: "",
   combatLog: [] as string[],
@@ -30,12 +32,14 @@ describe("applyEvent", () => {
         type: "room.update",
         title: "北大街",
         long: "一条繁忙的街道。",
+        area: "city",
         exits: [{ dir: "south", name: "客店" }],
       },
       prev
     );
     expect(next.room.title).toBe("北大街");
     expect(next.room.desc).toBe("一条繁忙的街道。");
+    expect(next.room.area).toBe("city");
     expect(next.room.exits[0]).toEqual({ dir: "south", label: "南", name: "客店" });
   });
 

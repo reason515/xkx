@@ -108,7 +108,12 @@ export default function App() {
               </div>
             </div>
           </button>
-          <button type="button" className="map-btn" onClick={() => g.openSheet("map")}>
+          <button
+            type="button"
+            className="map-btn"
+            aria-label="地图"
+            onClick={() => g.openSheet("map")}
+          >
             地<br />图
           </button>
         </header>
@@ -250,7 +255,13 @@ export default function App() {
           onClose={g.closeSheet}
         />
       )}
-      {state.sheet === "map" && <MapSheet onClose={g.closeSheet} />}
+      {state.sheet === "map" && (
+        <MapSheet
+          roomTitle={state.room.title}
+          roomArea={state.room.area}
+          onClose={g.closeSheet}
+        />
+      )}
       {state.sheet === "train" && (
         <TrainSheet
           active={state.assistActive}

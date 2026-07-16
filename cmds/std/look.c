@@ -20,6 +20,8 @@ int main(object me, string arg)
 	int result;
 
 	if( !arg ) result = look_room(me, environment(me));
+	else if( arg == "me" || arg == "自己" )
+		result = look_living(me, me);
 	else if( (obj = present(arg, me)) || (obj = present(arg, environment(me)))) {
 		if( obj->is_character() ) result = look_living(me, obj);
 		else result = look_item(me, obj);

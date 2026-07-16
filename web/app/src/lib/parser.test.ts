@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
   beachGreeterActions,
+  buildScoreHtml,
   extractLookBlock,
   isCombatLine,
   isLoginNoise,
   isProtocolNoise,
+  isSelfLookLine,
+  isSheetDumpLine,
   isTrainLine,
   labelSuggestedAction,
   parseEntityShort,
@@ -12,8 +15,10 @@ import {
   parseHp,
   parseInventory,
   parseRoom,
+  parseScore,
   parseSkills,
   parseSuggestedActions,
+  stripScoreBanner,
 } from "./parser";
 
 describe("parseExits", () => {
@@ -171,6 +176,117 @@ describe("isProtocolNoise", () => {
   });
 });
 
+describe("isSheetDumpLine", () => {
+  it("filters hp / score / skills / inventory panel lines", () => {
+    expect(isSheetDumpLine("> hp")).toBe(true);
+    expect(isSheetDumpLine("> look me")).toBe(true);
+    expect(
+      isSheetDumpLine("                  【侠客行个人档案】(GB中文)")
+    ).toBe(true);
+    expect(
+      isSheetDumpLine(" 膂力：[ 18/ 16] 悟性：[ 20/ 18] 根骨：[ 17/ 15] 身法：[ 19/ 17]")
+    ).toBe(true);
+    expect(isSheetDumpLine(" 精：  100/  100 (100%)    精力：   80 /  100 (+0)")).toBe(
+      true
+    );
+    expect(isSheetDumpLine(" 气：   90/  100 ( 90%)    内力：   50 /  120 (+0)")).toBe(
+      true
+    );
+    expect(isSheetDumpLine("你目前所学过的技能有：")).toBe(true);
+    expect(isSheetDumpLine("基本轻功 ─────────── 45")).toBe(true);
+    expect(isSheetDumpLine("□长剑（武器）")).toBe(true);
+    expect(isSheetDumpLine("店小二说道：客官里面请")).toBe(false);
+    expect(isSheetDumpLine("你向北方走去。")).toBe(false);
+    expect(
+      isSheetDumpLine(
+        "渔夫说道：这里就是侠客岛。两位岛主每年都派弟子到中原。"
+      )
+    ).toBe(false);
+  });
+});
+
+describe("isSelfLookLine", () => {
+  it("detects look-me lines but not NPC ask replies", () => {
+    expect(isSelfLookLine("你看起来约十多岁。")).toBe(true);
+    expect(isSelfLookLine("你看起来气血充盈，并没有受伤。")).toBe(true);
+    expect(isSelfLookLine("你身上带著：")).toBe(true);
+    expect(isSelfLookLine("  □布衣(Cloth)")).toBe(true);
+    expect(
+      isSelfLookLine(
+        "渔夫说道：这里就是侠客岛。两位岛主每年都派弟子到中原，找寻资质不凡的少年上岛。你就是今年被选上的吧。"
+      )
+    ).toBe(false);
+    expect(isSelfLookLine("你向渔夫打听有关『侠客岛』的消息。")).toBe(false);
+  });
+});
+
+describe("stripScoreBanner / buildScoreHtml", () => {
+  it("removes personal archive banner and keeps body", () => {
+    const raw =
+      "                  【侠客行个人档案】(GB中文)\n\n 一介布衣张三\n 膂力：[18/16]";
+    expect(stripScoreBanner(raw)).toBe(" 一介布衣张三\n 膂力：[18/16]");
+    expect(buildScoreHtml(raw)).not.toMatch(/个人档案/);
+    expect(buildScoreHtml(raw)).toContain("膂力");
+  });
+
+  it("keeps colored html lines without the banner", () => {
+    const html = buildScoreHtml(
+      "【侠客行个人档案】(GB中文)\n膂力",
+      [
+        '<span class="mud-fg-gold">【侠客行个人档案】(GB中文)</span>',
+        '<span class="mud-fg-jade">膂力</span>',
+      ]
+    );
+    expect(html).not.toMatch(/个人档案/);
+    expect(html).toContain('mud-fg-jade');
+    expect(html).toContain("膂力");
+  });
+
+  it("drops terminal bar graph lines from fallback html", () => {
+    const html = buildScoreHtml("经验： 12\n 精  ：■■■□□□\n神  ： 1", [
+      "经验： 12",
+      " 精  ：■■■□□□",
+      "神  ： 1",
+    ]);
+    expect(html).toContain("经验");
+    expect(html).not.toMatch(/■/);
+  });
+});
+
+describe("parseScore", () => {
+  it("parses attrs bio and totals without bar clutter", () => {
+    const raw = `
+【侠客行个人档案】(GB中文)
+
+ 一介布衣测试
+ 你是一个二十岁两个月的男性人类，甲子年正月初一生。
+ 你的师父是张三丰。
+ 膂力：[ 18/ 16] 悟性：[ 20/ 20] 根骨：[ 15/ 17] 身法：[ 19/ 19]
+
+ 精  ：■■■■□□□□
+ 气  ：■■■■□□□□
+ 经验： 12480
+ 神  ：        120
+ 阅历： 35
+ 你到目前为止总共杀了 12 个人，其中有 1 个是其他玩家。
+ 你到目前为止总共死了 3 次，其中 2 次是正常死亡。
+`;
+    const score = parseScore(raw);
+    expect(score.headline).toContain("测试");
+    expect(score.bio).toMatch(/二十岁/);
+    expect(score.master).toBe("张三丰");
+    expect(score.attrs?.str).toEqual({ cur: 18, base: 16 });
+    expect(score.attrs?.con).toEqual({ cur: 15, base: 17 });
+    expect(score.exp).toBe(12480);
+    expect(score.shen).toBe(120);
+    expect(score.questExp).toBe(35);
+    expect(score.kills).toBe(12);
+    expect(score.playerKills).toBe(1);
+    expect(score.deaths).toBe(3);
+    expect(score.normalDeaths).toBe(2);
+  });
+});
+
 describe("parseEntityShort", () => {
   it("splits chinese name and english id", () => {
     expect(parseEntityShort("木老七（Mu laoqi）")).toEqual({
@@ -255,6 +371,14 @@ describe("beachGreeterActions", () => {
         { id: "zhang san", name: "张三", kind: "npc" },
       ])
     ).toEqual([{ command: "follow zhang san", label: "跟随张三" }]);
+  });
+
+  it("offers ask chips when fisherman is on the beach", () => {
+    expect(
+      beachGreeterActions("沙滩", [
+        { id: "yu fu", name: "渔夫", kind: "npc" },
+      ]).map((a) => a.command)
+    ).toEqual(["ask fu about 侠客岛", "ask fu about 离岛"]);
   });
 
   it("is empty outside the beach", () => {
