@@ -42,10 +42,10 @@ void init()
         ::init();
 
         me->set("xkd/set", 1);
-//        if ((int)me->query_temp("marks/离") > 0)
-//		  {       call_out("check_trigger", 1);
-//        }
-		call_out("check_trigger", 1);
+        if ((int)me->query_temp("marks/离") > 0)
+        {
+                call_out("check_trigger", 1);
+        }
 }
 
 void check_trigger()
@@ -130,8 +130,8 @@ int valid_leave(object me, string dir)
 	object *iv;
 	int i;
 
-//        if ( (! me->query_temp("marks/离") ) && (dir =="enter"))
-//					 return notify_fail("渔夫把手一拦说道：没有岛主同意，你不可离岛。\n");
+	if ( (! me->query_temp("marks/离") ) && (dir =="enter"))
+		return notify_fail("渔夫把手一拦说道：没有岛主同意，你不可离岛。\n");
 
 	iv = all_inventory(me);
 

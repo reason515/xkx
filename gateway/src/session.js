@@ -115,10 +115,10 @@ export class MudSession extends EventEmitter {
 
     if (!wasInGame && nowInGame) {
       this.emit("ready");
-      // Mark web_client ASAP so the client's follow-up look gets room.update
+      // Mark web_client ASAP so look gets room.update (no skip-intro side effects)
       if (!this.markedWeb) {
         this.markedWeb = true;
-        this.send("webassist stop");
+        this.send("webclient");
         // Re-look after mark so starter rooms emit room.update (first look may race)
         setTimeout(() => {
           if (!this.closed) this.send("look");

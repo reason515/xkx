@@ -441,10 +441,8 @@ private void get_email(string email, object ob, mapping my)
 		return;
 	}
 	ob->set("email", email);
-	if (strsrch(email, "@xkx.local") != -1)
-		ob->set("registered", "yes");
-	else
-		ob->set("registered", "no");
+	// 去掉游戏内挂名：创角即视为已注册，不依赖邮箱域名
+	ob->set("registered", "yes");
 
 	// If you want do race stuff, ask player to choose one here, then you can
 	// set the user's body after the question is answered. The following are
@@ -456,12 +454,7 @@ private void get_email(string email, object ob, mapping my)
 	user->set("dex", my["dex"]);
 	user->set("con", my["con"]);
 	user->set("int", my["int"]);
-	if (ob->query("registered") == "yes") {
-		user->set("registered", "yes");
-	} else {
-		ob->set("registered", "no");
-		user->set("registered", "no");
-	}
+	user->set("registered", "yes");
 	write_ob(ob,"您要扮演男性(m)的角色或女性(f)的角色？");
 	input_to("get_gender", ob, user);
 }
@@ -663,10 +656,10 @@ HIG"
 			if( select == 5 ) startroom = "/d/dali/wangfu1";
 								if( select == 5 ) startroom = "/d/hangzhou/kedian";
 */
-		if ((user->query("registered") != "yes" ||
-			REGI_D->is_banned_email(ob->query("email"))) &&
-			wizhood(user) == "(player)")
-//			user->move("/adm/register/reg_room");
+		/* 新号未完成迎宾引导：先进锁沙滩（与 registered 解耦，不再走挂名处） */
+		if (!user->query("xkd/intro_done") &&
+		    user->query("combat_exp") < 1 &&
+		    wizhood(user) == "(player)")
 			user->move("/d/xiakedao/shatan1");
 		else if( user->query("death_count") > 200 && user->query("combat_exp") < 50000 )
 			user->move("/d/death/block.c");

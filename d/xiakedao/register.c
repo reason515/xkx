@@ -41,8 +41,8 @@ int block_cmd()
 {
         string cmd;
         cmd = query_verb();
-        // webassist/hp：Web 端结构化房间/气血；follow 已无用但勿静默吞掉造成「只回显无响应」
-        if ( cmd == "quit" || cmd == "goto" || cmd == "suicide" || cmd == "register" || cmd == "tell" || cmd == "say" || cmd == "reply" || cmd == "look" || cmd == "webassist" || cmd == "hp" || cmd == "follow" )
+        // webclient/hp：Web 端结构化房间/气血；follow 已无用但勿静默吞掉造成「只回显无响应」
+        if ( cmd == "quit" || cmd == "goto" || cmd == "suicide" || cmd == "register" || cmd == "tell" || cmd == "say" || cmd == "reply" || cmd == "look" || cmd == "webassist" || cmd == "webclient" || cmd == "hp" || cmd == "follow" )
                 return 0;
         return 1;
 }

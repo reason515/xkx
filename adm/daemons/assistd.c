@@ -163,7 +163,7 @@ int start_train(object me, string mode, string stop_when, int count, int stop_co
 	]);
 	sessions[id] = cfg;
 	me->set_temp("web_assist", 1);
-	WEBD->mark_web(me);
+	WEBD->mark_web_client(me);
 	WEBD->send_assist_status(me, 1, "修炼助手进行中");
 	call_out("train_tick", 1, id);
 	return 1;
@@ -186,7 +186,7 @@ int start_combat(object me, int low_hp, string action)
 	]);
 	sessions[id] = cfg;
 	me->set_temp("web_assist", 1);
-	WEBD->mark_web(me);
+	WEBD->mark_web_client(me);
 	WEBD->send_assist_status(me, 1, "战斗辅助：自动普攻");
 	call_out("combat_tick", 1, id);
 	return 1;

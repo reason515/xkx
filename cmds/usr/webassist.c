@@ -14,7 +14,7 @@ int main(object me, string arg)
 
 	if (!arg) return notify_fail("用法：webassist train <dazuo|tuna|lian> <full|count|potential> [次数] [遇战停]\n");
 
-	WEBD->mark_web(me);
+	WEBD->mark_web_client(me);
 
 	if (arg == "stop") {
 		ASSIST_D->stop_assist(me, "手动停止");

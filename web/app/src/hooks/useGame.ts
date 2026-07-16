@@ -127,7 +127,7 @@ export function useGame() {
     if (clearBuf) textBuf.current = "";
     roomFromEvent.current = false;
     setState((s) => ({ ...s, inGame: true }));
-    // Gateway already marks web on ready; refresh look after mark takes effect
+    // Gateway marks web_client on ready; refresh look after mark takes effect
     setTimeout(() => {
       socket.current.cmd("look");
       socket.current.cmd("hp");
@@ -417,6 +417,15 @@ export function useGame() {
       /* placeholder for future message bridge */
     };
   }, []);
+
+  // e2e / 调试：允许 page.evaluate 发静默指令（如 xkxe2e grantleave）
+  useEffect(() => {
+    const w = window as unknown as { __xkxCmd?: (c: string) => void };
+    w.__xkxCmd = (c: string) => cmd(c, { silent: true });
+    return () => {
+      delete w.__xkxCmd;
+    };
+  }, [cmd]);
 
   const confirmGo = useCallback(
     (dir: string) => {

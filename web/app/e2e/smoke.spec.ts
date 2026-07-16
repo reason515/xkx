@@ -92,6 +92,140 @@ async function clickActionAndWaitLog(
     .toMatch(pattern);
 }
 
+async function waitForLogPattern(
+  page: import("@playwright/test").Page,
+  pattern: RegExp,
+  timeout = 20_000
+) {
+  await openLogTab(page);
+  await expect
+    .poll(
+      async () => {
+        const lines = await page.locator(".log p").allTextContents();
+        return lines.slice(-24).join("\n");
+      },
+      { timeout }
+    )
+    .toMatch(pattern);
+}
+
+async function hasExit(
+  page: import("@playwright/test").Page,
+  label: string
+): Promise<boolean> {
+  await openSceneTab(page);
+  const exact = new RegExp(`^\\s*${label}\\s*$`);
+  const cell = page
+    .locator(".exit-pad .cell.open")
+    .filter({ has: page.locator(".d", { hasText: exact }) })
+    .or(
+      page
+        .locator(".exit-extra .chip.exit")
+        .filter({ has: page.locator(".dir", { hasText: exact }) })
+    )
+    .first();
+  return cell.isVisible().catch(() => false);
+}
+
+async function sendSilentCmd(
+  page: import("@playwright/test").Page,
+  command: string
+) {
+  await page.evaluate((c) => {
+    const w = window as unknown as { __xkxCmd?: (cmd: string) => void };
+    if (typeof w.__xkxCmd !== "function") {
+      throw new Error("__xkxCmd 未就绪");
+    }
+    w.__xkxCmd(c);
+  }, command);
+}
+
+/** 锁沙滩：跟随张三/李四 → 主沙滩（有出口、无挂名处） */
+async function completeIntroFollow(page: import("@playwright/test").Page) {
+  await openSceneTab(page);
+  await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+    timeout: 90_000,
+  });
+
+  // 若已在主沙滩（有出口且有渔夫），跳过
+  const alreadyMain =
+    (await page.locator(".exit-pad .cell.open").count()) > 0 &&
+    ((await page.locator(".chip.npc").filter({ hasText: /渔夫/ }).count()) > 0 ||
+      (await page
+        .getByRole("button", { name: /向渔夫打听/ })
+        .count()) > 0);
+  if (alreadyMain) return;
+
+  const followChip = page
+    .locator(".chip.action")
+    .filter({ hasText: /跟随(张三|李四)/ })
+    .first();
+  await expect(followChip).toBeVisible({ timeout: 60_000 });
+  const label = ((await followChip.textContent()) || "").trim();
+  expect(label).toMatch(/跟随(张三|李四)/);
+  await followChip.click();
+
+  await expect
+    .poll(
+      async () => {
+        await openSceneTab(page);
+        const title = ((await page.locator(".room-title").textContent()) || "").trim();
+        const exits = await page.locator(".exit-pad .cell.open").count();
+        const logs = (await page.locator(".log p").allTextContents()).join("\n");
+        if (/挂名/.test(title) || /挂名处/.test(logs)) return "register";
+        if (exits > 0 && /沙滩/.test(title)) return "main";
+        if (/先在岛上四处看看|熟悉一下环境/.test(logs) && exits > 0) return "main";
+        return "wait";
+      },
+      { timeout: 60_000 }
+    )
+    .toBe("main");
+
+  await openSceneTab(page);
+  await expect(page.locator(".room-title")).toHaveText(/沙滩/);
+  expect(((await page.locator(".room-title").textContent()) || "").trim()).not.toMatch(
+    /挂名/
+  );
+  await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({
+    timeout: 20_000,
+  });
+}
+
+/** 获许可后：等船 → 上船 → 靠岸 → 下船到对岸 */
+async function leaveIslandAfterPermit(page: import("@playwright/test").Page) {
+  await openSceneTab(page);
+  await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 30_000 });
+
+  // 进出沙滩可重触发召船；有许可时进房会 check_trigger
+  let boarded = false;
+  for (let i = 0; i < 6 && !boarded; i++) {
+    if (await hasExit(page, "进")) {
+      await goByExitLabel(page, "进");
+      boarded = true;
+      break;
+    }
+    // 北走再回沙滩，重新触发 init/check_trigger
+    if (await hasExit(page, "北")) {
+      await goByExitLabel(page, "北");
+      if (await hasExit(page, "南")) await goByExitLabel(page, "南");
+    }
+    await sendSilentCmd(page, "look");
+    await page.waitForTimeout(5_000);
+    await openSceneTab(page);
+  }
+  expect(boarded).toBe(true);
+
+  await waitForLogPattern(page, /船靠岸了|船身微微一震/, 60_000);
+  await expect.poll(async () => hasExit(page, "出"), { timeout: 30_000 }).toBe(true);
+  await goByExitLabel(page, "出");
+
+  await openSceneTab(page);
+  await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 20_000 });
+  await expect(
+    page.locator(".chip.item, .chip.npc").filter({ hasText: /大车|车夫/ }).first()
+  ).toBeVisible({ timeout: 20_000 });
+}
+
 /** 沙滩 → 大山洞（含瀑布爬树/脱衣/穿衣/跳瀑；尽量快，避免引路使拖走） */
 async function walkToDadongBoard(page: import("@playwright/test").Page) {
   for (const label of ["北", "北", "北", "北"]) {
@@ -244,6 +378,7 @@ test.describe.serial("game smoke", () => {
       const creds = await loginAsNewbie(page, { asRegister: true });
       sharedId = creds.id;
       sharedPassword = creds.password;
+      await completeIntroFollow(page);
     } finally {
       await page.close();
     }
@@ -394,6 +529,7 @@ test.describe.serial("game smoke", () => {
   test("pickup 拾起地上物品后场景列表不再显示该物", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
 
     await openSceneTab(page);
     await expect(page.locator(".room-title")).not.toHaveText("…", {
@@ -432,13 +568,12 @@ test.describe.serial("game smoke", () => {
 
   test("打开角色卡后仍可向渔夫打听侠客岛", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
-    // 新号落在沙滩，保证有渔夫；避免共用号已走开
     await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
 
     await openSceneTab(page);
     await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 60_000 });
 
-    // 先打开角色卡（会静默 look me / hp / score），这是此前误吞打听回显的路径
     await page.locator(".hero-btn").click();
     await expect(page.getByRole("button", { name: "档案" })).toBeVisible();
     await page.locator(".sheet .close").click();
@@ -466,6 +601,7 @@ test.describe.serial("game smoke", () => {
   test("见闻合并软换行且颜色跨行保留", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
 
     await openSceneTab(page);
     await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
@@ -484,7 +620,6 @@ test.describe.serial("game smoke", () => {
       "true"
     );
 
-    // Soft-wrap 「等你\n功夫…」 must appear in one 见闻 paragraph
     await expect
       .poll(
         async () => {
@@ -497,7 +632,6 @@ test.describe.serial("game smoke", () => {
       )
       .toBe(true);
 
-    // Color from CYN…NOR must cover the continuation after the soft wrap
     await expect(
       page.locator(".log p .mud-fg-cyan").filter({ hasText: /功夫有点小成/ })
     ).toBeVisible({ timeout: 5_000 });
@@ -506,6 +640,7 @@ test.describe.serial("game smoke", () => {
   test("地图浮层显示侠客岛真图与世界总图", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
 
     await openSceneTab(page);
     await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 60_000 });
@@ -541,11 +676,11 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".log-panel")).toHaveCount(0);
   });
 
-  test("新注册进可走动沙滩且原密码可重登", async ({ page }) => {
-    // Web 已跳过迎宾/挂名：应直接落在有出口的沙滩，密码不变可重登
+  test("新注册须跟随张三或李四后进可走动沙滩且原密码可重登", async ({ page }) => {
     test.skip(!register && !!e2eId, "需要 XKX_E2E_REGISTER=1");
 
     const { id, password } = await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
 
     await openSceneTab(page);
     const roomTitle = page.locator(".room-title");
@@ -555,7 +690,7 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({
       timeout: 60_000,
     });
-    await expect(page.getByRole("button", { name: "拿起" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "挂名登记" })).toHaveCount(0);
 
     const itemNames = await page.locator(".chip.item").allTextContents();
     expect(itemNames.every((n) => !/^\?+$/.test(n.trim()))).toBe(true);
@@ -563,6 +698,7 @@ test.describe.serial("game smoke", () => {
     const logs = (await page.locator(".log p").allTextContents()).join("\n");
     expect(logs).not.toMatch(/^\?{6,}$/m);
     expect(logs).not.toMatch(/@@JSON@@|@@ENDJSON@@/);
+    expect(logs).not.toMatch(/挂名处/);
 
     await page.goto("/");
     await loginAsNewbie(page, { id, password, asRegister: false });
@@ -582,10 +718,89 @@ test.describe.serial("game smoke", () => {
     expect(postLogs).not.toMatch(/@@JSON@@|@@ENDJSON@@/);
   });
 
+  test("未获岛主许可不可离岛", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(
+      page.getByRole("button", { name: "向渔夫打听离岛", exact: true })
+    ).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "向渔夫打听离岛", exact: true }).click();
+    await waitForLogPattern(
+      page,
+      /要去中原可得要岛主同意|岛主就会让你离岛/,
+      20_000
+    );
+    await openLogTab(page);
+    const blob = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(blob).not.toMatch(/恭喜，恭喜。你可以回中原了/);
+
+    await openSceneTab(page);
+    expect(await hasExit(page, "进")).toBe(false);
+  });
+
+  test("获许可后可乘船离开侠客岛", async ({ page }) => {
+    test.setTimeout(240_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    expect(await hasExit(page, "进")).toBe(false);
+
+    await sendSilentCmd(page, "xkxe2e grantleave");
+    await waitForLogPattern(page, /已准你离岛|你可以回中原了/, 15_000);
+
+    await leaveIslandAfterPermit(page);
+  });
+
+  test("迎宾厅可见 longx 后续跟随引导", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    for (const label of ["北", "北"]) {
+      if (await hasExit(page, label)) await goByExitLabel(page, label);
+    }
+    await openSceneTab(page);
+    for (let i = 0; i < 3; i++) {
+      const title = ((await page.locator(".room-title").textContent()) || "").trim();
+      if (/迎宾/.test(title)) break;
+      if (await hasExit(page, "北")) await goByExitLabel(page, "北");
+      else break;
+    }
+
+    await openSceneTab(page);
+    const title = ((await page.locator(".room-title").textContent()) || "").trim();
+    if (!/迎宾/.test(title)) {
+      test.skip(true, `未到达迎宾厅（当前：${title}），跳过 longx 断言`);
+      return;
+    }
+
+    const longFollow = page
+      .locator(".chip.action")
+      .filter({ hasText: /跟随龙/ })
+      .first();
+    await expect
+      .poll(
+        async () => {
+          if (await longFollow.isVisible().catch(() => false)) return true;
+          const logs = (await page.locator(".log p").allTextContents()).join("\n");
+          return /follow\s+long/i.test(logs);
+        },
+        { timeout: 40_000 }
+      )
+      .toBe(true);
+  });
+
   test("告示牌可浏览留言并可点读", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
 
     await openSceneTab(page);
     await expect(page.locator(".room-title")).not.toHaveText("…", {

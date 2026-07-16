@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 /**
  * Server-side login/register smoke against local gateway + MUD.
- * Register mode（默认）：进游戏即可（Web 已跳过迎宾/挂名）。
+ * Register mode（默认）：锁沙滩 → follow 张三/李四 → 主沙滩有出口 → 同密码重登。
  * Env:
  *   XKX_E2E_WS   default ws://127.0.0.1:3001/ws
  *   XKX_E2E_MODE login | register (default register)
  *   XKX_E2E_ID / XKX_E2E_PASSWORD  required for login mode
- *   XKX_E2E_SKIP_FOLLOW=0  强制走旧：沙滩 → follow → 挂名 → 重登
- *   （默认跳过跟随/挂名，等同 SKIP_FOLLOW=1）
+ *   XKX_E2E_SKIP_FOLLOW=1  仅验证进游戏（调试用）；默认走完整跟随链
  */
 const path = require("path");
 const WebSocket = require(
@@ -16,7 +15,7 @@ const WebSocket = require(
 
 const WS_URL = process.env.XKX_E2E_WS || "ws://127.0.0.1:3001/ws";
 const MODE = process.env.XKX_E2E_MODE || "register";
-const SKIP_FOLLOW = process.env.XKX_E2E_SKIP_FOLLOW !== "0";
+const SKIP_FOLLOW = process.env.XKX_E2E_SKIP_FOLLOW === "1";
 const TIMEOUT_MS = Number(
   process.env.XKX_E2E_TIMEOUT_MS || (MODE === "register" ? 120000 : 45000)
 );
@@ -42,12 +41,6 @@ if (!id || !password) {
   process.exit(2);
 }
 
-const email = process.env.XKX_E2E_EMAIL || `${id}@e2e.example.com`;
-
-const PASSWORD_KEPT_RE =
-  /挂名登记完成|请继续使用你原来的密码|原来的密码登录/;
-const PASSWORD_RESET_RE = /您的新密码是|请用新的密码连线/;
-
 function openSession(loginPayload, onMessage) {
   return new Promise((resolve, reject) => {
     const ws = new WebSocket(WS_URL);
@@ -55,6 +48,7 @@ function openSession(loginPayload, onMessage) {
     let gotReady = false;
     let gotRoom = false;
     let lastRoomTitle = "";
+    let lastExits = [];
     let gotError = "";
     const started = Date.now();
     let settled = false;
@@ -82,6 +76,7 @@ function openSession(loginPayload, onMessage) {
           gotReady,
           gotRoom,
           lastRoomTitle,
+          lastExits,
           ms: Date.now() - started,
         });
       }
@@ -99,6 +94,7 @@ function openSession(loginPayload, onMessage) {
       gotReady: () => gotReady,
       gotRoom: () => gotRoom,
       lastRoomTitle: () => lastRoomTitle,
+      lastExits: () => lastExits,
       done: (result) => finish(null, result || {}),
       fail: (reason) => finish(new Error(reason)),
     };
@@ -125,21 +121,12 @@ function openSession(loginPayload, onMessage) {
       if (msg.type === "event" && msg.event?.type === "room.update") {
         gotRoom = true;
         if (msg.event.title) lastRoomTitle = String(msg.event.title);
+        if (Array.isArray(msg.event.exits)) lastExits = msg.event.exits;
       }
       if (msg.type === "text" && msg.text) buf += msg.text;
       onMessage(api, msg);
     });
   });
-}
-
-function latestRoomTitle(buf, fallback) {
-  const matches = [
-    ...buf.matchAll(
-      /"type"\s*:\s*"room\.update"\s*,\s*"title"\s*:\s*"([^"]+)"/g
-    ),
-  ];
-  if (matches.length) return matches[matches.length - 1][1];
-  return fallback;
 }
 
 function report(code, fields) {
@@ -184,7 +171,7 @@ async function runLoginOnly() {
           return;
         }
         const inGameText =
-          /目前权限|沙滩|客店|扬州|挂名处|这里明显的出口|明显的出口|这里没有任何明显的出路/.test(
+          /目前权限|沙滩|客店|扬州|这里明显的出口|明显的出口|这里没有任何明显的出路/.test(
             api.buf()
           );
         if (api.gotReady() || api.gotRoom() || inGameText) {
@@ -215,15 +202,9 @@ async function runLoginOnly() {
 
 async function runNewbiePath() {
   let sentFollow = false;
-  let sentRegister = false;
   let followTarget = "";
   let phase = "login";
-  let registerTimer;
-  let sentGet = false;
-  let pickupId = "";
-  let pickupName = "";
-  let pickupBeforeCount = 0;
-  let pickupDeadline = 0;
+  let beachTimer;
 
   console.log("open", WS_URL, "register", id);
 
@@ -243,6 +224,10 @@ async function runNewbiePath() {
           api.fail("login_banner_leaked");
           return;
         }
+        if (/挂名处|register\s+\S+@/i.test(buf) && /木老/.test(buf)) {
+          api.fail("unexpected_register_room");
+          return;
+        }
 
         if (api.gotReady() && phase === "login") {
           phase = "beach";
@@ -251,66 +236,43 @@ async function runNewbiePath() {
 
         if (SKIP_FOLLOW) {
           const inGameText =
-            /目前权限|沙滩|客店|扬州|挂名处|这里明显的出口|明显的出口|这里没有任何明显的出路/.test(
+            /目前权限|沙滩|这里明显的出口|明显的出口|这里没有任何明显的出路/.test(
               buf
             );
-
-          if (
-            phase === "beach" &&
-            (api.gotReady() || api.gotRoom() || inGameText)
-          ) {
-            phase = "pickup";
-            pickupDeadline = Date.now() + 25000;
-            setTimeout(() => api.sendCmd("look"), 600);
-          }
-
-          if (
-            phase === "pickup" &&
-            msg.type === "event" &&
-            msg.event?.type === "room.update"
-          ) {
-            const items = Array.isArray(msg.event.items) ? msg.event.items : [];
-            if (!sentGet) {
-              if (items.length > 0) {
-                const it = items[0];
-                pickupId = String(it.id || it.name || "").trim();
-                pickupName = String(it.name || it.id || "").trim();
-                pickupBeforeCount = items.length;
-                if (pickupId || pickupName) {
-                  sentGet = true;
-                  console.log("get", pickupId || pickupName, "of", pickupBeforeCount);
-                  api.sendCmd(`get ${pickupId || pickupName}`);
-                }
-              } else if (Date.now() > pickupDeadline) {
-                api.fail("pickup_no_ground_item");
-              }
-              return;
-            }
-
-            // 同 id 物品可多件（如多块石头），以数量减少为准
-            if (items.length < pickupBeforeCount) {
-              api.done({
-                reason: "pickup_room_refresh",
-                item: pickupName || pickupId,
-                before: pickupBeforeCount,
-                after: items.length,
-              });
-            }
-            return;
-          }
-
-          if (phase === "pickup" && sentGet && Date.now() > pickupDeadline) {
-            api.fail("pickup_room_not_refreshed");
+          if (api.gotReady() || api.gotRoom() || inGameText) {
+            clearTimeout(beachTimer);
+            beachTimer = setTimeout(() => {
+              api.done({ reason: "ready_skip_follow" });
+            }, 1200);
           }
           return;
         }
 
-        if (!sentFollow && /沙滩/.test(buf)) {
+        if (!sentFollow) {
           const hinted = buf.match(/follow\s+(zhang san|li si)/i);
           let target = hinted ? hinted[1].toLowerCase() : "";
           if (!target) {
             if (/Zhang san/i.test(buf)) target = "zhang san";
             else if (/Li si/i.test(buf)) target = "li si";
+          }
+          if (
+            !target &&
+            msg.type === "event" &&
+            msg.event?.type === "room.update"
+          ) {
+            const npcs = Array.isArray(msg.event.npcs) ? msg.event.npcs : [];
+            for (const n of npcs) {
+              const nid = String(n.id || "").toLowerCase();
+              const nname = String(n.name || "");
+              if (nid === "zhang san" || /张三/.test(nname)) {
+                target = "zhang san";
+                break;
+              }
+              if (nid === "li si" || /李四/.test(nname)) {
+                target = "li si";
+                break;
+              }
+            }
           }
           if (target) {
             sentFollow = true;
@@ -318,42 +280,39 @@ async function runNewbiePath() {
             phase = "follow";
             console.log("follow", followTarget);
             api.sendCmd(`follow ${followTarget}`);
-            setTimeout(() => api.sendCmd("look"), 4000);
+            setTimeout(() => api.sendCmd("look"), 2500);
+            setTimeout(() => api.sendCmd("look"), 5500);
           }
         }
 
-        const title = latestRoomTitle(buf, api.lastRoomTitle());
-        const atRegister =
-          /挂名/.test(title || "") ||
-          /侠客岛挂名处\s*-/.test(buf) ||
-          (/这是一个大厅/.test(buf) &&
-            /木老七|登记使|register\s+/i.test(buf));
-
-        if (atRegister && !sentRegister) {
-          if (/沙滩/.test(title || "") && !/挂名/.test(title || "")) {
-            if (!/侠客岛挂名处\s*-/.test(buf)) return;
+        if (sentFollow) {
+          const title = api.lastRoomTitle() || "";
+          const exits = api.lastExits() || [];
+          const hasExit =
+            exits.length > 0 ||
+            /这里明显的出口|明显的出口是/.test(buf);
+          const atMainBeach =
+            /沙滩/.test(title) &&
+            !/挂名/.test(title) &&
+            hasExit &&
+            (/渔夫|north|east|northwest/i.test(buf) || exits.length > 0);
+          const escorted =
+            /先在岛上四处看看|熟悉一下环境/.test(buf) || atMainBeach;
+          if (escorted && hasExit) {
+            clearTimeout(beachTimer);
+            beachTimer = setTimeout(() => {
+              if (/挂名处/.test(api.buf())) {
+                api.fail("landed_at_register");
+                return;
+              }
+              api.done({
+                reason: "follow_to_main_beach",
+                follow: followTarget,
+                roomTitle: api.lastRoomTitle(),
+                exits: (api.lastExits() || []).length,
+              });
+            }, 1500);
           }
-          sentRegister = true;
-          phase = "register";
-          console.log("register", email);
-          api.sendCmd(`register ${email}`);
-          clearTimeout(registerTimer);
-          registerTimer = setTimeout(() => {
-            if (PASSWORD_RESET_RE.test(api.buf())) {
-              api.fail("password_was_reset");
-              return;
-            }
-            api.done({
-              reason: "newbie_registered",
-              follow: followTarget,
-              passwordKept: PASSWORD_KEPT_RE.test(api.buf()),
-            });
-          }, 2500);
-        }
-
-        if (sentRegister && PASSWORD_RESET_RE.test(buf)) {
-          clearTimeout(registerTimer);
-          api.fail("password_was_reset");
         }
       }
     );
@@ -361,24 +320,16 @@ async function runNewbiePath() {
     if (SKIP_FOLLOW) {
       report(0, {
         reason: result.reason || "ready_skip_follow",
-        item: result.item,
         ms: result.ms,
         ready: result.gotReady,
         room: result.gotRoom,
-        follow: followTarget || undefined,
       });
       return;
     }
-  } catch (e) {
-    failReport(e, { phase, follow: followTarget || undefined });
-    return;
-  }
 
-  // Re-login with the same password — must not get 密码错误
-  console.log("relogin", id);
-  phase = "relogin";
-  let reloginTimer;
-  try {
+    console.log("relogin", id);
+    phase = "relogin";
+    let reloginTimer;
     const relogin = await openSession(
       {
         type: "login",
@@ -401,7 +352,7 @@ async function runNewbiePath() {
         const inGame =
           api.gotReady() ||
           api.gotRoom() ||
-          /目前权限|沙滩|客店|扬州|挂名处|这里明显的出口|明显的出口|这里没有任何明显的出路/.test(
+          /目前权限|沙滩|这里明显的出口|明显的出口|这里没有任何明显的出路/.test(
             buf
           );
         if (inGame) {
@@ -417,16 +368,16 @@ async function runNewbiePath() {
       }
     );
     report(0, {
-      reason: "newbie_register_relogin",
-      ms: relogin.ms,
+      reason: "newbie_follow_relogin",
+      ms: result.ms + relogin.ms,
       follow: followTarget || undefined,
+      roomTitle: result.lastRoomTitle || undefined,
       ready: relogin.gotReady,
       room: relogin.gotRoom,
-      roomTitle: relogin.lastRoomTitle || undefined,
       tail: relogin.buf.slice(-800),
     });
   } catch (e) {
-    failReport(e, { phase: "relogin", follow: followTarget || undefined });
+    failReport(e, { phase, follow: followTarget || undefined });
   }
 }
 

@@ -541,7 +541,7 @@ export function beachGreeterActions(
       out.push({ command: cmd, label: labelSuggestedAction(cmd, npcs) });
     }
   }
-  // 渔夫常驻沙滩：不依赖 greeting 文本（含 \0）也能点「打听」
+  // 渔夫常驻主沙滩：不依赖 greeting 文本也能点「打听」；上船仅在出口/提示出现后由 parseSuggestedActions 露出
   if (npcs.some((n) => /渔夫/.test(n.name) || /^(yu fu|fu)$/i.test(n.id))) {
     for (const command of ["ask fu about 侠客岛", "ask fu about 离岛"]) {
       out.push({ command, label: labelSuggestedAction(command, npcs) });

@@ -46,39 +46,17 @@ void emit(object me, mapping data)
 	emit_raw(me, "{" + implode(pairs, ",") + "}");
 }
 
-void mark_web(object me)
+/* 仅标记 Web 客户端，不跳过迎宾/引导。 */
+void mark_web_client(object me)
 {
-	object env, link;
-	string file;
-
 	if (!objectp(me)) return;
 	me->set_temp("web_client", 1);
+}
 
-	// Web 客户端跳过沙滩迎宾 → 挂名锁房；旧号卡在锁房时也会脱出
-	if (me->query("registered") != "yes") {
-		me->set("registered", "yes");
-		link = me->query_temp("link_ob");
-		if (objectp(link)) {
-			link->set("registered", "yes");
-			link->save();
-		}
-		me->save();
-	}
-	me->delete("block");
-	me->delete_temp("xkd/sign");
-
-	env = environment(me);
-	if (objectp(env)) {
-		file = base_name(env);
-		if (file == "/d/xiakedao/shatan1" ||
-		    file == "/d/xiakedao/register" ||
-		    file == "/adm/register/reg_room") {
-			tell_object(me, "已跳过挂名手续，你可以直接在岛上活动了。\n");
-			me->move("/d/xiakedao/shatan");
-			me->set("startroom", "/d/xiakedao/shatan");
-			this_object()->send_room(me, environment(me));
-		}
-	}
+/* 兼容旧调用：与 mark_web_client 相同，勿再瞬移。 */
+void mark_web(object me)
+{
+	mark_web_client(me);
 }
 
 void send_room(object me, object env)

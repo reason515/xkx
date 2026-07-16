@@ -1,5 +1,6 @@
 //Cracked by Roath
-void escort_to_register(object me);
+// 迎宾引导：follow 后直达主沙滩（不再经挂名处）
+void escort_to_beach(object me);
 void watch_follow(object me, int n);
 
 void init()
@@ -42,22 +43,43 @@ void greeting(object me)
 	}
 }
 
-void escort_to_register(object me)
+void escort_to_beach(object me)
 {
+	object env;
+
 	if (!objectp(me) || environment(me) != environment()) return;
 	command("tell " + me->query("id") + " 请这边来");
 	message_vision("$N拉起$n的手，身形一闪就不知去向了。\n", this_object(), me);
-	move("/d/xiakedao/register");
-	me->move("/d/xiakedao/register");
+	move("/d/xiakedao/shatan");
+	me->move("/d/xiakedao/shatan");
 	message_vision("$N拉着$n的手闪了进来。\n", this_object(), me);
-	command("say " + RANK_D->query_respect(me) + "你先要在这登记下。");
+
+	me->delete("block");
+	me->delete_temp("xkd/sign");
+	me->set("registered", "yes");
+	me->set("startroom", "/d/xiakedao/shatan");
+	me->set("xkd/intro_done", 1);
+	me->save();
+
+	command("say " + RANK_D->query_respect(me) + "先在岛上四处看看，熟悉一下环境吧。");
 	command("bye " + me->query("id"));
-	message_vision("$N说玩转身走了出去。\n", this_object());
+	message_vision("$N说完转身走了出去。\n", this_object());
 	me->set_leader(0);
+
+	env = environment(me);
+	if (objectp(env) && me->query_temp("web_client"))
+		"/adm/daemons/webd"->send_room(me, env);
+
 	move("/d/xiakedao/shatan1");
 	set_temp("met", 0);
 	remove_call_out("watch_follow");
 	remove_call_out("check_follow");
+}
+
+/* 兼容旧名：若别处仍引用 escort_to_register */
+void escort_to_register(object me)
+{
+	escort_to_beach(me);
 }
 
 void watch_follow(object me, int n)
@@ -65,7 +87,7 @@ void watch_follow(object me, int n)
 	if (!objectp(me) || !environment(me)) return;
 	if (environment(me) != environment()) return;
 	if (me->query_leader() == this_object()) {
-		escort_to_register(me);
+		escort_to_beach(me);
 		return;
 	}
 	if (n < 30) call_out("watch_follow", 2, me, n + 1);
@@ -81,7 +103,7 @@ int check_follow(object me, int count)
 		return 1;
 	}
 	if ((me->query_leader() == this_object()) || (count > 0)) {
-		escort_to_register(me);
+		escort_to_beach(me);
 	} else {
 		command("tell " + me->query("id") + " 请快跟我来。(请键入"+HBRED+HIW"follow " + query("id") + NOR")");
 		call_out("check_follow", 10, me, 1);
