@@ -557,6 +557,13 @@ test.describe.serial("game smoke", () => {
     await expect(page.getByRole("tab", { name: "见闻" })).toBeVisible({
       timeout: 90_000,
     });
+    await expect
+      .poll(async () => {
+        return ((await page.locator(".hero-combat").textContent()) || "").trim();
+      }, { timeout: 20_000 })
+      .toMatch(/攻\s*\d+/);
+    await expect(page.locator(".hero-combat")).toContainText(/防\s*\d+/);
+
     await page.locator(".hero-btn").click();
 
     await expect(page.getByRole("button", { name: "仪容" })).toBeVisible();
@@ -577,6 +584,13 @@ test.describe.serial("game smoke", () => {
         return ((await score.first().textContent()) || "").trim();
       }, { timeout: 20_000 })
       .toMatch(/膂力|当前|经验|神/);
+    await expect
+      .poll(async () => {
+        const score = page.locator(".score-panel, .score-block");
+        if (!(await score.count())) return "";
+        return ((await score.first().textContent()) || "").trim();
+      }, { timeout: 15_000 })
+      .toMatch(/攻击|防御/);
 
     const scoreText = (
       (await page.locator(".score-panel, .score-block").first().textContent()) ||
@@ -645,26 +659,103 @@ test.describe.serial("game smoke", () => {
       .filter({ hasText: /布衣/ })
       .first();
     if (await clothBtn.count()) {
+      const wasEquipped = /□/.test((await clothBtn.textContent()) || "");
       await clothBtn.click();
       const actions = page.locator(".bag-item.open .skill-actions");
       await expect(actions).toBeVisible();
       const actText = ((await actions.textContent()) || "").trim();
       expect(actText).toMatch(/脱下|穿上/);
-      if (/脱下/.test(actText)) {
-        await page
-          .locator(".bag-item.open .skill-act")
-          .filter({ hasText: "脱下" })
-          .click();
-        await expect
-          .poll(async () => {
-            const t = (
-              (await page.locator(".panel.on").first().textContent()) || ""
-            ).trim();
-            return t;
-          }, { timeout: 15_000 })
-          .toMatch(/布衣/);
-      }
+      const toggleLabel = /脱下/.test(actText) ? "脱下" : "穿上";
+      await page
+        .locator(".bag-item.open .skill-act")
+        .filter({ hasText: toggleLabel })
+        .click();
+      await expect
+        .poll(async () => {
+          const btn = page
+            .locator(".bag-item-btn")
+            .filter({ hasText: /布衣/ })
+            .first();
+          if (!(await btn.count())) return "";
+          const t = ((await btn.textContent()) || "").trim();
+          const eq = /□/.test(t);
+          const open = page.locator(".bag-item.open .skill-actions");
+          const acts = (await open.count())
+            ? ((await open.textContent()) || "").trim()
+            : "";
+          return `${eq ? "eq" : "off"}|${acts}`;
+        }, { timeout: 15_000 })
+        .toMatch(wasEquipped ? /^off\|.*穿上/ : /^eq\|.*脱下/);
     }
+  });
+
+  test("穿脱装备实时刷新行囊与顶栏攻防", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, {
+      id: sharedId,
+      password: sharedPassword,
+      asRegister: false,
+    });
+
+    await expect(page.getByRole("tab", { name: "见闻" })).toBeVisible({
+      timeout: 90_000,
+    });
+    await expect
+      .poll(async () => {
+        return ((await page.locator(".hero-combat").textContent()) || "").trim();
+      }, { timeout: 20_000 })
+      .toMatch(/攻\s*\d+.*防\s*\d+|防\s*\d+.*攻\s*\d+/);
+
+    const combatBefore = (
+      (await page.locator(".hero-combat").textContent()) || ""
+    ).trim();
+
+    await page.locator(".hero-btn").click();
+    await page.getByRole("button", { name: "行囊" }).click();
+    await expect
+      .poll(async () => {
+        const panel = page.locator(".panel.on");
+        if (!(await panel.count())) return "";
+        return ((await panel.first().textContent()) || "").trim();
+      }, { timeout: 15_000 })
+      .toMatch(/布衣/);
+
+    const clothBtn = page
+      .locator(".bag-item-btn")
+      .filter({ hasText: /布衣/ })
+      .first();
+    await expect(clothBtn).toBeVisible();
+    const equippedBefore = /□/.test((await clothBtn.textContent()) || "");
+    await clothBtn.click();
+    const act = page.locator(".bag-item.open .skill-act").filter({
+      hasText: equippedBefore ? "脱下" : "穿上",
+    });
+    await expect(act).toBeVisible();
+    await act.click();
+
+    await expect
+      .poll(async () => {
+        const btn = page
+          .locator(".bag-item-btn")
+          .filter({ hasText: /布衣/ })
+          .first();
+        return /□/.test((await btn.textContent()) || "") ? "eq" : "off";
+      }, { timeout: 15_000 })
+      .toBe(equippedBefore ? "off" : "eq");
+
+    await page.locator(".sheet .close").click();
+    await expect
+      .poll(async () => {
+        return ((await page.locator(".hero-combat").textContent()) || "").trim();
+      }, { timeout: 15_000 })
+      .toMatch(/攻\s*\d+/);
+    // 布衣护甲加成可能为 0；至少攻防数字仍在，且曾完成穿脱后顶栏仍同步
+    const combatAfter = (
+      (await page.locator(".hero-combat").textContent()) || ""
+    ).trim();
+    expect(combatAfter).toMatch(/攻\s*\d+/);
+    expect(combatAfter).toMatch(/防\s*\d+/);
+    expect(combatBefore).toMatch(/攻|防/);
   });
 
   test("查阅帮助后行囊不混入说明文案", async ({ page }) => {

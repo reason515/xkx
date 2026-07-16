@@ -1658,10 +1658,17 @@ export function parseScore(text: string): ScoreInfo {
   const quest = body.match(/阅历[：:]\s*(-?\d+)/);
   if (quest) info.questExp = +quest[1];
 
-  const atk = body.match(/攻击力\s*[：:]\s*(-?\d+)/);
-  if (atk) info.attack = +atk[1];
-  const def = body.match(/防御力\s*[：:]\s*(-?\d+)/);
-  if (def) info.defense = +def[1];
+  // 攻击力: 12 (+3) / 防御力： 8 (+5) — (+n) 为装备加成
+  const atk = body.match(/攻击力\s*[：:]\s*(-?\d+)(?:\s*\(\s*\+?\s*(-?\d+)\s*\))?/);
+  if (atk) {
+    info.attack = +atk[1];
+    if (atk[2] != null) info.attackBonus = +atk[2];
+  }
+  const def = body.match(/防御力\s*[：:]\s*(-?\d+)(?:\s*\(\s*\+?\s*(-?\d+)\s*\))?/);
+  if (def) {
+    info.defense = +def[1];
+    if (def[2] != null) info.defenseBonus = +def[2];
+  }
 
   const kills = body.match(/总共杀了\s*(\d+)\s*个人[^，\n]*，其中有\s*(\d+)\s*个/);
   if (kills) {

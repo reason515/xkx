@@ -94,8 +94,14 @@ export interface ScoreInfo {
   playerKills?: number;
   deaths?: number;
   normalDeaths?: number;
+  /** 武功推算攻击力（score 主值） */
   attack?: number;
+  /** 装备伤害加成 apply/damage */
+  attackBonus?: number;
+  /** 武功推算防御力（score 主值） */
   defense?: number;
+  /** 装备护甲加成 apply/armor */
+  defenseBonus?: number;
 }
 
 export type InvEquipKind = "weapon" | "armor" | "other";

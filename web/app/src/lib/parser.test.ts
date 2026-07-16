@@ -311,6 +311,7 @@ describe("parseScore", () => {
  经验： 12480
  神  ：        120
  阅历： 35
+ 攻击力: 12 (+3)		 防御力： 8 (+5)
  你到目前为止总共杀了 12 个人，其中有 1 个是其他玩家。
  你到目前为止总共死了 3 次，其中 2 次是正常死亡。
 `;
@@ -323,6 +324,10 @@ describe("parseScore", () => {
     expect(score.exp).toBe(12480);
     expect(score.shen).toBe(120);
     expect(score.questExp).toBe(35);
+    expect(score.attack).toBe(12);
+    expect(score.attackBonus).toBe(3);
+    expect(score.defense).toBe(8);
+    expect(score.defenseBonus).toBe(5);
     expect(score.kills).toBe(12);
     expect(score.playerKills).toBe(1);
     expect(score.deaths).toBe(3);

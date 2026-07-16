@@ -103,7 +103,35 @@ export default function App() {
       <div className="screen">
         <header className="topbar">
           <button type="button" className="hero-btn" onClick={g.onOpenCharacter}>
-            <div className="hero-name">{state.playerName}</div>
+            <div className="hero-meta">
+              <div className="hero-name">{state.playerName}</div>
+              {(state.score?.attack != null || state.score?.defense != null) && (
+                <div className="hero-combat" aria-label="攻击与防御">
+                  {state.score?.attack != null && (
+                    <span className="hc atk">
+                      攻{" "}
+                      <b>
+                        {state.score.attack}
+                        {state.score.attackBonus
+                          ? `+${state.score.attackBonus}`
+                          : ""}
+                      </b>
+                    </span>
+                  )}
+                  {state.score?.defense != null && (
+                    <span className="hc def">
+                      防{" "}
+                      <b>
+                        {state.score.defense}
+                        {state.score.defenseBonus
+                          ? `+${state.score.defenseBonus}`
+                          : ""}
+                      </b>
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
             <div className="vitals">
               <div className="vital hp">
                 <div className="bar">

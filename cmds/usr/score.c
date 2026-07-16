@@ -129,11 +129,10 @@ int main(object me, string arg)
 	else
 		skill_type = "kick";
 
-	if (wizardp(me))
+	/* 攻防对玩家可见：主值为武功推算，(+n) 为装备伤害/护甲加成 */
 	line += sprintf("\n 攻击力: " HIW "%d (+%d)" NOR "\t\t 防御力： " HIW "%d (+%d)\n" NOR,
 		attack_points/100 + 1, ob->query_temp("apply/damage"),
 		(dodge_points + (weapon? parry_points: (parry_points/10)))/100 + 1, ob->query_temp("apply/armor"));
-	else line += "\n";
 
 	line += sprintf("\n 你到目前为止总共杀了 %d 个人，其中有 %d 个是其他玩家。",
 		my["MKS"] + my["PKS"], my["PKS"]);

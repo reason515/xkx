@@ -87,13 +87,23 @@ function ScorePanel({ score, fallbackHtml, fallbackText }: {
           {score.attack != null && (
             <div className="combat-pill atk">
               <div className="k">攻击</div>
-              <div className="v">{score.attack}</div>
+              <div className="v">
+                {score.attack}
+                {score.attackBonus != null && score.attackBonus !== 0 ? (
+                  <span className="bonus">+{score.attackBonus}</span>
+                ) : null}
+              </div>
             </div>
           )}
           {score.defense != null && (
             <div className="combat-pill def">
               <div className="k">防御</div>
-              <div className="v">{score.defense}</div>
+              <div className="v">
+                {score.defense}
+                {score.defenseBonus != null && score.defenseBonus !== 0 ? (
+                  <span className="bonus">+{score.defenseBonus}</span>
+                ) : null}
+              </div>
             </div>
           )}
         </div>

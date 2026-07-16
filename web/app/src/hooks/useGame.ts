@@ -189,13 +189,46 @@ export function useGame() {
     [finishDocCapture]
   );
 
+  const scheduleEquipRefresh = useCallback(() => {
+    window.setTimeout(() => {
+      socket.current.cmd("inventory");
+      socket.current.cmd("score");
+    }, 280);
+  }, []);
+
   const cmd = useCallback(
     (command: string, opts?: { silent?: boolean }) => {
-      const verb = command.trim().split(/\s+/)[0]?.toLowerCase();
+      const parts = command.trim().split(/\s+/);
+      const verb = parts[0]?.toLowerCase();
+      const target = parts.slice(1).join(" ").trim().toLowerCase();
       // follow/enter 会换房：清掉旧建议动作，并允许文本 look 回退更新标题
       if (verb === "follow" || verb === "enter" || verb === "register") {
         roomFromEvent.current = false;
         setState((s) => ({ ...s, suggestedActions: [] }));
+      }
+      // 穿/脱/装备/收起：先乐观更新行囊标记，再拉 inventory+score 校正攻防
+      if (
+        target &&
+        (verb === "wear" ||
+          verb === "remove" ||
+          verb === "wield" ||
+          verb === "unwield")
+      ) {
+        const equipping = verb === "wear" || verb === "wield";
+        setState((s) => ({
+          ...s,
+          inventory: s.inventory.map((it) => {
+            const id = it.id.toLowerCase();
+            const name = it.name.toLowerCase();
+            const hit =
+              id === target ||
+              name === target ||
+              id.startsWith(target) ||
+              target.startsWith(id);
+            return hit ? { ...it, equipped: equipping } : it;
+          }),
+        }));
+        scheduleEquipRefresh();
       }
       socket.current.cmd(command);
       if (!opts?.silent) addLog(`> ${command}`, "sys");
@@ -207,7 +240,7 @@ export function useGame() {
         }, 5500);
       }
     },
-    [addLog]
+    [addLog, scheduleEquipRefresh]
   );
 
   const docCmd = useCallback(
@@ -229,6 +262,7 @@ export function useGame() {
     setTimeout(() => {
       socket.current.cmd("look");
       socket.current.cmd("hp");
+      socket.current.cmd("score");
     }, 350);
   }, []);
 
@@ -453,7 +487,7 @@ export function useGame() {
           if (v.qi) setState((s) => ({ ...s, vitals: { ...s.vitals, ...v } }));
         }
 
-        if (/个人档案|膂力|悟性|根骨|身法/.test(chunk)) {
+        if (/个人档案|膂力|悟性|根骨|身法|攻击力|防御力/.test(chunk)) {
           const scoreText = stripScoreBanner(chunk);
           const scoreHtml = buildScoreHtml(chunk, msg.htmlLines);
           const score = parseScore(chunk);
@@ -462,7 +496,12 @@ export function useGame() {
             scoreText: scoreText.trim() ? scoreText : s.scoreText,
             scoreHtml: scoreHtml.trim() ? scoreHtml : s.scoreHtml,
             score:
-              score.bio || score.attrs || score.exp != null || score.headline
+              score.bio ||
+              score.attrs ||
+              score.exp != null ||
+              score.headline ||
+              score.attack != null ||
+              score.defense != null
                 ? score
                 : s.score,
           }));
@@ -576,29 +615,33 @@ export function useGame() {
             showToast("请先激发该武功再准备");
           }
 
-          // 穿戴 / 装备武器反馈 → 刷新行囊
+          // 穿戴 / 装备武器反馈 → 刷新行囊与攻防（cmd 侧已乐观更新并预约刷新）
           if (
-            /穿上|戴上|绑在腰间|装备.+作武器|装备著|装备着/.test(chunk) &&
+            /穿上|戴上|绑在腰间|装备.+作武器|装备著|装备着|你装备/.test(chunk) &&
             /你/.test(chunk)
           ) {
             if (/已经装备/.test(chunk)) {
               showToast("已经装备着了");
+              scheduleEquipRefresh();
             } else if (/作武器/.test(chunk) || /手中的/.test(chunk)) {
               showToast("已装备武器");
-              window.setTimeout(() => cmd("inventory", { silent: true }), 200);
+              scheduleEquipRefresh();
             } else if (/穿上|戴上|绑在腰间|装备/.test(chunk)) {
               showToast("已穿戴");
-              window.setTimeout(() => cmd("inventory", { silent: true }), 200);
+              scheduleEquipRefresh();
             }
-          } else if (/将.+脱了下来|卸除.+的装备|放下手中的/.test(chunk)) {
+          } else if (/将.+脱了下来|卸除.+的装备|放下手中的|从伤口处拆了下来/.test(chunk)) {
             showToast(/放下手中的/.test(chunk) ? "已收起武器" : "已脱下");
-            window.setTimeout(() => cmd("inventory", { silent: true }), 200);
+            scheduleEquipRefresh();
           } else if (/并没有装备这样东西作为武器/.test(chunk)) {
             showToast("这不是手中的武器");
+            scheduleEquipRefresh();
           } else if (/并没有装备这样东西/.test(chunk)) {
             showToast("目前没有穿戴此物");
+            scheduleEquipRefresh();
           } else if (/身上没有这样东西/.test(chunk)) {
             showToast("行囊里没有此物");
+            scheduleEquipRefresh();
           } else if (/这里不是你能睡的地方/.test(chunk)) {
             showToast("这里不能睡觉");
           } else if (/战斗中不能睡觉|正忙着/.test(chunk) && /睡/.test(recent.slice(-200))) {
@@ -618,7 +661,7 @@ export function useGame() {
       offMsg();
       offStatus();
     };
-  }, [addLog, appendDocText, showToast, enterGame, cmd]);
+  }, [addLog, appendDocText, showToast, enterGame, cmd, scheduleEquipRefresh]);
 
   const login = useCallback(
     (opts: {
