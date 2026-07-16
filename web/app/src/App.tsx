@@ -9,6 +9,8 @@ import { useGame } from "./hooks/useGame";
 import { useEffect, useRef, useState } from "react";
 import type { ExitInfo, LogEntry } from "./lib/types";
 
+type MainTab = "log" | "scene";
+
 function pct(cur?: number, max?: number) {
   if (!cur || !max) return "0%";
   return `${Math.min(100, Math.round((cur / max) * 100))}%`;
@@ -34,20 +36,22 @@ function EventLog({ logs }: { logs: LogEntry[] }) {
         setFollowing(panel.scrollHeight - panel.scrollTop - panel.clientHeight < 24);
       }}
     >
-      <div className="log-head">
-        <h2>见闻</h2>
-        {!following && (
-          <button type="button" onClick={() => {
-            const panel = panelRef.current;
-            if (panel) panel.scrollTop = panel.scrollHeight;
-            setFollowing(true);
-          }}>
+      {!following && (
+        <div className="log-head">
+          <button
+            type="button"
+            onClick={() => {
+              const panel = panelRef.current;
+              if (panel) panel.scrollTop = panel.scrollHeight;
+              setFollowing(true);
+            }}
+          >
             最新
           </button>
-        )}
-      </div>
+        </div>
+      )}
       <div aria-live="polite" aria-relevant="additions text">
-        {logs.slice(-20).map((l) => (
+        {logs.slice(-100).map((l) =>
           l.html ? (
             <p
               key={l.id}
@@ -59,7 +63,7 @@ function EventLog({ logs }: { logs: LogEntry[] }) {
               {l.text}
             </p>
           )
-        ))}
+        )}
       </div>
     </section>
   );
@@ -69,7 +73,15 @@ export default function App() {
   const g = useGame();
   const { state, toast } = g;
   const v = state.vitals;
-  const [actionsOpen, setActionsOpen] = useState(false);
+  const [mainTab, setMainTab] = useState<MainTab>("log");
+
+  const afterEntityAction = (command: string) => {
+    g.cmd(command);
+    const verb = command.trim().split(/\s+/)[0]?.toLowerCase();
+    // 拾起/丢下后留在场景，方便立刻看到物品列表刷新
+    if (verb === "get" || verb === "drop") setMainTab("scene");
+    else setMainTab("log");
+  };
 
   if (!state.inGame) {
     return (
@@ -119,132 +131,122 @@ export default function App() {
         </header>
 
         <main className="main">
-          <div className="game-body">
-            <EventLog logs={state.logs} />
-            <section className="scene-panel" aria-label="场景">
-              <h1 className="room-title">{state.room.title || "…"}</h1>
-              <p className="room-desc">{state.room.desc || "环顾四周以了解所处之地。"}</p>
-
-              <section className="context">
-            <div className="ctx-block">
-              <h2>出口</h2>
-              <ExitPad
-                exits={state.room.exits}
-                onSelect={(ex: ExitInfo) => {
-                  g.setSelectedExit({ dir: ex.dir, name: ex.name });
-                  g.openSheet("exit");
-                }}
-              />
-            </div>
-
-            {state.room.npcs.length > 0 && (
-              <div className="ctx-block">
-                <h2>人物</h2>
-                <div className="chips">
-                  {state.room.npcs.map((n) => (
-                    <button
-                      key={n.id}
-                      type="button"
-                      className="chip npc"
-                      onClick={() => {
-                        g.setSelectedEntity({
-                          id: n.id,
-                          name: n.name,
-                          kind: "npc",
-                        });
-                        g.openSheet("entity");
-                      }}
-                    >
-                      {n.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {state.room.items.length > 0 && (
-              <div className="ctx-block">
-                <h2>物品</h2>
-                <div className="chips">
-                  {state.room.items.map((it) => (
-                    <button
-                      key={it.id}
-                      type="button"
-                      className="chip item"
-                      onClick={() => {
-                        g.setSelectedEntity({
-                          id: it.id,
-                          name: it.name,
-                          kind: "item",
-                        });
-                        g.openSheet("entity");
-                      }}
-                    >
-                      {it.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {state.suggestedActions.length > 0 && (
-              <div className="ctx-block">
-                <h2>动作</h2>
-                <div className="chips">
-                  {state.suggestedActions.map((a) => (
-                    <button
-                      key={a.command}
-                      type="button"
-                      className="chip action"
-                      onClick={() => g.cmd(a.command)}
-                    >
-                      {a.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-              </section>
-            </section>
-          </div>
-        </main>
-
-        <footer className={`dock ${actionsOpen ? "open" : "collapsed"}`}>
-          {actionsOpen ? (
-            <>
-              <button type="button" onClick={() => g.cmd("look")}>
-                环顾
-              </button>
-              <button
-                type="button"
-                className={state.assistActive ? "busy" : ""}
-                onClick={() => g.openSheet("train")}
-              >
-                修炼
-              </button>
-              <button type="button" className="fight" onClick={() => g.openSheet("combat")}>
-                动手
-              </button>
-              <button
-                type="button"
-                className="dock-handle"
-                aria-label="收起操作"
-                onClick={() => setActionsOpen(false)}
-              >
-                收起
-              </button>
-            </>
-          ) : (
+          <div className="game-tabs" role="tablist" aria-label="见闻与场景">
             <button
               type="button"
-              className={state.assistActive ? "dock-handle busy" : "dock-handle"}
-              aria-expanded={actionsOpen}
-              onClick={() => setActionsOpen(true)}
+              role="tab"
+              aria-selected={mainTab === "log"}
+              className={mainTab === "log" ? "on" : ""}
+              onClick={() => setMainTab("log")}
             >
-              {state.assistActive ? "修炼中 · 操作" : "操作"}
+              见闻
             </button>
-          )}
-        </footer>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={mainTab === "scene"}
+              className={mainTab === "scene" ? "on" : ""}
+              onClick={() => setMainTab("scene")}
+            >
+              场景
+            </button>
+          </div>
+
+          <div className="game-body">
+            {mainTab === "log" ? (
+              <EventLog logs={state.logs} />
+            ) : (
+              <section className="scene-panel" aria-label="场景">
+                <h1 className="room-title">{state.room.title || "…"}</h1>
+                <p className="room-desc">{state.room.desc || "环顾四周以了解所处之地。"}</p>
+
+                <section className="context">
+                  <div className="ctx-block">
+                    <h2>出口</h2>
+                    <ExitPad
+                      exits={state.room.exits}
+                      onSelect={(ex: ExitInfo) => {
+                        g.setSelectedExit({ dir: ex.dir, name: ex.name });
+                        g.openSheet("exit");
+                      }}
+                    />
+                  </div>
+
+                  {state.room.npcs.length > 0 && (
+                    <div className="ctx-block">
+                      <h2>人物</h2>
+                      <div className="chips">
+                        {state.room.npcs.map((n) => (
+                          <button
+                            key={n.id}
+                            type="button"
+                            className="chip npc"
+                            onClick={() => {
+                              g.setSelectedEntity({
+                                id: n.id,
+                                name: n.name,
+                                kind: "npc",
+                              });
+                              g.openSheet("entity");
+                            }}
+                          >
+                            {n.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {state.room.items.length > 0 && (
+                    <div className="ctx-block">
+                      <h2>物品</h2>
+                      <div className="chips">
+                        {state.room.items.map((it, idx) => (
+                          <button
+                            key={`${it.id}-${it.name}-${idx}`}
+                            type="button"
+                            className="chip item"
+                            onClick={() => {
+                              g.setSelectedEntity({
+                                id: it.id,
+                                name: it.name,
+                                kind: "item",
+                              });
+                              g.openSheet("entity");
+                            }}
+                          >
+                            {it.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {state.suggestedActions.length > 0 && (
+                    <div className="ctx-block">
+                      <h2>动作</h2>
+                      <div className="chips">
+                        {state.suggestedActions.map((a) => (
+                          <button
+                            key={a.command}
+                            type="button"
+                            className="chip action"
+                            onClick={() => {
+                              g.cmd(a.command);
+                              setMainTab("log");
+                            }}
+                          >
+                            {a.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </section>
+              </section>
+            )}
+          </div>
+        </main>
       </div>
 
       {state.sheet === "character" && (
@@ -292,7 +294,7 @@ export default function App() {
           name={g.selectedEntity.name}
           kind={g.selectedEntity.kind}
           onClose={g.closeSheet}
-          onAction={g.cmd}
+          onAction={afterEntityAction}
         />
       )}
       {state.sheet === "exit" && g.selectedExit && (

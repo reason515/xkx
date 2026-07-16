@@ -14,8 +14,8 @@ function randomId() {
 async function waitForInGame(page: import("@playwright/test").Page) {
   const deadline = Date.now() + 90_000;
   while (Date.now() < deadline) {
-    const roomTitle = page.locator(".room-title");
-    if (await roomTitle.isVisible()) return;
+    const logTab = page.getByRole("tab", { name: "见闻" });
+    if (await logTab.isVisible()) return;
 
     const loginErr = page.locator(".login-form .err");
     if (await loginErr.isVisible()) {
@@ -26,6 +26,48 @@ async function waitForInGame(page: import("@playwright/test").Page) {
     await page.waitForTimeout(500);
   }
   throw new Error("登录/注册超时：未进入游戏");
+}
+
+async function openSceneTab(page: import("@playwright/test").Page) {
+  await page.getByRole("tab", { name: "场景" }).click();
+  await expect(page.locator(".room-title")).toBeVisible();
+}
+
+async function openLogTab(page: import("@playwright/test").Page) {
+  await page.getByRole("tab", { name: "见闻" }).click();
+  await expect(page.locator(".log-panel")).toBeVisible();
+}
+
+/** 点出口九宫格上的方位并确认前往 */
+async function goByExitLabel(
+  page: import("@playwright/test").Page,
+  label: string
+) {
+  await openSceneTab(page);
+  const cell = page.locator(".exit-pad .cell.open").filter({ hasText: label }).first();
+  await expect(cell).toBeVisible({ timeout: 15_000 });
+  await cell.click();
+  await page.getByRole("button", { name: "前往" }).click();
+  await expect(page.locator(".room-title")).not.toHaveText("…", {
+    timeout: 20_000,
+  });
+  await openSceneTab(page);
+}
+
+/** 沙滩或附近礁石找一件可拾取的地上物品 */
+async function findGroundItemChip(page: import("@playwright/test").Page) {
+  await openSceneTab(page);
+  const chip = page.locator(".chip.item").first();
+  if (await chip.isVisible().catch(() => false)) return chip;
+
+  // 东 → 东 → 东北 到礁石（常有石头）
+  for (const label of ["东", "东", "东北"]) {
+    const has = page.locator(".exit-pad .cell.open").filter({ hasText: label });
+    if ((await has.count()) === 0) break;
+    await goByExitLabel(page, label);
+    if (await chip.isVisible().catch(() => false)) return chip;
+  }
+  return chip;
 }
 
 async function loginAsNewbie(
@@ -132,8 +174,14 @@ test.describe.serial("game smoke", () => {
       asRegister: false,
     });
 
+    await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    await expect(page.locator(".log-panel")).toBeVisible();
+
+    await openSceneTab(page);
     const roomTitle = page.locator(".room-title");
-    await expect(roomTitle).toBeVisible({ timeout: 90_000 });
     await expect(roomTitle).not.toHaveText("…", { timeout: 90_000 });
     await expect(page.getByText(/新手引导/)).toHaveCount(0);
 
@@ -142,30 +190,33 @@ test.describe.serial("game smoke", () => {
     const desc = (await roomDesc.textContent()) || "";
     expect(desc).not.toMatch(/BIG5|Do you want to use|有任何意见|egroups\.com/i);
 
+    await openLogTab(page);
     const logs = await page.locator(".log p").allTextContents();
     const logBlob = logs.join("\n");
     expect(logBlob).not.toMatch(/Do you want to use BIG5/i);
     expect(logBlob).not.toMatch(/@@JSON@@|@@ENDJSON@@/);
 
     // Optional move if exits exist
+    await openSceneTab(page);
     const firstExit = page.locator(".exit-pad .cell.open").first();
     if ((await firstExit.count()) > 0) {
       const titleBefore = (await roomTitle.textContent())?.trim() ?? "";
       await firstExit.click();
       await page.getByRole("button", { name: "前往" }).click();
       await expect(async () => {
+        await openSceneTab(page);
         const titleAfter = (await roomTitle.textContent())?.trim() ?? "";
-        const moved =
-          titleAfter !== titleBefore ||
-          (await page.locator(".log p").allTextContents()).some((line) =>
-            /向|走|来到|进入/.test(line)
-          );
-        expect(moved).toBe(true);
+        if (titleAfter !== titleBefore) return;
+        await openLogTab(page);
+        const logMoved = (
+          await page.locator(".log p").allTextContents()
+        ).some((line) => /向|走|来到|进入/.test(line));
+        expect(logMoved).toBe(true);
       }).toPass({ timeout: 30_000 });
     }
   });
 
-  test("手机端见闻置顶、场景占比更高且操作可展开", async ({ page }) => {
+  test("见闻与场景为 Tab，默认见闻，互动后切回，无底栏操作", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, {
       id: sharedId,
@@ -173,44 +224,37 @@ test.describe.serial("game smoke", () => {
       asRegister: false,
     });
 
-    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
-    const layout = await page.evaluate(() => {
-      const body = document.querySelector(".game-body");
-      const log = document.querySelector(".log-panel");
-      const scene = document.querySelector(".scene-panel");
-      const dock = document.querySelector(".dock");
-      if (!body || !log || !scene || !dock) return null;
-      const logRect = log.getBoundingClientRect();
-      const sceneRect = scene.getBoundingClientRect();
-      const dockRect = dock.getBoundingClientRect();
-      return {
-        direction: getComputedStyle(body).flexDirection,
-        logAboveScene: logRect.top < sceneRect.top,
-        sceneTallerThanLog: sceneRect.height > logRect.height,
-        sceneVisible: sceneRect.top < window.innerHeight,
-        sceneAboveDock: sceneRect.bottom <= dockRect.top,
-        logScrollable: log.scrollHeight >= log.clientHeight,
-        sceneScrollable: scene.scrollHeight >= scene.clientHeight,
-        dockCollapsed: dock.classList.contains("collapsed"),
-      };
-    });
-    expect(layout).toEqual({
-      direction: "column",
-      logAboveScene: true,
-      sceneTallerThanLog: true,
-      sceneVisible: true,
-      sceneAboveDock: true,
-      logScrollable: true,
-      sceneScrollable: true,
-      dockCollapsed: true,
-    });
+    await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    await expect(page.locator(".log-panel")).toBeVisible();
+    await expect(page.locator(".scene-panel")).toHaveCount(0);
+    await expect(page.locator(".dock")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "操作" })).toHaveCount(0);
 
-    await page.getByRole("button", { name: "操作" }).click();
-    await expect(page.getByRole("button", { name: "环顾" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "修炼" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "动手" })).toBeVisible();
-    await page.getByRole("button", { name: "收起操作" }).click();
-    await expect(page.getByRole("button", { name: "操作" })).toBeVisible();
+    const logHeight = await page.locator(".log-panel").evaluate((el) => el.clientHeight);
+    expect(logHeight).toBeGreaterThan(280);
+
+    await openSceneTab(page);
+    await expect(page.getByRole("tab", { name: "场景" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    await expect(page.locator(".room-title")).toBeVisible();
+    await expect(page.locator(".log-panel")).toHaveCount(0);
+
+    const npc = page.locator(".chip.npc").first();
+    if ((await npc.count()) > 0) {
+      await npc.click();
+      await expect(page.locator(".sheet")).toBeVisible();
+      await page.locator(".sheet-acts button").first().click();
+      await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
+        "aria-selected",
+        "true"
+      );
+      await expect(page.locator(".log-panel")).toBeVisible();
+    }
   });
 
   test("角色卡片查询不进见闻，档案无横幅标题", async ({ page }) => {
@@ -221,7 +265,9 @@ test.describe.serial("game smoke", () => {
       asRegister: false,
     });
 
-    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
+    await expect(page.getByRole("tab", { name: "见闻" })).toBeVisible({
+      timeout: 90_000,
+    });
     await page.locator(".hero-btn").click();
 
     await expect(page.getByRole("button", { name: "仪容" })).toBeVisible();
@@ -258,12 +304,51 @@ test.describe.serial("game smoke", () => {
     expect(logBlob).not.toMatch(/你要看什么/);
   });
 
+  test("pickup 拾起地上物品后场景列表不再显示该物", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 60_000,
+    });
+
+    const itemChip = await findGroundItemChip(page);
+    await expect(itemChip).toBeVisible({ timeout: 30_000 });
+    const itemName = ((await itemChip.textContent()) || "").trim();
+    expect(itemName.length).toBeGreaterThan(0);
+    expect(itemName).not.toMatch(/^\?+$/);
+
+    const beforeSame = (
+      await page.locator(".chip.item").allTextContents()
+    ).filter((n) => n.trim() === itemName).length;
+    const beforeTotal = await page.locator(".chip.item").count();
+
+    await itemChip.click();
+    await expect(page.getByRole("button", { name: "拿", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "拿", exact: true }).click();
+
+    await openSceneTab(page);
+    await expect
+      .poll(
+        async () => {
+          const total = await page.locator(".chip.item").count();
+          const same = (
+            await page.locator(".chip.item").allTextContents()
+          ).filter((n) => n.trim() === itemName).length;
+          return { total, same };
+        },
+        { timeout: 20_000 }
+      )
+      .toEqual({ total: beforeTotal - 1, same: beforeSame - 1 });
+  });
+
   test("打开角色卡后仍可向渔夫打听侠客岛", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     // 新号落在沙滩，保证有渔夫；避免共用号已走开
     await loginAsNewbie(page, { asRegister: true });
 
-    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
+    await openSceneTab(page);
     await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 60_000 });
 
     // 先打开角色卡（会静默 look me / hp / score），这是此前误吞打听回显的路径
@@ -271,6 +356,7 @@ test.describe.serial("game smoke", () => {
     await expect(page.getByRole("button", { name: "档案" })).toBeVisible();
     await page.locator(".sheet .close").click();
 
+    await openSceneTab(page);
     const askBtn = page.getByRole("button", {
       name: "向渔夫打听侠客岛",
       exact: true,
@@ -278,6 +364,10 @@ test.describe.serial("game smoke", () => {
     await expect(askBtn).toBeVisible({ timeout: 30_000 });
     await askBtn.click();
 
+    await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
     await expect
       .poll(async () => {
         const logs = await page.locator(".log p").allTextContents();
@@ -290,7 +380,7 @@ test.describe.serial("game smoke", () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
 
-    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
+    await openSceneTab(page);
     await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 60_000 });
 
     await page.getByRole("button", { name: "地图" }).click();
@@ -306,7 +396,7 @@ test.describe.serial("game smoke", () => {
     });
   });
 
-  test("桌面端场景与见闻并列", async ({ page }) => {
+  test("桌面端同样为见闻/场景 Tab", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await loginAsNewbie(page, {
       id: sharedId,
@@ -314,20 +404,14 @@ test.describe.serial("game smoke", () => {
       asRegister: false,
     });
 
-    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
-    const layout = await page.evaluate(() => {
-      const body = document.querySelector(".game-body");
-      const log = document.querySelector(".log-panel");
-      const scene = document.querySelector(".scene-panel");
-      if (!body || !log || !scene) return null;
-      const logRect = log.getBoundingClientRect();
-      const sceneRect = scene.getBoundingClientRect();
-      return {
-        direction: getComputedStyle(body).flexDirection,
-        sideBySide: sceneRect.right <= logRect.left,
-      };
-    });
-    expect(layout).toEqual({ direction: "row", sideBySide: true });
+    await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    await expect(page.locator(".log-panel")).toBeVisible();
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toBeVisible();
+    await expect(page.locator(".log-panel")).toHaveCount(0);
   });
 
   test("新注册进可走动沙滩且原密码可重登", async ({ page }) => {
@@ -336,8 +420,8 @@ test.describe.serial("game smoke", () => {
 
     const { id, password } = await loginAsNewbie(page, { asRegister: true });
 
+    await openSceneTab(page);
     const roomTitle = page.locator(".room-title");
-    await expect(roomTitle).toBeVisible({ timeout: 90_000 });
     await expect(roomTitle).toHaveText(/沙滩/, { timeout: 90_000 });
     expect(((await roomTitle.textContent()) || "").trim()).not.toMatch(/挂名/);
 
@@ -348,13 +432,14 @@ test.describe.serial("game smoke", () => {
 
     const itemNames = await page.locator(".chip.item").allTextContents();
     expect(itemNames.every((n) => !/^\?+$/.test(n.trim()))).toBe(true);
+    await openLogTab(page);
     const logs = (await page.locator(".log p").allTextContents()).join("\n");
     expect(logs).not.toMatch(/^\?{6,}$/m);
     expect(logs).not.toMatch(/@@JSON@@|@@ENDJSON@@/);
 
     await page.goto("/");
     await loginAsNewbie(page, { id, password, asRegister: false });
-    await expect(page.locator(".room-title")).toBeVisible({ timeout: 90_000 });
+    await openSceneTab(page);
     await expect(page.locator(".room-title")).not.toHaveText("…", {
       timeout: 90_000,
     });
@@ -362,6 +447,7 @@ test.describe.serial("game smoke", () => {
     if ((await err.count()) > 0) {
       await expect(err.first()).not.toContainText(/密码错误/);
     }
+    await openLogTab(page);
     const postLogs = (await page.locator(".log p").allTextContents()).join(
       "\n"
     );

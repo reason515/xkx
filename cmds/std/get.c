@@ -116,6 +116,11 @@ int do_get(object me, object obj)
 						"从" + old_env->name() + "中拿出"),
 				obj->query_amount()? amt : "一", 
 				obj->query_amount()? obj->query("base_unit") : obj->query("unit")), me, obj );
+		/* Web：地上物品变化后立刻推送 room.update，避免场景列表残留 */
+		if( me->query_temp("web_client")
+		&&  old_env == environment(me)
+		&&  objectp(environment(me)) )
+			"/adm/daemons/webd"->send_room(me, environment(me));
 		return 1;
 	}
 	else return 0;

@@ -81,6 +81,9 @@ int do_drop(object me, object obj)
 				destruct(obj);
 			}
 		}
+		/* Web：丢下后立刻推送 room.update，场景物品列表同步出现 */
+		if( me->query_temp("web_client") && objectp(environment(me)) )
+			"/adm/daemons/webd"->send_room(me, environment(me));
 		return 1;
 	}
 	return 0;

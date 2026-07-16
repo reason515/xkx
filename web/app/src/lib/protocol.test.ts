@@ -7,8 +7,8 @@ const basePrev = () => ({
     title: "扬州客店",
     desc: "客店大堂",
     exits: [{ dir: "north", label: "北", name: "北大街" }],
-    npcs: [],
-    items: [],
+    npcs: [] as RoomState["npcs"],
+    items: [] as RoomState["items"],
   } satisfies RoomState,
   vitals: { qi: 100, maxQi: 100 } satisfies Vitals,
   skills: [] as SkillRow[],
@@ -57,6 +57,29 @@ describe("applyEvent", () => {
     );
     expect(next.room.title).toBe("侠客岛挂名处");
     expect(next.room.exits).toEqual([]);
+  });
+
+  it("clears room items when room.update sends an empty items array", () => {
+    const prev = basePrev();
+    prev.room = {
+      ...prev.room,
+      items: [{ id: "stone", name: "鹅卵石", kind: "item" }],
+      npcs: [{ id: "yu fu", name: "渔夫", kind: "npc" }],
+    };
+    const next = applyEvent(
+      {
+        v: 1,
+        type: "room.update",
+        title: "沙滩",
+        long: "海风扑面。",
+        exits: [{ dir: "north", name: "小路" }],
+        npcs: [{ id: "yu fu", name: "渔夫", kind: "npc" }],
+        items: [],
+      },
+      prev
+    );
+    expect(next.room.items).toEqual([]);
+    expect(next.room.npcs).toEqual([{ id: "yu fu", name: "渔夫", kind: "npc" }]);
   });
 
   it("merges vitals from player.vitals event", () => {

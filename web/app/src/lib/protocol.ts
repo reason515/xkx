@@ -40,8 +40,13 @@ export function applyEvent(
               name: e.name,
             }))
           : prev.room.exits,
-        npcs: (event.npcs as RoomState["npcs"]) || prev.room.npcs,
-        items: (event.items as RoomState["items"]) || prev.room.items,
+        // Empty arrays must replace prior lists (e.g. last ground item picked up)
+        npcs: Array.isArray(event.npcs)
+          ? (event.npcs as RoomState["npcs"])
+          : prev.room.npcs,
+        items: Array.isArray(event.items)
+          ? (event.items as RoomState["items"])
+          : prev.room.items,
       };
       break;
     }

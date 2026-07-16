@@ -26,8 +26,9 @@ LONG
 		   "north" : __DIR__"xiaolu",
 		   "northwest": __DIR__"haibian3",
     ]));
-    set("objects", ([ 
-		     __DIR__ +"npc/yufu" : 1, 
+    set("objects", ([
+		     __DIR__ +"npc/yufu" : 1,
+		     "/d/city/obj/stone" : 3,
     ]));
     set("no_fight", "1");
     set("outdoors", "xiakedao");

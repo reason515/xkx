@@ -219,11 +219,16 @@ async function runNewbiePath() {
   let followTarget = "";
   let phase = "login";
   let registerTimer;
+  let sentGet = false;
+  let pickupId = "";
+  let pickupName = "";
+  let pickupBeforeCount = 0;
+  let pickupDeadline = 0;
 
   console.log("open", WS_URL, "register", id);
 
   try {
-    await openSession(
+    const result = await openSession(
       {
         type: "login",
         id,
@@ -232,7 +237,7 @@ async function runNewbiePath() {
         gender: process.env.XKX_E2E_GENDER || "男",
         register: true,
       },
-      (api) => {
+      (api, msg) => {
         const buf = api.buf();
         if (/BIG5|Do you want to use/i.test(buf)) {
           api.fail("login_banner_leaked");
@@ -249,18 +254,53 @@ async function runNewbiePath() {
             /目前权限|沙滩|客店|扬州|挂名处|这里明显的出口|明显的出口|这里没有任何明显的出路/.test(
               buf
             );
-          if (api.gotReady() || api.gotRoom() || inGameText) {
-            setTimeout(
-              () =>
-                api.done({
-                  reason: api.gotRoom()
-                    ? "room.update"
-                    : inGameText
-                      ? "text_in_game"
-                      : "ready",
-                }),
-              1200
-            );
+
+          if (
+            phase === "beach" &&
+            (api.gotReady() || api.gotRoom() || inGameText)
+          ) {
+            phase = "pickup";
+            pickupDeadline = Date.now() + 25000;
+            setTimeout(() => api.sendCmd("look"), 600);
+          }
+
+          if (
+            phase === "pickup" &&
+            msg.type === "event" &&
+            msg.event?.type === "room.update"
+          ) {
+            const items = Array.isArray(msg.event.items) ? msg.event.items : [];
+            if (!sentGet) {
+              if (items.length > 0) {
+                const it = items[0];
+                pickupId = String(it.id || it.name || "").trim();
+                pickupName = String(it.name || it.id || "").trim();
+                pickupBeforeCount = items.length;
+                if (pickupId || pickupName) {
+                  sentGet = true;
+                  console.log("get", pickupId || pickupName, "of", pickupBeforeCount);
+                  api.sendCmd(`get ${pickupId || pickupName}`);
+                }
+              } else if (Date.now() > pickupDeadline) {
+                api.fail("pickup_no_ground_item");
+              }
+              return;
+            }
+
+            // 同 id 物品可多件（如多块石头），以数量减少为准
+            if (items.length < pickupBeforeCount) {
+              api.done({
+                reason: "pickup_room_refresh",
+                item: pickupName || pickupId,
+                before: pickupBeforeCount,
+                after: items.length,
+              });
+            }
+            return;
+          }
+
+          if (phase === "pickup" && sentGet && Date.now() > pickupDeadline) {
+            api.fail("pickup_room_not_refreshed");
           }
           return;
         }
@@ -317,13 +357,20 @@ async function runNewbiePath() {
         }
       }
     );
+
+    if (SKIP_FOLLOW) {
+      report(0, {
+        reason: result.reason || "ready_skip_follow",
+        item: result.item,
+        ms: result.ms,
+        ready: result.gotReady,
+        room: result.gotRoom,
+        follow: followTarget || undefined,
+      });
+      return;
+    }
   } catch (e) {
     failReport(e, { phase, follow: followTarget || undefined });
-    return;
-  }
-
-  if (SKIP_FOLLOW) {
-    report(0, { reason: "ready_skip_follow", follow: followTarget || undefined });
     return;
   }
 
