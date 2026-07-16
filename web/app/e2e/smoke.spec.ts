@@ -463,6 +463,46 @@ test.describe.serial("game smoke", () => {
       .toMatch(/这里就是侠客岛|打听有关『侠客岛』/);
   });
 
+  test("见闻合并软换行且颜色跨行保留", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 60_000,
+    });
+
+    const askLeave = page.getByRole("button", {
+      name: "向渔夫打听离岛",
+      exact: true,
+    });
+    await expect(askLeave).toBeVisible({ timeout: 30_000 });
+    await askLeave.click();
+
+    await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+
+    // Soft-wrap 「等你\n功夫…」 must appear in one 见闻 paragraph
+    await expect
+      .poll(
+        async () => {
+          const paras = await page.locator(".log p").allTextContents();
+          return paras.some(
+            (p) => p.includes("等你") && p.includes("功夫有点小成")
+          );
+        },
+        { timeout: 20_000 }
+      )
+      .toBe(true);
+
+    // Color from CYN…NOR must cover the continuation after the soft wrap
+    await expect(
+      page.locator(".log p .mud-fg-cyan").filter({ hasText: /功夫有点小成/ })
+    ).toBeVisible({ timeout: 5_000 });
+  });
+
   test("地图浮层显示侠客岛真图与世界总图", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });

@@ -865,4 +865,83 @@ export function buildScoreHtml(text: string, htmlLines?: string[]): string {
     .replace(/>/g, "&gt;");
 }
 
+/** Terminal display width: CJK / fullwidth ≈ 2 columns. */
+export function displayWidth(text: string): number {
+  let w = 0;
+  for (const ch of text) {
+    const cp = ch.codePointAt(0) ?? 0;
+    if (
+      cp >= 0x1100 &&
+      (cp <= 0x115f ||
+        cp === 0x2329 ||
+        cp === 0x232a ||
+        (cp >= 0x2e80 && cp <= 0xa4cf) ||
+        (cp >= 0xac00 && cp <= 0xd7a3) ||
+        (cp >= 0xf900 && cp <= 0xfaff) ||
+        (cp >= 0xfe10 && cp <= 0xfe19) ||
+        (cp >= 0xfe30 && cp <= 0xfe6f) ||
+        (cp >= 0xff00 && cp <= 0xff60) ||
+        (cp >= 0xffe0 && cp <= 0xffe6))
+    ) {
+      w += 2;
+    } else {
+      w += 1;
+    }
+  }
+  return w;
+}
+
+const SOFT_WRAP_FULL = 74;
+const SOFT_WRAP_MIN_INCOMPLETE = 40;
+
+/** True when `prev`/`next` look like one prose line split for an 80-col terminal. */
+export function shouldJoinSoftWrap(prev: string, next: string): boolean {
+  if (!prev.trim() || !next.trim()) return false;
+  // Indented / list / separator → new structural line
+  if (/^[ \t]/.test(next)) return false;
+  const n = next.trimStart();
+  if (/^\[/.test(n)) return false;
+  if (/^[【■□◎※─—\-={}]/.test(n)) return false;
+
+  const p = prev.replace(/\s+$/g, "");
+  // Sentence / clause already finished
+  if (/[。！？；：…」』】]$/.test(p)) return false;
+  if (/[.!?]$/.test(p)) return false;
+
+  const pw = displayWidth(p);
+  if (pw >= SOFT_WRAP_FULL) return true;
+  // Author soft-wrap mid-phrase (e.g. say 「…等你\n功夫…」)
+  if (pw >= SOFT_WRAP_MIN_INCOMPLETE && /[\u4e00-\u9fffA-Za-z0-9]$/.test(p))
+    return true;
+  return false;
+}
+
+function softWrapJoinSep(prevPlain: string, nextPlain: string): string {
+  return /[A-Za-z0-9]$/.test(prevPlain) && /^[A-Za-z0-9]/.test(nextPlain)
+    ? " "
+    : "";
+}
+
+export type SoftWrapEntry = { text: string; html?: string };
+
+/** Merge soft-wrapped MUD lines so 见闻 shows continuous prose. */
+export function reflowSoftWrappedEntries(
+  entries: SoftWrapEntry[]
+): SoftWrapEntry[] {
+  const out: SoftWrapEntry[] = [];
+  for (const entry of entries) {
+    const last = out[out.length - 1];
+    if (last && shouldJoinSoftWrap(last.text, entry.text)) {
+      const sep = softWrapJoinSep(last.text.replace(/\s+$/g, ""), entry.text);
+      last.text = last.text.replace(/\s+$/g, "") + sep + entry.text;
+      if (last.html != null || entry.html != null) {
+        last.html = (last.html ?? "") + sep + (entry.html ?? "");
+      }
+    } else {
+      out.push({ text: entry.text, html: entry.html });
+    }
+  }
+  return out;
+}
+
 export { PAD_SLOTS, DIR_MAP };

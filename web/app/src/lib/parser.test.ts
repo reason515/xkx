@@ -19,6 +19,8 @@ import {
   parseScore,
   parseSkills,
   parseSuggestedActions,
+  reflowSoftWrappedEntries,
+  shouldJoinSoftWrap,
   stripScoreBanner,
   waterfallPassageActions,
 } from "./parser";
@@ -548,5 +550,49 @@ describe("isTrainLine", () => {
   it("detects training-related lines", () => {
     expect(isTrainLine("你盘膝坐下，开始打坐吐纳。")).toBe(true);
     expect(isTrainLine("你向北方走去。")).toBe(false);
+  });
+});
+
+describe("reflowSoftWrappedEntries", () => {
+  it("joins author soft-wrap mid-sentence (渔夫离岛 reply)", () => {
+    const a =
+      "渔夫说道：要去中原可得要岛主同意才行，我也不敢私自出海。等你";
+    const b = "功夫有点小成，岛主就会让你离岛回中原去闯天下了。";
+    expect(shouldJoinSoftWrap(a, b)).toBe(true);
+    const out = reflowSoftWrappedEntries([
+      { text: a, html: `<span class="mud-fg-cyan">${a}</span>` },
+      { text: b, html: `<span class="mud-fg-cyan">${b}</span>` },
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0].text).toBe(a + b);
+    expect(out[0].html).toContain("mud-fg-cyan");
+    expect(out[0].html).toContain("功夫有点小成");
+  });
+
+  it("does not join sentence-complete lines", () => {
+    expect(
+      shouldJoinSoftWrap("这里就是侠客岛。", "两位岛主每年都派弟子到中原。")
+    ).toBe(false);
+  });
+
+  it("does not join indented inventory / entity lines", () => {
+    expect(shouldJoinSoftWrap("你身上带着：", "  布衣(cloth)")).toBe(false);
+    expect(shouldJoinSoftWrap("  布衣(cloth)", "  长剑(sword)")).toBe(false);
+  });
+
+  it("does not join board list rows", () => {
+    expect(
+      shouldJoinSoftWrap("告示牌上现有下列留言：", "[ 1]  欢迎来到侠客岛")
+    ).toBe(false);
+  });
+
+  it("inserts a space when joining ASCII word wrap", () => {
+    const a = "Please wait for the master to allow you to leave the island and";
+    const b = "return to the mainland.";
+    // pad a to incomplete threshold with CJK-free long English
+    expect(a.length).toBeGreaterThanOrEqual(40);
+    expect(shouldJoinSoftWrap(a, b)).toBe(true);
+    const out = reflowSoftWrappedEntries([{ text: a }, { text: b }]);
+    expect(out[0].text).toBe(`${a} ${b}`);
   });
 });

@@ -17,6 +17,7 @@ import {
   parseSkills,
   parseSuggestedActions,
   parseBoardReadActions,
+  reflowSoftWrappedEntries,
   stripScoreBanner,
   waterfallPassageActions,
 } from "../lib/parser";
@@ -238,6 +239,7 @@ export function useGame() {
           }
         }
 
+        const pendingLog: { text: string; html?: string }[] = [];
         for (const [index, line] of lines.entries()) {
           const html = msg.htmlLines?.[index];
           if (!line.trim()) continue;
@@ -259,7 +261,12 @@ export function useGame() {
               trainLog: [...s.trainLog.slice(-40), line],
             }));
           }
-          addLog(line, undefined, html);
+          pendingLog.push({ text: line, html });
+        }
+        // Join author/driver soft-wraps so 见闻 does not break mid-sentence
+        // (also keeps colored HTML spans continuous after gateway color-carry).
+        for (const entry of reflowSoftWrappedEntries(pendingLog)) {
+          addLog(entry.text, undefined, entry.html);
         }
 
         const hinted = [

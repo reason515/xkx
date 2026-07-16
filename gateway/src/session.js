@@ -1,6 +1,6 @@
 import net from "net";
 import { EventEmitter } from "events";
-import { stripAnsi, ansiToHtml } from "./ansi.js";
+import { stripAnsi, ansiToHtmlLines, createAnsiState } from "./ansi.js";
 import { LoginFsm } from "./loginFsm.js";
 import { stripTelnet } from "./telnet.js";
 
@@ -49,6 +49,8 @@ export class MudSession extends EventEmitter {
     this.lastActivity = Date.now();
     this.jsonBuffer = "";
     this.markedWeb = false;
+    // Carry ANSI color across TCP chunks / soft-wrapped lines (like a real TTY).
+    this.ansiState = createAnsiState();
   }
 
   connect() {
@@ -129,9 +131,7 @@ export class MudSession extends EventEmitter {
       const forLog = stripJsonFrames(plain);
       if (forLog.trim()) {
         const rawForLog = stripJsonFrames(chunkText);
-        const htmlLines = rawForLog
-          .split("\n")
-          .map((line) => ansiToHtml(line));
+        const htmlLines = ansiToHtmlLines(rawForLog, this.ansiState);
         this.emit("text", { text: forLog, htmlLines, raw: chunkText });
       }
     } else {
