@@ -117,11 +117,15 @@ export interface LogEntry {
 export type SheetKind =
   | "character"
   | "map"
+  | "help"
   | "train"
   | "combat"
   | "entity"
   | "exit"
   | null;
+
+/** Where long-form MUD text (help / board list·read) is being captured. */
+export type DocTarget = "help" | "entity";
 
 export interface GameState {
   connected: boolean;
@@ -144,4 +148,8 @@ export interface GameState {
   assistActive: boolean;
   assistStatus: string;
   sheet: SheetKind;
+  /** Captured long text for 帮助 / 告示牌面板（不进见闻）。 */
+  docText: string;
+  docLoading: boolean;
+  docTarget: DocTarget | null;
 }

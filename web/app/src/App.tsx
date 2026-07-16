@@ -2,6 +2,7 @@ import { ExitPad } from "./components/ExitPad";
 import { LoginPage } from "./components/LoginPage";
 import { CharacterSheet } from "./components/CharacterSheet";
 import { MapSheet } from "./components/MapSheet";
+import { HelpSheet } from "./components/HelpSheet";
 import { TrainSheet } from "./components/TrainSheet";
 import { CombatSheet } from "./components/CombatSheet";
 import { EntitySheet } from "./components/EntitySheet";
@@ -83,6 +84,10 @@ export default function App() {
     else setMainTab("log");
   };
 
+  const afterBoardDocAction = (command: string) => {
+    g.docCmd(command, "entity");
+  };
+
   if (!state.inGame) {
     return (
       <LoginPage
@@ -120,14 +125,27 @@ export default function App() {
               </div>
             </div>
           </button>
-          <button
-            type="button"
-            className="map-btn"
-            aria-label="地图"
-            onClick={() => g.openSheet("map")}
-          >
-            地<br />图
-          </button>
+          <div className="topbar-tools">
+            <button
+              type="button"
+              className="help-btn"
+              aria-label="帮助"
+              onClick={g.onOpenHelp}
+            >
+              帮<br />助
+            </button>
+            <button
+              type="button"
+              className="map-btn"
+              aria-label="地图"
+              onClick={() => {
+                g.clearDoc();
+                g.openSheet("map");
+              }}
+            >
+              地<br />图
+            </button>
+          </div>
         </header>
 
         <main className="main">
@@ -182,6 +200,7 @@ export default function App() {
                             type="button"
                             className="chip npc"
                             onClick={() => {
+                              g.clearDoc();
                               g.setSelectedEntity({
                                 id: n.id,
                                 name: n.name,
@@ -207,6 +226,7 @@ export default function App() {
                             type="button"
                             className="chip item"
                             onClick={() => {
+                              g.clearDoc();
                               g.setSelectedEntity({
                                 id: it.id,
                                 name: it.name,
@@ -264,6 +284,15 @@ export default function App() {
           onClose={g.closeSheet}
         />
       )}
+      {state.sheet === "help" && (
+        <HelpSheet
+          docText={state.docText}
+          docLoading={state.docLoading}
+          onClose={g.closeSheet}
+          onPickTopic={g.onHelpTopic}
+          onBackToTopics={g.onBackToHelpTopics}
+        />
+      )}
       {state.sheet === "train" && (
         <TrainSheet
           active={state.assistActive}
@@ -293,8 +322,12 @@ export default function App() {
           id={g.selectedEntity.id}
           name={g.selectedEntity.name}
           kind={g.selectedEntity.kind}
+          docText={state.docTarget === "entity" ? state.docText : ""}
+          docLoading={state.docTarget === "entity" && state.docLoading}
           onClose={g.closeSheet}
           onAction={afterEntityAction}
+          onDocAction={afterBoardDocAction}
+          onClearDoc={g.clearDoc}
         />
       )}
       {state.sheet === "exit" && g.selectedExit && (

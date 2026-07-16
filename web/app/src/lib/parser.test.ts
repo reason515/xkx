@@ -4,7 +4,9 @@ import {
   buildScoreHtml,
   extractLookBlock,
   isCombatLine,
+  isDocReadingCommand,
   isLoginNoise,
+  isMorePromptLine,
   isProtocolNoise,
   isSelfLookLine,
   isSheetDumpLine,
@@ -365,17 +367,30 @@ describe("parseSuggestedActions", () => {
     ]);
   });
 
-  it("extracts help from prose and parentheses", () => {
-    expect(parseSuggestedActions("侠客岛告示牌的使用方法请见 help board")).toEqual([
-      { command: "help board", label: "留言板说明" },
-    ]);
-    expect(parseSuggestedActions("请用help board查看留言版使用方法。")).toEqual([
-      { command: "help board", label: "留言板说明" },
-    ]);
-    expect(parseSuggestedActions("(help rules) (foobar baz)")).toEqual([
-      { command: "help rules", label: "查看规则说明" },
-    ]);
+  it("does not surface help / list / read as scene actions", () => {
+    expect(parseSuggestedActions("侠客岛告示牌的使用方法请见 help board")).toEqual(
+      []
+    );
+    expect(parseSuggestedActions("请用help board查看留言版使用方法。")).toEqual(
+      []
+    );
+    expect(parseSuggestedActions("(help rules) (foobar baz)")).toEqual([]);
+    expect(parseSuggestedActions("(list) (read 1)")).toEqual([]);
     expect(labelSuggestedAction("help skills")).toBe("查看「skills」说明");
+    expect(labelSuggestedAction("help board")).toBe("留言板说明");
+  });
+
+  it("recognizes doc-reading commands and more prompts", () => {
+    expect(isDocReadingCommand("help board")).toBe(true);
+    expect(isDocReadingCommand("list")).toBe(true);
+    expect(isDocReadingCommand("read new")).toBe(true);
+    expect(isDocReadingCommand("follow zhang san")).toBe(false);
+    expect(
+      isMorePromptLine(
+        "== 未完继续 40% == (n 或 <ENTER> 继续下一页，q 离开，b 前一页)"
+      )
+    ).toBe(true);
+    expect(isMorePromptLine("木老七说道：请跟我来。")).toBe(false);
   });
 
   it("ignores unknown verbs", () => {

@@ -5,6 +5,7 @@ import {
   extractLookBlock,
   isCombatLine,
   isLoginNoise,
+  isMorePromptLine,
   isProtocolNoise,
   isSelfLookLine,
   isSheetDumpLine,
@@ -16,7 +17,6 @@ import {
   parseScore,
   parseSkills,
   parseSuggestedActions,
-  parseBoardReadActions,
   reflowSoftWrappedEntries,
   stripScoreBanner,
   waterfallPassageActions,
@@ -24,6 +24,7 @@ import {
 import { applyEvent } from "../lib/protocol";
 import type {
   AssistConfig,
+  DocTarget,
   GameState,
   LogEntry,
   MudEvent,
@@ -52,7 +53,13 @@ const initialState = (): GameState => ({
   assistActive: false,
   assistStatus: "",
   sheet: null,
+  docText: "",
+  docLoading: false,
+  docTarget: null,
 });
+
+const DOC_IDLE_MS = 1400;
+const DOC_MAX_MS = 20_000;
 
 let logId = 0;
 
@@ -63,6 +70,12 @@ export function useGame() {
   const enteredGame = useRef(false);
   /** Suppress look-me narrative from 见闻 while capturing 仪容. */
   const expectLookMe = useRef(false);
+  /** Capture help / board list·read into doc panel instead of 见闻. */
+  const expectDoc = useRef<{
+    target: DocTarget;
+    started: number;
+    idleTimer: ReturnType<typeof setTimeout> | null;
+  } | null>(null);
   const [state, setState] = useState<GameState>(initialState);
   const [toast, setToast] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -88,6 +101,7 @@ export function useGame() {
     html?: string
   ) => {
     if (!text.trim()) return;
+    if (isMorePromptLine(text)) return;
     if (isLoginNoise(text) || isProtocolNoise(text) || isSheetDumpLine(text, text))
       return;
     setState((s) => ({
@@ -98,6 +112,76 @@ export function useGame() {
       ],
     }));
   }, []);
+
+  const finishDocCapture = useCallback(() => {
+    const cap = expectDoc.current;
+    if (cap?.idleTimer) clearTimeout(cap.idleTimer);
+    expectDoc.current = null;
+    setState((s) => ({ ...s, docLoading: false }));
+  }, []);
+
+  const clearDoc = useCallback(() => {
+    finishDocCapture();
+    setState((s) => ({
+      ...s,
+      docText: "",
+      docLoading: false,
+      docTarget: null,
+    }));
+  }, [finishDocCapture]);
+
+  const beginDocCapture = useCallback(
+    (target: DocTarget) => {
+      const prev = expectDoc.current;
+      if (prev?.idleTimer) clearTimeout(prev.idleTimer);
+      expectDoc.current = {
+        target,
+        started: Date.now(),
+        idleTimer: null,
+      };
+      setState((s) => ({
+        ...s,
+        sheet: target === "help" ? "help" : s.sheet === "entity" ? "entity" : s.sheet,
+        docText: "",
+        docLoading: true,
+        docTarget: target,
+      }));
+    },
+    []
+  );
+
+  const appendDocText = useCallback(
+    (chunk: string) => {
+      const cap = expectDoc.current;
+      if (!cap) return false;
+      if (Date.now() - cap.started > DOC_MAX_MS) {
+        finishDocCapture();
+        return false;
+      }
+      const lines = chunk
+        .split(/\r?\n/)
+        .filter((line) => {
+          const t = line.trim();
+          if (!t) return true;
+          if (isMorePromptLine(t)) return false;
+          if (isLoginNoise(t) || isProtocolNoise(t)) return false;
+          return true;
+        });
+      const text = lines.join("\n").replace(/^\n+/, "");
+      if (text.trim()) {
+        setState((s) => ({
+          ...s,
+          docText: s.docText ? `${s.docText}\n${text}` : text,
+          docLoading: true,
+          docTarget: cap.target,
+        }));
+      }
+      if (cap.idleTimer) clearTimeout(cap.idleTimer);
+      cap.idleTimer = setTimeout(() => finishDocCapture(), DOC_IDLE_MS);
+      return true;
+    },
+    [finishDocCapture]
+  );
 
   const cmd = useCallback(
     (command: string, opts?: { silent?: boolean }) => {
@@ -118,6 +202,14 @@ export function useGame() {
       }
     },
     [addLog]
+  );
+
+  const docCmd = useCallback(
+    (command: string, target: DocTarget) => {
+      beginDocCapture(target);
+      cmd(command, { silent: true });
+    },
+    [beginDocCapture, cmd]
   );
 
   const enterGame = useCallback((clearBuf = true) => {
@@ -239,6 +331,11 @@ export function useGame() {
           }
         }
 
+        const capturingDoc = !!expectDoc.current;
+        if (capturingDoc) {
+          appendDocText(chunk);
+        }
+
         const pendingLog: { text: string; html?: string }[] = [];
         for (const [index, line] of lines.entries()) {
           const html = msg.htmlLines?.[index];
@@ -246,6 +343,7 @@ export function useGame() {
           if (line.length < 2) continue;
           if (/^>{0,1}\s*$/.test(line)) continue;
           if (isLoginNoise(line) || isProtocolNoise(line)) continue;
+          if (isMorePromptLine(line)) continue;
           if (isSheetDumpLine(line, chunk)) continue;
           // 仪容分片到达时也挡掉；NPC 打听等不会命中 isSelfLookLine
           if ((suppressSelfLook || expectLookMe.current) && isSelfLookLine(line))
@@ -261,6 +359,8 @@ export function useGame() {
               trainLog: [...s.trainLog.slice(-40), line],
             }));
           }
+          // 长文进帮助/告示牌面板，不灌见闻
+          if (capturingDoc) continue;
           pendingLog.push({ text: line, html });
         }
         // Join author/driver soft-wraps so 见闻 does not break mid-sentence
@@ -269,10 +369,7 @@ export function useGame() {
           addLog(entry.text, undefined, entry.html);
         }
 
-        const hinted = [
-          ...parseSuggestedActions(chunk),
-          ...parseBoardReadActions(chunk),
-        ];
+        const hinted = parseSuggestedActions(chunk);
         if (hinted.length) {
           setState((s) => ({
             ...s,
@@ -365,7 +462,7 @@ export function useGame() {
       offMsg();
       offStatus();
     };
-  }, [addLog, showToast, enterGame]);
+  }, [addLog, appendDocText, showToast, enterGame]);
 
   const login = useCallback(
     (opts: {
@@ -379,10 +476,18 @@ export function useGame() {
       enteredGame.current = false;
       roomFromEvent.current = false;
       textBuf.current = "";
+      finishDocCapture();
       socket.current.login(opts);
-      setState((s) => ({ ...s, playerName: opts.name || opts.id, inGame: false }));
+      setState((s) => ({
+        ...s,
+        playerName: opts.name || opts.id,
+        inGame: false,
+        docText: "",
+        docLoading: false,
+        docTarget: null,
+      }));
     },
-    []
+    [finishDocCapture]
   );
 
   const openSheet = useCallback((sheet: SheetKind) => {
@@ -390,10 +495,17 @@ export function useGame() {
   }, []);
 
   const closeSheet = useCallback(() => {
-    setState((s) => ({ ...s, sheet: null }));
+    finishDocCapture();
+    setState((s) => ({
+      ...s,
+      sheet: null,
+      docText: "",
+      docLoading: false,
+      docTarget: null,
+    }));
     setSelectedExit(null);
     setSelectedEntity(null);
-  }, []);
+  }, [finishDocCapture]);
 
   const refreshCharacter = useCallback(() => {
     expectLookMe.current = true;
@@ -408,9 +520,33 @@ export function useGame() {
   }, [cmd]);
 
   const onOpenCharacter = useCallback(() => {
+    clearDoc();
     openSheet("character");
     refreshCharacter();
-  }, [openSheet, refreshCharacter]);
+  }, [clearDoc, openSheet, refreshCharacter]);
+
+  const onOpenHelp = useCallback(() => {
+    finishDocCapture();
+    setState((s) => ({
+      ...s,
+      sheet: "help",
+      docText: "",
+      docLoading: false,
+      docTarget: null,
+    }));
+  }, [finishDocCapture]);
+
+  const onHelpTopic = useCallback(
+    (topicId: string) => {
+      docCmd(topicId ? `help ${topicId}` : "help", "help");
+    },
+    [docCmd]
+  );
+
+  const onBackToHelpTopics = useCallback(() => {
+    clearDoc();
+    openSheet("help");
+  }, [clearDoc, openSheet]);
 
   useEffect(() => {
     return () => {
@@ -464,9 +600,14 @@ export function useGame() {
     setSelectedEntity,
     login,
     cmd,
+    docCmd,
+    clearDoc,
     openSheet,
     closeSheet,
     onOpenCharacter,
+    onOpenHelp,
+    onHelpTopic,
+    onBackToHelpTopics,
     confirmGo,
     startAssist,
     stopAssist,

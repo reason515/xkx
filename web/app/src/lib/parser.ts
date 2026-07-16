@@ -259,6 +259,20 @@ export function isProtocolNoise(line: string): boolean {
   );
 }
 
+/** Telnet-style more pager prompt; Web clients should never surface this. */
+export function isMorePromptLine(line: string): boolean {
+  return /未完继续|继续下一页|n 或\s*<ENTER>|q 离开/.test(line);
+}
+
+/**
+ * Commands whose full output belongs in a reading panel (帮助 / 告示牌),
+ * not as scene action chips or 见闻 dumps.
+ */
+export function isDocReadingCommand(command: string): boolean {
+  const verb = command.trim().split(/\s+/)[0]?.toLowerCase() || "";
+  return verb === "help" || verb === "list" || verb === "read";
+}
+
 /** Verbs commonly hinted in room/NPC text; unknown english verbs are skipped. */
 const ACTION_VERBS: Record<string, string> = {
   follow: "跟随",
@@ -446,6 +460,8 @@ export function parseSuggestedActions(
   const consider = (raw: string) => {
     const command = normalizeActionCommand(raw);
     if (!command || found.has(command)) return;
+    // help / list / read → 顶栏帮助或告示牌面板，不进场景动作
+    if (isDocReadingCommand(command)) return;
     found.set(command, {
       command,
       label: labelSuggestedAction(command, npcs),
@@ -461,14 +477,6 @@ export function parseSuggestedActions(
   // 「请键入 follow mu laoqi」— capture until punctuation / line end
   for (const m of text.matchAll(/请键入\s*([a-z][^。)\n\]]{0,60})/gi)) {
     consider(m[1].trim());
-  }
-  // Prose: 「请见 help board」「请用help board查看」
-  for (const m of text.matchAll(/(?:请见|请用|见)\s*help\s+([a-z][\w\-]*)/gi)) {
-    consider(`help ${m[1]}`);
-  }
-  // Bare `help topic` (word-ish boundary; skip if already captured above)
-  for (const m of text.matchAll(/(?:^|[^a-z])help\s+([a-z][\w\-]*)/gi)) {
-    consider(`help ${m[1]}`);
   }
 
   return [...found.values()];

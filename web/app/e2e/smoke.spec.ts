@@ -835,28 +835,60 @@ test.describe.serial("game smoke", () => {
       .filter({ hasText: "浏览留言" })
       .click();
 
-    await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
-      "aria-selected",
-      "true"
-    );
+    // 长文留在实体面板，不切见闻、不出现「未完继续」
+    await expect(page.locator(".sheet")).toBeVisible();
+    await expect(page.locator(".sheet-top h3")).toHaveText("留言");
     await expect
       .poll(
-        async () => (await page.locator(".log p").allTextContents()).join("\n"),
+        async () => (await page.locator(".sheet .doc-body").textContent()) || "",
         { timeout: 25_000 }
       )
       .toMatch(/留言|没有任何留言|告示牌/);
+    await expect(page.locator(".sheet .doc-body")).not.toContainText("未完继续");
 
-    await openSceneTab(page);
-    const readChip = page.locator(".chip.action").filter({ hasText: /阅读/ }).first();
-    if (await readChip.isVisible().catch(() => false)) {
-      await readChip.click();
+    const readBtn = page
+      .locator(".sheet .help-topic")
+      .filter({ hasText: /阅读/ })
+      .first();
+    if (await readBtn.isVisible().catch(() => false)) {
+      await readBtn.click();
       await expect
         .poll(
           async () =>
-            (await page.locator(".log p").allTextContents()).join("\n"),
+            (await page.locator(".sheet .doc-body").textContent()) || "",
           { timeout: 20_000 }
         )
         .toMatch(/\[|留言|作者|——|---/);
+      await expect(page.locator(".sheet .doc-body")).not.toContainText(
+        "未完继续"
+      );
     }
+  });
+
+  test("顶栏帮助可查阅主题且不进见闻", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await page.getByRole("button", { name: "帮助" }).click();
+    await expect(page.locator(".sheet-top h3")).toHaveText("帮助");
+    await page.locator(".help-topic").filter({ hasText: "留言板" }).click();
+    await expect(page.locator(".sheet-top h3")).toHaveText("说明");
+    await expect
+      .poll(
+        async () => (await page.locator(".sheet .doc-body").textContent()) || "",
+        { timeout: 25_000 }
+      )
+      .toMatch(/留言|list|read|board/i);
+    await expect(page.locator(".sheet .doc-body")).not.toContainText("未完继续");
+
+    await page.locator(".sheet .close").click();
+    await expect(page.locator(".overlay.open")).toHaveCount(0);
+
+    await openLogTab(page);
+    const logs = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(logs).not.toMatch(/未完继续/);
+    expect(logs).not.toMatch(/^\s*>\s*help\s+board/m);
   });
 });
