@@ -44,7 +44,16 @@ async function goByExitLabel(
   label: string
 ) {
   await openSceneTab(page);
-  const cell = page.locator(".exit-pad .cell.open").filter({ hasText: label }).first();
+  const exact = new RegExp(`^\\s*${label}\\s*$`);
+  const cell = page
+    .locator(".exit-pad .cell.open")
+    .filter({ has: page.locator(".d", { hasText: exact }) })
+    .or(
+      page
+        .locator(".exit-extra .chip.exit")
+        .filter({ has: page.locator(".dir", { hasText: exact }) })
+    )
+    .first();
   await expect(cell).toBeVisible({ timeout: 15_000 });
   await cell.click();
   await page.getByRole("button", { name: "前往" }).click();
@@ -52,6 +61,79 @@ async function goByExitLabel(
     timeout: 20_000,
   });
   await openSceneTab(page);
+}
+
+async function clickActionChip(
+  page: import("@playwright/test").Page,
+  name: string | RegExp
+) {
+  await openSceneTab(page);
+  const chip = page.locator(".chip.action").filter({ hasText: name }).first();
+  await expect(chip).toBeVisible({ timeout: 20_000 });
+  await chip.click();
+}
+
+async function clickActionAndWaitLog(
+  page: import("@playwright/test").Page,
+  name: string | RegExp,
+  pattern: RegExp,
+  timeout = 15_000
+) {
+  await clickActionChip(page, name);
+  await openLogTab(page);
+  await expect
+    .poll(
+      async () => {
+        const lines = await page.locator(".log p").allTextContents();
+        return lines.slice(-12).join("\n");
+      },
+      { timeout }
+    )
+    .toMatch(pattern);
+}
+
+/** 沙滩 → 大山洞（含瀑布爬树/脱衣/穿衣/跳瀑；尽量快，避免引路使拖走） */
+async function walkToDadongBoard(page: import("@playwright/test").Page) {
+  for (const label of ["北", "北", "北", "北"]) {
+    await goByExitLabel(page, label);
+  }
+  await goByExitLabel(page, "北上");
+  await openSceneTab(page);
+  await expect(page.locator(".room-title")).toHaveText(/瀑布/, {
+    timeout: 20_000,
+  });
+
+  // 尽快连点，缩短被引路使拖走的窗口；每步确认仍在瀑布
+  const steps: [string, RegExp][] = [
+    ["爬树取雨衣", /拿下一件雨衣|爬上树/],
+    ["脱下布衣", /脱了下来/],
+    ["穿上雨衣", /穿上一件油布雨衣|穿上.*雨衣/],
+    ["跳进瀑布", /纵身跃|跳了进/],
+  ];
+  for (const [name, pattern] of steps) {
+    await openSceneTab(page);
+    if (!/瀑布/.test((await page.locator(".room-title").textContent()) || "")) {
+      // 被 NPC 拖走时退回望海亭再上瀑布
+      const south = page
+        .locator(".exit-extra .chip.exit")
+        .filter({ has: page.locator(".dir", { hasText: /^南下$/ }) });
+      if (await south.first().isVisible().catch(() => false)) {
+        await goByExitLabel(page, "南下");
+      }
+      await goByExitLabel(page, "北上");
+    }
+    await clickActionAndWaitLog(page, name, pattern, 10_000);
+  }
+
+  await openSceneTab(page);
+  await expect(page.locator(".room-title")).toHaveText(/甬道/, {
+    timeout: 20_000,
+  });
+  await goByExitLabel(page, "东");
+  await goByExitLabel(page, "北");
+  await expect(page.locator(".room-title")).toHaveText(/大山洞/, {
+    timeout: 20_000,
+  });
 }
 
 /** 沙滩或附近礁石找一件可拾取的地上物品 */
@@ -302,6 +384,11 @@ test.describe.serial("game smoke", () => {
     expect(logBlob).not.toMatch(/【侠客行个人档案】/);
     expect(logBlob).not.toMatch(/膂力[：:].*悟性/);
     expect(logBlob).not.toMatch(/你要看什么/);
+    expect(logBlob).not.toMatch(/目前所学过的技能|目前并没有学会任何技能/);
+    expect(logBlob).not.toMatch(/身上带[着著]下列|目前你身上没有任何东西/);
+    expect(logBlob).not.toMatch(/^[┌└│]/m);
+    expect(logBlob).not.toMatch(/初学乍练|粗通皮毛/);
+    expect(logBlob).not.toMatch(/^【[^】]{1,12}】.+\([A-Za-z]/m);
   });
 
   test("pickup 拾起地上物品后场景列表不再显示该物", async ({ page }) => {
@@ -453,5 +540,68 @@ test.describe.serial("game smoke", () => {
     );
     expect(postLogs).not.toMatch(/密码错误/);
     expect(postLogs).not.toMatch(/@@JSON@@|@@ENDJSON@@/);
+  });
+
+  test("告示牌可浏览留言并可点读", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 90_000,
+    });
+
+    try {
+      await walkToDadongBoard(page);
+    } catch (err) {
+      await openSceneTab(page).catch(() => undefined);
+      const title = (
+        (await page.locator(".room-title").textContent({ timeout: 5_000 }).catch(
+          () => ""
+        )) || ""
+      ).trim();
+      throw new Error(
+        `未能到达大山洞告示牌（当前房间：${title || "未知"}）：${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+    }
+
+    const board = page.locator(".chip.item").filter({ hasText: /告示牌/ }).first();
+    await expect(board).toBeVisible({ timeout: 15_000 });
+    await board.click();
+    await expect(page.locator(".sheet")).toBeVisible();
+    await expect(
+      page.locator(".sheet-acts button").filter({ hasText: "浏览留言" })
+    ).toBeVisible();
+    await page
+      .locator(".sheet-acts button")
+      .filter({ hasText: "浏览留言" })
+      .click();
+
+    await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    await expect
+      .poll(
+        async () => (await page.locator(".log p").allTextContents()).join("\n"),
+        { timeout: 25_000 }
+      )
+      .toMatch(/留言|没有任何留言|告示牌/);
+
+    await openSceneTab(page);
+    const readChip = page.locator(".chip.action").filter({ hasText: /阅读/ }).first();
+    if (await readChip.isVisible().catch(() => false)) {
+      await readChip.click();
+      await expect
+        .poll(
+          async () =>
+            (await page.locator(".log p").allTextContents()).join("\n"),
+          { timeout: 20_000 }
+        )
+        .toMatch(/\[|留言|作者|——|---/);
+    }
   });
 });

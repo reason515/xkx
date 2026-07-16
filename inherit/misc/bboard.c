@@ -66,7 +66,10 @@ string long()
 
 	notes = query("notes");
 	msg = query("long");
-	msg = msg + query("name") +"的使用方法请见 help board。\n";
+	if (this_player() && this_player()->query_temp("web_client"))
+		msg = msg + "点牌子可浏览留言。\n";
+	else
+		msg = msg + query("name") +"的使用方法请见 help board。\n";
 	return msg;
 }
 

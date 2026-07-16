@@ -10,6 +10,7 @@ import {
   isSheetDumpLine,
   isTrainLine,
   labelSuggestedAction,
+  parseBoardReadActions,
   parseEntityShort,
   parseExits,
   parseHp,
@@ -19,6 +20,7 @@ import {
   parseSkills,
   parseSuggestedActions,
   stripScoreBanner,
+  waterfallPassageActions,
 } from "./parser";
 
 describe("parseExits", () => {
@@ -183,6 +185,8 @@ describe("isSheetDumpLine", () => {
     expect(
       isSheetDumpLine("                  【侠客行个人档案】(GB中文)")
     ).toBe(true);
+    expect(isSheetDumpLine("【 布  衣 】测试(Test)")).toBe(true);
+    expect(isSheetDumpLine("【系统】今晚维护")).toBe(false);
     expect(
       isSheetDumpLine(" 膂力：[ 18/ 16] 悟性：[ 20/ 18] 根骨：[ 17/ 15] 身法：[ 19/ 17]")
     ).toBe(true);
@@ -192,11 +196,31 @@ describe("isSheetDumpLine", () => {
     expect(isSheetDumpLine(" 气：   90/  100 ( 90%)    内力：   50 /  120 (+0)")).toBe(
       true
     );
+    expect(isSheetDumpLine(" 精力：")).toBe(true);
+    expect(isSheetDumpLine(" 内力：")).toBe(true);
+    expect(isSheetDumpLine(" 精  ：■■■■□□□□")).toBe(true);
     expect(isSheetDumpLine("你目前所学过的技能有：")).toBe(true);
+    expect(isSheetDumpLine("你目前并没有学会任何技能。")).toBe(true);
     expect(isSheetDumpLine("基本轻功 ─────────── 45")).toBe(true);
+    expect(
+      isSheetDumpLine(
+        "│□基本轻功 (dodge)                   - 初学乍练   45/   123│"
+      )
+    ).toBe(true);
+    expect(
+      isSheetDumpLine("┌──────────────────────┐")
+    ).toBe(true);
     expect(isSheetDumpLine("□长剑（武器）")).toBe(true);
+    expect(isSheetDumpLine("□布衣(Cloth)")).toBe(true);
+    expect(isSheetDumpLine("目前你身上没有任何东西。")).toBe(true);
+    expect(
+      isSheetDumpLine("你身上带著下列这些东西(负重 3%)：")
+    ).toBe(true);
+    const invChunk = "你身上带著下列这些东西(负重 3%)：\n  布衣(Cloth)\n□长剑(Sword)";
+    expect(isSheetDumpLine("  布衣(Cloth)", invChunk)).toBe(true);
     expect(isSheetDumpLine("店小二说道：客官里面请")).toBe(false);
     expect(isSheetDumpLine("你向北方走去。")).toBe(false);
+    expect(isSheetDumpLine("  渔夫(Fu)")).toBe(false);
     expect(
       isSheetDumpLine(
         "渔夫说道：这里就是侠客岛。两位岛主每年都派弟子到中原。"
@@ -339,8 +363,21 @@ describe("parseSuggestedActions", () => {
     ]);
   });
 
-  it("ignores help and unknown verbs", () => {
-    expect(parseSuggestedActions("(help rules) (foobar baz)")).toEqual([]);
+  it("extracts help from prose and parentheses", () => {
+    expect(parseSuggestedActions("侠客岛告示牌的使用方法请见 help board")).toEqual([
+      { command: "help board", label: "留言板说明" },
+    ]);
+    expect(parseSuggestedActions("请用help board查看留言版使用方法。")).toEqual([
+      { command: "help board", label: "留言板说明" },
+    ]);
+    expect(parseSuggestedActions("(help rules) (foobar baz)")).toEqual([
+      { command: "help rules", label: "查看规则说明" },
+    ]);
+    expect(labelSuggestedAction("help skills")).toBe("查看「skills」说明");
+  });
+
+  it("ignores unknown verbs", () => {
+    expect(parseSuggestedActions("(foobar baz)")).toEqual([]);
   });
 
   it("extracts register hint for 挂名处", () => {
@@ -361,6 +398,34 @@ describe("parseSuggestedActions", () => {
       "ask fu about 侠客岛",
       "ask fu about 离岛",
     ]);
+  });
+});
+
+describe("parseBoardReadActions", () => {
+  it("builds read chips from board list lines", () => {
+    const text = `侠客岛告示牌上现有下列留言：
+————————————————————————
+[ 1]  欢迎来到侠客岛                              木老七 (Jul 15 12:00)
+[ 2]  岛规须知                                    张三 (Jul 16 09:30)
+[12]  超长标题用来测试截断显示是否正确无误        李四 (Jul 16 10:00)`;
+    const actions = parseBoardReadActions(text);
+    expect(actions.map((a) => a.command)).toEqual([
+      "read 1",
+      "read 2",
+      "read 12",
+    ]);
+    expect(actions[0].label).toBe("阅读「欢迎来到侠客岛」");
+    expect(actions[2].label).toMatch(/^阅读「超长标题用来测试截断/);
+    expect(labelSuggestedAction("read new")).toBe("读新留言");
+    expect(labelSuggestedAction("list")).toBe("浏览留言");
+  });
+
+  it("respects limit", () => {
+    const lines = Array.from(
+      { length: 12 },
+      (_, i) => `[${String(i + 1).padStart(2, " ")}]  标题${i + 1}                    作者`
+    ).join("\n");
+    expect(parseBoardReadActions(lines, 3)).toHaveLength(3);
   });
 });
 
@@ -387,6 +452,22 @@ describe("beachGreeterActions", () => {
         { id: "zhang san", name: "张三", kind: "npc" },
       ])
     ).toEqual([]);
+  });
+});
+
+describe("waterfallPassageActions", () => {
+  it("offers climb wear jump on 瀑布", () => {
+    expect(waterfallPassageActions("瀑布").map((a) => a.command)).toEqual([
+      "climb tree",
+      "remove cloth",
+      "wear rain coat",
+      "jump fall",
+    ]);
+    expect(labelSuggestedAction("climb tree")).toBe("爬树取雨衣");
+    expect(labelSuggestedAction("remove cloth")).toBe("脱下布衣");
+    expect(labelSuggestedAction("wear rain coat")).toBe("穿上雨衣");
+    expect(labelSuggestedAction("jump fall")).toBe("跳进瀑布");
+    expect(waterfallPassageActions("沙滩")).toEqual([]);
   });
 });
 

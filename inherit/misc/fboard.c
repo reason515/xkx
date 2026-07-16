@@ -62,7 +62,10 @@ string long()
 
 	notes = query("notes");
 	msg = query("long");
-	msg = msg + "留言版的使用方法请见 help board。\n";
+	if (this_player() && this_player()->query_temp("web_client"))
+		msg = msg + "点牌子可浏览留言。\n";
+	else
+		msg = msg + "留言版的使用方法请见 help board。\n";
 	if( !pointerp(notes) || !sizeof(notes) ) return query("long");
 
 	last_time_read = this_player()->query("board_last_read/" + (string)query("board_id"));

@@ -8,9 +8,10 @@ interface Props {
 
 export function ExitPad({ exits, onSelect }: Props) {
   const byDir = Object.fromEntries(exits.map((e) => [e.dir, e]));
-  const extra = exits.filter((e) =>
-    ["up", "down", "enter", "out"].includes(e.dir)
+  const padDirs = new Set(
+    PAD_SLOTS.flat().filter((d): d is string => typeof d === "string")
   );
+  const extra = exits.filter((e) => !padDirs.has(e.dir));
 
   return (
     <>

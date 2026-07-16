@@ -16,7 +16,9 @@ import {
   parseScore,
   parseSkills,
   parseSuggestedActions,
+  parseBoardReadActions,
   stripScoreBanner,
+  waterfallPassageActions,
 } from "../lib/parser";
 import { applyEvent } from "../lib/protocol";
 import type {
@@ -85,7 +87,8 @@ export function useGame() {
     html?: string
   ) => {
     if (!text.trim()) return;
-    if (isLoginNoise(text) || isProtocolNoise(text) || isSheetDumpLine(text)) return;
+    if (isLoginNoise(text) || isProtocolNoise(text) || isSheetDumpLine(text, text))
+      return;
     setState((s) => ({
       ...s,
       logs: [
@@ -162,10 +165,10 @@ export function useGame() {
             ev.type === "room.update" &&
             !!applied.room.title &&
             applied.room.title !== s.room.title;
-          const greeter = beachGreeterActions(
-            applied.room.title,
-            applied.room.npcs
-          );
+          const greeter = [
+            ...beachGreeterActions(applied.room.title, applied.room.npcs),
+            ...waterfallPassageActions(applied.room.title),
+          ];
           return {
             ...s,
             ...applied,
@@ -212,7 +215,7 @@ export function useGame() {
               .filter((l) => {
                 const t = l.trim();
                 if (!t) return false;
-                if (isSheetDumpLine(t)) return false;
+                if (isSheetDumpLine(t, chunk)) return false;
                 return true;
               })
               .join("\n");
@@ -221,7 +224,7 @@ export function useGame() {
                 const plain =
                   (lines[i] ?? "").trim() || h.replace(/<[^>]+>/g, "").trim();
                 if (!plain) return false;
-                if (isSheetDumpLine(plain)) return false;
+                if (isSheetDumpLine(plain, chunk)) return false;
                 return true;
               })
               .join("\n");
@@ -241,8 +244,10 @@ export function useGame() {
           if (line.length < 2) continue;
           if (/^>{0,1}\s*$/.test(line)) continue;
           if (isLoginNoise(line) || isProtocolNoise(line)) continue;
-          if (isSheetDumpLine(line)) continue;
-          if (suppressSelfLook && isSelfLookLine(line)) continue;
+          if (isSheetDumpLine(line, chunk)) continue;
+          // 仪容分片到达时也挡掉；NPC 打听等不会命中 isSelfLookLine
+          if ((suppressSelfLook || expectLookMe.current) && isSelfLookLine(line))
+            continue;
           if (isCombatLine(line)) {
             setState((s) => ({
               ...s,
@@ -257,7 +262,10 @@ export function useGame() {
           addLog(line, undefined, html);
         }
 
-        const hinted = parseSuggestedActions(chunk);
+        const hinted = [
+          ...parseSuggestedActions(chunk),
+          ...parseBoardReadActions(chunk),
+        ];
         if (hinted.length) {
           setState((s) => ({
             ...s,
@@ -282,7 +290,10 @@ export function useGame() {
                 !!room.title && room.title !== s.room.title;
               const parsedLook = EXIT_HINT.test(chunk) || roomChanged;
               const npcs = room.npcs || s.room.npcs;
-              const greeter = beachGreeterActions(room.title, npcs);
+              const greeter = [
+                ...beachGreeterActions(room.title, npcs),
+                ...waterfallPassageActions(room.title),
+              ];
               const fromText = roomChanged
                 ? parseSuggestedActions(chunk, npcs)
                 : hinted;
