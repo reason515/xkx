@@ -1,6 +1,7 @@
 import { useState } from "react";
 import {
   buildAskTopicActions,
+  buildLearnTopicActions,
   mudCommandTarget,
   parseBoardReadActions,
 } from "../lib/parser";
@@ -12,7 +13,7 @@ interface Props {
   kind: "npc" | "item";
   docText?: string;
   docLoading?: boolean;
-  /** Scene ask chips already known for this NPC (e.g. beach hints). */
+  /** Scene ask/learn chips already known for this NPC (e.g. beach / teacher hints). */
   askHints?: SuggestedAction[];
   onClose: () => void;
   /** Ordinary entity actions (look / get / …); sheet may close after. */
@@ -21,6 +22,11 @@ interface Props {
   onDocAction?: (cmd: string) => void;
   /** Bare `ask <who>` to list inquiry topics into docText. */
   onAskList?: (cmd: string) => void;
+  /**
+   * `skills <who>` to list teachable skills (师父/配偶可查；
+   * 公开教头仍靠见闻 hints)。
+   */
+  onLearnList?: (cmd: string) => void;
   onClearDoc?: () => void;
 }
 
@@ -40,9 +46,11 @@ export function EntitySheet({
   onAction,
   onDocAction,
   onAskList,
+  onLearnList,
   onClearDoc,
 }: Props) {
   const [asking, setAsking] = useState(false);
+  const [learning, setLearning] = useState(false);
 
   // Prefer english id for mud commands when available
   const target =
@@ -55,11 +63,23 @@ export function EntitySheet({
   const askTopics = asking
     ? buildAskTopicActions(id, name, askHints, docText)
     : [];
+  const learnTopics = learning
+    ? buildLearnTopicActions(id, name, askHints, docText)
+    : [];
+  const learnRefused =
+    learning && !docLoading && /你要察看谁的技能/.test(docText);
+  const learnEmpty =
+    learning &&
+    !docLoading &&
+    learnTopics.length === 0 &&
+    !learnRefused &&
+    !!docText.trim();
 
   const npcActions: [string, string][] = [
     ["看", `look ${target}`],
     ["跟随", `follow ${target}`],
     ["问", `__ask__`],
+    ["学", `__learn__`],
     ["打", `kill ${target}`],
   ];
   const boardActions: [string, string][] = [
@@ -80,11 +100,24 @@ export function EntitySheet({
     onClearDoc?.();
   };
 
+  const leaveLearnMode = () => {
+    setLearning(false);
+    onClearDoc?.();
+  };
+
   return (
     <div className="overlay open" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-top">
-          <h3>{asking ? `打听「${name}」` : reading ? "留言" : name}</h3>
+          <h3>
+            {asking
+              ? `打听「${name}」`
+              : learning
+                ? `向「${name}」请教`
+                : reading
+                  ? "留言"
+                  : name}
+          </h3>
           <button type="button" className="close" onClick={onClose}>
             ×
           </button>
@@ -109,6 +142,51 @@ export function EntitySheet({
               ) : null}
               <div className="help-topics">
                 {askTopics.map((a) => (
+                  <button
+                    key={a.command}
+                    type="button"
+                    className="help-topic"
+                    onClick={() => {
+                      onAction(a.command);
+                      onClose();
+                    }}
+                  >
+                    {a.label}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : learning ? (
+            <>
+              <button
+                type="button"
+                className="doc-back"
+                onClick={leaveLearnMode}
+              >
+                ← 返回
+              </button>
+              <p
+                style={{
+                  color: "var(--paper-dim)",
+                  fontSize: 13,
+                  marginBottom: 12,
+                }}
+              >
+                想学哪门功夫？
+              </p>
+              {docLoading && learnTopics.length === 0 ? (
+                <p className="doc-status">正在列出可学功夫…</p>
+              ) : null}
+              {learnRefused && learnTopics.length === 0 ? (
+                <p className="doc-status">
+                  对方与你没有师徒之谊，也未主动传授功夫。
+                </p>
+              ) : null}
+              {learnEmpty ? (
+                <p className="doc-status">对方目前没有可传授的功夫。</p>
+              ) : null}
+              <div className="help-topics">
+                {learnTopics.map((a) => (
                   <button
                     key={a.command}
                     type="button"
@@ -171,7 +249,7 @@ export function EntitySheet({
             </p>
           )}
         </div>
-        {!reading && !asking && (
+        {!reading && !asking && !learning && (
           <div className="sheet-acts">
             {actions.map(([label, command]) => (
               <button
@@ -181,6 +259,12 @@ export function EntitySheet({
                   if (command === "__ask__") {
                     setAsking(true);
                     onAskList?.(`ask ${askTarget}`);
+                    return;
+                  }
+                  if (command === "__learn__") {
+                    setLearning(true);
+                    // 师徒/配偶可查 skills；公开教头仍靠见闻 hints 合并进列表
+                    onLearnList?.(`skills ${askTarget}`);
                     return;
                   }
                   if (

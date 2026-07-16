@@ -278,6 +278,8 @@ const ACTION_VERBS: Record<string, string> = {
   follow: "跟随",
   register: "挂名登记",
   ask: "打听",
+  learn: "学",
+  xue: "学",
   enter: "进入",
   knock: "敲",
   yell: "呼喊",
@@ -303,6 +305,47 @@ const ACTION_VERBS: Record<string, string> = {
   jump: "跳",
   remove: "脱下",
 };
+
+/** Common skill ids → Chinese when prose does not supply a name. */
+const SKILL_LABELS: Record<string, string> = {
+  force: "内功",
+  dodge: "轻功",
+  parry: "招架",
+  strike: "掌法",
+  cuff: "拳法",
+  claw: "爪法",
+  finger: "指法",
+  hand: "手法",
+  unarmed: "拳脚",
+  sword: "剑法",
+  blade: "刀法",
+  stick: "棒法",
+  staff: "杖法",
+  whip: "鞭法",
+  throwing: "暗器",
+  hammer: "锤法",
+  axe: "斧法",
+  spear: "枪法",
+  club: "棍法",
+  literate: "读书识字",
+};
+
+/** Room/item ids often written as 中文(id) but are not skills. */
+const NON_SKILL_IDS = new Set([
+  "fall",
+  "tree",
+  "lake",
+  "stone",
+  "board",
+  "door",
+  "gate",
+  "boat",
+  "ship",
+  "wall",
+  "table",
+  "bed",
+  "chair",
+]);
 
 const HELP_TOPIC_LABELS: Record<string, string> = {
   board: "留言板说明",
@@ -424,6 +467,12 @@ export function labelSuggestedAction(
     }
     return `向${who}打听`;
   }
+  if ((verb === "learn" || verb === "xue") && parts[1] && parts[2]) {
+    const who = displayNameForTarget(parts[1], npcs);
+    const skill = parts[2].toLowerCase();
+    const skillLabel = SKILL_LABELS[skill] || skill;
+    return `向${who}学${skillLabel}`;
+  }
   if (verb === "enter" && parts.length === 1) return "上船";
   if (verb === "knock" && parts[1]) return `敲${parts.slice(1).join(" ")}`;
   if (verb === "wield" && parts[1]) {
@@ -443,17 +492,27 @@ function splitCombinedHint(raw: string): string[] {
 }
 
 function normalizeActionCommand(raw: string): string | null {
-  const cmd = raw
+  let cmd = raw
     .replace(/^请键入\s*/i, "")
     .replace(/\s+/g, " ")
     .trim();
   if (!cmd || cmd.length > 80) return null;
   const parts = cmd.split(/\s+/);
-  const verb = parts[0]?.toLowerCase();
+  let verb = parts[0]?.toLowerCase();
   if (!verb || !/^[a-z][a-z0-9_\-]*$/.test(verb)) return null;
   if (SKIP_ACTION_VERBS.has(verb)) return null;
   if (!ACTION_VERBS[verb]) return null;
   if (TARGET_REQUIRED_VERBS.has(verb) && parts.length === 1) return null;
+  // learn|xue <teacher> <skill> [times]
+  if (verb === "learn" || verb === "xue") {
+    if (parts.length < 3) return null;
+    // Prefer learn for stable UI keys / labels
+    if (verb === "xue") {
+      parts[0] = "learn";
+      cmd = parts.join(" ");
+      verb = "learn";
+    }
+  }
   return cmd;
 }
 
@@ -543,6 +602,192 @@ export function buildAskTopicActions(
   return [...found.values()];
 }
 
+/** NPC speech that advertises teachable skills. */
+const TEACH_OFFER_RE =
+  /(?:可)?向我学|跟我学|可以向我学|跟我学点|可向.+?学|专管传授/;
+
+/** Chinese label + english skill id, e.g. 掌法(strike). */
+const SKILL_PAIR_RE =
+  /([\u4e00-\u9fff]{1,12})\(([a-z][a-z0-9_\-]{1,30})\)/gi;
+
+const SPEAKER_RE = /([^\n\r。！？]{1,24}?)(?:说道|问道|喊道|笑道|答道)[：:]/;
+
+function resolveLearnTeacher(
+  speakerName: string | undefined,
+  npcs: Entity[]
+): { target: string; name: string } | null {
+  if (speakerName) {
+    const nameL = speakerName.trim();
+    const npc = npcs.find(
+      (n) =>
+        n.name === nameL ||
+        nameL.includes(n.name) ||
+        n.name.includes(nameL) ||
+        (n.id && nameL.toLowerCase() === n.id.toLowerCase())
+    );
+    if (npc) {
+      return {
+        target: mudCommandTarget(npc.id, npc.name),
+        name: npc.name,
+      };
+    }
+    // Speaker known but room list not yet updated — Chinese who still works for learn
+    if (nameL && !/\s/.test(nameL)) {
+      return { target: nameL, name: nameL };
+    }
+  }
+  if (npcs.length === 1) {
+    const n = npcs[0];
+    return { target: mudCommandTarget(n.id, n.name), name: n.name };
+  }
+  return null;
+}
+
+function learnCommandMatchesEntity(
+  command: string,
+  id: string,
+  name: string
+): boolean {
+  const m = command.trim().match(/^(?:learn|xue)\s+(\S+)\s+(\S+)/i);
+  if (!m) return false;
+  const who = m[1].trim().toLowerCase();
+  const idL = (id || "").trim().toLowerCase();
+  const nameL = (name || "").trim().toLowerCase();
+  const targetL = mudCommandTarget(id, name).toLowerCase();
+  if (who === targetL || who === idL || who === nameL) return true;
+  if (!idL) return false;
+  const idParts = idL.split(/\s+/).filter(Boolean);
+  return idParts.includes(who) || idL.endsWith(` ${who}`);
+}
+
+/** Topic-only label for learn chips inside the entity sheet. */
+export function labelLearnTopic(command: string): string {
+  const parts = command.trim().split(/\s+/);
+  if (parts.length < 3) return "学";
+  const skill = parts[2].toLowerCase();
+  return SKILL_LABELS[skill] || skill;
+}
+
+/**
+ * From NPC greetings like「你可向我学掌法(strike)，内功(force)…」
+ * build learn <teacher> <skill> chips. Also covers explicit (xue id skill).
+ */
+export function parseLearnOfferActions(
+  text: string,
+  npcs: Entity[] = []
+): SuggestedAction[] {
+  const found = new Map<string, SuggestedAction>();
+
+  const consider = (command: string, label?: string) => {
+    const cmd = normalizeActionCommand(command);
+    if (!cmd || !/^learn\s+\S+\s+\S+/i.test(cmd)) return;
+    if (found.has(cmd)) return;
+    found.set(cmd, {
+      command: cmd,
+      label: label || labelSuggestedAction(cmd, npcs),
+    });
+  };
+
+  // Explicit (xue shi literate) / (learn dizi strike) — also in parseSuggestedActions,
+  // but re-run here so callers that only use parseLearnOfferActions still get them.
+  for (const m of text.matchAll(
+    /\(((?:learn|xue)\s+[a-z][a-z0-9_\-]*(?:\s+[a-z][a-z0-9_\-]*){1,3})\)/gi
+  )) {
+    consider(m[1]);
+  }
+
+  if (!TEACH_OFFER_RE.test(text)) return [...found.values()];
+
+  const speaker = text.match(SPEAKER_RE)?.[1]?.trim();
+  const teacher = resolveLearnTeacher(speaker, npcs);
+  if (!teacher) return [...found.values()];
+
+  SKILL_PAIR_RE.lastIndex = 0;
+  for (const m of text.matchAll(SKILL_PAIR_RE)) {
+    const cn = m[1];
+    const skill = m[2].toLowerCase();
+    if (NON_SKILL_IDS.has(skill)) continue;
+    if (ACTION_VERBS[skill] && !SKILL_LABELS[skill]) continue;
+    const command = `learn ${teacher.target} ${skill}`;
+    consider(command, `向${teacher.name}学${cn}`);
+  }
+
+  return [...found.values()];
+}
+
+/**
+ * Learn topics the player can tap for a given NPC:
+ * scene learn chips + optional `skills <who>` panel (师父/配偶可查)。
+ */
+export function buildLearnTopicActions(
+  id: string,
+  name: string,
+  hinted: SuggestedAction[] = [],
+  skillsText = ""
+): SuggestedAction[] {
+  const target = mudCommandTarget(id, name);
+  const found = new Map<string, SuggestedAction>();
+
+  const consider = (command: string, label?: string) => {
+    const cmd = command.trim().replace(/\s+/g, " ");
+    if (!/^(?:learn|xue)\s+\S+\s+\S+/i.test(cmd)) return;
+    if (
+      !learnCommandMatchesEntity(cmd, id, name) &&
+      !cmd.toLowerCase().startsWith(`learn ${target.toLowerCase()} `) &&
+      !cmd.toLowerCase().startsWith(`xue ${target.toLowerCase()} `)
+    ) {
+      return;
+    }
+    const parts = cmd.split(/\s+/);
+    const skill = parts[2];
+    if (!skill) return;
+    const normalized = `learn ${target} ${skill.toLowerCase()}`;
+    if (found.has(normalized) && !label) return;
+    found.set(normalized, {
+      command: normalized,
+      label: label || found.get(normalized)?.label || labelLearnTopic(normalized),
+    });
+  };
+
+  for (const a of hinted) consider(a.command);
+  for (const a of parseSkillsPanelLearnActions(skillsText, target)) {
+    consider(a.command, a.label);
+  }
+  return [...found.values()];
+}
+
+/**
+ * From `skills <师父>` / `cha <师父>` output lines like
+ * `基本掌法 (strike) - 初学乍练  30/123` build learn chips.
+ * Returns [] when the MUD refuses（非师徒/配偶）.
+ */
+export function parseSkillsPanelLearnActions(
+  text: string,
+  teacherTarget: string
+): SuggestedAction[] {
+  if (!text.trim()) return [];
+  if (/你要察看谁的技能/.test(text)) return [];
+  if (/目前并没有学会任何技能|不会任何技能/.test(text)) return [];
+
+  const found = new Map<string, SuggestedAction>();
+  // skills.c: to_chinese(id) + " (" + id + ")"
+  for (const m of text.matchAll(
+    /([\u4e00-\u9fff][\u4e00-\u9fffA-Za-z0-9_\-·\s]{0,24}?)\s*\(([a-z][a-z0-9_\-]{1,30})\)/g
+  )) {
+    const cn = m[1].replace(/\s+/g, "").trim();
+    const skill = m[2].toLowerCase();
+    if (!cn || NON_SKILL_IDS.has(skill)) continue;
+    if (ACTION_VERBS[skill] && !SKILL_LABELS[skill]) continue;
+    const command = `learn ${teacherTarget} ${skill}`;
+    if (found.has(command)) continue;
+    found.set(command, {
+      command,
+      label: cn || SKILL_LABELS[skill] || skill,
+    });
+  }
+  return [...found.values()];
+}
+
 /**
  * Extract clickable actions from NPC/room hints like `(follow mu laoqi)`.
  */
@@ -609,7 +854,7 @@ export function mergeSuggestedActions(
   prev: SuggestedAction[],
   next: SuggestedAction[],
   npcs: Entity[] = [],
-  limit = 8
+  limit = 12
 ): SuggestedAction[] {
   const map = new Map<string, SuggestedAction>();
   for (const a of [...prev, ...next]) {

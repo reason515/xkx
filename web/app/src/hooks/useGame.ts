@@ -20,6 +20,7 @@ import {
   reflowSoftWrappedEntries,
   stripScoreBanner,
   waterfallPassageActions,
+  parseLearnOfferActions,
 } from "../lib/parser";
 import { applyEvent } from "../lib/protocol";
 import type {
@@ -369,17 +370,21 @@ export function useGame() {
           addLog(entry.text, undefined, entry.html);
         }
 
-        const hinted = parseSuggestedActions(chunk);
-        if (hinted.length) {
-          setState((s) => ({
+        setState((s) => {
+          const fromText = [
+            ...parseSuggestedActions(chunk, s.room.npcs),
+            ...parseLearnOfferActions(chunk, s.room.npcs),
+          ];
+          if (!fromText.length) return s;
+          return {
             ...s,
             suggestedActions: mergeSuggestedActions(
               s.suggestedActions,
-              hinted,
+              fromText,
               s.room.npcs
             ),
-          }));
-        }
+          };
+        });
 
         if (
           EXIT_HINT.test(chunk) ||
@@ -398,9 +403,10 @@ export function useGame() {
                 ...beachGreeterActions(room.title, npcs),
                 ...waterfallPassageActions(room.title),
               ];
-              const fromText = roomChanged
-                ? parseSuggestedActions(chunk, npcs)
-                : hinted;
+              const fromText = [
+                ...parseSuggestedActions(chunk, npcs),
+                ...parseLearnOfferActions(chunk, npcs),
+              ];
               return {
                 ...s,
                 room: {
@@ -444,8 +450,11 @@ export function useGame() {
           }));
         }
         if (/所学过的|武功|技能/.test(chunk) || /初学乍练|粗通皮毛/.test(chunk)) {
-          const skills = parseSkills(textBuf.current.slice(-4000));
-          if (skills.length) setState((s) => ({ ...s, skills }));
+          // 查师父 skills 时文案也会命中，勿覆盖角色卡武功
+          if (!expectDoc.current) {
+            const skills = parseSkills(textBuf.current.slice(-4000));
+            if (skills.length) setState((s) => ({ ...s, skills }));
+          }
         }
         if (/目前身上|携带|物品/.test(chunk)) {
           const inventory = parseInventory(textBuf.current.slice(-4000));

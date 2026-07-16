@@ -28,6 +28,10 @@ import {
   shouldJoinSoftWrap,
   stripScoreBanner,
   waterfallPassageActions,
+  parseLearnOfferActions,
+  buildLearnTopicActions,
+  labelLearnTopic,
+  parseSkillsPanelLearnActions,
 } from "./parser";
 
 describe("parseExits", () => {
@@ -556,6 +560,110 @@ describe("waterfallPassageActions", () => {
     expect(labelSuggestedAction("wear rain coat")).toBe("穿上雨衣");
     expect(labelSuggestedAction("jump fall")).toBe("跳进瀑布");
     expect(waterfallPassageActions("沙滩")).toEqual([]);
+  });
+});
+
+describe("parseLearnOfferActions", () => {
+  const disciple = { id: "lanyi dizi", name: "蓝衣弟子", kind: "npc" as const };
+
+  it("parses 蓝衣弟子 greeting into learn chips", () => {
+    const text =
+      "蓝衣弟子说道：欢迎这位少侠，你可向我学掌法(strike)，内功(force)，\n" +
+      "招架(parry)及轻功(dodge)。";
+    expect(
+      parseLearnOfferActions(text, [disciple]).map((a) => a.command)
+    ).toEqual([
+      "learn dizi strike",
+      "learn dizi force",
+      "learn dizi parry",
+      "learn dizi dodge",
+    ]);
+    expect(labelSuggestedAction("learn dizi strike", [disciple])).toBe(
+      "向蓝衣弟子学掌法"
+    );
+  });
+
+  it("parses quanzhou-style teacher greetings", () => {
+    const text =
+      "龙泉说道：欢迎这位少侠，你可向我学刀法(blade)，爪法(claw)，内功(force)，招架(parry)及轻功(dodge)。";
+    expect(
+      parseLearnOfferActions(text, [
+        { id: "long quan", name: "龙泉", kind: "npc" },
+      ]).map((a) => a.command)
+    ).toEqual([
+      "learn quan blade",
+      "learn quan claw",
+      "learn quan force",
+      "learn quan parry",
+      "learn quan dodge",
+    ]);
+  });
+
+  it("parses explicit (xue id skill) hints", () => {
+    const text = "老学士说道：你可以跟我学点读书(xue shi literate)";
+    expect(
+      parseLearnOfferActions(text, [
+        { id: "shi", name: "老学士", kind: "npc" },
+      ]).map((a) => a.command)
+    ).toEqual(["learn shi literate"]);
+    expect(labelSuggestedAction("learn shi literate", [
+      { id: "shi", name: "老学士", kind: "npc" },
+    ])).toBe("向老学士学读书识字");
+  });
+
+  it("does not treat 瀑布(fall) as a skill outside teach context", () => {
+    expect(
+      parseLearnOfferActions(
+        "迎面是一道瀑布(fall)从十余丈的高处直挂下来。有一棵大树(tree)。",
+        [disciple]
+      )
+    ).toEqual([]);
+  });
+
+  it("buildLearnTopicActions filters to the entity", () => {
+    const hints = parseLearnOfferActions(
+      "蓝衣弟子说道：你可向我学掌法(strike)，内功(force)。",
+      [disciple]
+    );
+    expect(
+      buildLearnTopicActions("lanyi dizi", "蓝衣弟子", hints).map(
+        (a) => a.label
+      )
+    ).toEqual(["掌法", "内功"]);
+    expect(labelLearnTopic("learn dizi strike")).toBe("掌法");
+    expect(
+      buildLearnTopicActions("yu fu", "渔夫", hints)
+    ).toEqual([]);
+  });
+
+  it("merges skills panel of 师父 into learn topics without 见闻 hints", () => {
+    const panel = `张三丰目前所学过的技能：（共3项技能）
+
+基本内功 (force) - 深不可测  200/  0
+太极剑 (taiji-jian) - 出神入化  180/ 12
+轻功 (dodge) - 登峰造极  150/  3
+`;
+    expect(
+      parseSkillsPanelLearnActions(panel, "zhang").map((a) => a.command)
+    ).toEqual([
+      "learn zhang force",
+      "learn zhang taiji-jian",
+      "learn zhang dodge",
+    ]);
+    expect(
+      buildLearnTopicActions("zhang sanfeng", "张三丰", [], panel).map(
+        (a) => a.label
+      )
+    ).toEqual(["基本内功", "太极剑", "轻功"]);
+  });
+
+  it("skills refuse yields no learn topics", () => {
+    expect(
+      parseSkillsPanelLearnActions("你要察看谁的技能？\n", "fu")
+    ).toEqual([]);
+    expect(
+      buildLearnTopicActions("yu fu", "渔夫", [], "你要察看谁的技能？")
+    ).toEqual([]);
   });
 });
 

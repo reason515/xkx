@@ -329,6 +329,7 @@ export default function App() {
           onAction={afterEntityAction}
           onDocAction={afterBoardDocAction}
           onAskList={(command) => g.docCmd(command, "entity")}
+          onLearnList={(command) => g.docCmd(command, "entity")}
           onClearDoc={g.clearDoc}
         />
       )}

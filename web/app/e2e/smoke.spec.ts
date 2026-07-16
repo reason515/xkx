@@ -238,8 +238,8 @@ async function leaveIslandAfterPermit(page: import("@playwright/test").Page) {
   ).toBeVisible({ timeout: 20_000 });
 }
 
-/** 沙滩 → 大山洞（含瀑布爬树/脱衣/穿衣/跳瀑；尽量快，避免引路使拖走） */
-async function walkToDadongBoard(page: import("@playwright/test").Page) {
+/** 沙滩 → 瀑布（停留，不跳瀑；尽量快，避免引路使拖走） */
+async function walkToWaterfall(page: import("@playwright/test").Page) {
   for (const label of ["北", "北", "北", "北"]) {
     await goByExitLabel(page, label);
   }
@@ -248,6 +248,11 @@ async function walkToDadongBoard(page: import("@playwright/test").Page) {
   await expect(page.locator(".room-title")).toHaveText(/瀑布/, {
     timeout: 20_000,
   });
+}
+
+/** 沙滩 → 大山洞（含瀑布爬树/脱衣/穿衣/跳瀑；尽量快，避免引路使拖走） */
+async function walkToDadongBoard(page: import("@playwright/test").Page) {
+  await walkToWaterfall(page);
 
   // 尽快连点，缩短被引路使拖走的窗口；每步确认仍在瀑布
   const steps: [string, RegExp][] = [
@@ -836,6 +841,121 @@ test.describe.serial("game smoke", () => {
         { timeout: 40_000 }
       )
       .toBe(true);
+  });
+
+  test("人物面板学可列出请教功夫或说明不可请教", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 60_000,
+    });
+    await expect(page.locator(".chip.npc").filter({ hasText: /渔夫/ })).toBeVisible({
+      timeout: 30_000,
+    });
+
+    await page.locator(".chip.npc").filter({ hasText: /渔夫/ }).click();
+    await expect(page.getByRole("button", { name: "学", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "学", exact: true }).click();
+
+    await expect(page.getByRole("heading", { name: /向「渔夫」请教/ })).toBeVisible();
+    // 非师徒：skills 拒绝后给出说明（渔夫也不会在见闻里教武）
+    await expect
+      .poll(
+        async () =>
+          (await page.locator(".sheet .doc-status").textContent()) || "",
+        { timeout: 15_000 }
+      )
+      .toMatch(/没有师徒|没有可传授|正在列出/);
+    await expect
+      .poll(
+        async () =>
+          (await page.locator(".sheet .doc-status").textContent()) || "",
+        { timeout: 15_000 }
+      )
+      .toMatch(/没有师徒|没有可传授/);
+  });
+
+  test("瀑布蓝衣弟子可学基本功夫", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 90_000,
+    });
+
+    try {
+      await walkToWaterfall(page);
+    } catch (err) {
+      await openSceneTab(page).catch(() => undefined);
+      const title = (
+        (await page.locator(".room-title").textContent({ timeout: 5_000 }).catch(
+          () => ""
+        )) || ""
+      ).trim();
+      throw new Error(
+        `未能到达瀑布（当前房间：${title || "未知"}）：${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+    }
+
+    await expect(page.locator(".chip.npc").filter({ hasText: /蓝衣弟子/ })).toBeVisible({
+      timeout: 20_000,
+    });
+
+    // 见闻提示后：场景动作或人物「学」面板均可请教
+    await expect
+      .poll(
+        async () => {
+          await openSceneTab(page);
+          const sceneLearn = await page
+            .locator(".chip.action")
+            .filter({ hasText: /向蓝衣弟子学|学掌法|学内功|学招架|学轻功/ })
+            .count();
+          if (sceneLearn > 0) return "scene";
+          await page.locator(".chip.npc").filter({ hasText: /蓝衣弟子/ }).click();
+          const learnBtn = page.getByRole("button", { name: "学", exact: true });
+          if (await learnBtn.isVisible().catch(() => false)) {
+            await page.locator(".sheet .close").click().catch(() => undefined);
+            return "sheet";
+          }
+          await page.locator(".sheet .close").click().catch(() => undefined);
+          return "";
+        },
+        { timeout: 30_000 }
+      )
+      .toMatch(/scene|sheet/);
+
+    await openSceneTab(page);
+    const sceneChip = page
+      .locator(".chip.action")
+      .filter({ hasText: /向蓝衣弟子学掌法|学掌法/ })
+      .first();
+    if (await sceneChip.isVisible().catch(() => false)) {
+      await sceneChip.click();
+    } else {
+      await page.locator(".chip.npc").filter({ hasText: /蓝衣弟子/ }).click();
+      await page.getByRole("button", { name: "学", exact: true }).click();
+      await expect(page.getByRole("heading", { name: /向「蓝衣弟子」请教/ })).toBeVisible();
+      await page.getByRole("button", { name: "掌法", exact: true }).click();
+    }
+
+    await expect(page.getByRole("tab", { name: "见闻" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    );
+    await expect
+      .poll(async () => {
+        const logs = await page.locator(".log p").allTextContents();
+        return logs.join("\n");
+      }, { timeout: 20_000 })
+      .toMatch(/请教有关「|掌法|strike|你向/);
   });
 
   test("告示牌可浏览留言并可点读", async ({ page }) => {
