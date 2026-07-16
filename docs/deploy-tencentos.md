@@ -616,7 +616,7 @@ ssh -i $key -o IdentitiesOnly=yes $hostName `
 - Web 前端：同步改动的 `web/app` 源文件后执行 `npm run build`；Nginx 会直接提供新的 `dist`，无需重启。
 - Gateway：同步 `gateway` 文件，执行 `npm install --omit=dev`（依赖变化时）并 `systemctl restart xkx-gateway`。
 - MUD/LPC：同步改动的 LPC 文件，执行 `prepare-mudlib.sh`、`fix-static-to-nosave.py`，然后重启 MUD 与 gateway。
-- 每次同步后运行 `bash /opt/xkx/deploy/scripts/run-e2e-smoke.sh`；涉及 UI、登录、场景或出口时，再从本地执行 `.\scripts\run-e2e-tests.ps1`。
+- 每次同步后运行 `bash /opt/xkx/deploy/scripts/run-e2e-smoke.sh`；涉及 UI、登录、场景或出口时，再从本地用相关用例验证：`.\scripts\run-e2e-tests.ps1 -Grep "关键字"`；需要全量时用 `-Full`。
 
 **仅在文件同步不可用时**，才使用服务器 Git 拉取的一键脚本（含 FluffOS `static→nosave` 补丁 + 登录 e2e 门禁）：
 

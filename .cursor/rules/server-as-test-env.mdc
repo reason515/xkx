@@ -10,7 +10,10 @@ alwaysApply: true
 ## 强制工作流
 
 1. **改完就部署**：涉及 `web/app`、`gateway`、LPC（`adm/` `cmds/` `d/` 等会进游戏的逻辑）的可运行改动，完成后**默认部署到服务器**再验证，不要只停在本地改完。
-2. **部署后再验**：部署成功后跑 Playwright e2e（默认 `http://119.45.224.68`，见 `scripts/run-e2e-tests.ps1`）和/或服务器 `deploy/scripts/run-e2e-smoke.sh`。
+2. **部署后再验**：
+   - 必跑：服务器 `deploy/scripts/run-e2e-smoke.sh`（部署门禁，轻量）；
+   - Playwright：默认 `.\scripts\run-e2e-tests.ps1 -Grep "…"` 只跑与本次改动相关的用例；
+   - 全量 `.\scripts\run-e2e-tests.ps1 -Full` 仅在有需要时（用户要求 / 发版 / 主路径大改）。
 3. **推荐部署路径**：
    - **默认从开发机以 SCP 同步本次改动的生产文件**，然后在服务器按改动类型重建前端或重启服务；连接信息、命令与验证步骤见 `docs/deploy-tencentos.md`。
    - 先提交/推送作为版本留存，但不依赖服务器 `git fetch`，因为服务器访问 GitHub 不稳定。
@@ -21,6 +24,7 @@ alwaysApply: true
 
 - 以「本地 MUD 起不来」为由跳过验证。
 - 只改代码、不部署、只口头说「应该没问题」。
-- 把生产当测试环境却故意不跑已有 e2e / smoke。
+- 把生产当测试环境却故意不跑门禁 smoke，也不跑相关 Playwright。
+- 小改动默认跑全量 Playwright（应用 `-Grep`）。
 
 细则见 `.cursor/skills/xkx-testing/SKILL.md` 与 `docs/deploy-tencentos.md`。

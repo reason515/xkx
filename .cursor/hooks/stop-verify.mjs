@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * stop hook: run unit/e2e tests when web/app or gateway files changed.
+ * stop hook: when web/app or gateway files changed, run unit tests only.
+ * Playwright e2e 由 Agent 按改动用 -Grep 定点跑；全量需显式 -Full。
  * Outputs followup_message on failure for agent retry loop.
  */
 import { execSync, spawnSync } from "node:child_process";
@@ -65,20 +66,6 @@ function runPowerShell(scriptRel) {
   );
 }
 
-/** Playwright e2e 默认打生产站；可达则跑 scripts/run-e2e-tests.ps1 */
-function testProdWeb(url = "http://119.45.224.68") {
-  const r = spawnSync(
-    "powershell",
-    [
-      "-NoProfile",
-      "-Command",
-      `try { Invoke-WebRequest -Uri '${url}' -TimeoutSec 10 -UseBasicParsing | Out-Null; exit 0 } catch { exit 1 }`,
-    ],
-    { encoding: "utf8", timeout: 15_000 }
-  );
-  return r.status === 0;
-}
-
 const input = await readStdinJson();
 const status = input.status ?? "completed";
 const loopCount = input.loop_count ?? 0;
@@ -105,17 +92,6 @@ if (unit.status !== 0) {
     followup_message: `[xkx-testing] 单元测试失败。请先阅读 .cursor/skills/xkx-testing/SKILL.md，根据输出修复代码或测试，然后重新运行 scripts/run-unit-tests.ps1。\n\n${detail}`,
   });
   process.exit(0);
-}
-
-if (testProdWeb()) {
-  const e2e = runPowerShell("scripts/run-e2e-tests.ps1");
-  if (e2e.status !== 0) {
-    const detail = [e2e.stdout, e2e.stderr].filter(Boolean).join("\n").slice(-4000);
-    emit({
-      followup_message: `[xkx-testing] e2e 冒烟失败（默认生产站）。请先阅读 .cursor/skills/xkx-testing/SKILL.md，修复问题后重新运行 scripts/run-e2e-tests.ps1。\n\n${detail}`,
-    });
-    process.exit(0);
-  }
 }
 
 emit({});
