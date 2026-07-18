@@ -117,6 +117,55 @@ const XIAKEDAO_TITLE_OCCURRENCE: Record<string, Record<string, number>> = {
     xiaolu2: 1,
     xiaolu: 2,
   },
+  // 前 5 处为甬道区；第 6 处（index 5）为石洞入口甬道；其後沙滩区瀑布旁
+  甬道: {
+    yongdao2: 0,
+    yongdao4: 0,
+    yongdao1: 1,
+    yongdao3: 2,
+    yongdao5: 3,
+    yongdao: 4,
+    yongdao10: 5,
+  },
+  // 【石洞内】自上而下第一至第六石洞
+  石洞: {
+    xiakexing1: 0,
+    xiakexing2: 1,
+    xiakexing3: 2,
+    xiakexing4: 3,
+    xiakexing5: 4,
+    xiakexing6: 5,
+  },
+  // 每洞扫描序：北、西、东、南
+  石室: {
+    xkx1: 0,
+    xkx4: 1,
+    xkx3: 2,
+    xkx2: 3,
+    xkx5: 4,
+    xkx8: 5,
+    xkx7: 6,
+    xkx6: 7,
+    xkx9: 8,
+    xkx12: 9,
+    xkx11: 10,
+    xkx10: 11,
+    xkx13: 12,
+    xkx16: 13,
+    xkx15: 14,
+    xkx14: 15,
+    xkx17: 16,
+    xkx20: 17,
+    xkx19: 18,
+    xkx18: 19,
+    xkx21: 20,
+    xkx24: 21,
+    xkx23: 22,
+    xkx22: 23,
+  },
+  石门: {
+    gate: 0,
+  },
 };
 
 /**
@@ -160,6 +209,19 @@ export function mapMarkerOccurrence(
       if (/山脚下|礁石/.test(exits)) return 0;
       // Newbie default after 沙滩 north：迎宾厅南小路
       return 2;
+    }
+
+    if (title === "甬道") {
+      const exits = (opts?.exitNames || []).join(" ");
+      // 石洞入口甬道：连大山洞 / 石门
+      if (/大山洞|石门/.test(exits)) return 5;
+    }
+
+    if (title === "石洞") {
+      const exits = (opts?.exitNames || []).join(" ");
+      // 最深处第六洞无「进」
+      if (/石室/.test(exits) && !/石洞|石门/.test(exits) && !/\b进\b|enter/i.test(exits))
+        return 5;
     }
   }
   return 0;

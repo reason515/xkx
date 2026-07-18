@@ -27,13 +27,16 @@ void create()
 void stop_assist(object me, string reason)
 {
 	string id;
+	int had;
 
 	if (!objectp(me)) return;
 	id = me->query("id");
-	if (!undefinedp(sessions[id]))
-		map_delete(sessions, id);
+	had = !undefinedp(sessions[id]);
+	if (had) map_delete(sessions, id);
 	me->delete_temp("web_assist");
-	WEBD->send_assist_status(me, 0, reason || "已停止");
+	// 启动新挂机时用非字符串 reason 静默清场，避免先推 active:0 冲掉前端状态。
+	if (!had || !stringp(reason) || reason == "") return;
+	WEBD->send_assist_status(me, 0, reason);
 }
 
 int should_stop_train(object me, mapping cfg)
@@ -512,6 +515,6 @@ int try_survival(object me)
 		return 1;
 	}
 	WEBD->send_assist_status(me, 0, "无药品可用，已停止");
-	stop_assist(me, "无药品");
+	stop_assist(me, 0);
 	return 0;
 }

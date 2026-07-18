@@ -2,11 +2,17 @@ import { useState } from "react";
 import { ExitPad } from "../ExitPad";
 import { GuideTip } from "../GuideTip";
 import { useDesktop } from "../../context/DesktopContext";
+import { sceneryPracticeActions, inferredShutDoorActions, sceneActionChips } from "../../lib/parser";
 import type { ExitInfo } from "../../lib/types";
 
 export function LeftSidebar() {
   const { game, sendCommand, doEmergencyStop, emergencyStopped } = useDesktop();
   const { state } = game;
+  const doorActions = inferredShutDoorActions(state.room);
+  const doorCmds = new Set(doorActions.map((a) => a.command));
+  const sceneActions = sceneActionChips(state.suggestedActions).filter(
+    (a) => !doorCmds.has(a.command)
+  );
   const [menu, setMenu] = useState<{
     x: number;
     y: number;
@@ -34,6 +40,20 @@ export function LeftSidebar() {
             game.confirmGo(ex.dir);
           }}
         />
+        {doorActions.length > 0 && (
+          <div className="chips door-actions" data-testid="door-actions">
+            {doorActions.map((a) => (
+              <button
+                key={a.command}
+                type="button"
+                className="chip action"
+                onClick={() => sendCommand(a.command)}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {state.room.npcs.length > 0 && (
@@ -94,6 +114,24 @@ export function LeftSidebar() {
                 }}
               >
                 {it.name}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {sceneActions.length > 0 && (
+        <div className="desktop-left-block" data-testid="desktop-scene-actions">
+          <h2>动作</h2>
+          <div className="chips">
+            {sceneActions.map((a) => (
+              <button
+                key={a.command}
+                type="button"
+                className="chip action"
+                onClick={() => sendCommand(a.command)}
+              >
+                {a.label}
               </button>
             ))}
           </div>
@@ -198,6 +236,20 @@ export function LeftSidebar() {
               >
                 查看
               </button>
+              {menu.scenery &&
+                sceneryPracticeActions(menu.id).map((act) => (
+                  <button
+                    key={act.command}
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      sendCommand(act.command);
+                      setMenu(null);
+                    }}
+                  >
+                    {act.label}
+                  </button>
+                ))}
               {!menu.scenery && (
                 <button
                   type="button"

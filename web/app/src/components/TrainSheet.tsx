@@ -48,7 +48,10 @@ export function TrainSheet({
     practiceOptions.find((item) => item.id === practiceSkill)?.id ||
     practiceOptions[0]?.id ||
     "";
-  const canStart = mode !== "lian" || !!selectedPractice;
+  const hasForce =
+    !!enabled.force?.skill && enabled.force.skill !== "无";
+  const canStart =
+    mode === "lian" ? !!selectedPractice : mode === "dazuo" ? hasForce : true;
 
   return (
     <div className="overlay open" onClick={onClose}>
@@ -56,9 +59,15 @@ export function TrainSheet({
         <div className="sheet-top">
           <div>
             <h3>修炼</h3>
-            {active && (
+            {!!status && (
               <p
-                className={`train-status${/调息/.test(status) ? " resting" : ""}`}
+                className={`train-status${
+                  /调息|启动/.test(status)
+                    ? " resting"
+                    : active
+                      ? ""
+                      : " failed"
+                }`}
               >
                 {status}
               </p>
@@ -101,6 +110,11 @@ export function TrainSheet({
               </button>
             ))}
           </div>
+          {mode === "dazuo" && !hasForce && (
+            <p className="doc-status train-gate-hint">
+              打坐需先激发内功。请打开角色「武功」，将一门内功 enable 到内功栏。
+            </p>
+          )}
           {mode === "lian" && (
             <div className="train-practice">
               <p>选择已激发功夫</p>

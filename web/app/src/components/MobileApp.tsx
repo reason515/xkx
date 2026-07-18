@@ -10,7 +10,7 @@ import { CombatSheet } from "./CombatSheet";
 import { EntitySheet } from "./EntitySheet";
 import { SpeechSheet } from "./SpeechSheet";
 import { GuideTip } from "./GuideTip";
-import { sceneActionChips } from "../lib/parser";
+import { inferredShutDoorActions, sceneActionChips } from "../lib/parser";
 import { useEffect, useRef, useState } from "react";
 import type { ExitInfo, LogEntry } from "../lib/types";
 
@@ -151,7 +151,12 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
     g.openSheet("map");
   };
 
-  const sceneActions = sceneActionChips(state.suggestedActions);
+  const doorActions = inferredShutDoorActions(state.room);
+  const doorCmds = new Set(doorActions.map((a) => a.command));
+  // 开门/开锁已贴在出口下，动作区不再重复
+  const sceneActions = sceneActionChips(state.suggestedActions).filter(
+    (a) => !doorCmds.has(a.command)
+  );
 
   return (
     <div className="phone">
@@ -295,6 +300,20 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                       g.docCmd(`look ${ex.dir}`, "exit");
                     }}
                   />
+                  {doorActions.length > 0 && (
+                    <div className="chips door-actions" data-testid="door-actions">
+                      {doorActions.map((a) => (
+                        <button
+                          key={a.command}
+                          type="button"
+                          className="chip action"
+                          onClick={() => g.cmd(a.command)}
+                        >
+                          {a.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {state.room.npcs.length > 0 && (

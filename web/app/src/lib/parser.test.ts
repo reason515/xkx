@@ -5,6 +5,7 @@ import {
   buildScoreHtml,
   carriageTravelActions,
   closedDoorActions,
+  inferredShutDoorActions,
   extractLookBlock,
   isCarriageItem,
   isCombatLine,
@@ -50,6 +51,7 @@ import {
   isEntitySheetAction,
   sceneActionChips,
   suggestsRoomLayoutChange,
+  isStaticPassageLine,
   classifyInvEquip,
   bagItemActions,
   groundItemActions,
@@ -249,6 +251,16 @@ describe("isRoomLookLine", () => {
     expect(isRoomLookLine("拉开屏风，露出一条甬道。")).toBe(false);
     expect(isRoomLookLine("  渔夫(Yu fu)")).toBe(false);
     expect(isRoomLookLine("> say 测试")).toBe(false);
+
+    const dadongLook = `大山洞 -
+    这是一个很大的山洞。
+    屏风已被拉开，露出一条长长的甬道。
+    这里明显的出口是 south 和 enter。
+  厮仆(Si pu)`;
+    expect(isRoomLookChunk(dadongLook)).toBe(true);
+    expect(
+      isRoomLookLine("    屏风已被拉开，露出一条长长的甬道。", dadongLook)
+    ).toBe(true);
     expect(
       isRoomLookLine(
         "渔夫说道：这里就是侠客岛。两位岛主每年都派弟子到中原。"
@@ -263,6 +275,26 @@ describe("isRoomLookLine", () => {
       "汉水南岸"
     );
     expect(actions.map((a) => a.command)).toContain("yell boat");
+  });
+
+  it("infers study/du practice from scenery like 石壁 and 书", () => {
+    const wallRoom =
+      "东面是块打磨光滑的大石壁(wall)，石壁旁点燃着火把。";
+    expect(
+      suggestedActionsFromRoomText(wallRoom).map((a) => a.command)
+    ).toContain("study wall");
+    expect(
+      groundItemActions("wall", "大石壁", true).map((a) => a.command)
+    ).toEqual(["look wall", "study wall"]);
+
+    const bookDesc =
+      "桌上放着一本线装书(book)。你可以试着读书(du book)去学点基本内功。";
+    expect(
+      suggestedActionsFromRoomText(bookDesc).map((a) => a.command)
+    ).toEqual(expect.arrayContaining(["du book"]));
+    expect(
+      groundItemActions("book", "线装书", true).map((a) => a.command)
+    ).toEqual(["look book", "du book"]);
   });
 });
 
@@ -831,6 +863,25 @@ describe("closedDoorActions", () => {
     expect(closedDoorActions([])).toEqual([]);
     expect(closedDoorActions(undefined)).toEqual([]);
   });
+
+  it("infers 打开石门 when doors omitted but gate is shut", () => {
+    expect(
+      inferredShutDoorActions({
+        title: "石门",
+        desc: "面前一道厚重的石门。",
+        exits: [{ dir: "south", label: "南" }],
+        doors: [],
+      }).map((a) => a.command)
+    ).toEqual(["open 石门"]);
+    expect(
+      inferredShutDoorActions({
+        title: "石门",
+        desc: "面前一道厚重的石门。",
+        exits: [{ dir: "enter", label: "进" }],
+        doors: [],
+      })
+    ).toEqual([]);
+  });
 });
 
 describe("carriageTravelActions", () => {
@@ -977,6 +1028,31 @@ describe("parseLearnOfferActions", () => {
       suggestsRoomLayoutChange("你推开石门，眼前出现了一条甬道。")
     ).toBe(true);
     expect(suggestsRoomLayoutChange("渔夫微笑着看着你。")).toBe(false);
+    const dadongLook = `大山洞 -
+    这是一个很大的山洞。
+    屏风已被拉开，露出一条长长的甬道。
+    这里明显的出口是 south 和 enter。
+  厮仆(Si pu)`;
+    expect(suggestsRoomLayoutChange(dadongLook)).toBe(false);
+    expect(
+      suggestsRoomLayoutChange("    屏风已被拉开，露出一条长长的甬道。")
+    ).toBe(false);
+    // TCP/soft-wrap fragments of the static long must not retrigger look
+    expect(
+      suggestsRoomLayoutChange("拉开，露出一条长长的甬道。")
+    ).toBe(false);
+    expect(suggestsRoomLayoutChange("露出一条长长的甬道。")).toBe(false);
+    expect(isStaticPassageLine("    屏风已被拉开，露出一条长长的甬道。")).toBe(
+      true
+    );
+    expect(isStaticPassageLine("拉开，露出一条长长的甬道。")).toBe(true);
+    expect(isStaticPassageLine("露出一条长长的甬道。")).toBe(true);
+    expect(isStaticPassageLine("向旁缓缓拉开，露出一条长长的甬道。")).toBe(
+      false
+    );
+    expect(
+      suggestsRoomLayoutChange("向旁缓缓拉开，露出一条长长的甬道。")
+    ).toBe(true);
   });
 
   it("merges skills panel of 师父 into learn topics without 见闻 hints", () => {

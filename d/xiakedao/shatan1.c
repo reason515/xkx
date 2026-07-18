@@ -75,7 +75,7 @@ int block_cmd()
         string cmd;
         cmd = query_verb();
         // webclient/hp：Web 端标记与刷新气血；勿静默拦截否则无 room.update
-        if ( cmd == "quit" || cmd == "goto" || cmd == "suicide" || cmd == "follow" || cmd == "tell" || cmd == "say" || cmd == "reply" || cmd == "look" || cmd == "webassist" || cmd == "webclient" || cmd == "hp" )
+        if ( cmd == "quit" || cmd == "goto" || cmd == "suicide" || cmd == "follow" || cmd == "tell" || cmd == "say" || cmd == "reply" || cmd == "look" || cmd == "webassist" || cmd == "webclient" || cmd == "hp" || cmd == "xkxe2e" )
                 return 0;
         return 1;
 }

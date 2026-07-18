@@ -4,7 +4,7 @@ import {
   buildScoreHtml,
   carriageTravelActions,
   chunkLooksLikeSelfLook,
-  closedDoorActions,
+  inferredShutDoorActions,
   extractLookBlock,
   extractSelfLookPanel,
   isCombatLine,
@@ -15,6 +15,7 @@ import {
   isSelfLookLine,
   isSelfLookStopLine,
   isRoomLookLine,
+  isStaticPassageLine,
   isSheetDumpLine,
   isTrainLine,
   labelSuggestedAction,
@@ -197,7 +198,8 @@ export function useGame(opts?: UseGameOptions) {
       isLoginNoise(text) ||
       isProtocolNoise(text) ||
       isSheetDumpLine(text, text) ||
-      isRoomLookLine(text, text)
+      isRoomLookLine(text, text) ||
+      isStaticPassageLine(text)
     )
       return;
     setState((s) => ({
@@ -294,11 +296,18 @@ export function useGame(opts?: UseGameOptions) {
   }, []);
 
   /** 出口/门/甬道等就地变化后，补 look 以拿到最新 room.update。 */
+  const roomRefreshCooldownUntil = useRef(0);
   const scheduleRoomRefresh = useCallback(() => {
+    const now = Date.now();
+    // 防 look 描写含「已被拉开」时反复触发刷新刷屏
+    if (now < roomRefreshCooldownUntil.current) return;
     if (roomRefreshTimer.current) clearTimeout(roomRefreshTimer.current);
     roomRefreshTimer.current = setTimeout(() => {
       roomRefreshTimer.current = null;
-      roomFromEvent.current = false;
+      roomRefreshCooldownUntil.current = Date.now() + 4000;
+      // 已有 structured room.update（如 notify_room）则不必再 look，
+      // 否则 long 里的「屏风已被拉开」会进见闻并可能再触发刷新。
+      if (roomFromEvent.current) return;
       socket.current.cmd("look");
     }, 380);
   }, []);
@@ -417,6 +426,18 @@ export function useGame(opts?: UseGameOptions) {
           return;
         }
         if (ev.type === "room.update") roomFromEvent.current = true;
+        if (ev.type === "assist.status") {
+          const message = String(ev.message || "").trim();
+          if (ev.active) {
+            if (/助手进行中|战斗辅助/.test(message)) showToast(message);
+          } else if (
+            message &&
+            message !== "已停止" &&
+            message !== "手动停止"
+          ) {
+            showToast(message);
+          }
+        }
         setState((s) => {
           const applied = applyEvent(ev, s);
           const roomChanged =
@@ -440,7 +461,7 @@ export function useGame(opts?: UseGameOptions) {
             ...beachGreeterActions(applied.room.title, applied.room.npcs),
             ...waterfallPassageActions(applied.room.title),
             ...roomUtilityActions(applied.room),
-            ...closedDoorActions(applied.room.doors),
+            ...inferredShutDoorActions(applied.room),
             ...carriageTravelActions(applied.room),
           ];
           // Keep ask/learn narrative chips; regenerate door/car/room chips
@@ -516,6 +537,7 @@ export function useGame(opts?: UseGameOptions) {
           if (isMorePromptLine(line)) continue;
           if (isSheetDumpLine(line, chunk)) continue;
           if (isRoomLookLine(line, chunk)) continue;
+          if (isStaticPassageLine(line)) continue;
           // 仪容分片到达时也挡掉；NPC 打听等不会命中 isSelfLookLine
           if (suppressSelfLook || expectLookMe.current) {
             if (isSelfLookLine(line) || isSelfLookStopLine(line)) continue;
@@ -541,7 +563,12 @@ export function useGame(opts?: UseGameOptions) {
           addLog(entry.text, undefined, entry.html);
         }
 
-        if (!capturingDoc && suggestsRoomLayoutChange(chunk)) {
+        if (
+          !capturingDoc &&
+          suggestsRoomLayoutChange(chunk) &&
+          // notify_room / ask 已会刷新；有结构化房间事件时勿再 look 防刷屏
+          !roomFromEvent.current
+        ) {
           scheduleRoomRefresh();
         }
 
@@ -590,7 +617,7 @@ export function useGame(opts?: UseGameOptions) {
                 ...beachGreeterActions(nextRoom.title, npcs),
                 ...waterfallPassageActions(nextRoom.title),
                 ...roomUtilityActions(nextRoom),
-                ...closedDoorActions(nextRoom.doors),
+                ...inferredShutDoorActions(nextRoom),
                 ...carriageTravelActions({
                   items: nextRoom.items,
                   exits: nextRoom.exits,
@@ -927,14 +954,15 @@ export function useGame(opts?: UseGameOptions) {
     [cmd, closeSheet]
   );
 
-  const startAssist = useCallback(
-    (config: AssistConfig) => {
-      socket.current.assist(config);
-      setState((s) => ({ ...s, assistActive: true, assistStatus: "进行中…" }));
-      showToast("挂机助手已启动");
-    },
-    [showToast]
-  );
+  const startAssist = useCallback((config: AssistConfig) => {
+    socket.current.assist(config);
+    // 等服务端 assist.status 确认；勿先 toast「已启动」，失败时否则界面无反馈。
+    setState((s) => ({
+      ...s,
+      assistActive: true,
+      assistStatus: "启动中…",
+    }));
+  }, []);
 
   const quit = useCallback(() => {
     quittingRef.current = true;

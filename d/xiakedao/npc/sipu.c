@@ -112,23 +112,38 @@ int ask_food()
 	here->add("food_count", -1);
 	return 1;
 }
+// 旧逻辑曾把「屏风已被拉开…」追加进 room long；热更后房间对象可能仍脏。
+void clean_dadong_long(object here)
+{
+	string desc;
+	if (!here) return;
+	desc = here->query("long");
+	if (!desc || strsrch(desc, "屏风已被拉开") < 0) return;
+	here->set("long", @LONG
+眼前豁然开阔，宽大的山洞中整整齐齐摆放了一百多张桌子，周
+围遍插牛油蜡烛。数名黄衣厮仆穿梭来去，引导客人入座。大洞西侧
+空着两张巨大的石椅。下首主位後有两块大屏风，上面是巨幅的写意
+山水，气势恢弘。
+LONG );
+}
+
 int ask_daozhu()
 {	object me = this_player(), here;
-	string desc;
 	here = environment(me);
-	desc = here->query("long");
+	clean_dadong_long(here);
 	if ( (int)here->query_temp("opened") == 0)
 	{	say("厮仆微一躬身说道：两位岛主正在石室中苦思。\n");
 		say("厮仆招了招手，其他几位厮仆走了过来，四人抓住两块大屏风的边缘\n");
 		say("向旁缓缓拉开，露出一条长长的甬道。\n");
 		here->set("exits/enter", "/d/xiakedao/yongdao10");
 		here->set_temp("opened", 1);
-		desc = sprintf(desc + "    屏风已被拉开，露出一条长长的甬道。\n");
-		here->set("long", desc);
+		// 切勿把「屏风已被拉开…」写入 long：每次 look 都会回放该句，
+		// Web 客户端若再因此补 look 会形成见闻刷屏。叙事已由上面 say 交代。
 		"/adm/daemons/webd"->notify_room(here);
 	}
 	else
 	{	say("厮仆微一躬身说道：两位岛主正在石室中苦思，你进去找他们吧。\n");
+		"/adm/daemons/webd"->notify_room(here);
 	}
 	return 1;
 }

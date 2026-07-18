@@ -283,7 +283,10 @@ export function isMorePromptLine(line: string): boolean {
 
 /** Dialogue / event narrative that must stay in 见闻 (not room look structure). */
 const ROOM_LOOK_KEEP =
-  /说道|问道|喊道|叫道|向.+打听|你向|你从|拉开|推开|露出|脱了下来|装备著|装备着|穿上|戴上/;
+  /说道|问道|喊道|叫道|向.+打听|你向|你从|脱了下来|装备著|装备着|穿上|戴上/;
+/** Static room long after opening a passage — belongs in scene, not 见闻 / refresh loop. */
+const ROOM_LOOK_STATIC_PASSAGE =
+  /已被拉开|已拉开|已打开|已推开|已露出/;
 
 /**
  * True when this chunk is (or contains) a classic room look dump:
@@ -319,7 +322,7 @@ export function isRoomLookLine(line: string, chunk?: string): boolean {
   // Exit lines are always scene structure
   if (EXIT_LINE_RE.test(t) || /这里没有任何明显的出路/.test(t)) return true;
   // Keep event / dialogue even if mixed into a look-sized chunk
-  if (ROOM_LOOK_KEEP.test(t)) return false;
+  if (ROOM_LOOK_KEEP.test(t) && !ROOM_LOOK_STATIC_PASSAGE.test(t)) return false;
   // User command echoes are never room look
   if (/^>\s*\S/.test(t)) return false;
 
@@ -374,6 +377,11 @@ const ACTION_VERBS: Record<string, string> = {
   jump: "跳",
   remove: "脱下",
   sleep: "睡觉",
+  study: "领悟",
+  du: "研读",
+  lingwu: "领悟",
+  hit: "击打",
+  pa: "爬",
 };
 
 /** Common skill ids → Chinese when prose does not supply a name. */
@@ -468,6 +476,10 @@ const TARGET_REQUIRED_VERBS = new Set([
   "climb",
   "jump",
   "remove",
+  "study",
+  "du",
+  "lingwu",
+  "pa",
 ]);
 
 function displayNameForTarget(target: string, npcs: Entity[] = []): string {
@@ -504,6 +516,21 @@ export function labelSuggestedAction(
   if (verb === "climb" && parts[1]) {
     if (/^tree$/i.test(parts[1])) return "爬树取雨衣";
     return `爬${parts.slice(1).join(" ")}`;
+  }
+  if ((verb === "study" || verb === "lingwu") && parts[1]) {
+    const what = parts.slice(1).join(" ");
+    if (/^wall$/i.test(what)) return "领悟石壁";
+    return `${verbLabel}${displayNameForTarget(what, npcs)}`;
+  }
+  if (verb === "du" && parts[1]) {
+    const what = parts.slice(1).join(" ");
+    if (/^book$/i.test(what)) return "研读书籍";
+    return `研读${displayNameForTarget(what, npcs)}`;
+  }
+  if (verb === "hit" && parts[1]) {
+    const what = parts.slice(1).join(" ");
+    if (/^zhuang$/i.test(what)) return "击打木桩";
+    return `击打${displayNameForTarget(what, npcs)}`;
   }
   if (verb === "jump" && parts[1]) {
     const where = parts.slice(1).join(" ");
@@ -959,10 +986,66 @@ export function suggestedActionsFromRoomText(
 ): SuggestedAction[] {
   const text = [title, desc].filter(Boolean).join("\n");
   if (!text.trim()) return [];
-  return [
-    ...parseSuggestedActions(text, npcs),
-    ...parseLearnOfferActions(text, npcs),
-  ];
+  return mergeSuggestedActions(
+    [
+      ...parseSuggestedActions(text, npcs),
+      ...parseLearnOfferActions(text, npcs),
+      ...inferSceneryPracticeActions(text),
+    ],
+    [],
+    npcs
+  );
+}
+
+/**
+ * Scenery that teaches by study/du/hit even when item_desc omits (study wall).
+ * E.g. 大石壁(wall)、线装书(book)、木桩(zhuang).
+ */
+const SCENERY_PRACTICE: Record<
+  string,
+  { verb: string; label: string; nameHint?: RegExp }
+> = {
+  wall: { verb: "study", label: "领悟", nameHint: /石壁|岩壁|墙壁/ },
+  book: { verb: "du", label: "研读", nameHint: /书|经|谱|册/ },
+  zhuang: { verb: "hit", label: "击打", nameHint: /木桩|木椿|木桩/ },
+};
+
+export function sceneryPracticeActions(
+  id: string,
+  name = ""
+): { label: string; command: string }[] {
+  const idL = (id || "").toLowerCase().trim();
+  if (!idL) return [];
+  const rule = SCENERY_PRACTICE[idL];
+  if (rule) {
+    return [{ label: rule.label, command: `${rule.verb} ${idL}` }];
+  }
+  // Name-only fallback when id is unusual but label is clear
+  if (/石壁|岩壁/.test(name)) {
+    return [{ label: "领悟", command: `study ${idL}` }];
+  }
+  if (/书|经|谱|册/.test(name) && !/告示|留言/.test(name)) {
+    return [{ label: "研读", command: `du ${idL}` }];
+  }
+  if (/木桩|木椿/.test(name)) {
+    return [{ label: "击打", command: `hit ${idL}` }];
+  }
+  return [];
+}
+
+export function inferSceneryPracticeActions(desc: string): SuggestedAction[] {
+  if (!desc) return [];
+  const found = new Map<string, SuggestedAction>();
+  for (const item of parseSceneryFromDesc(desc)) {
+    for (const act of sceneryPracticeActions(item.id, item.name)) {
+      if (found.has(act.command)) continue;
+      found.set(act.command, {
+        command: act.command,
+        label: `${act.label}${item.name}`,
+      });
+    }
+  }
+  return [...found.values()];
 }
 
 /**
@@ -983,22 +1066,40 @@ export function sceneActionChips(
 /**
  * Narrative that usually means exits / doors / passages changed in-place
  * (no move). Web UI should refresh room state (look / room.update).
+ *
+ * IMPORTANT: room long after opening keeps「屏风已被拉开，露出一条…」forever.
+ * Soft-wrap / TCP fragments like「拉开，露出一条长长的甬道。」must NOT retrigger
+ * look, or 见闻 will flood.
  */
 export function suggestsRoomLayoutChange(text: string): boolean {
   if (!text) return false;
+  if (isRoomLookChunk(text)) return false;
+  // Static room-long after opening (and its TCP fragments) — never retrigger look.
+  if (ROOM_LOOK_STATIC_PASSAGE.test(text)) return false;
+  if (/屏风已被拉开|屏风已拉开/.test(text)) return false;
+  if (/露出一条长长的甬道/.test(text) && !/(?:向旁|缓缓|你)/.test(text))
+    return false;
+  // Require an actor / motion cue — bare「露出…甬道」matches static long fragments.
   return (
-    /露出.{0,16}(甬道|出口|洞口|石门|暗道|小路|通道|石室)/.test(text) ||
-    /拉开.{0,12}(屏风|石门|大门|木门|铁门)/.test(text) ||
-    /推开.{0,12}(门|石门|屏风)/.test(text) ||
+    /(?:向旁|缓缓|你|忽然|突然).{0,16}(拉开|推开|打开)/.test(text) ||
     /打开了?.{0,12}(门|石门|出口)/.test(text) ||
-    /出现了一?条?.{0,10}(甬道|出口|暗道|通道)/.test(text) ||
-    /现出.{0,12}(甬道|出口|暗道)/.test(text) ||
     /石壁.{0,10}(移开|打开|裂开)/.test(text) ||
     /墙.{0,8}(移开|打开)/.test(text) ||
     /多了.{0,8}出口/.test(text) ||
-    /通往.{0,16}(甬道|石室|洞|密室)/.test(text) ||
     /一扇.{0,8}门.{0,10}开/.test(text)
   );
+}
+
+/** Room-long residue after a passage opens — never belongs in 见闻. */
+export function isStaticPassageLine(line: string): boolean {
+  const t = line.trim();
+  if (!t) return false;
+  if (ROOM_LOOK_STATIC_PASSAGE.test(t)) return true;
+  if (/屏风/.test(t) && /拉开|露出/.test(t)) return true;
+  // Soft-wrap / TCP fragments of the opened-passage description
+  if (/露出一条长长的甬道/.test(t) && !/(?:向旁|缓缓|你)/.test(t)) return true;
+  if (/^拉开，?露出/.test(t)) return true;
+  return false;
 }
 
 /**
@@ -1042,7 +1143,14 @@ export function mergeSuggestedActions(
       label: labelSuggestedAction(a.command, npcs),
     });
   }
-  return [...map.values()].slice(-limit);
+  const all = [...map.values()];
+  // 关门/开锁等场景关键动作优先保留，避免被 slice 挤掉
+  const pinned = all.filter((a) => {
+    const v = a.command.trim().split(/\s+/)[0]?.toLowerCase();
+    return v === "open" || v === "unlock" || v === "close";
+  });
+  const rest = all.filter((a) => !pinned.includes(a));
+  return [...pinned, ...rest.slice(-(Math.max(0, limit - pinned.length)))];
 }
 
 /**
@@ -1104,6 +1212,28 @@ export function closedDoorActions(
     out.push({ command: `open ${target}`, label: `打开${name}` });
   }
   return out;
+}
+
+/**
+ * When doors[] is missing but the room is clearly a shut gate (侠客岛石门),
+ * still offer open — avoids a blank「动作」row if protocol/look raced.
+ */
+export function inferredShutDoorActions(room: {
+  title?: string;
+  desc?: string;
+  exits?: { dir: string; label?: string }[];
+  doors?: { dir: string; name?: string; status?: string }[];
+}): SuggestedAction[] {
+  const fromProtocol = closedDoorActions(room.doors);
+  if (fromProtocol.length) return fromProtocol;
+  const title = room.title || "";
+  if (!/石门/.test(title)) return [];
+  const hasEnter = (room.exits || []).some(
+    (e) => e.dir === "enter" || e.label === "进"
+  );
+  if (hasEnter) return [];
+  if (!/石门|厚重/.test(room.desc || title)) return [];
+  return [{ command: "open 石门", label: "打开石门" }];
 }
 
 /** 侠客岛靠岸大车等：id/name 匹配。 */
@@ -1768,7 +1898,12 @@ export function groundItemActions(
 ): { label: string; command: string }[] {
   const target = invCommandTarget(id, name);
   if (!target) return [];
-  if (scenery) return [{ label: "查看", command: `look ${target}` }];
+  if (scenery) {
+    return [
+      { label: "查看", command: `look ${target}` },
+      ...sceneryPracticeActions(id, name),
+    ];
+  }
   if (isCarriageItem(id, name)) {
     return [
       { label: "看", command: `look ${target}` },

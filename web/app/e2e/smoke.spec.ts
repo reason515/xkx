@@ -1351,6 +1351,11 @@ test.describe.serial("game smoke", () => {
     await page.getByRole("button", { name: /练功/ }).click();
     await expect(page.getByText(/暂无已激发且可选择的功夫/)).toBeVisible();
     await expect(page.getByRole("button", { name: "开始", exact: true })).toBeDisabled();
+
+    await page.getByRole("button", { name: /打坐/ }).click();
+    await expect(page.getByText(/打坐需先激发内功/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "开始", exact: true })).toBeDisabled();
+
     await page.getByRole("button", { name: /吐纳/ }).click();
     await page.getByRole("radio", { name: "按次数" }).click();
     await expect(page.getByLabel("修炼次数")).toHaveValue("1");
@@ -1368,7 +1373,7 @@ test.describe.serial("game smoke", () => {
         const toast = ((await page.locator(".toast").textContent()) || "").trim();
         return `${status}\n${toast}`;
       }, { timeout: 15_000 })
-      .toMatch(/修炼助手|调息中|进行中|挂机助手/);
+      .toMatch(/修炼助手|调息中|启动中|进行中/);
 
     await page.getByRole("button", { name: "停止", exact: true }).click();
     await expect(page.getByRole("button", { name: "开始", exact: true })).toBeVisible({
@@ -1795,6 +1800,22 @@ test.describe.serial("game smoke", () => {
     await expect
       .poll(async () => hasExit(page, "进"), { timeout: 25_000 })
       .toBe(true);
+
+    // 钉死刷屏：连续采样见闻，静态「屏风已被拉开」必须始终为 0
+    const counts: number[] = [];
+    for (let i = 0; i < 5; i++) {
+      await page.waitForTimeout(1000);
+      const logs = (await page.locator(".log p").allTextContents()).join("\n");
+      counts.push((logs.match(/屏风已被拉开/g) || []).length);
+    }
+    expect(counts.every((n) => n === 0)).toBe(true);
+    // 拉开叙事最多出现一两次（say 软换行），不得随时间递增
+    const finalLogs = (await page.locator(".log p").allTextContents()).join(
+      "\n"
+    );
+    const openHits = (finalLogs.match(/向旁缓缓拉开|露出一条长长的甬道/g) || [])
+      .length;
+    expect(openHits).toBeLessThanOrEqual(3);
   });
 
   test("石门房间出现打开石门动作并可进入石洞", async ({ page }) => {
@@ -1808,42 +1829,116 @@ test.describe.serial("game smoke", () => {
       timeout: 90_000,
     });
 
-    await walkToDadongBoard(page);
-    await expect(page.locator(".room-title")).toHaveText(/大山洞/);
-    await askNpcViaEntitySheet(page, /厮仆/, "岛主");
+    // 直达石门并强制关门，避免全服共享门状态让用例误用「进」蒙混过关
+    await sendSilentCmd(page, "xkxe2e gate");
+    await sendSilentCmd(page, "xkxe2e closedoor");
+    await sendSilentCmd(page, "look");
+    await expect(page.locator(".room-title")).toHaveText(/石门/, {
+      timeout: 20_000,
+    });
+
+    await openSceneTab(page);
+    const openChip = page
+      .locator("[data-testid='door-actions'] .chip.action, .chip.action")
+      .filter({ hasText: /打开石门|打开门/ })
+      .first();
+    await expect(openChip).toBeVisible({ timeout: 25_000 });
+    // 关门时不应已有「进」
+    expect(await hasExit(page, "进")).toBe(false);
+
+    await clickActionAndWaitLog(page, /打开石门|打开门/, /打开|石门/, 20_000);
+    await expect
+      .poll(async () => hasExit(page, "进"), { timeout: 25_000 })
+      .toBe(true);
+
+    // 离开石门房间后应自动关回，避免污染后续玩家
+    await goByExitLabel(page, "南");
+    await page.waitForTimeout(1500);
+    await goByExitLabel(page, "北");
+    await expect(page.locator(".room-title")).toHaveText(/石门/, {
+      timeout: 20_000,
+    });
+    await sendSilentCmd(page, "look");
+    await expect
+      .poll(
+        async () => {
+          await openSceneTab(page);
+          return page
+            .locator("[data-testid='door-actions'] .chip.action")
+            .filter({ hasText: /打开石门|打开门/ })
+            .first()
+            .isVisible()
+            .catch(() => false);
+        },
+        { timeout: 15_000 }
+      )
+      .toBe(true);
+    expect(await hasExit(page, "进")).toBe(false);
+
+    await clickActionAndWaitLog(page, /打开石门|打开门/, /打开|石门/, 20_000);
     await expect
       .poll(async () => hasExit(page, "进"), { timeout: 25_000 })
       .toBe(true);
 
     await goByExitLabel(page, "进");
-    await goByExitLabel(page, "北");
+    await expect(page.locator(".room-title")).toHaveText(/石洞/, {
+      timeout: 20_000,
+    });
+
+    await openSceneTab(page);
+    await page.getByRole("button", { name: "地图" }).click();
+    await expect(page.locator(".map-ascii")).toContainText(/石洞/);
+    await expect(page.locator(".map-ascii")).toContainText(/石室/);
+    await expect(page.locator(".map-ascii mark.map-here")).toHaveText(/石洞/);
+  });
+
+  test("石室石壁可领悟武功", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 90_000,
+    });
+
+    await sendSilentCmd(page, "xkxe2e gate");
+    await sendSilentCmd(page, "xkxe2e closedoor");
+    await sendSilentCmd(page, "look");
     await expect(page.locator(".room-title")).toHaveText(/石门/, {
       timeout: 20_000,
     });
 
-    // 石门状态全服共享：若已被他人打开则直接有「进」；否则应出现开门动作
-    await sendSilentCmd(page, "look");
     await openSceneTab(page);
-    const openChip = page
-      .locator(".chip.action")
-      .filter({ hasText: /打开石门|打开门/ })
-      .first();
-    await expect
-      .poll(
-        async () =>
-          (await openChip.isVisible().catch(() => false)) ||
-          (await hasExit(page, "进")),
-        { timeout: 25_000 }
-      )
-      .toBe(true);
-
-    if (await openChip.isVisible().catch(() => false)) {
-      await clickActionAndWaitLog(page, /打开石门|打开门/, /打开|石门/, 20_000);
-    }
-
+    await expect(
+      page.locator(".chip.action").filter({ hasText: /打开石门|打开门/ }).first()
+    ).toBeVisible({ timeout: 25_000 });
+    await clickActionAndWaitLog(page, /打开石门|打开门/, /打开|石门/, 20_000);
     await expect
       .poll(async () => hasExit(page, "进"), { timeout: 25_000 })
       .toBe(true);
+
+    await goByExitLabel(page, "进");
+    await expect(page.locator(".room-title")).toHaveText(/石洞/, {
+      timeout: 20_000,
+    });
+    await goByExitLabel(page, "北");
+    await expect(page.locator(".room-title")).toHaveText(/石室/, {
+      timeout: 20_000,
+    });
+
+    await openSceneTab(page);
+    const wall = page.locator(".chip.item").filter({ hasText: /石壁/ }).first();
+    await expect(wall).toBeVisible({ timeout: 15_000 });
+    await wall.click();
+    await expect(page.getByRole("button", { name: "领悟", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "领悟", exact: true }).click();
+    await expect
+      .poll(async () => (await page.locator(".log p").allTextContents()).join("\n"), {
+        timeout: 15_000,
+      })
+      .toMatch(/领悟|图谱|经验不足|无法|看了一会/);
   });
 
   test("告示牌可浏览留言并可点读", async ({ page }) => {

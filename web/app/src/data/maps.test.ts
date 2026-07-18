@@ -27,11 +27,40 @@ describe("getMapText / getMapLabel", () => {
     const xkd = getMapText("xiakedao") || "";
     expect(xkd).toContain("沙滩");
     expect(xkd).toContain("望海亭");
+    expect(xkd).toContain("石门");
+    expect(xkd).toContain("石洞");
+    expect(xkd).toContain("石室");
     expect(getMapLabel("xiakedao")).toBe("侠客岛");
 
     const world = getMapText("all") || "";
     expect(world).toMatch(/扬州城|侠客岛/);
     expect(getMapLabel("all")).toContain("总图");
+  });
+
+  it("marks stone-cave rooms on xiakedao map by path", () => {
+    const xkd = getMapText("xiakedao") || "";
+    expect(
+      mapMarkerOccurrence("xiakedao", "石洞", { roomPath: "xiakexing1" })
+    ).toBe(0);
+    expect(
+      mapMarkerOccurrence("xiakedao", "石洞", { roomPath: "xiakexing6" })
+    ).toBe(5);
+    expect(
+      mapMarkerOccurrence("xiakedao", "石室", { roomPath: "xkx1" })
+    ).toBe(0);
+    expect(
+      mapMarkerOccurrence("xiakedao", "石室", { roomPath: "xkx22" })
+    ).toBe(23);
+    expect(
+      mapMarkerOccurrence("xiakedao", "甬道", { roomPath: "yongdao10" })
+    ).toBe(5);
+    expect(
+      mapMarkerOccurrence("xiakedao", "石门", { roomPath: "gate" })
+    ).toBe(0);
+
+    const caveHtml = highlightMapText(xkd, ["石洞"], { 石洞: 0 });
+    expect(caveHtml).toContain('<mark class="map-here">石洞</mark>');
+    expect((xkd.match(/石洞/g) || []).length).toBe(6);
   });
 });
 

@@ -15,7 +15,32 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor\n");
+
+	if (arg == "gate") {
+		ob = load_object("/d/xiakedao/gate");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载石门。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到石门。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
+	if (arg == "closedoor") {
+		ob = environment(me);
+		if (!objectp(ob))
+			return notify_fail("（测试）你不在任何房间。\n");
+		if (ob->query_door("enter", "status") & 1)
+			tell_object(me, "（测试）石门已是关闭状态。\n");
+		else if (ob->close_door("enter"))
+			tell_object(me, "（测试）已关闭石门。\n");
+		else
+			return notify_fail("（测试）无法关闭石门。\n");
+		WEBD->notify_room(ob);
+		return 1;
+	}
 
 	if (arg == "grantleave") {
 		me->set_temp("marks/离", 1);
@@ -47,12 +72,14 @@ int main(object me, string arg)
 int help(object me)
 {
 	write(@HELP
-指令格式：xkxe2e grantleave | givearmor | giveweapon
+指令格式：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor
 
 仅在服务器开启 e2e 开关（/adm/etc/xkd_e2e）时可用，供自动化测试：
   grantleave  — 模拟岛主放行
   givearmor   — 发放同槽护具（油布雨衣）供换装测试
   giveweapon  — 发放钢刀供换装测试
+  gate        — 传送到侠客岛石门
+  closedoor   — 关闭当前房间 enter 方向的门（石门）
 HELP
 	);
 	return 1;
