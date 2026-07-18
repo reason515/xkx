@@ -10,6 +10,7 @@ import { CombatSheet } from "../CombatSheet";
 import { EntitySheet } from "../EntitySheet";
 import { HelpSheet } from "../HelpSheet";
 import { MapSheet } from "../MapSheet";
+import { SpeechSheet } from "../SpeechSheet";
 import { TrainSheet } from "../TrainSheet";
 import { LeftSidebar } from "./LeftSidebar";
 import { ModeSwitch } from "./ModeSwitch";
@@ -60,6 +61,9 @@ function DesktopShell({
         </div>
         <div className="desktop-top-actions">
           <ModeSwitch mode={mode} onChange={onModeChange} />
+          <button type="button" onClick={() => g.openSheet("speech")}>
+            发言
+          </button>
           <button type="button" onClick={() => g.onOpenHelp()}>
             帮助
           </button>
@@ -123,6 +127,7 @@ function DesktopShell({
           roomPath={state.room.path}
           roomNpcs={state.room.npcs}
           roomItems={state.room.items}
+          roomExits={state.room.exits}
           onClose={g.closeSheet}
         />
       )}
@@ -140,10 +145,10 @@ function DesktopShell({
           active={state.assistActive}
           status={state.assistStatus}
           trainLog={state.trainLog}
+          enabled={state.enabled}
           onClose={g.closeSheet}
           onStart={g.startAssist}
           onStop={g.stopAssist}
-          onCmd={g.cmd}
         />
       )}
       {state.sheet === "combat" && (
@@ -163,11 +168,22 @@ function DesktopShell({
           onStopAssist={g.stopAssist}
         />
       )}
+      {state.sheet === "speech" && (
+        <SpeechSheet
+          nearby={state.room.npcs}
+          onClose={g.closeSheet}
+          onSend={(command) => g.cmd(command, { silent: true })}
+        />
+      )}
       {state.sheet === "entity" && g.selectedEntity && (
         <EntitySheet
           id={g.selectedEntity.id}
           name={g.selectedEntity.name}
           kind={g.selectedEntity.kind}
+          scenery={g.selectedEntity.scenery}
+          canApprentice={g.selectedEntity.canApprentice}
+          canTrade={g.selectedEntity.canTrade}
+          inventory={state.inventory}
           docText={state.docTarget === "entity" ? state.docText : ""}
           docLoading={state.docTarget === "entity" && state.docLoading}
           askHints={state.suggestedActions}
@@ -182,6 +198,7 @@ function DesktopShell({
           onDocAction={(command) => g.docCmd(command, "entity")}
           onAskList={(command) => g.docCmd(command, "entity")}
           onLearnList={(command) => g.docCmd(command, "entity")}
+          onStartLearn={g.startAssist}
           onClearDoc={g.clearDoc}
         />
       )}

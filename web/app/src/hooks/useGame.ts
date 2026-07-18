@@ -3,17 +3,21 @@ import {
   beachGreeterActions,
   buildScoreHtml,
   carriageTravelActions,
+  chunkLooksLikeSelfLook,
   closedDoorActions,
   extractLookBlock,
+  extractSelfLookPanel,
   isCombatLine,
   isEntitySheetAction,
   isLoginNoise,
   isMorePromptLine,
   isProtocolNoise,
   isSelfLookLine,
+  isSelfLookStopLine,
   isRoomLookLine,
   isSheetDumpLine,
   isTrainLine,
+  labelSuggestedAction,
   mergeSuggestedActions,
   suggestedActionsFromRoomText,
   parseEnableMap,
@@ -48,6 +52,7 @@ import { applyEvent } from "../lib/protocol";
 import type {
   AssistConfig,
   DocTarget,
+  Entity,
   GameState,
   LogEntry,
   MudEvent,
@@ -117,11 +122,7 @@ export function useGame(opts?: UseGameOptions) {
     dir: string;
     name?: string;
   } | null>(null);
-  const [selectedEntity, setSelectedEntity] = useState<{
-    id: string;
-    name: string;
-    kind: "npc" | "item";
-  } | null>(null);
+  const [selectedEntity, setSelectedEntity] = useState<Entity | null>(null);
   const [charTab, setCharTab] = useState(0);
   const [guideDismissed, setGuideDismissed] = useState<Set<string>>(
     () => readDismissed()
@@ -327,7 +328,10 @@ export function useGame(opts?: UseGameOptions) {
         scheduleEquipRefresh();
       }
       socket.current.cmd(command);
-      if (!opts?.silent) addLog(`> ${command}`, "sys");
+      // go 由点出口触发，见闻不必回显；其它显式指令仍可 echo（如 say）
+      const quiet =
+        !!opts?.silent || verb === "go";
+      if (!quiet) addLog(`> ${command}`, "sys");
       // 张三传送约 5s；补一次 look，避免 room.update 迟到时标题仍停在沙滩
       if (verb === "follow") {
         window.setTimeout(() => {
@@ -419,11 +423,18 @@ export function useGame(opts?: UseGameOptions) {
             ev.type === "room.update" &&
             !!applied.room.title &&
             applied.room.title !== s.room.title;
+          const roomEntities = [
+            ...(applied.room.npcs || []),
+            ...(applied.room.items || []),
+          ];
           const fromDesc = suggestedActionsFromRoomText(
-            applied.room.desc || "",
+            `${applied.room.desc || ""}\n${applied.room.sceneryText || ""}`,
             applied.room.npcs,
             applied.room.title || ""
-          );
+          ).map((action) => ({
+            ...action,
+            label: labelSuggestedAction(action.command, roomEntities),
+          }));
           const roomHints = [
             ...fromDesc,
             ...beachGreeterActions(applied.room.title, applied.room.npcs),
@@ -443,7 +454,7 @@ export function useGame(opts?: UseGameOptions) {
             suggestedActions: mergeSuggestedActions(
               prevKeep,
               roomHints,
-              applied.room.npcs
+              roomEntities
             ),
           };
         });
@@ -469,36 +480,22 @@ export function useGame(opts?: UseGameOptions) {
         let suppressSelfLook = false;
         if (expectLookMe.current) {
           const lookFailed = /你要看什么？/.test(chunk);
-          const looksLikeSelfLook =
-            /你看起来|你身上带[着著]|看起来约.+[岁歲]/.test(chunk) &&
-            !/打听有关|向.+打听/.test(chunk);
+          // 勿把 inventory「身上带著下列」误当成 look-me；look+hp 同包时截断气血行
           if (lookFailed) {
             // keep waiting for a real look-me reply
-          } else if (looksLikeSelfLook) {
+          } else if (chunkLooksLikeSelfLook(chunk)) {
             expectLookMe.current = false;
             suppressSelfLook = true;
-            const lookPlain = lines
-              .filter((l) => {
-                const t = l.trim();
-                if (!t) return false;
-                if (isSheetDumpLine(t, chunk)) return false;
-                return true;
-              })
-              .join("\n");
-            const lookHtml = (msg.htmlLines || [])
-              .filter((h, i) => {
-                const plain =
-                  (lines[i] ?? "").trim() || h.replace(/<[^>]+>/g, "").trim();
-                if (!plain) return false;
-                if (isSheetDumpLine(plain, chunk)) return false;
-                return true;
-              })
-              .join("\n");
+            const { text: lookPlain, html: lookHtml } = extractSelfLookPanel(
+              chunk,
+              msg.htmlLines
+            );
             if (lookPlain.trim()) {
               setState((s) => ({
                 ...s,
                 lookText: lookPlain,
-                lookHtml: lookHtml || s.lookHtml,
+                // 显式写入（可为空），避免沿用旧 lookHtml 把 hp 残留在仪容
+                lookHtml,
               }));
             }
           }
@@ -520,8 +517,9 @@ export function useGame(opts?: UseGameOptions) {
           if (isSheetDumpLine(line, chunk)) continue;
           if (isRoomLookLine(line, chunk)) continue;
           // 仪容分片到达时也挡掉；NPC 打听等不会命中 isSelfLookLine
-          if ((suppressSelfLook || expectLookMe.current) && isSelfLookLine(line))
-            continue;
+          if (suppressSelfLook || expectLookMe.current) {
+            if (isSelfLookLine(line) || isSelfLookStopLine(line)) continue;
+          }
           if (isCombatLine(line)) {
             setState((s) => ({
               ...s,
@@ -922,7 +920,8 @@ export function useGame(opts?: UseGameOptions) {
     (dir: string) => {
       roomFromEvent.current = false;
       setState((s) => ({ ...s, suggestedActions: [] }));
-      cmd(`go ${dir}`);
+      // 走动不在见闻回显「> go north」——场景标题/描写已能感知换房
+      cmd(`go ${dir}`, { silent: true });
       closeSheet();
     },
     [cmd, closeSheet]

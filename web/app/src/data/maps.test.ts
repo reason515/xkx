@@ -72,6 +72,51 @@ describe("mapMarkerOccurrence", () => {
     ).toBe(2);
   });
 
+  it("maps three 小路 rooms to distinct map occurrences", () => {
+    // 0 = 小路－礁石, 1 = 海边－小路→山路, 2 = 迎宾厅南
+    expect(
+      mapMarkerOccurrence("xiakedao", "小路", { roomPath: "xiaolu3" })
+    ).toBe(0);
+    expect(
+      mapMarkerOccurrence("xiakedao", "小路", { roomPath: "xiaolu2" })
+    ).toBe(1);
+    expect(
+      mapMarkerOccurrence("xiakedao", "小路", { roomPath: "xiaolu" })
+    ).toBe(2);
+  });
+
+  it("disambiguates 小路 by exit names when path missing", () => {
+    expect(
+      mapMarkerOccurrence("xiakedao", "小路", {
+        exitNames: ["沙滩", "迎宾厅"],
+      })
+    ).toBe(2);
+    expect(
+      mapMarkerOccurrence("xiakedao", "小路", {
+        exitNames: ["望海亭", "海边"],
+      })
+    ).toBe(1);
+    expect(
+      mapMarkerOccurrence("xiakedao", "小路", {
+        exitNames: ["山脚下", "礁石"],
+      })
+    ).toBe(0);
+  });
+
+  it("highlights 迎宾厅南小路 after 迎宾厅, not the reef path", () => {
+    const xkd = getMapText("xiakedao") || "";
+    const reef = highlightMapText(xkd, ["小路"], { 小路: 0 });
+    const south = highlightMapText(xkd, ["小路"], {
+      小路: mapMarkerOccurrence("xiakedao", "小路", { roomPath: "xiaolu" }),
+    });
+    expect(south.indexOf("map-here")).toBeGreaterThan(reef.indexOf("map-here"));
+    const beforeSouth = south.slice(0, south.indexOf("map-here"));
+    expect(beforeSouth).toContain("迎宾厅");
+    // first 小路 is 「小路－礁石」, before 迎宾厅 on the ASCII map
+    expect(reef.slice(0, reef.indexOf("map-here"))).not.toContain("迎宾厅");
+    expect(reef.slice(reef.indexOf("map-here")).slice(0, 40)).toMatch(/礁石/);
+  });
+
   it("highlights main beach south of 迎宾厅, not the north row", () => {
     const xkd = getMapText("xiakedao") || "";
     const north = highlightMapText(xkd, ["沙滩"], { 沙滩: 0 });

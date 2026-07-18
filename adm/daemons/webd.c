@@ -77,12 +77,13 @@ void mark_web(object me)
 
 void send_room(object me, object env)
 {
-	mapping exits;
+	mapping exits, item_desc;
 	string *dirs, *elist, *dlist, dir, dest, door_name, door_status;
 	object *inv, ob;
 	mapping event;
-	string *npcs, *items;
-	string area, file, *parts;
+	string *npcs, *items, *command_ids;
+	string area, file, *parts, item_desc_text, item_key, command_id, candidate;
+	mixed item_value;
 	int i, door_st;
 
 	if (!objectp(me) || !objectp(env)) return;
@@ -100,6 +101,20 @@ void send_room(object me, object env)
 		}
 	}
 	if (!stringp(area)) area = "";
+
+	/*
+	 * Include static item_desc prose so Web can expose nested scenery:
+	 * room long「深涧(stream)」→ item_desc「鱼儿(fish)」.
+	 * Only string values are safe; closures/functions remain server-side.
+	 */
+	item_desc_text = "";
+	item_desc = env->query("item_desc");
+	if (mapp(item_desc)) {
+		foreach (item_key, item_value in item_desc) {
+			if (!stringp(item_value) || item_value == "") continue;
+			item_desc_text += "@@ITEM:" + item_key + "@@\n" + item_value + "\n";
+		}
+	}
 
 	/* Room file key for map disambiguation, e.g. "shatan" from /d/xiakedao/shatan */
 	file = base_name(env);
@@ -147,16 +162,34 @@ void send_room(object me, object env)
 	inv = all_inventory(env);
 	foreach (ob in inv) {
 		if (ob == me || !me->visible(ob)) continue;
-		if (ob->is_character())
-			npcs += ({ sprintf("{\"id\":\"%s\",\"name\":\"%s\",\"kind\":\"npc\"}", json_escape(ob->query("id") || ""), json_escape(ob->name() || "")) });
-		else
+		if (ob->is_character()) {
+			command_id = ob->query("id") || "";
+			if (function_exists("parse_command_id_list", ob)) {
+				command_ids = ob->parse_command_id_list();
+				foreach (candidate in command_ids) {
+					if (stringp(candidate) && candidate != "" && strsrch(candidate, " ") < 0) {
+						command_id = candidate;
+						break;
+					}
+				}
+			}
+			npcs += ({ sprintf(
+				"{\"id\":\"%s\",\"commandId\":\"%s\",\"name\":\"%s\",\"kind\":\"npc\",\"canApprentice\":%d,\"canTrade\":%d}",
+				json_escape(ob->query("id") || ""),
+				json_escape(command_id),
+				json_escape(ob->name() || ""),
+				(!userp(ob) && mapp(ob->query("family"))) ? 1 : 0,
+				arrayp(ob->query("vendor_goods")) ? 1 : 0
+			) });
+		} else
 			items += ({ sprintf("{\"id\":\"%s\",\"name\":\"%s\",\"kind\":\"item\"}", json_escape(ob->query("id") || ""), json_escape(ob->name() || "")) });
 	}
 
 	emit_raw(me, sprintf(
-		"{\"v\":1,\"type\":\"room.update\",\"title\":\"%s\",\"long\":\"%s\",\"area\":\"%s\",\"path\":\"%s\",\"canSleep\":%d,\"exits\":%s,\"doors\":%s,\"npcs\":[%s],\"items\":[%s]}",
+		"{\"v\":1,\"type\":\"room.update\",\"title\":\"%s\",\"long\":\"%s\",\"itemDesc\":\"%s\",\"area\":\"%s\",\"path\":\"%s\",\"canSleep\":%d,\"exits\":%s,\"doors\":%s,\"npcs\":[%s],\"items\":[%s]}",
 		json_escape(env->query("short") || ""),
 		json_escape(env->query("long") || ""),
+		json_escape(item_desc_text),
 		json_escape(area),
 		json_escape(file),
 		(env->query("sleep_room") && !env->query("no_sleep_room")) ? 1 : 0,

@@ -4,6 +4,7 @@ import {
   loadSavedCredentials,
   saveCredentials,
 } from "../lib/savedCredentials";
+import { ChoiceRow } from "./ChoiceRow";
 
 interface Props {
   onLogin: (opts: {
@@ -104,13 +105,18 @@ export function LoginPage({ onLogin, error }: Props) {
               中文名字
               <input value={name} onChange={(e) => setName(e.target.value)} />
             </label>
-            <label>
-              性别
-              <select value={gender} onChange={(e) => setGender(e.target.value)}>
-                <option value="男">男</option>
-                <option value="女">女</option>
-              </select>
-            </label>
+            <div className="login-field">
+              <span id="login-gender-label">性别</span>
+              <ChoiceRow
+                label="性别"
+                value={gender}
+                options={[
+                  { id: "男", label: "男" },
+                  { id: "女", label: "女" },
+                ]}
+                onChange={setGender}
+              />
+            </div>
           </>
         )}
         <label className="login-check">

@@ -35,6 +35,14 @@ export interface Entity {
   id: string;
   name: string;
   kind: "npc" | "item";
+  /** Single-token alias for commands that cannot parse multi-word ids. */
+  commandId?: string;
+  /** Virtual room scenery from room long/item_desc; inspectable but not pickable. */
+  scenery?: boolean;
+  /** NPC has a family lineage and can receive apprentice/bai. */
+  canApprentice?: boolean | number;
+  /** NPC exposes vendor goods through F_DEALER. */
+  canTrade?: boolean | number;
 }
 
 /** Context action hinted by room/NPC text (e.g. follow mu laoqi). */
@@ -46,6 +54,8 @@ export interface SuggestedAction {
 export interface RoomState {
   title?: string;
   desc?: string;
+  /** Hidden item_desc prose used to discover nested scenery and action hints. */
+  sceneryText?: string;
   /** MUD area key from outdoors /d/<area>/… (e.g. xiakedao). */
   area?: string;
   /** Room file basename from webd (e.g. shatan) for map disambiguation. */
@@ -136,10 +146,11 @@ export interface InvItem {
 }
 
 export interface AssistConfig {
-  mode: "dazuo" | "tuna" | "lian" | "combat";
+  mode: "dazuo" | "tuna" | "lian" | "learn" | "combat";
   stopWhen?: "full" | "count" | "potential";
   stopCount?: number;
   skill?: string;
+  teacher?: string;
   lowHpPct?: number;
   lowHpAction?: "warn" | "flee" | "stop";
   stopOnCombat?: boolean;
@@ -165,6 +176,7 @@ export type SheetKind =
   | "help"
   | "train"
   | "combat"
+  | "speech"
   | "entity"
   | "exit"
   | null;

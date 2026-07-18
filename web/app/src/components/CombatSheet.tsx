@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { Entity } from "../lib/types";
+import { ChoiceRow } from "./ChoiceRow";
 
 interface Props {
   npcs: Entity[];
@@ -61,9 +62,9 @@ export function CombatSheet({
               })
             )}
           </div>
-          <div style={{ marginBottom: 14, fontSize: 13 }}>
-            <p style={{ color: "var(--paper-dim)", marginBottom: 8 }}>战斗辅助</p>
-            <label>
+          <div className="combat-assist">
+            <p className="combat-assist-label">战斗辅助</p>
+            <label className="combat-assist-threshold">
               气血低于{" "}
               <input
                 type="number"
@@ -71,28 +72,19 @@ export function CombatSheet({
                 max={80}
                 value={lowHpPct}
                 onChange={(e) => setLowHpPct(+e.target.value)}
-                style={{ width: 48, padding: 4, borderRadius: 6, border: "1px solid var(--line)" }}
               />
               % 时
             </label>
-            <select
+            <ChoiceRow
+              label="低血处置"
               value={lowHpAction}
-              onChange={(e) =>
-                setLowHpAction(e.target.value as "warn" | "flee" | "stop")
-              }
-              style={{
-                marginLeft: 8,
-                padding: 4,
-                borderRadius: 6,
-                border: "1px solid var(--line)",
-                background: "var(--ink-lift)",
-                color: "var(--paper)",
-              }}
-            >
-              <option value="warn">提示</option>
-              <option value="flee">逃跑</option>
-              <option value="stop">停手</option>
-            </select>
+              options={[
+                { id: "warn", label: "提示" },
+                { id: "flee", label: "逃跑" },
+                { id: "stop", label: "停手" },
+              ]}
+              onChange={setLowHpAction}
+            />
           </div>
           <div className="combat-log">
             {combatLog.length === 0 ? (

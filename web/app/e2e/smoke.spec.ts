@@ -234,7 +234,7 @@ async function completeIntroFollow(page: import("@playwright/test").Page) {
   });
 }
 
-/** 场景人物 → 问 → 点选话题（完整打听列表在面板内，不依赖场景动作 chip） */
+/** 场景人物 → 打听 → 点选话题（完整打听列表在面板内，不依赖场景动作 chip） */
 async function askNpcViaEntitySheet(
   page: import("@playwright/test").Page,
   npcName: RegExp | string,
@@ -242,8 +242,10 @@ async function askNpcViaEntitySheet(
 ) {
   await openSceneTab(page);
   await page.locator(".chip.npc").filter({ hasText: npcName }).click();
-  await expect(page.getByRole("button", { name: "问", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "问", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "打听", exact: true })
+  ).toBeVisible();
+  await page.getByRole("button", { name: "打听", exact: true }).click();
   const topicBtn = page.getByRole("button", { name: topic, exact: true });
   await expect(topicBtn).toBeVisible({ timeout: 15_000 });
   await topicBtn.click();
@@ -595,8 +597,9 @@ test.describe.serial("game smoke", () => {
     expect(heights.scene).toBeGreaterThan(120);
     expect(heights.log).toBeGreaterThan(120);
     const ratio = heights.scene / heights.log;
-    expect(ratio).toBeGreaterThan(0.7);
-    expect(ratio).toBeLessThan(1.4);
+    // 场景略高于见闻（约 55:45 → ratio ≈ 1.22）
+    expect(ratio).toBeGreaterThan(1.0);
+    expect(ratio).toBeLessThan(1.5);
 
     await expect(page.getByRole("textbox", { name: "指令" })).toBeVisible();
     await expect(page.getByRole("button", { name: "发送" })).toBeVisible();
@@ -701,6 +704,9 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".log-panel")).toBeVisible();
     await expect(page.locator(".scene-panel")).toBeVisible();
     await expect(roomTitle).not.toHaveText(titleBefore, { timeout: 20_000 });
+    // 点出口走动：见闻不回显「> go north」一类指令
+    const afterGo = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(afterGo).not.toMatch(/^>\s*go\b/m);
   });
 
   test("角色卡片查询不进见闻，档案无横幅标题", async ({ page }) => {
@@ -726,6 +732,22 @@ test.describe.serial("game smoke", () => {
         return ((await look.first().textContent()) || "").trim();
       }, { timeout: 20_000 })
       .not.toMatch(/你要看什么/);
+
+    // 仪容 = look me：可有「身上带著」+ 装备；不得灌入随后 hp 的 精/气 行
+    await expect
+      .poll(async () => {
+        const look = page.locator(".panel.on .look-block");
+        if (!(await look.count())) return "";
+        return ((await look.first().textContent()) || "").trim();
+      }, { timeout: 20_000 })
+      .toMatch(/你看起来|看起来约|身上带[着著]/);
+    const lookText = (
+      (await page.locator(".panel.on .look-block").first().textContent()) || ""
+    ).trim();
+    expect(lookText).not.toMatch(/精\s*[：:].*\d/);
+    expect(lookText).not.toMatch(/精力\s*[：:].*\d/);
+    expect(lookText).not.toMatch(/^\s*气\s*[：:]/m);
+    expect(lookText).not.toMatch(/负重\s*\d+\s*%/);
 
     await page.getByRole("button", { name: "档案" }).click();
 
@@ -758,10 +780,18 @@ test.describe.serial("game smoke", () => {
     expect(logBlob).not.toMatch(/膂力[：:].*悟性/);
     expect(logBlob).not.toMatch(/你要看什么/);
     expect(logBlob).not.toMatch(/目前所学过的技能|目前并没有学会任何技能/);
+    // 打开面板会静默跑 enable/prepare；对新手的空技能回复勿漏进见闻
+    expect(logBlob).not.toMatch(/没有使用任何(?:有效)?特殊技能/);
+    expect(logBlob).not.toMatch(/没有组合任何特殊拳术技能/);
     expect(logBlob).not.toMatch(/身上带[着著]下列|目前你身上没有任何东西/);
     expect(logBlob).not.toMatch(/^[┌└│]/m);
     expect(logBlob).not.toMatch(/初学乍练|粗通皮毛/);
     expect(logBlob).not.toMatch(/^【[^】]{1,12}】.+\([A-Za-z]/m);
+    // look me 头衔短称 + 粘提示符的气血行，不得灌进见闻
+    expect(logBlob).not.toMatch(/普通百姓\s+\S+\([A-Za-z]/);
+    expect(logBlob).not.toMatch(/精\s*[：:]/);
+    expect(logBlob).not.toMatch(/精力\s*[：:]/);
+    expect(logBlob).not.toMatch(/^\s*>?\s*气\s*[：:]/m);
 
     await page.getByRole("button", { name: "武功" }).click();
     await expect
@@ -1045,6 +1075,36 @@ test.describe.serial("game smoke", () => {
       .toEqual({ total: beforeTotal - 1, same: beforeSame - 1 });
   });
 
+  test("望海亭嵌套景物可查看并呈现情境动作", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    for (const label of ["北", "北", "北", "北"]) {
+      await goByExitLabel(page, label);
+    }
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/望海亭/, {
+      timeout: 20_000,
+    });
+
+    const fish = page.locator(".chip.item").filter({ hasText: "鱼儿" });
+    await expect(fish).toBeVisible();
+    await fish.click();
+    await expect(page.getByRole("button", { name: "查看", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "拿", exact: true })).toHaveCount(0);
+    await page.locator(".sheet .close").click();
+
+    await clickActionAndWaitLog(
+      page,
+      "搬动大石",
+      /发现一根鱼杆|没有发现/,
+      10_000
+    );
+    await openSceneTab(page);
+    await expect(page.getByRole("button", { name: "垂钓", exact: true })).toBeVisible();
+  });
+
   test("打开角色卡后仍可向渔夫打听侠客岛", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -1068,7 +1128,7 @@ test.describe.serial("game smoke", () => {
       .toMatch(/这里就是侠客岛|打听有关『侠客岛』/);
   });
 
-  test("人物面板问可点选打听话题", async ({ page }) => {
+  test("人物面板分组展示通用互动并可点选打听话题", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -1080,14 +1140,27 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".chip.npc").filter({ hasText: /渔夫/ })).toBeVisible({
       timeout: 30_000,
     });
-    // 打听只走人物「问」；场景动作区不展示 ask chip
+    // 打听只走人物面板；场景动作区不展示 ask chip
     await expect(
       page.locator(".chip.action").filter({ hasText: /向渔夫打听/ })
     ).toHaveCount(0);
+    // 渔夫台词「四处看看(look)…捡起来(get)」不得生成 拿起look / 环视 等误按钮
+    await expect(
+      page.locator(".chip.action").filter({ hasText: /拿起|look/i })
+    ).toHaveCount(0);
 
     await page.locator(".chip.npc").filter({ hasText: /渔夫/ }).click();
-    await expect(page.getByRole("button", { name: "问", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "问", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "常用" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "往来" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "查看", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "打听", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "请教", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "跟随", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "给予", exact: true })).toBeVisible();
+    await expect(page.getByText("交手", { exact: true })).toBeVisible();
+    // 渔夫没有 family，不应误导为可拜师
+    await expect(page.getByRole("button", { name: "拜师", exact: true })).toHaveCount(0);
+    await page.getByRole("button", { name: "打听", exact: true }).click();
 
     await expect(page.getByRole("heading", { name: /打听「渔夫」/ })).toBeVisible();
     const topic侠客岛 = page.getByRole("button", { name: "侠客岛", exact: true });
@@ -1166,6 +1239,66 @@ test.describe.serial("game smoke", () => {
     });
   });
 
+  test("小路黄衣大汉打听防具给背心且不说无可奉告", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 60_000,
+    });
+    // 沙滩 → 小路 → 迎宾厅 → 小路（黄衣大汉）
+    await goByExitLabel(page, "北");
+    await goByExitLabel(page, "北");
+    await goByExitLabel(page, "北");
+    await expect(page.locator(".room-title")).toHaveText(/小路/, {
+      timeout: 20_000,
+    });
+    await expect(
+      page.locator(".chip.npc").filter({ hasText: /黄衣大汉/ })
+    ).toBeVisible({ timeout: 20_000 });
+
+    await askNpcViaEntitySheet(page, /黄衣大汉/, "防具");
+
+    await expect
+      .poll(
+        async () => (await page.locator(".log p").allTextContents()).join("\n"),
+        { timeout: 20_000 }
+      )
+      .toMatch(/皮背心|铁背心|背心/);
+    const logs = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(logs).not.toMatch(/无可奉告/);
+  });
+
+  test("小路地图标记不与礁石旁小路混淆", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 60_000,
+    });
+
+    // 沙滩北 → 迎宾厅南「小路」(xiaolu)，图上应高亮第三处小路（迎宾厅以南）
+    await goByExitLabel(page, "北");
+    await expect(page.locator(".room-title")).toHaveText(/小路/, {
+      timeout: 20_000,
+    });
+
+    await page.getByRole("button", { name: "地图" }).click();
+    await expect(page.locator(".map-sheet")).toBeVisible();
+    await expect(page.locator(".map-here")).toBeVisible({ timeout: 10_000 });
+    const mapHtml = (await page.locator(".map-ascii").innerHTML()) || "";
+    const markAt = mapHtml.indexOf("map-here");
+    const hallAt = mapHtml.indexOf("迎宾厅");
+    expect(markAt).toBeGreaterThan(-1);
+    expect(hallAt).toBeGreaterThan(-1);
+    // 迎宾厅南小路：标记在迎宾厅之后，而非礁石旁第一处小路
+    expect(markAt).toBeGreaterThan(hallAt);
+  });
+
   test("宽屏下同样场景上见闻下同页", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await loginAsNewbie(page, {
@@ -1199,6 +1332,87 @@ test.describe.serial("game smoke", () => {
         return `${toast}\n${logs}`;
       }, { timeout: 15_000 })
       .toMatch(/已存档|档案储存完毕/);
+  });
+
+  test("顶栏修炼可启动吐纳助手并显示状态后停止", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    // 沙滩北小路：可吐纳（非 sleep_room / no_fight）
+    await goByExitLabel(page, "北");
+    await expect(page.locator(".room-title")).toHaveText(/小路/, {
+      timeout: 20_000,
+    });
+
+    await pickTopMenuItem(page, "修炼");
+    await expect(page.getByRole("heading", { name: "修炼" })).toBeVisible();
+    await page.getByRole("button", { name: /练功/ }).click();
+    await expect(page.getByText(/暂无已激发且可选择的功夫/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "开始", exact: true })).toBeDisabled();
+    await page.getByRole("button", { name: /吐纳/ }).click();
+    await page.getByRole("radio", { name: "按次数" }).click();
+    await expect(page.getByLabel("修炼次数")).toHaveValue("1");
+    await page.getByRole("radio", { name: "精力接近满" }).click();
+    await page.getByRole("button", { name: "开始", exact: true }).click();
+
+    await expect(page.getByRole("button", { name: "停止", exact: true })).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect
+      .poll(async () => {
+        const status = (
+          (await page.locator(".train-status").textContent()) || ""
+        ).trim();
+        const toast = ((await page.locator(".toast").textContent()) || "").trim();
+        return `${status}\n${toast}`;
+      }, { timeout: 15_000 })
+      .toMatch(/修炼助手|调息中|进行中|挂机助手/);
+
+    await page.getByRole("button", { name: "停止", exact: true }).click();
+    await expect(page.getByRole("button", { name: "开始", exact: true })).toBeVisible({
+      timeout: 10_000,
+    });
+  });
+
+  test("顶栏发言支持公开说话与指定身边人物耳语", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    const publicMessage = `诸位好${Date.now()}`;
+    await pickTopMenuItem(page, "发言");
+    await expect(page.getByRole("heading", { name: "发言" })).toBeVisible();
+    await page.getByLabel("内容").fill(publicMessage);
+    await page.getByRole("button", { name: "说出", exact: true }).click();
+
+    await expect
+      .poll(
+        async () => (await page.locator(".log p").allTextContents()).join("\n"),
+        { timeout: 15_000 }
+      )
+      .toContain(`你说道：${publicMessage}`);
+
+    const whisperMessage = `借一步说话${Date.now()}`;
+    await pickTopMenuItem(page, "发言");
+    await page.getByRole("radio", { name: "耳语" }).click();
+    const fisherman = page
+      .locator(".speech-targets [role='option']")
+      .filter({ hasText: /渔夫/ });
+    await expect(fisherman).toBeVisible();
+    await fisherman.click();
+    await page.getByLabel("内容").fill(whisperMessage);
+    await page.getByRole("button", { name: "说出", exact: true }).click();
+
+    await expect
+      .poll(
+        async () => (await page.locator(".log p").allTextContents()).join("\n"),
+        { timeout: 15_000 }
+      )
+      .toContain(`你在渔夫的耳边悄声说道：${whisperMessage}`);
+    const logs = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(logs).not.toMatch(/>\s*(?:say|whisper)\b/);
   });
 
   test("顶栏菜单退出后回到登录页", async ({ page }) => {
@@ -1378,7 +1592,7 @@ test.describe.serial("game smoke", () => {
     expect(logs).not.toMatch(/拉起你的手|还乱跑，来吧/);
   });
 
-  test("人物面板学可列出请教功夫或说明不可请教", async ({ page }) => {
+  test("人物面板请教可列出功夫或说明不可请教", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -1392,8 +1606,8 @@ test.describe.serial("game smoke", () => {
     });
 
     await page.locator(".chip.npc").filter({ hasText: /渔夫/ }).click();
-    await expect(page.getByRole("button", { name: "学", exact: true })).toBeVisible();
-    await page.getByRole("button", { name: "学", exact: true }).click();
+    await expect(page.getByRole("button", { name: "请教", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "请教", exact: true }).click();
 
     await expect(page.getByRole("heading", { name: /向「渔夫」请教/ })).toBeVisible();
     // 非师徒：skills 拒绝后给出说明（渔夫也不会在见闻里教武）
@@ -1443,8 +1657,15 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".chip.npc").filter({ hasText: /蓝衣弟子/ })).toBeVisible({
       timeout: 20_000,
     });
+    // 景物 chip 应为「瀑布 / 大树」，勿把「迎面是一道瀑布」整段当地物名
+    await expect(
+      page.locator(".chip.item").filter({ hasText: /^瀑布$/ })
+    ).toBeVisible();
+    await expect(
+      page.locator(".chip.item").filter({ hasText: /是一道瀑布/ })
+    ).toHaveCount(0);
 
-    // 见闻学武提示只进人物「学」面板，不上场景动作区
+    // 见闻学武提示只进人物「请教」面板，不上场景动作区
     await expect
       .poll(
         async () => {
@@ -1469,12 +1690,18 @@ test.describe.serial("game smoke", () => {
     ).toHaveCount(0);
 
     await page.locator(".chip.npc").filter({ hasText: /蓝衣弟子/ }).click();
-    await page.getByRole("button", { name: "学", exact: true }).click();
+    await page.getByRole("button", { name: "请教", exact: true }).click();
     await expect(page.getByRole("heading", { name: /向「蓝衣弟子」请教/ })).toBeVisible();
     await expect(page.getByRole("button", { name: "掌法", exact: true })).toBeVisible({
       timeout: 15_000,
     });
     await page.getByRole("button", { name: "掌法", exact: true }).click();
+    const learnCount = page.getByLabel("学习次数");
+    await expect(learnCount).toHaveValue("1");
+    await expect(
+      page.getByRole("radio", { name: "学到潜能耗尽" })
+    ).toBeVisible();
+    await page.getByRole("button", { name: "开始学习", exact: true }).click();
 
     await expect(page.locator(".log-panel")).toBeVisible();
     await expect

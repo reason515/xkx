@@ -206,4 +206,6 @@ int ask_armor()
         armor->move(this_object());
         armor->set("value", 0);
         command("give " + armor->query("id") + " to " + you->query("id"));
-        }
+        add("armor_count", -1);
+        return 1;
+}

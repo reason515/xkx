@@ -96,11 +96,15 @@ int main(object me, string arg)
 			me, ob);
 		return 1;
 	}
-	if( msg = ob->query("inquiry/" + topic) ) {
-		if( stringp(msg) ) {
+	// Function inquiries are evaluated by query(); a missing return 0 must
+	// still count as handled when the topic exists, or we fall through to
+	// 「无可奉告」after the NPC already answered (e.g. gave an item).
+	inquiry = ob->query("inquiry");
+	if( mapp(inquiry) && !undefinedp(inquiry[topic]) ) {
+		msg = ob->query("inquiry/" + topic);
+		if( stringp(msg) )
 			message_vision( CYN "$N说道：" + msg + "\n" NOR, ob);
-			return 1;
-		}
+		return 1;
 	}
 	else if (topic[0] < 128  && iyes) {
                 message_vision(msg_foreign[random(sizeof(msg_foreign))], me, ob);

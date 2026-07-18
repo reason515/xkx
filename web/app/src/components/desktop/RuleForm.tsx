@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createRuleId } from "../../lib/ruleEngine";
 import type { AliasRule, Rule, TimerRule, TriggerRule } from "../../lib/ruleTypes";
 import { MIN_TIMER_MS } from "../../lib/ruleTypes";
+import { ChoiceRow } from "../ChoiceRow";
 
 type Props = {
   initial?: Rule | null;
@@ -133,19 +134,19 @@ export function RuleForm({ initial, kind, onSave, onCancel, onDelete }: Props) {
               onChange={(e) => setPattern(e.target.value)}
             />
           </label>
-          <label>
-            匹配方式
-            <select
+          <div className="desktop-field">
+            <span>匹配方式</span>
+            <ChoiceRow
+              label="匹配方式"
               value={patternType}
-              onChange={(e) =>
-                setPatternType(e.target.value as TriggerRule["patternType"])
-              }
-            >
-              <option value="exact">精确</option>
-              <option value="wildcard">通配符</option>
-              <option value="regex">正则</option>
-            </select>
-          </label>
+              options={[
+                { id: "exact", label: "精确" },
+                { id: "wildcard", label: "通配符" },
+                { id: "regex", label: "正则" },
+              ]}
+              onChange={setPatternType}
+            />
+          </div>
           <label>
             发送指令
             <input

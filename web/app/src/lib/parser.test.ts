@@ -12,7 +12,10 @@ import {
   isLoginNoise,
   isMorePromptLine,
   isProtocolNoise,
+  chunkLooksLikeSelfLook,
+  extractSelfLookPanel,
   isSelfLookLine,
+  isSelfLookStopLine,
   isSheetDumpLine,
   isRoomLookChunk,
   isRoomLookLine,
@@ -278,6 +281,13 @@ describe("isSheetDumpLine", () => {
     expect(isSheetDumpLine(" 精：  100/  100 (100%)    精力：   80 /  100 (+0)")).toBe(
       true
     );
+    // refreshCharacter 连发 look me + hp 时，提示符会粘在气血行首
+    expect(
+      isSheetDumpLine(">  精：  175/  175 (100%)    精力：  400 /  400 (+1)")
+    ).toBe(true);
+    expect(isSheetDumpLine("> 气：  200/  200 (100%)    内力：    0 /  400 (+0)")).toBe(
+      true
+    );
     expect(isSheetDumpLine(" 气：   90/  100 ( 90%)    内力：   50 /  120 (+0)")).toBe(
       true
     );
@@ -286,6 +296,10 @@ describe("isSheetDumpLine", () => {
     expect(isSheetDumpLine(" 精  ：■■■■□□□□")).toBe(true);
     expect(isSheetDumpLine("你目前所学过的技能有：")).toBe(true);
     expect(isSheetDumpLine("你目前并没有学会任何技能。")).toBe(true);
+    // prepare/bei 对新手（无 skill_map）返回带「有效」的变体，勿漏进见闻
+    expect(isSheetDumpLine("你现在没有使用任何有效特殊技能。")).toBe(true);
+    expect(isSheetDumpLine("你现在没有使用任何特殊技能。")).toBe(true);
+    expect(isSheetDumpLine("你现在没有组合任何特殊拳术技能。")).toBe(true);
     expect(isSheetDumpLine("基本轻功 ─────────── 45")).toBe(true);
     expect(
       isSheetDumpLine(
@@ -316,6 +330,8 @@ describe("isSheetDumpLine", () => {
 
 describe("isSelfLookLine", () => {
   it("detects look-me lines but not NPC ask replies", () => {
+    expect(isSelfLookLine("普通百姓 测试(Elgvzn)。")).toBe(true);
+    expect(isSelfLookLine("少林派第十八代弟子 测试(Test)。")).toBe(true);
     expect(isSelfLookLine("你看起来约十多岁。")).toBe(true);
     expect(isSelfLookLine("你看起来气血充盈，并没有受伤。")).toBe(true);
     expect(isSelfLookLine("你身上带著：")).toBe(true);
@@ -326,6 +342,88 @@ describe("isSelfLookLine", () => {
       )
     ).toBe(false);
     expect(isSelfLookLine("你向渔夫打听有关『侠客岛』的消息。")).toBe(false);
+    expect(isSelfLookLine("  渔夫(Fu)")).toBe(false);
+  });
+});
+
+describe("extractSelfLookPanel", () => {
+  it("keeps gear under 身上带著 and drops glued hp lines", () => {
+    const chunk = `你看起来约二十多岁。
+你看起来气血充盈，并没有受伤。
+你身上带著：
+  □布衣(Cloth)
+  □长剑(Changjian)
+ 精：  100/  100 (100%)    精力：   80 /  100 (+0)
+ 气：   90/  100 ( 90%)    内力：   50 /  120 (+0)
+ 食物：  120/  200         潜能：   10 /   100
+ 饮水：   90/  200         经验： 100`;
+    const { text } = extractSelfLookPanel(chunk);
+    expect(text).toContain("你身上带著：");
+    expect(text).toContain("□布衣(Cloth)");
+    expect(text).toContain("□长剑(Changjian)");
+    expect(text).not.toMatch(/精\s*[：:]/);
+    expect(text).not.toMatch(/精力\s*[：:]/);
+    expect(text).not.toMatch(/气\s*[：:]/);
+    expect(text).not.toMatch(/经验\s*[：:]/);
+  });
+
+  it("does not treat inventory 下列 dump as look-me start alone", () => {
+    expect(
+      chunkLooksLikeSelfLook(
+        "你身上带著下列这些东西(负重 3%)：\n  □布衣(Cloth)\n  米饭(Rice)"
+      )
+    ).toBe(false);
+    expect(isSelfLookStopLine("你身上带著下列这些东西(负重 3%)：")).toBe(true);
+    expect(isSelfLookStopLine(" 精：  100/  100 (100%)    精力：   80 /  100 (+0)")).toBe(
+      true
+    );
+  });
+
+  it("drops prompt-glued hp line (real merged look me + hp chunk)", () => {
+    // Real server capture: refreshCharacter fires look me + hp back-to-back,
+    // MUD prompt「>」glues onto the hp line → ">  精：  175/  175 ...".
+    const real = [
+      "普通百姓 测试(Elgvzn)。",
+      "你看起来约十多岁。",
+      "你看起来气血充盈，并没有受伤。",
+      "你身上带著：",
+      "  □布衣(Cloth)",
+      ">  精：  175/  175 (100%)    精力：  400 /  400 (+1)",
+      " 气：  200/  200 (100%)    内力：    0 /  400 (+0)",
+      " 食物：  350/  350         潜能：   97 /   97",
+      " 饮水：  350/  350         经验： 0",
+      "",
+      "> > > ",
+    ].join("\r\n");
+    expect(chunkLooksLikeSelfLook(real)).toBe(true);
+    const { text } = extractSelfLookPanel(real);
+    expect(text).toContain("你身上带著：");
+    expect(text).toContain("□布衣(Cloth)");
+    expect(text).not.toMatch(/精\s*[：:]/);
+    expect(text).not.toMatch(/精力/);
+    expect(text).not.toMatch(/气\s*[：:]/);
+    expect(text).not.toMatch(/^\s*>/m);
+    expect(text).not.toMatch(/> > >/);
+  });
+
+  it("aligns html lines with kept plain lines", () => {
+    const lines = [
+      "你看起来约二十多岁。",
+      "你身上带著：",
+      "  □布衣(Cloth)",
+      " 精：  100/  100 (100%)    精力：   80 /  100 (+0)",
+    ];
+    const htmlLines = [
+      '<span class="mud-fg-jade">你看起来约二十多岁。</span>',
+      "你身上带著：",
+      '<span class="mud-fg-cyan">  □布衣(Cloth)</span>',
+      '<span class="mud-fg-jade"> 精：  100/  100</span>',
+    ];
+    const { text, html } = extractSelfLookPanel(lines.join("\n"), htmlLines);
+    expect(text).toContain("□布衣(Cloth)");
+    expect(text).not.toMatch(/精/);
+    expect(html).toContain("□布衣(Cloth)");
+    expect(html).not.toMatch(/精/);
   });
 });
 
@@ -496,13 +594,23 @@ describe("parseSuggestedActions", () => {
     const desc =
       "如果你累了，就可以在这里睡觉(sleep)。墙上好象贴着一张小条子(tiaozi)。";
     expect(parseSceneryFromDesc(desc)).toEqual([
-      { id: "tiaozi", name: "小条子", kind: "item" },
+      { id: "tiaozi", name: "小条子", kind: "item", scenery: true },
     ]);
     expect(
       roomUtilityActions({ title: "休息室", desc, canSleep: true }).map(
         (a) => a.command
       )
     ).toEqual(["sleep"]);
+  });
+
+  it("names 瀑布(fall) as 瀑布 not 是一道瀑布", () => {
+    // pubu.c long: 「迎面是一道瀑布(fall)」—「面」曾被量词表误吞
+    const desc =
+      "山路的尽头，迎面是一道瀑布(fall)从十余丈的高处直挂下来。小潭旁有一棵大树(tree)。";
+    expect(parseSceneryFromDesc(desc)).toEqual([
+      { id: "fall", name: "瀑布", kind: "item", scenery: true },
+      { id: "tree", name: "大树", kind: "item", scenery: true },
+    ]);
   });
 
   it("extracts register hint for 挂名处", () => {
@@ -522,6 +630,45 @@ describe("parseSuggestedActions", () => {
     expect(actions.map((a) => a.command)).toEqual([
       "ask fu about 侠客岛",
       "ask fu about 离岛",
+    ]);
+  });
+
+  it("does not bind tutorial (look)/(get) into look/get chips", () => {
+    // Fisherman greeting: 「四处看看(look)…捡起来(get)收着」must not become
+    // a "拿起look" ground-item action bound to the preceding (look) mention.
+    const text =
+      "渔夫说道：你不妨四处看看(look)。地上有什麽东西你都可以捡起来(get)收着。" +
+      "你可以先查查(i or inventory)看你现在身上有些什麽。(ask fu about 侠客岛)";
+    const npcs = [{ id: "fu", name: "渔夫", kind: "npc" as const }];
+    const commands = parseSuggestedActions(text, npcs).map((a) => a.command);
+    expect(commands).not.toContain("get look");
+    expect(commands.some((c) => /^get\b/.test(c))).toBe(false);
+    expect(commands.some((c) => /^look\b/.test(c))).toBe(false);
+    expect(commands).toContain("ask fu about 侠客岛");
+  });
+
+  it("discovers nested scenery and binds item_desc bare actions", () => {
+    const text =
+      "亭旁的大石(stone)後好象有什麽东西。\n" +
+      "@@ITEM:stream@@\n涧水清澈，不时有鱼儿(fish)跃出水面。\n" +
+      "@@ITEM:stone@@\n这是一块大山石，想看看後面是什麽，就要把大石移开(move)。";
+    expect(parseSceneryFromDesc(text)).toEqual(
+      expect.arrayContaining([
+        { id: "fish", name: "鱼儿", kind: "item", scenery: true },
+        { id: "stone", name: "大石", kind: "item", scenery: true },
+      ])
+    );
+    expect(parseSuggestedActions(text)).toContainEqual({
+      command: "move stone",
+      label: "搬动大石",
+    });
+    expect(
+      labelSuggestedAction("move stone", [
+        { id: "stone", name: "大石", kind: "item", scenery: true },
+      ])
+    ).toBe("搬动大石");
+    expect(groundItemActions("fish", "鱼儿", true)).toEqual([
+      { label: "查看", command: "look fish" },
     ]);
   });
 });

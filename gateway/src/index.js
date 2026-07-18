@@ -5,6 +5,7 @@ import { fileURLToPath } from "url";
 import { WebSocketServer } from "ws";
 import { MudSession } from "./session.js";
 import { Metrics } from "./metrics.js";
+import { buildAssistCommand } from "./assistCommand.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const configPath = join(__dirname, "..", "config.json");
@@ -195,18 +196,9 @@ wss.on("connection", (ws, req) => {
 
       if (msg.type === "assist") {
         if (!mud) return;
-        const c = msg.config || {};
-        if (c.action === "stop") {
-          mud.send("webassist stop");
-        } else if (c.mode === "combat") {
-          mud.send(
-            `webassist combat ${c.lowHpPct || 30} ${c.lowHpAction || "flee"}`
-          );
-        } else {
-          mud.send(
-            `webassist train ${c.mode || "dazuo"} ${c.stopWhen || "full"} ${c.stopCount || 0} ${c.stopOnCombat ? 1 : 0}`
-          );
-        }
+        const command = buildAssistCommand(msg.config || {});
+        if (command) mud.send(command);
+        else ws.send(JSON.stringify({ type: "error", message: "挂机参数无效" }));
         return;
       }
     } catch (err) {

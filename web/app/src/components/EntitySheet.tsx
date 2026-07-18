@@ -6,12 +6,17 @@ import {
   mudCommandTarget,
   parseBoardReadActions,
 } from "../lib/parser";
-import type { SuggestedAction } from "../lib/types";
+import type { AssistConfig, InvItem, SuggestedAction } from "../lib/types";
+import { ChoiceRow } from "./ChoiceRow";
 
 interface Props {
   id: string;
   name: string;
   kind: "npc" | "item";
+  scenery?: boolean;
+  canApprentice?: boolean | number;
+  canTrade?: boolean | number;
+  inventory?: InvItem[];
   docText?: string;
   docLoading?: boolean;
   /** Scene ask/learn chips already known for this NPC (e.g. beach / teacher hints). */
@@ -28,6 +33,8 @@ interface Props {
    * 公开教头仍靠见闻 hints)。
    */
   onLearnList?: (cmd: string) => void;
+  /** Start repeated learning after choosing a teacher and skill. */
+  onStartLearn?: (config: AssistConfig) => void;
   onClearDoc?: () => void;
 }
 
@@ -40,6 +47,10 @@ export function EntitySheet({
   id,
   name,
   kind,
+  scenery,
+  canApprentice = false,
+  canTrade = false,
+  inventory = [],
   docText = "",
   docLoading = false,
   askHints = [],
@@ -48,10 +59,16 @@ export function EntitySheet({
   onDocAction,
   onAskList,
   onLearnList,
+  onStartLearn,
   onClearDoc,
 }: Props) {
   const [asking, setAsking] = useState(false);
   const [learning, setLearning] = useState(false);
+  const [giving, setGiving] = useState(false);
+  const [trading, setTrading] = useState(false);
+  const [learnAction, setLearnAction] = useState<SuggestedAction | null>(null);
+  const [learnStop, setLearnStop] = useState<"count" | "potential">("count");
+  const [learnCount, setLearnCount] = useState(1);
 
   // Prefer english id for mud commands when available
   const target =
@@ -76,22 +93,21 @@ export function EntitySheet({
     !learnRefused &&
     !!docText.trim();
 
-  const npcActions: [string, string][] = [
-    ["看", `look ${target}`],
-    ["跟随", `follow ${target}`],
-    ["问", `__ask__`],
-    ["学", `__learn__`],
-    ["打", `kill ${target}`],
-  ];
   const boardActions: [string, string][] = [
-    ["看", `look ${target}`],
+    ["查看", `look ${target}`],
     ["浏览留言", "list"],
     ["读新留言", "read new"],
   ];
-  const itemActions: [string, string][] = groundItemActions(id, name).map(
+  const itemActions: [string, string][] = groundItemActions(id, name, scenery).map(
     (a) => [a.label, a.command]
   );
-  const actions = kind === "npc" ? npcActions : board ? boardActions : itemActions;
+  const actions = board ? boardActions : itemActions;
+  const giveItems = inventory.filter((item) => !item.equipped && !item.embedded);
+
+  const runNpcAction = (command: string) => {
+    onAction(command);
+    onClose();
+  };
 
   const leaveAskMode = () => {
     setAsking(false);
@@ -99,7 +115,18 @@ export function EntitySheet({
   };
 
   const leaveLearnMode = () => {
+    if (learnAction) {
+      setLearnAction(null);
+      return;
+    }
     setLearning(false);
+    onClearDoc?.();
+  };
+
+  const leaveGivingMode = () => setGiving(false);
+
+  const leaveTradingMode = () => {
+    setTrading(false);
     onClearDoc?.();
   };
 
@@ -112,9 +139,13 @@ export function EntitySheet({
               ? `打听「${name}」`
               : learning
                 ? `向「${name}」请教`
-                : reading
-                  ? "留言"
-                  : name}
+                : giving
+                  ? `给予「${name}」`
+                  : trading
+                    ? `查看「${name}」的货品`
+                    : reading
+                      ? "留言"
+                      : name}
           </h3>
           <button type="button" className="close" onClick={onClose}>
             ×
@@ -163,14 +194,8 @@ export function EntitySheet({
               >
                 ← 返回
               </button>
-              <p
-                style={{
-                  color: "var(--paper-dim)",
-                  fontSize: 13,
-                  marginBottom: 12,
-                }}
-              >
-                想学哪门功夫？
+              <p className="entity-mode-hint">
+                {learnAction ? `学习「${learnAction.label}」` : "想学哪门功夫？"}
               </p>
               {docLoading && learnTopics.length === 0 ? (
                 <p className="doc-status">正在列出可学功夫…</p>
@@ -183,21 +208,109 @@ export function EntitySheet({
               {learnEmpty ? (
                 <p className="doc-status">对方目前没有可传授的功夫。</p>
               ) : null}
-              <div className="help-topics">
-                {learnTopics.map((a) => (
+              {learnAction ? (
+                <div className="learn-assist-form">
+                  <ChoiceRow
+                    label="学习方式"
+                    value={learnStop}
+                    options={[
+                      { id: "count", label: "按次数" },
+                      { id: "potential", label: "学到潜能耗尽" },
+                    ]}
+                    onChange={setLearnStop}
+                  />
+                  {learnStop === "count" && (
+                    <label className="learn-count-field">
+                      <span>学习次数</span>
+                      <input
+                        type="number"
+                        min={1}
+                        max={999}
+                        value={learnCount}
+                        onChange={(e) =>
+                          setLearnCount(
+                            Math.min(999, Math.max(1, Number(e.target.value) || 1))
+                          )
+                        }
+                      />
+                    </label>
+                  )}
+                  <p className="learn-assist-hint">
+                    精不足或授业者疲劳时会原地等候，恢复后继续。
+                  </p>
                   <button
-                    key={a.command}
                     type="button"
-                    className="help-topic"
+                    className="learn-start"
                     onClick={() => {
-                      onAction(a.command);
+                      const [, teacher, skill] =
+                        learnAction.command.trim().split(/\s+/);
+                      if (!teacher || !skill) return;
+                      onStartLearn?.({
+                        mode: "learn",
+                        teacher,
+                        skill,
+                        stopWhen: learnStop,
+                        stopCount: learnStop === "count" ? learnCount : 1,
+                        stopOnCombat: true,
+                      });
                       onClose();
                     }}
                   >
-                    {a.label}
+                    开始学习
                   </button>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="help-topics">
+                  {learnTopics.map((a) => (
+                    <button
+                      key={a.command}
+                      type="button"
+                      className="help-topic"
+                      onClick={() => setLearnAction(a)}
+                    >
+                      {a.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          ) : giving ? (
+            <>
+              <button type="button" className="doc-back" onClick={leaveGivingMode}>
+                ← 返回
+              </button>
+              <p className="entity-mode-hint">要把哪件物品交给对方？</p>
+              {giveItems.length ? (
+                <div className="help-topics entity-item-list">
+                  {giveItems.map((item) => (
+                    <button
+                      key={`${item.id}-${item.name}`}
+                      type="button"
+                      className="help-topic"
+                      onClick={() =>
+                        runNpcAction(
+                          `give ${askTarget} ${mudCommandTarget(item.id, item.name)}`
+                        )
+                      }
+                    >
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="doc-status">行囊里没有可给予的物品。</p>
+              )}
+            </>
+          ) : trading ? (
+            <>
+              <button type="button" className="doc-back" onClick={leaveTradingMode}>
+                ← 返回
+              </button>
+              {docLoading && !docText ? (
+                <p className="doc-status">正在查看货品…</p>
+              ) : (
+                <pre className="doc-body">{docText || "对方目前没有列出货品。"}</pre>
+              )}
             </>
           ) : reading ? (
             <>
@@ -231,6 +344,93 @@ export function EntitySheet({
                 </div>
               )}
             </>
+          ) : kind === "npc" ? (
+            <div className="entity-action-groups">
+              <section className="entity-action-group">
+                <h4>常用</h4>
+                <div className="entity-action-grid">
+                  <button
+                    type="button"
+                    onClick={() => runNpcAction(`look ${target}`)}
+                  >
+                    查看
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAsking(true);
+                      onAskList?.(`ask ${askTarget}`);
+                    }}
+                  >
+                    打听
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setLearning(true);
+                      onLearnList?.(`skills ${askTarget}`);
+                    }}
+                  >
+                    请教
+                  </button>
+                </div>
+              </section>
+
+              <section className="entity-action-group">
+                <h4>往来</h4>
+                <div className="entity-action-grid">
+                  {!!canApprentice && (
+                    <button
+                      type="button"
+                      className="entity-action-jade"
+                      onClick={() => runNpcAction(`apprentice ${askTarget}`)}
+                    >
+                      拜师
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => runNpcAction(`follow ${askTarget}`)}
+                  >
+                    跟随
+                  </button>
+                  <button type="button" onClick={() => setGiving(true)}>
+                    给予
+                  </button>
+                  {!!canTrade && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTrading(true);
+                        onDocAction?.("list");
+                      }}
+                    >
+                      货品
+                    </button>
+                  )}
+                </div>
+              </section>
+
+              <details className="entity-danger">
+                <summary>交手</summary>
+                <p>切磋点到为止；攻击会进入生死战。</p>
+                <div className="entity-action-grid">
+                  <button
+                    type="button"
+                    onClick={() => runNpcAction(`fight ${askTarget}`)}
+                  >
+                    切磋
+                  </button>
+                  <button
+                    type="button"
+                    className="entity-action-danger"
+                    onClick={() => runNpcAction(`kill ${askTarget}`)}
+                  >
+                    攻击
+                  </button>
+                </div>
+              </details>
+            </div>
           ) : (
             <p
               style={{
@@ -239,15 +439,11 @@ export function EntitySheet({
                 marginBottom: 16,
               }}
             >
-              {kind === "npc"
-                ? "你要对此人做什么？"
-                : board
-                  ? "你要如何查看此牌？"
-                  : "你要如何处置此物？"}
+              {board ? "你要如何查看此牌？" : "你要如何处置此物？"}
             </p>
           )}
         </div>
-        {!reading && !asking && !learning && (
+        {kind !== "npc" && !reading && !asking && !learning && (
           <div className="sheet-acts">
             {actions.map(([label, command]) => (
               <button

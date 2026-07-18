@@ -35,6 +35,16 @@ describe("applyEvent", () => {
         area: "city",
         path: "beidajie",
         exits: [{ dir: "south", name: "客店" }],
+        npcs: [
+          {
+            id: "teacher",
+            commandId: "teacher",
+            name: "师父",
+            kind: "npc",
+            canApprentice: 1,
+            canTrade: 0,
+          },
+        ],
       },
       prev
     );
@@ -43,6 +53,12 @@ describe("applyEvent", () => {
     expect(next.room.area).toBe("city");
     expect(next.room.path).toBe("beidajie");
     expect(next.room.exits[0]).toEqual({ dir: "south", label: "南", name: "客店" });
+    expect(next.room.npcs[0]).toMatchObject({
+      id: "teacher",
+      commandId: "teacher",
+      canApprentice: 1,
+      canTrade: 0,
+    });
   });
 
   it("merges scenery and canSleep from rest-room room.update", () => {
@@ -62,7 +78,34 @@ describe("applyEvent", () => {
     );
     expect(next.room.canSleep).toBe(true);
     expect(next.room.items).toEqual(
-      expect.arrayContaining([{ id: "tiaozi", name: "小条子", kind: "item" }])
+      expect.arrayContaining([
+        expect.objectContaining({ id: "tiaozi", name: "小条子", scenery: true }),
+      ])
+    );
+  });
+
+  it("discovers nested item_desc scenery from room.update", () => {
+    const next = applyEvent(
+      {
+        v: 1,
+        type: "room.update",
+        title: "望海亭",
+        long: "亭左是一道深涧(stream)，亭旁有一块大石(stone)。",
+        itemDesc:
+          "涧水清澈，不时有鱼儿(fish)跃出水面。\n想看看后面，就要把大石移开(move)。",
+        exits: [],
+        items: [],
+        npcs: [],
+      },
+      basePrev()
+    );
+    expect(next.room.sceneryText).toContain("鱼儿(fish)");
+    expect(next.room.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "stream", name: "深涧", scenery: true }),
+        expect.objectContaining({ id: "stone", name: "大石", scenery: true }),
+        expect.objectContaining({ id: "fish", name: "鱼儿", scenery: true }),
+      ])
     );
   });
 
@@ -173,6 +216,18 @@ describe("applyEvent", () => {
     );
     expect(next.assistActive).toBe(true);
     expect(next.assistStatus).toBe("挂机中");
+
+    const resting = applyEvent(
+      {
+        v: 1,
+        type: "assist.status",
+        active: true,
+        message: "调息中 · 气 28%，恢复后续打坐",
+      },
+      next
+    );
+    expect(resting.assistActive).toBe(true);
+    expect(resting.assistStatus).toMatch(/调息中/);
   });
 
   it("appends error to combat log", () => {

@@ -65,6 +65,10 @@ export function applyEvent(
       const rawExits = event.exits as { dir: string; name: string }[] | undefined;
       const title = (event.title as string) || prev.room.title;
       const desc = (event.long as string) || prev.room.desc;
+      const sceneryText =
+        typeof event.itemDesc === "string"
+          ? event.itemDesc
+          : prev.room.sceneryText || "";
       const baseItems = Array.isArray(event.items)
         ? (event.items as RoomState["items"])
         : prev.room.items;
@@ -75,6 +79,7 @@ export function applyEvent(
       next.room = {
         title,
         desc,
+        sceneryText,
         area:
           typeof event.area === "string" && event.area
             ? event.area
@@ -98,7 +103,10 @@ export function applyEvent(
         npcs: Array.isArray(event.npcs)
           ? (event.npcs as RoomState["npcs"])
           : prev.room.npcs,
-        items: mergeRoomItems(baseItems, parseSceneryFromDesc(desc || "")),
+        items: mergeRoomItems(
+          baseItems,
+          parseSceneryFromDesc(`${desc || ""}\n${sceneryText}`)
+        ),
       };
       break;
     }

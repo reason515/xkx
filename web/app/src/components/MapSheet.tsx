@@ -15,6 +15,8 @@ interface Props {
   roomPath?: string;
   roomNpcs?: Entity[];
   roomItems?: Entity[];
+  /** Exit destination names for duplicate-label disambiguation. */
+  roomExits?: { name?: string }[];
   onClose: () => void;
 }
 
@@ -24,6 +26,7 @@ export function MapSheet({
   roomPath,
   roomNpcs = [],
   roomItems = [],
+  roomExits = [],
   onClose,
 }: Props) {
   const [mode, setMode] = useState<"region" | "world">("region");
@@ -46,9 +49,18 @@ export function MapSheet({
       hasCarriage: roomItems.some(
         (i) => /da che|carriage/i.test(i.id) || /大车/.test(i.name)
       ),
+      exitNames: roomExits.map((e) => e.name || "").filter(Boolean),
     });
     return highlightMapText(regionText, [roomTitle], { [roomTitle]: nth });
-  }, [regionText, regionKey, roomTitle, roomPath, roomNpcs, roomItems]);
+  }, [
+    regionText,
+    regionKey,
+    roomTitle,
+    roomPath,
+    roomNpcs,
+    roomItems,
+    roomExits,
+  ]);
 
   const worldHtml = useMemo(() => {
     if (!worldText) return "";

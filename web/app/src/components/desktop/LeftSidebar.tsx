@@ -12,6 +12,7 @@ export function LeftSidebar() {
     y: number;
     id: string;
     kind: "npc" | "item";
+    scenery?: boolean;
   } | null>(null);
 
   return (
@@ -48,7 +49,12 @@ export function LeftSidebar() {
                 onClick={() => sendCommand(`look ${n.id}`)}
                 onContextMenu={(e) => {
                   e.preventDefault();
-                  setMenu({ x: e.clientX, y: e.clientY, id: n.id, kind: "npc" });
+                  setMenu({
+                    x: e.clientX,
+                    y: e.clientY,
+                    id: n.id,
+                    kind: "npc",
+                  });
                 }}
               >
                 {n.name}
@@ -69,8 +75,12 @@ export function LeftSidebar() {
                 className="chip item"
                 data-testid={`desktop-item-${it.id}`}
                 onClick={() => {
-                  sendCommand(`get ${it.id}`);
-                  sendCommand("look", { silent: true });
+                  if (it.scenery) {
+                    sendCommand(`look ${it.id}`);
+                  } else {
+                    sendCommand(`get ${it.id}`);
+                    sendCommand("look", { silent: true });
+                  }
                 }}
                 onContextMenu={(e) => {
                   e.preventDefault();
@@ -79,6 +89,7 @@ export function LeftSidebar() {
                     y: e.clientY,
                     id: it.id,
                     kind: "item",
+                    scenery: it.scenery,
                   });
                 }}
               >
@@ -98,7 +109,13 @@ export function LeftSidebar() {
           <button type="button" onClick={() => sendCommand("save")}>
             存档
           </button>
-          <button type="button" onClick={() => game.openSheet("train")}>
+          <button
+            type="button"
+            onClick={() => {
+              game.refreshCharacter();
+              game.openSheet("train");
+            }}
+          >
             修炼
           </button>
           <button type="button" onClick={() => game.openSheet("combat")}>
@@ -155,11 +172,13 @@ export function LeftSidebar() {
                 role="menuitem"
                 onClick={() => {
                   game.clearDoc();
-                  game.setSelectedEntity({
-                    id: menu.id,
-                    name: menu.id,
-                    kind: "npc",
-                  });
+                  game.setSelectedEntity(
+                    state.room.npcs.find((npc) => npc.id === menu.id) || {
+                      id: menu.id,
+                      name: menu.id,
+                      kind: "npc",
+                    }
+                  );
                   game.openSheet("entity");
                   setMenu(null);
                 }}
@@ -179,16 +198,18 @@ export function LeftSidebar() {
               >
                 查看
               </button>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  sendCommand(`get ${menu.id}`);
-                  setMenu(null);
-                }}
-              >
-                拾取
-              </button>
+              {!menu.scenery && (
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    sendCommand(`get ${menu.id}`);
+                    setMenu(null);
+                  }}
+                >
+                  拾取
+                </button>
+              )}
             </>
           )}
           <button type="button" role="menuitem" onClick={() => setMenu(null)}>

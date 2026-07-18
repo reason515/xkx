@@ -1,29 +1,54 @@
-import { useState } from "react";
-import type { AssistConfig } from "../lib/types";
+import { useMemo, useState } from "react";
+import { ENABLE_SLOTS } from "../lib/parser";
+import type { AssistConfig, EnabledSkill } from "../lib/types";
+import { ChoiceRow } from "./ChoiceRow";
 
 interface Props {
   active: boolean;
   status: string;
   trainLog: string[];
+  enabled: Record<string, EnabledSkill>;
   onClose: () => void;
   onStart: (config: AssistConfig) => void;
   onStop: () => void;
-  onCmd: (cmd: string) => void;
+}
+
+type TrainMode = "dazuo" | "tuna" | "lian";
+type TrainStop = "full" | "count";
+
+export function buildPracticeOptions(enabled: Record<string, EnabledSkill>) {
+  return Object.entries(enabled)
+    .filter(
+      ([slot, ent]) => slot !== "parry" && !!ent?.skill && ent.skill !== "无"
+    )
+    .map(([slot, ent]) => ({
+      id: slot,
+      label: `${
+        ENABLE_SLOTS.find((item) => item.id === slot)?.label || slot
+      } · ${ent.name || ent.skill}`,
+    }));
 }
 
 export function TrainSheet({
   active,
   status,
   trainLog,
+  enabled,
   onClose,
   onStart,
   onStop,
-  onCmd,
 }: Props) {
-  const [mode, setMode] = useState<AssistConfig["mode"]>("dazuo");
-  const [stopWhen, setStopWhen] = useState<AssistConfig["stopWhen"]>("full");
-  const [stopCount, setStopCount] = useState(10);
+  const [mode, setMode] = useState<TrainMode>("dazuo");
+  const [stopWhen, setStopWhen] = useState<TrainStop>("full");
+  const [stopCount, setStopCount] = useState(1);
   const [stopOnCombat, setStopOnCombat] = useState(true);
+  const practiceOptions = useMemo(() => buildPracticeOptions(enabled), [enabled]);
+  const [practiceSkill, setPracticeSkill] = useState("");
+  const selectedPractice =
+    practiceOptions.find((item) => item.id === practiceSkill)?.id ||
+    practiceOptions[0]?.id ||
+    "";
+  const canStart = mode !== "lian" || !!selectedPractice;
 
   return (
     <div className="overlay open" onClick={onClose}>
@@ -32,7 +57,9 @@ export function TrainSheet({
           <div>
             <h3>修炼</h3>
             {active && (
-              <p style={{ fontSize: 12, color: "var(--jade-bright)", marginTop: 4 }}>
+              <p
+                className={`train-status${/调息/.test(status) ? " resting" : ""}`}
+              >
                 {status}
               </p>
             )}
@@ -45,9 +72,9 @@ export function TrainSheet({
           <div style={{ display: "grid", gap: 8, marginBottom: 14 }}>
             {(
               [
-                ["dazuo", "打坐", "恢复内力"],
-                ["tuna", "吐纳", "恢复精力"],
-                ["lian", "练功", "消耗潜能提升武功"],
+                ["dazuo", "打坐", "耗气转内力；气不足时原地调息后续打"],
+                ["tuna", "吐纳", "耗精转精力；精不足时原地调息后续吐"],
+                ["lian", "练功", "耗精力/内力；不足时原地调息后续练"],
               ] as const
             ).map(([m, title, sub]) => (
               <button
@@ -62,7 +89,10 @@ export function TrainSheet({
                   background:
                     mode === m ? "rgba(95,143,120,0.15)" : undefined,
                 }}
-                onClick={() => setMode(m)}
+                onClick={() => {
+                  setMode(m);
+                  setStopWhen(m === "lian" ? "count" : "full");
+                }}
               >
                 <strong style={{ display: "block", fontFamily: "var(--font-display)" }}>
                   {title}
@@ -71,41 +101,62 @@ export function TrainSheet({
               </button>
             ))}
           </div>
-          <div style={{ marginBottom: 14, fontSize: 13 }}>
+          {mode === "lian" && (
+            <div className="train-practice">
+              <p>选择已激发功夫</p>
+              {practiceOptions.length ? (
+                <div className="chips train-skill-options">
+                  {practiceOptions.map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      className={`chip action${
+                        selectedPractice === option.id ? " on" : ""
+                      }`}
+                      onClick={() => setPracticeSkill(option.id)}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="doc-status">
+                  暂无已激发且可选择的功夫，请先在角色「武功」中激发。
+                </p>
+              )}
+            </div>
+          )}
+          <div className="train-stop">
             <p style={{ marginBottom: 8, color: "var(--paper-dim)" }}>停止条件</p>
-            <label style={{ display: "block", marginBottom: 6 }}>
-              <input
-                type="radio"
-                checked={stopWhen === "full"}
-                onChange={() => setStopWhen("full")}
-              />{" "}
-              内力/精力接近满
-            </label>
-            <label style={{ display: "block", marginBottom: 6 }}>
-              <input
-                type="radio"
-                checked={stopWhen === "count"}
-                onChange={() => setStopWhen("count")}
-              />{" "}
-              练{" "}
+            {mode === "lian" ? (
+              <p className="train-stop-fixed">按成功练功次数停止</p>
+            ) : (
+              <ChoiceRow
+                label="停止条件"
+                value={stopWhen}
+                options={[
+                  { id: "full", label: mode === "dazuo" ? "内力接近满" : "精力接近满" },
+                  { id: "count", label: "按次数" },
+                ]}
+                onChange={setStopWhen}
+              />
+            )}
+            {(mode === "lian" || stopWhen === "count") && (
+              <label className="train-count-field">
+                <span>{mode === "lian" ? "练功次数" : "修炼次数"}</span>
               <input
                 type="number"
                 min={1}
                 max={999}
                 value={stopCount}
-                onChange={(e) => setStopCount(+e.target.value)}
-                style={{ width: 56, padding: 4, borderRadius: 6, border: "1px solid var(--line)" }}
-              />{" "}
-              次
-            </label>
-            <label style={{ display: "block" }}>
-              <input
-                type="radio"
-                checked={stopWhen === "potential"}
-                onChange={() => setStopWhen("potential")}
-              />{" "}
-              潜能耗尽
-            </label>
+                  onChange={(e) =>
+                    setStopCount(
+                      Math.min(999, Math.max(1, Number(e.target.value) || 1))
+                    )
+                  }
+                />
+              </label>
+            )}
             <label style={{ display: "block", marginTop: 10 }}>
               <input
                 type="checkbox"
@@ -132,16 +183,15 @@ export function TrainSheet({
                 onClick={() =>
                   onStart({
                     mode,
-                    stopWhen,
+                    stopWhen: mode === "lian" ? "count" : stopWhen,
                     stopCount,
+                    skill: mode === "lian" ? selectedPractice : undefined,
                     stopOnCombat,
                   })
                 }
+                disabled={!canStart}
               >
                 开始
-              </button>
-              <button type="button" onClick={() => onCmd(mode)}>
-                单次
               </button>
             </>
           ) : (

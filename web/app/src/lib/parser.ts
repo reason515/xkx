@@ -449,6 +449,7 @@ const TARGET_REQUIRED_VERBS = new Set([
   "wield",
   "wear",
   "open",
+  "move",
   "push",
   "pull",
   "trap",
@@ -564,7 +565,7 @@ export function labelSuggestedAction(
   if (verb === "accept" && parts[1]) return `${verbLabel}${parts.slice(1).join(" ")}`;
   if (verb === "sleep") return "睡觉";
   if (parts.length === 1) return verbLabel;
-  return `${verbLabel}${parts.slice(1).join(" ")}`;
+  return `${verbLabel}${displayNameForTarget(parts.slice(1).join(" "), npcs)}`;
 }
 
 /** Split "(ask fu about 侠客岛，ask fu about 离岛)" into separate commands. */
@@ -883,20 +884,59 @@ export function parseSuggestedActions(
 ): SuggestedAction[] {
   const found = new Map<string, SuggestedAction>();
 
-  const consider = (raw: string) => {
+  const consider = (raw: string, label?: string) => {
     const command = normalizeActionCommand(raw);
     if (!command || found.has(command)) return;
     // help / list / read → 顶栏帮助或告示牌面板，不进场景动作
     if (isDocReadingCommand(command)) return;
     found.set(command, {
       command,
-      label: labelSuggestedAction(command, npcs),
+      label: label || labelSuggestedAction(command, npcs),
     });
   };
 
   // Highlighted hints: (follow mu laoqi) / (ask fu about 侠客岛)
   for (const m of text.matchAll(/\(([a-z][a-z0-9_\-]*(?:\s+[^()\n]{0,80})?)\)/gi)) {
     for (const part of splitCombinedHint(m[1])) {
+      const bits = part.trim().split(/\s+/);
+      const verb = bits[0]?.toLowerCase();
+      // `get` is the newbie tutorial「捡起来(get)」generic pickup; real ground
+      // items already surface via room.items, so never bind it to a noun.
+      if (
+        bits.length === 1 &&
+        verb &&
+        verb !== "get" &&
+        TARGET_REQUIRED_VERBS.has(verb)
+      ) {
+        // item_desc often says「大石…移开(move)」. Prefer the server's
+        // current item marker; fall back to the nearest preceding id mention.
+        const hintAt = m.index || 0;
+        const fullBefore = text.slice(0, hintAt);
+        const before = text.slice(Math.max(0, hintAt - 180), hintAt);
+        const markers = [
+          ...fullBefore.matchAll(/@@ITEM:([a-z][a-z0-9_\-]{1,30})@@/gi),
+        ];
+        const currentItemId = markers[markers.length - 1]?.[1]?.toLowerCase();
+        const mentions = [
+          ...before.matchAll(
+            /([\u4e00-\u9fff]{1,10})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
+          ),
+        ];
+        const nearest = mentions[mentions.length - 1];
+        const sceneryId = currentItemId || nearest?.[2]?.toLowerCase();
+        // Only bind when the target is a genuine scenery; skips false mentions
+        // like「看看(look)」that are really skip/action verbs, not objects.
+        const scenery = sceneryId
+          ? parseSceneryFromDesc(text).find((item) => item.id === sceneryId)
+          : undefined;
+        if (sceneryId && scenery) {
+          consider(
+            `${verb} ${sceneryId}`,
+            `${ACTION_VERBS[verb]}${scenery.name || sceneryId}`
+          );
+        }
+        continue;
+      }
       consider(part);
     }
   }
@@ -1133,19 +1173,31 @@ export function roomUtilityActions(room: {
 export function parseSceneryFromDesc(desc: string): Entity[] {
   if (!desc) return [];
   const found = new Map<string, Entity>();
-  const addScenery = (idRaw: string, name: string) => {
+  const addScenery = (idRaw: string, nameRaw: string) => {
     const id = idRaw.toLowerCase();
-    if (ACTION_VERBS[id] || SKIP_ACTION_VERBS.has(id) || DIR_MAP[id]) return;
-    if (NON_SKILL_IDS.has(id) || found.has(id)) return;
-    found.set(id, { id, name, kind: "item" });
+    // Strip prose glue / classifiers: 「是一道瀑布」→「瀑布」, 「旁的大石」→「大石」
+    const name =
+      nameRaw
+        .replace(/^(?:不时|时|这里|那里|水中|空中)?有/, "")
+        .replace(/^[是在于]/, "")
+        .replace(
+          /^[一两二三四五六七八九十几數数]+[张条个块面扇座间片本封只株棵道]/,
+          ""
+        )
+        .replace(/^.*的(?=[\u4e00-\u9fff]{1,6}$)/, "") || nameRaw;
+    if (!name || ACTION_VERBS[id] || SKIP_ACTION_VERBS.has(id) || DIR_MAP[id])
+      return;
+    // Skill prose also uses 中文(skill); room ids such as stone/tree/fish must stay.
+    if (SKILL_LABELS[id] || found.has(id)) return;
+    found.set(id, { id, name, kind: "item", scenery: true });
   };
-  // …一张小条子(tiaozi) — measure word helps cut the noun
+  // …一张小条子(tiaozi) — number + measure required so「迎面」的「面」不会误吞
   for (const m of desc.matchAll(
-    /[一两几數数]?[张条个块面扇座间片本封只株棵]([\u4e00-\u9fff]{2,6})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
+    /[一两二三四五六七八九十几數数]+[张条个块面扇座间片本封只株棵道]([\u4e00-\u9fff]{2,6})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
   )) {
     addScenery(m[2], m[1]);
   }
-  // 告示牌(board) / 石碑(stele) without measure word
+  // 告示牌(board) / 石碑(stele) / 瀑布(fall) without measure word
   for (const m of desc.matchAll(
     /([\u4e00-\u9fff]{2,4})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
   )) {
@@ -1157,8 +1209,8 @@ export function parseSceneryFromDesc(desc: string): Entity[] {
   )) {
     const id = m[2].toLowerCase();
     if (ACTION_VERBS[id] || SKIP_ACTION_VERBS.has(id) || DIR_MAP[id]) continue;
-    if (NON_SKILL_IDS.has(id) || found.has(id)) continue;
-    found.set(id, { id, name: id, kind: "item" });
+    if (SKILL_LABELS[id] || found.has(id)) continue;
+    found.set(id, { id, name: id, kind: "item", scenery: true });
   }
   return [...found.values()];
 }
@@ -1711,10 +1763,12 @@ export function bagItemActions(it: InvItem): { label: string; command: string }[
 /** Ground / room item menu on entity sheet. */
 export function groundItemActions(
   id: string,
-  name: string
+  name: string,
+  scenery = false
 ): { label: string; command: string }[] {
   const target = invCommandTarget(id, name);
   if (!target) return [];
+  if (scenery) return [{ label: "查看", command: `look ${target}` }];
   if (isCarriageItem(id, name)) {
     return [
       { label: "看", command: `look ${target}` },
@@ -1846,11 +1900,16 @@ export function isSheetDumpChunk(chunk: string): boolean {
     )
   )
     return true;
-  if (/以下是你目前使用中的特殊技能|你现在没有使用任何特殊技能/.test(chunk))
+  if (/以下是你目前使用中的特殊技能|你现在没有使用任何(?:有效)?特殊技能/.test(chunk))
     return true;
   if (/以下是你目前组合中的特殊拳术技能|你现在没有组合任何特殊拳术技能/.test(chunk))
     return true;
   return false;
+}
+
+/** Strip MUD prompt glue like「>  精：…」(refreshCharacter fires cmds back-to-back). */
+export function stripMudPrompt(line: string): string {
+  return line.replace(/^(?:\s*>)+\s*/, "");
 }
 
 /** Character-panel dumps (hp / score / skills / inventory) belong in 角色卡片, not 见闻. */
@@ -1860,21 +1919,23 @@ export function isSheetDumpLine(line: string, chunk?: string): boolean {
   if (/你要看什么？/.test(t)) return true;
   if (/^>\s*(look\s+me|hp|score|skills|inventory|i|enable|jifa|prepare|bei)\b/i.test(t))
     return true;
-  if (/【侠客行个人档案】/.test(t)) return true;
-  if (/个人档案/.test(t) && /中文/.test(t)) return true;
+  // Vital / score rows may arrive with a glued prompt — match the bare content.
+  const plain = stripMudPrompt(t).trim();
+  if (/【侠客行个人档案】/.test(plain)) return true;
+  if (/个人档案/.test(plain) && /中文/.test(plain)) return true;
   // score rank + short: 【 布  衣 】张三(Zhang San) — 勿单靠【】以免误伤【公告】等
-  if (/^【[^】]{1,12}】/.test(t) && /\([A-Za-z][A-Za-z0-9_\- ]*\)\s*$/.test(t))
+  if (/^【[^】]{1,12}】/.test(plain) && /\([A-Za-z][A-Za-z0-9_\- ]*\)\s*$/.test(plain))
     return true;
-  if (/膂力/.test(t) && /悟性/.test(t) && /根骨/.test(t)) return true;
-  if (/你是一.+岁.+个月的/.test(t)) return true;
-  if (/你的师父是|你的(?:妻子|丈夫|配偶)是|你到目前为止总共(?:杀了|死了)/.test(t))
+  if (/膂力/.test(plain) && /悟性/.test(plain) && /根骨/.test(plain)) return true;
+  if (/你是一.+岁.+个月的/.test(plain)) return true;
+  if (/你的师父是|你的(?:妻子|丈夫|配偶)是|你到目前为止总共(?:杀了|死了)/.test(plain))
     return true;
-  if (/攻击力/.test(t) && /防御力/.test(t)) return true;
+  if (/攻击力/.test(plain) && /防御力/.test(plain)) return true;
   // hp numeric rows + score bar / empty vitals labels (新人精力/内力常为空)
-  if (/^[ \t]*(精|气|精力|内力|食物|饮水|潜能|经验)\s*[：:]/.test(t)) return true;
-  if (/^[ \t]*神\s*[：:]/.test(t)) return true;
-  if (/^[ \t]*阅历\s*[：:]/.test(t)) return true;
-  if (/^[■□\s]+$/.test(t)) return true;
+  if (/^(精|气|精力|内力|食物|饮水|潜能|经验)\s*[：:]/.test(plain)) return true;
+  if (/^神\s*[：:]/.test(plain)) return true;
+  if (/^阅历\s*[：:]/.test(plain)) return true;
+  if (/^[■□\s]+$/.test(plain)) return true;
   if (
     /目前所学过的技能|目前并没有学会任何技能|你不会任何技能|身上带[着著]下列|目前身上带[着著]|目前你身上没有任何东西|身上没有携带任何东西|负重\s*\d+\s*%/.test(
       t
@@ -1882,7 +1943,7 @@ export function isSheetDumpLine(line: string, chunk?: string): boolean {
   )
     return true;
   if (
-    /以下是你目前使用中的特殊技能|你现在没有使用任何特殊技能|有效等级|以下是你目前组合中的特殊拳术技能|你现在没有组合任何特殊拳术技能|取消全部技能准备|完成技能准备/.test(
+    /以下是你目前使用中的特殊技能|你现在没有使用任何(?:有效)?特殊技能|有效等级|以下是你目前组合中的特殊拳术技能|你现在没有组合任何特殊拳术技能|取消全部技能准备|完成技能准备/.test(
       t
     )
   )
@@ -1929,15 +1990,125 @@ export function isSheetDumpLine(line: string, chunk?: string): boolean {
 
 /** Self look-me narrative lines (仪容), not room/NPC chatter. */
 export function isSelfLookLine(line: string): boolean {
-  const t = line.trim();
+  const t = stripMudPrompt(line.trim()).trim();
   if (!t) return false;
+  // look.c long()/short header: 「普通百姓 张三(Zhangsan)。」
+  if (
+    /^.{2,48}\([A-Za-z][A-Za-z0-9_\- ]*\)[。.]\s*$/.test(t) &&
+    !/说道|问道|喊道|向.+打听/.test(t)
+  )
+    return true;
   if (/^你看起来/.test(t)) return true;
   if (/身上带[着著]：/.test(t)) return true;
   if (/看起来约.+[岁歲]/.test(t)) return true;
   if (/并没有受伤|气血充盈|受了点伤|气血和畅/.test(t) && /^你/.test(t))
     return true;
-  if (/^[□\s]+.+\([A-Za-z][^)]*\)\s*$/.test(t)) return true;
+  // look.c inventory_look: "  □布衣(Cloth)" / "  √毒针(needle)"
+  if (/^[□√]\s*.+\([A-Za-z][^)]*\)\s*$/.test(t)) return true;
   return false;
+}
+
+/**
+ * Panel dumps that follow `look me` in refreshCharacter (hp → score → …).
+ * Used to truncate 仪容 capture so 精/气 不会灌进「你身上带着」下方.
+ */
+export function isSelfLookStopLine(line: string): boolean {
+  const t = stripMudPrompt(line.trim()).trim();
+  if (!t) return false;
+  if (/^(hp|score|skills|inventory|i|enable|jifa|prepare|bei|look\s+me)\b/i.test(t))
+    return true;
+  if (/^(精|气|精力|内力|食物|饮水|潜能|经验)\s*[：:]/.test(t)) return true;
+  if (/^神\s*[：:]/.test(t)) return true;
+  if (/^阅历\s*[：:]/.test(t)) return true;
+  if (/【侠客行个人档案】/.test(t)) return true;
+  if (/个人档案/.test(t) && /中文/.test(t)) return true;
+  if (/膂力/.test(t) && /悟性/.test(t) && /根骨/.test(t)) return true;
+  if (/你是一.+岁.+个月的/.test(t)) return true;
+  if (/目前所学过的技能|目前并没有学会任何技能|你不会任何技能/.test(t))
+    return true;
+  // inventory.c header — not look-me「身上带著：」
+  if (
+    /身上带[着著]下列|目前你身上没有任何东西|身上没有携带任何东西|负重\s*\d+\s*%/.test(
+      t
+    )
+  )
+    return true;
+  if (
+    /以下是你目前使用中的特殊技能|你现在没有使用任何(?:有效)?特殊技能|以下是你目前组合中的特殊拳术技能|你现在没有组合任何特殊拳术技能/.test(
+      t
+    )
+  )
+    return true;
+  return false;
+}
+
+/** True when this chunk is look-me output (not inventory「下列」or NPC 打听). */
+export function chunkLooksLikeSelfLook(chunk: string): boolean {
+  if (!chunk) return false;
+  if (/打听有关|向.+打听/.test(chunk)) return false;
+  if (/身上带[着著]下列/.test(chunk) && !/你看起来|看起来约.+[岁歲]/.test(chunk))
+    return false;
+  return (
+    /你看起来/.test(chunk) ||
+    /看起来约.+[岁歲]/.test(chunk) ||
+    /你身上带[着著]：/.test(chunk)
+  );
+}
+
+/**
+ * Build 仪容 panel from a text chunk (often look-me + hp glued together).
+ * Keeps equipped gear (□/√); stops before hp / score / skills / inventory.
+ */
+export function extractSelfLookPanel(
+  text: string,
+  htmlLines?: string[]
+): { text: string; html: string } {
+  const lines = text.replace(/\0/g, "").split("\n");
+  const keepIdx: number[] = [];
+  let started = false;
+  for (let i = 0; i < lines.length; i++) {
+    // MUD prompt「>」常与下一条命令输出粘在同一行（如「>  精：…」）；
+    // 先剥掉行首的一串「>」提示符再判断，避免气血行伪装成非停止行。
+    const t = lines[i].replace(/^(?:\s*>)+\s*/, "").trim();
+    if (!t) {
+      if (started) keepIdx.push(i);
+      continue;
+    }
+    if (isSelfLookStopLine(t)) {
+      if (started) break;
+      continue;
+    }
+    if (!started) {
+      if (
+        /^你看起来/.test(t) ||
+        /看起来约.+[岁歲]/.test(t) ||
+        /身上带[着著]：/.test(t) ||
+        (/并没有受伤|气血充盈|受了点伤|气血和畅/.test(t) && /^你/.test(t))
+      ) {
+        started = true;
+      } else {
+        continue;
+      }
+    }
+    keepIdx.push(i);
+  }
+  const stripPrompt = (s: string) => s.replace(/^(?:\s*>)+\s*/, "");
+  const textOut = keepIdx
+    .map((i) => stripPrompt(lines[i]).replace(/\s+$/, ""))
+    .join("\n")
+    .replace(/^\n+/, "")
+    .replace(/\n+$/, "");
+  let htmlOut = "";
+  if (htmlLines?.length) {
+    htmlOut = keepIdx
+      .map((i) => (htmlLines[i] == null ? "" : stripPrompt(String(htmlLines[i]))))
+      .filter((h) => {
+        const plain = h.replace(/<[^>]+>/g, "").replace(/&gt;|&amp;|&lt;/g, "").trim();
+        return plain.length > 0;
+      })
+      .join("\n");
+  }
+  return { text: textOut, html: htmlOut };
 }
 
 /** Drop decorative score banner; keep the rest of the dump. */

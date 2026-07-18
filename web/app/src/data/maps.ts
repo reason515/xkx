@@ -96,18 +96,27 @@ function escapeHtml(s: string): string {
 /**
  * 0-based index among identical labels on map_xiakedao.
  * ASCII has two rows of three 沙滩; main fisherman beach is bottom-middle (4).
+ * 小路×3：礁石旁 / 海边－山路间 / 迎宾厅南。
  */
-const XIAKEDAO_BEACH_OCCURRENCE: Record<string, number> = {
-  shatann1: 0,
-  shatann2: 1,
-  shatann3: 2,
-  shatan: 4,
-  shatan1: 4,
-  shatan3: 4,
-  shatan4: 4,
-  shatans2: 5,
-  shatans3: 5,
-  shatan5: 5,
+const XIAKEDAO_TITLE_OCCURRENCE: Record<string, Record<string, number>> = {
+  沙滩: {
+    shatann1: 0,
+    shatann2: 1,
+    shatann3: 2,
+    shatan: 4,
+    shatan1: 4,
+    shatan3: 4,
+    shatan4: 4,
+    shatans2: 5,
+    shatans3: 5,
+    shatan5: 5,
+  },
+  // map order: 「小路－礁石」→「海边－小路→山路」→迎宾厅南「小路」
+  小路: {
+    xiaolu3: 0,
+    xiaolu2: 1,
+    xiaolu: 2,
+  },
 };
 
 /**
@@ -121,19 +130,37 @@ export function mapMarkerOccurrence(
     roomPath?: string;
     hasFisherman?: boolean;
     hasCarriage?: boolean;
+    /** Exit destination shorts — used when path is unknown. */
+    exitNames?: string[];
   }
 ): number {
   const title = (marker || "").trim();
   if (!title) return 0;
-  if (mapKey === "xiakedao" && title === "沙滩") {
-    const path = (opts?.roomPath || "").toLowerCase().replace(/\.c$/, "");
-    const base = path.includes("/") ? path.split("/").pop()! : path;
-    if (base && base in XIAKEDAO_BEACH_OCCURRENCE) {
-      return XIAKEDAO_BEACH_OCCURRENCE[base];
+  const path = (opts?.roomPath || "").toLowerCase().replace(/\.c$/, "");
+  const base = path.includes("/") ? path.split("/").pop()! : path;
+
+  if (mapKey === "xiakedao") {
+    const byPath = XIAKEDAO_TITLE_OCCURRENCE[title];
+    if (byPath && base && base in byPath) return byPath[base];
+
+    if (title === "沙滩") {
+      // Main south beach: fisherman / landing car / default for login
+      if (opts?.hasFisherman || opts?.hasCarriage) return 4;
+      return 4;
     }
-    // Main south beach: fisherman / landing car / default for login
-    if (opts?.hasFisherman || opts?.hasCarriage) return 4;
-    return 4;
+
+    if (title === "小路") {
+      const exits = (opts?.exitNames || []).join(" ");
+      // 迎宾厅南：连沙滩 / 迎宾厅
+      if (/沙滩|迎宾厅/.test(exits) && !/礁石|山脚下|望海亭/.test(exits))
+        return 2;
+      // 海边－山路间：连望海亭 / 山路 / 海边
+      if (/望海亭|山路|海边/.test(exits)) return 1;
+      // 小路－礁石：连山脚下 / 礁石
+      if (/山脚下|礁石/.test(exits)) return 0;
+      // Newbie default after 沙滩 north：迎宾厅南小路
+      return 2;
+    }
   }
   return 0;
 }

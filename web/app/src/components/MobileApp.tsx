@@ -8,6 +8,7 @@ import { HelpSheet } from "./HelpSheet";
 import { TrainSheet } from "./TrainSheet";
 import { CombatSheet } from "./CombatSheet";
 import { EntitySheet } from "./EntitySheet";
+import { SpeechSheet } from "./SpeechSheet";
 import { GuideTip } from "./GuideTip";
 import { sceneActionChips } from "../lib/parser";
 import { useEffect, useRef, useState } from "react";
@@ -201,6 +202,37 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                   role="menuitem"
                   onClick={() => {
                     setMenuOpen(false);
+                    g.openSheet("speech");
+                  }}
+                >
+                  发言
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    g.refreshCharacter();
+                    g.openSheet("train");
+                  }}
+                >
+                  修炼
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    g.openSheet("combat");
+                  }}
+                >
+                  动手
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
                     g.cmd("save");
                   }}
                 >
@@ -276,11 +308,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                           className="chip npc"
                           onClick={() => {
                             g.clearDoc();
-                            g.setSelectedEntity({
-                              id: n.id,
-                              name: n.name,
-                              kind: "npc",
-                            });
+                            g.setSelectedEntity(n);
                             g.openSheet("entity");
                           }}
                         >
@@ -302,11 +330,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                           className="chip item"
                           onClick={() => {
                             g.clearDoc();
-                            g.setSelectedEntity({
-                              id: it.id,
-                              name: it.name,
-                              kind: "item",
-                            });
+                            g.setSelectedEntity(it);
                             g.openSheet("entity");
                           }}
                         >
@@ -358,6 +382,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           roomPath={state.room.path}
           roomNpcs={state.room.npcs}
           roomItems={state.room.items}
+          roomExits={state.room.exits}
           onClose={g.closeSheet}
         />
       )}
@@ -375,10 +400,10 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           active={state.assistActive}
           status={state.assistStatus}
           trainLog={state.trainLog}
+          enabled={state.enabled}
           onClose={g.closeSheet}
           onStart={g.startAssist}
           onStop={g.stopAssist}
-          onCmd={g.cmd}
         />
       )}
       {state.sheet === "combat" && (
@@ -394,11 +419,22 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           onStopAssist={g.stopAssist}
         />
       )}
+      {state.sheet === "speech" && (
+        <SpeechSheet
+          nearby={state.room.npcs}
+          onClose={g.closeSheet}
+          onSend={(command) => g.cmd(command, { silent: true })}
+        />
+      )}
       {state.sheet === "entity" && g.selectedEntity && (
         <EntitySheet
           id={g.selectedEntity.id}
           name={g.selectedEntity.name}
           kind={g.selectedEntity.kind}
+          scenery={g.selectedEntity.scenery}
+          canApprentice={g.selectedEntity.canApprentice}
+          canTrade={g.selectedEntity.canTrade}
+          inventory={state.inventory}
           docText={state.docTarget === "entity" ? state.docText : ""}
           docLoading={state.docTarget === "entity" && state.docLoading}
           askHints={state.suggestedActions}
@@ -407,6 +443,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           onDocAction={afterBoardDocAction}
           onAskList={(command) => g.docCmd(command, "entity")}
           onLearnList={(command) => g.docCmd(command, "entity")}
+          onStartLearn={g.startAssist}
           onClearDoc={g.clearDoc}
         />
       )}
