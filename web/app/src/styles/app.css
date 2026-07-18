@@ -293,6 +293,42 @@ button {
   margin-bottom: 14px;
 }
 
+.guide-tip {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: var(--ink-lift);
+}
+
+.guide-tip-text {
+  flex: 1;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--paper-dim);
+}
+
+.guide-tip-dismiss {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0 2px;
+  border: none;
+  background: transparent;
+  font-family: var(--font-body);
+  font-size: 12px;
+  color: var(--jade-bright);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.guide-tip-dismiss:hover {
+  color: var(--paper);
+}
+
 .ctx-block h2 {
   font-family: var(--font-display);
   font-size: 12px;

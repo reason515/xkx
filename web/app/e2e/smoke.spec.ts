@@ -305,7 +305,6 @@ async function walkToDadongBoard(page: import("@playwright/test").Page) {
     ["爬树取雨衣", /拿下一件雨衣|爬上树/],
     ["脱下布衣", /脱了下来/],
     ["穿上雨衣", /穿上一件油布雨衣|穿上.*雨衣/],
-    ["跳进瀑布", /纵身跃|跳了进/],
   ];
   for (const [name, pattern] of steps) {
     await openSceneTab(page);
@@ -320,6 +319,45 @@ async function walkToDadongBoard(page: import("@playwright/test").Page) {
       await goByExitLabel(page, "北上");
     }
     await clickActionAndWaitLog(page, name, pattern, 10_000);
+  }
+
+  // 跳瀑：见闻可能被冲掉，以房间标题进甬道为准，必要时重试
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await openSceneTab(page);
+    const title = ((await page.locator(".room-title").textContent()) || "").trim();
+    if (/甬道|大山洞/.test(title)) break;
+    if (!/瀑布/.test(title)) {
+      const south = page
+        .locator(".exit-extra .cell.open")
+        .filter({ has: page.locator(".d", { hasText: /^南下$/ }) });
+      if (await south.first().isVisible().catch(() => false)) {
+        await goByExitLabel(page, "南下");
+      }
+      await goByExitLabel(page, "北上");
+      await clickActionAndWaitLog(
+        page,
+        "爬树取雨衣",
+        /拿下一件雨衣|爬上树|贪心/,
+        10_000
+      ).catch(() => undefined);
+      await clickActionAndWaitLog(
+        page,
+        "穿上雨衣",
+        /穿上一件油布雨衣|穿上.*雨衣|已经穿/,
+        10_000
+      ).catch(() => undefined);
+    }
+    await clickActionChip(page, "跳进瀑布");
+    await expect
+      .poll(
+        async () => {
+          await openSceneTab(page);
+          return ((await page.locator(".room-title").textContent()) || "").trim();
+        },
+        { timeout: 15_000 }
+      )
+      .toMatch(/甬道|大山洞/);
+    break;
   }
 
   await openSceneTab(page);
@@ -448,6 +486,33 @@ test.describe.serial("game smoke", () => {
       await page.close();
     }
   }, { timeout: 300_000 });
+
+  test("落点沙滩显示情境提示且无新手引导字样", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 90_000,
+    });
+    await expect(page.getByText(/新手引导/)).toHaveCount(0);
+
+    const tip = page.getByTestId("guide-tip");
+    await expect(tip).toBeVisible({ timeout: 20_000 });
+    await expect(tip).toContainText(/跟随迎宾|熟悉走动|离岛/);
+    await expect(tip).not.toContainText(/新手引导/);
+
+    await completeIntroFollow(page);
+    await openSceneTab(page);
+    await expect(page.getByText(/新手引导/)).toHaveCount(0);
+    // 主沙滩应换成方向类提示，或已被关掉
+    const after = page.getByTestId("guide-tip");
+    if (await after.isVisible().catch(() => false)) {
+      await expect(after).not.toContainText(/跟随迎宾弟子/);
+      await expect(after).toContainText(/走动|打听|离岛|中原/);
+    }
+  });
 
   test("登录后可见场景且不含登录横幅", async ({ page }) => {
     await loginAsNewbie(page, {
@@ -1087,6 +1152,13 @@ test.describe.serial("game smoke", () => {
       timeout: 10_000,
     });
     await expect(page.locator(".map-here")).toBeVisible();
+    // 主沙滩在图南侧（迎宾厅以南），不应高亮北岸第一处沙滩
+    const mapHtml = (await page.locator(".map-ascii").innerHTML()) || "";
+    const markAt = mapHtml.indexOf("map-here");
+    const hallAt = mapHtml.indexOf("迎宾厅");
+    expect(markAt).toBeGreaterThan(-1);
+    expect(hallAt).toBeGreaterThan(-1);
+    expect(markAt).toBeGreaterThan(hallAt);
 
     await page.getByRole("button", { name: "世界" }).click();
     await expect(page.locator(".map-ascii")).toContainText(/扬州城|侠客岛/, {
@@ -1263,6 +1335,47 @@ test.describe.serial("game smoke", () => {
         { timeout: 40_000 }
       )
       .toBe(true);
+  });
+
+  test("迎宾厅不跟随则不被强制拖走", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    for (const label of ["北", "北"]) {
+      if (await hasExit(page, label)) await goByExitLabel(page, label);
+    }
+    await openSceneTab(page);
+    for (let i = 0; i < 3; i++) {
+      const title = (
+        (await page.locator(".room-title").textContent()) || ""
+      ).trim();
+      if (/迎宾/.test(title)) break;
+      if (await hasExit(page, "北")) await goByExitLabel(page, "北");
+      else break;
+    }
+
+    await openSceneTab(page);
+    const title = (
+      (await page.locator(".room-title").textContent()) || ""
+    ).trim();
+    if (!/迎宾/.test(title)) {
+      test.skip(true, `未到达迎宾厅（当前：${title}），跳过强制拖走断言`);
+      return;
+    }
+
+    // 等待超过原强制拖走窗口（约 20+10+10+10s），期间绝不点跟随
+    await page.waitForTimeout(55_000);
+    await openSceneTab(page);
+    const after = (
+      (await page.locator(".room-title").textContent()) || ""
+    ).trim();
+    expect(after).not.toMatch(/瀑布|大山洞|甬道|石门/);
+    expect(after).toMatch(/迎宾|小路|沙滩|望海/);
+
+    const logs = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(logs).not.toMatch(/拉起你的手|还乱跑，来吧/);
   });
 
   test("人物面板学可列出请教功夫或说明不可请教", async ({ page }) => {
@@ -1451,6 +1564,55 @@ test.describe.serial("game smoke", () => {
 
     await askNpcViaEntitySheet(page, /厮仆/, "岛主");
     await waitForLogPattern(page, /甬道|石室中苦思|进去找他们/, 20_000);
+
+    await expect
+      .poll(async () => hasExit(page, "进"), { timeout: 25_000 })
+      .toBe(true);
+  });
+
+  test("石门房间出现打开石门动作并可进入石洞", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 90_000,
+    });
+
+    await walkToDadongBoard(page);
+    await expect(page.locator(".room-title")).toHaveText(/大山洞/);
+    await askNpcViaEntitySheet(page, /厮仆/, "岛主");
+    await expect
+      .poll(async () => hasExit(page, "进"), { timeout: 25_000 })
+      .toBe(true);
+
+    await goByExitLabel(page, "进");
+    await goByExitLabel(page, "北");
+    await expect(page.locator(".room-title")).toHaveText(/石门/, {
+      timeout: 20_000,
+    });
+
+    // 石门状态全服共享：若已被他人打开则直接有「进」；否则应出现开门动作
+    await sendSilentCmd(page, "look");
+    await openSceneTab(page);
+    const openChip = page
+      .locator(".chip.action")
+      .filter({ hasText: /打开石门|打开门/ })
+      .first();
+    await expect
+      .poll(
+        async () =>
+          (await openChip.isVisible().catch(() => false)) ||
+          (await hasExit(page, "进")),
+        { timeout: 25_000 }
+      )
+      .toBe(true);
+
+    if (await openChip.isVisible().catch(() => false)) {
+      await clickActionAndWaitLog(page, /打开石门|打开门/, /打开|石门/, 20_000);
+    }
 
     await expect
       .poll(async () => hasExit(page, "进"), { timeout: 25_000 })

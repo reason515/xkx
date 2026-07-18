@@ -26,6 +26,7 @@ int main(object me, string arg)
 	
 		if( environment(me)->open_door(dir) ) {
 			message_vision("$N将" + doors[dir]["name"] + "打开。\n", me);
+			"/adm/daemons/webd"->notify_room(environment(me));
 			return 1;
 		}
 	}

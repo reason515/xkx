@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ExitPad } from "../ExitPad";
+import { GuideTip } from "../GuideTip";
 import { useDesktop } from "../../context/DesktopContext";
 import type { ExitInfo } from "../../lib/types";
 
@@ -15,6 +16,14 @@ export function LeftSidebar() {
 
   return (
     <aside className="desktop-left" data-testid="desktop-left">
+      {game.guideTip && (
+        <div className="desktop-left-block">
+          <GuideTip
+            text={game.guideTip.text}
+            onDismiss={game.dismissGuideTip}
+          />
+        </div>
+      )}
       <div className="desktop-left-block">
         <h2>出口</h2>
         <ExitPad

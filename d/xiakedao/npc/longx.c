@@ -17,24 +17,13 @@ string* commands = ({
 	"east",
 	"north",
 });
-string* places = ({
-	"/d/xiakedao/shanlu1",
-	"/d/xiakedao/shanlu2",
-	"/d/xiakedao/pubu",
-	"/d/xiakedao/pubu",
-	"/d/xiakedao/pubu",
-	"/d/xiakedao/pubu",
-	"/d/xiakedao/yongdao1",
-	"/d/xiakedao/yongdao3",
-	"/d/xiakedao/dadong",
-});
 string* fname = ({
 	" yi"," er", " san", " si", " wu", " liu", " qi", " ba", " jiu",
 });
 
 string* wait = ({
-	" 岛主在洞中相候，请跟" + RANK_D->query_self(this_object()) + "来吧。",
-	" 阁下请移驾到侠客洞中再发呆吧。", 	
+	" 岛主在洞中相候，若愿同行可跟随" + RANK_D->query_self(this_object()) + "；不愿跟也不妨，自行前往瀑布进洞即可。",
+	" 阁下若暂不跟随，可自行向北去望海亭、瀑布进洞，不必勉强。",
 });
 
 int ask_leave();
@@ -43,6 +32,7 @@ int ask_daozhu();
 void greeting();
 void checking();
 void check_follow(object, int);
+void move_next(object, int, int);
 void create()
 {	int i;
 	i = random(8) + 1;
@@ -118,7 +108,8 @@ void greeting()
 	if (!(me->query_leader() == this_object()))
 	{	command("hi " + query_temp("xkd/guest"));
 		command("say " + RANK_D->query_self(this_object()) + query("name") + 
-			"奉岛主之命在此恭迎大驾，" + RANK_D->query_respect(me) + "请跟我来。\n" +
+			"奉岛主之命在此恭迎大驾。若愿同行，" + RANK_D->query_respect(me) +
+			"可跟随在下；不愿跟也可自行向北去瀑布进洞。\n" +
 			"    "+HBRED+HIW"(follow " + query("id") + ")"NOR);	
 		remove_call_out("check_follow");
 		call_out("check_follow", 20, me, 0);
@@ -137,21 +128,24 @@ void check_follow(object me, int count)
 	}
 	if (me->query_leader() == this_object())
 	{	remove_call_out("move_next");
-		call_out("move_next", 1, me, 0);
+		call_out("move_next", 1, me, 0, 0);
 	}
 	else
-	{	if ( count > 2 )
-		{	message("vision", long->name() + "不知从哪变了出来，拉起" + me->name() + "的手，身形一闪便不见了\n", environment(me), ({me}));
-			tell_object(me, long->name() + "不知从哪变了出来，拉起你的手边走边埋怨道：叫你跟我的，还乱跑，来吧。\n");
-			me->move(environment(long));
-			me->set_leader(long);
+	{	/* 只提示、绝不强制拖走，避免新手未 follow 却被拽走感到迷惑 */
+		if ( count > 2 )
+		{	command("say " + RANK_D->query_respect(me) +
+				"既有要事，" + RANK_D->query_self(this_object()) +
+				"不便强留。自行向北经望海亭至瀑布进洞便可。");
+			command("bye " + me->query("id"));
+			message_vision("$N拱了拱手，转身离去了。\n", long);
 			remove_call_out("check_follow");
-			call_out("check_follow", 1, me, count);
+			destruct(long);
 		}
 		else
 		{
 			i = random(sizeof(wait));
-			command("tell " + me->query("id") + wait[i]);
+			command("tell " + me->query("id") + wait[i] +
+				"\n    " + HBRED + HIW + "(follow " + query("id") + ")" + NOR);
 			count = count + 1;
 			remove_call_out("check_follow");
 			call_out("check_follow", 10, me, count);
@@ -159,13 +153,22 @@ void check_follow(object me, int count)
 	}
 	return;
 }
-void move_next(object me, int count)
+void move_next(object me, int count, int miss)
 {	object long = this_object();
     	if( !(objectp(me=find_player(query_temp("xkd/guest")))))
 	{	command("say 这人也真是的，一转眼就不知跑哪去了。");
 		message_vision("$N说完转身离去了。\n", this_object());
 		remove_call_out("check_follow");
 		destruct(this_object());
+		return;
+	}
+	/* 中途取消跟随：停止引路，不拽人 */
+	if (me->query_leader() != this_object())
+	{	command("say " + RANK_D->query_respect(me) +
+			"既不愿同行，便请自便。瀑布进洞之路向北便是。");
+		message_vision("$N拱了拱手，转身离去了。\n", long);
+		remove_call_out("move_next");
+		destruct(long);
 		return;
 	}
 	if (count >= sizeof(commands))
@@ -178,15 +181,24 @@ void move_next(object me, int count)
 	}
 	command(commands[count]);
 	if (!(present(me, environment(long))))
-	{	message("vision", long->name() + "不知从哪变了出来，拉起" + me->name() + "的手，身形一闪便不见了\n", environment(me), ({me}));
-		tell_object(me, long->name() + "不知从哪变了出来，拉起你的手边走边埋怨道：叫你跟我的，还乱跑，来吧。\n");
-		//message_vision("$N不知从哪变了出来，埋怨你道：叫你跟我的，还乱跑，来吧。\n", long);
-		me->move(places[count]);
+	{	/* 落后未跟上：等待提醒，绝不瞬移玩家 */
+		if (miss >= 3)
+		{	command("say " + RANK_D->query_respect(me) +
+				"似乎另有安排，" + RANK_D->query_self(this_object()) +
+				"先行告退。瀑布进洞之路向北便是。");
+			message_vision("$N拱了拱手，转身离去了。\n", long);
+			remove_call_out("move_next");
+			destruct(long);
+			return;
+		}
+		tell_object(me, long->name() + "回头道：请跟上，或取消跟随后自行前往。\n" +
+			"    " + HBRED + HIW + "(follow " + query("id") + ")" + NOR + "\n");
 		remove_call_out("move_next");
-		call_out("move_next", 10, me, count);
+		call_out("move_next", 10, me, count, miss + 1);
+		return;
 	}
 	count = count + 1;
 	remove_call_out("move_next");
-	call_out("move_next", 10, me, count);
+	call_out("move_next", 10, me, count, 0);
 	return;
 }

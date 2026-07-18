@@ -24,6 +24,13 @@ export interface ExitInfo {
   name?: string;
 }
 
+/** Closed/locked door from room.update (not listed in exits while shut). */
+export interface DoorInfo {
+  dir: string;
+  name: string;
+  status: "closed" | "locked";
+}
+
 export interface Entity {
   id: string;
   name: string;
@@ -41,9 +48,13 @@ export interface RoomState {
   desc?: string;
   /** MUD area key from outdoors /d/<area>/… (e.g. xiakedao). */
   area?: string;
+  /** Room file basename from webd (e.g. shatan) for map disambiguation. */
+  path?: string;
   /** From room sleep_room (LPC) or desc/title heuristics. */
   canSleep?: boolean;
   exits: ExitInfo[];
+  /** Shut doors that need open/unlock before the exit appears. */
+  doors?: DoorInfo[];
   npcs: Entity[];
   items: Entity[];
 }

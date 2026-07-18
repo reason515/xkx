@@ -1,9 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   beachGreeterActions,
   buildScoreHtml,
+  carriageTravelActions,
+  closedDoorActions,
   extractLookBlock,
   isCombatLine,
+  isEntitySheetAction,
   isLoginNoise,
   isMorePromptLine,
   isProtocolNoise,
@@ -30,6 +33,17 @@ import {
   parseLearnOfferActions,
   applyEquipOptimistic,
 } from "../lib/parser";
+import {
+  buildGuideContext,
+  matchGuideTip,
+  readDismissed,
+  readGuideFinished,
+  readSeenXiakedao,
+  writeDismissed,
+  writeGuideFinished,
+  writeSeenXiakedao,
+  type GuideTip as GuideTipMatch,
+} from "../lib/guideTips";
 import { applyEvent } from "../lib/protocol";
 import type {
   AssistConfig,
@@ -109,11 +123,67 @@ export function useGame(opts?: UseGameOptions) {
     kind: "npc" | "item";
   } | null>(null);
   const [charTab, setCharTab] = useState(0);
+  const [guideDismissed, setGuideDismissed] = useState<Set<string>>(
+    () => readDismissed()
+  );
+  const [guideFinished, setGuideFinished] = useState(() => readGuideFinished());
+  const [seenXiakedao, setSeenXiakedao] = useState(() => readSeenXiakedao());
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(""), 2200);
   }, []);
+
+  useEffect(() => {
+    if ((state.room.area || "").toLowerCase() !== "xiakedao") return;
+    if (seenXiakedao) return;
+    writeSeenXiakedao();
+    setSeenXiakedao(true);
+  }, [state.room.area, seenXiakedao]);
+
+  const guideTip: GuideTipMatch | null = useMemo(() => {
+    if (!state.inGame) return null;
+    return matchGuideTip(
+      buildGuideContext({
+        area: state.room.area,
+        title: state.room.title,
+        exits: state.room.exits,
+        doors: state.room.doors,
+        npcs: state.room.npcs,
+        items: state.room.items,
+        exp: state.vitals.exp,
+        skills: state.skills,
+        dismissed: guideDismissed,
+        seenXiakedao,
+        finished: guideFinished,
+      })
+    );
+  }, [
+    state.inGame,
+    state.room.area,
+    state.room.title,
+    state.room.exits,
+    state.room.doors,
+    state.room.npcs,
+    state.room.items,
+    state.vitals.exp,
+    state.skills,
+    guideDismissed,
+    seenXiakedao,
+    guideFinished,
+  ]);
+
+  const dismissGuideTip = useCallback(() => {
+    if (!guideTip) return;
+    const next = new Set(guideDismissed);
+    next.add(guideTip.id);
+    setGuideDismissed(next);
+    writeDismissed(next);
+    if (guideTip.id === "mainland-welcome") {
+      setGuideFinished(true);
+      writeGuideFinished(true);
+    }
+  }, [guideTip, guideDismissed]);
 
   const addLog = useCallback((
     text: string,
@@ -354,23 +424,27 @@ export function useGame(opts?: UseGameOptions) {
             applied.room.npcs,
             applied.room.title || ""
           );
-          const greeter = [
+          const roomHints = [
             ...fromDesc,
             ...beachGreeterActions(applied.room.title, applied.room.npcs),
             ...waterfallPassageActions(applied.room.title),
             ...roomUtilityActions(applied.room),
+            ...closedDoorActions(applied.room.doors),
+            ...carriageTravelActions(applied.room),
           ];
+          // Keep ask/learn narrative chips; regenerate door/car/room chips
+          const prevKeep = roomChanged
+            ? []
+            : s.suggestedActions.filter((a) => isEntitySheetAction(a.command));
           return {
             ...s,
             ...applied,
             inGame: true,
-            suggestedActions: roomChanged
-              ? mergeSuggestedActions([], greeter, applied.room.npcs)
-              : mergeSuggestedActions(
-                  s.suggestedActions,
-                  greeter,
-                  applied.room.npcs
-                ),
+            suggestedActions: mergeSuggestedActions(
+              prevKeep,
+              roomHints,
+              applied.room.npcs
+            ),
           };
         });
         if (!enteredGame.current) enterGame(false);
@@ -514,25 +588,33 @@ export function useGame(opts?: UseGameOptions) {
                     ? room.exits
                     : s.room.exits,
               };
-              const greeter = [
+              const roomHints = [
                 ...beachGreeterActions(nextRoom.title, npcs),
                 ...waterfallPassageActions(nextRoom.title),
                 ...roomUtilityActions(nextRoom),
+                ...closedDoorActions(nextRoom.doors),
+                ...carriageTravelActions({
+                  items: nextRoom.items,
+                  exits: nextRoom.exits,
+                }),
               ];
               const fromText = [
                 ...parseSuggestedActions(chunk, npcs),
                 ...parseLearnOfferActions(chunk, npcs),
               ];
+              const prevKeep = roomChanged
+                ? []
+                : s.suggestedActions.filter((a) =>
+                    isEntitySheetAction(a.command)
+                  );
               return {
                 ...s,
                 room: nextRoom,
-                suggestedActions: roomChanged
-                  ? mergeSuggestedActions(fromText, greeter, npcs)
-                  : mergeSuggestedActions(
-                      s.suggestedActions,
-                      [...fromText, ...greeter],
-                      npcs
-                    ),
+                suggestedActions: mergeSuggestedActions(
+                  prevKeep,
+                  [...fromText, ...roomHints],
+                  npcs
+                ),
               };
             });
           }
@@ -877,6 +959,8 @@ export function useGame(opts?: UseGameOptions) {
     setSelectedExit,
     selectedEntity,
     setSelectedEntity,
+    guideTip,
+    dismissGuideTip,
     login,
     cmd,
     quit,

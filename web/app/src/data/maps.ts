@@ -94,12 +94,59 @@ function escapeHtml(s: string): string {
 }
 
 /**
- * Highlight the first whole occurrence of each marker (room short name, etc.)
- * inside ASCII map text. Returns safe HTML for dangerouslySetInnerHTML.
+ * 0-based index among identical labels on map_xiakedao.
+ * ASCII has two rows of three 沙滩; main fisherman beach is bottom-middle (4).
+ */
+const XIAKEDAO_BEACH_OCCURRENCE: Record<string, number> = {
+  shatann1: 0,
+  shatann2: 1,
+  shatann3: 2,
+  shatan: 4,
+  shatan1: 4,
+  shatan3: 4,
+  shatan4: 4,
+  shatans2: 5,
+  shatans3: 5,
+  shatan5: 5,
+};
+
+/**
+ * Which occurrence of a repeated map label to highlight (0 = first).
+ * Falls back to heuristics when room path is missing.
+ */
+export function mapMarkerOccurrence(
+  mapKey: string | undefined,
+  marker: string | undefined,
+  opts?: {
+    roomPath?: string;
+    hasFisherman?: boolean;
+    hasCarriage?: boolean;
+  }
+): number {
+  const title = (marker || "").trim();
+  if (!title) return 0;
+  if (mapKey === "xiakedao" && title === "沙滩") {
+    const path = (opts?.roomPath || "").toLowerCase().replace(/\.c$/, "");
+    const base = path.includes("/") ? path.split("/").pop()! : path;
+    if (base && base in XIAKEDAO_BEACH_OCCURRENCE) {
+      return XIAKEDAO_BEACH_OCCURRENCE[base];
+    }
+    // Main south beach: fisherman / landing car / default for login
+    if (opts?.hasFisherman || opts?.hasCarriage) return 4;
+    return 4;
+  }
+  return 0;
+}
+
+/**
+ * Highlight one occurrence of each marker inside ASCII map text.
+ * Use `occurrence` to pick among duplicate labels (e.g. six 沙滩).
+ * Returns safe HTML for dangerouslySetInnerHTML.
  */
 export function highlightMapText(
   ascii: string,
-  markers: (string | undefined)[]
+  markers: (string | undefined)[],
+  occurrence: Record<string, number> = {}
 ): string {
   const escaped = escapeHtml(ascii);
   const seen = new Set<string>();
@@ -108,8 +155,13 @@ export function highlightMapText(
     const m = (raw || "").trim();
     if (!m || m.length < 2 || seen.has(m)) continue;
     seen.add(m);
-    const re = new RegExp(escapeRegExp(escapeHtml(m)));
-    out = out.replace(re, (match) => `<mark class="map-here">${match}</mark>`);
+    const nth = occurrence[m] ?? 0;
+    const re = new RegExp(escapeRegExp(escapeHtml(m)), "g");
+    let count = 0;
+    out = out.replace(re, (match) => {
+      if (count++ === nth) return `<mark class="map-here">${match}</mark>`;
+      return match;
+    });
   }
   return out;
 }

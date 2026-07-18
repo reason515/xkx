@@ -3,7 +3,10 @@ import {
   beachGreeterActions,
   buildAskTopicActions,
   buildScoreHtml,
+  carriageTravelActions,
+  closedDoorActions,
   extractLookBlock,
+  isCarriageItem,
   isCombatLine,
   isDocReadingCommand,
   isLoginNoise,
@@ -658,6 +661,69 @@ describe("waterfallPassageActions", () => {
     expect(labelSuggestedAction("wear rain coat")).toBe("穿上雨衣");
     expect(labelSuggestedAction("jump fall")).toBe("跳进瀑布");
     expect(waterfallPassageActions("沙滩")).toEqual([]);
+  });
+});
+
+describe("closedDoorActions", () => {
+  it("offers open chip for closed doors using Chinese name", () => {
+    expect(
+      closedDoorActions([
+        { dir: "enter", name: "石门", status: "closed" },
+      ]).map((a) => a.command)
+    ).toEqual(["open 石门"]);
+    expect(labelSuggestedAction("open 石门")).toBe("打开石门");
+  });
+
+  it("offers unlock hint for locked doors", () => {
+    expect(
+      closedDoorActions([{ dir: "east", name: "木门", status: "locked" }])
+    ).toEqual([{ command: "unlock 木门", label: "木门上着锁" }]);
+  });
+
+  it("returns empty when no doors", () => {
+    expect(closedDoorActions([])).toEqual([]);
+    expect(closedDoorActions(undefined)).toEqual([]);
+  });
+});
+
+describe("carriageTravelActions", () => {
+  it("detects carriage item", () => {
+    expect(isCarriageItem("da che", "大车")).toBe(true);
+    expect(isCarriageItem("stone", "鹅卵石")).toBe(false);
+  });
+
+  it("offers qu destinations when car is in a no-exit room", () => {
+    const acts = carriageTravelActions({
+      items: [{ id: "da che", name: "大车", kind: "item" }],
+      exits: [],
+    });
+    expect(acts.map((a) => a.command)).toContain("qu 扬州");
+    expect(acts.map((a) => a.command)).toContain("qu 少林");
+    expect(labelSuggestedAction("qu 扬州")).toBe("乘车去扬州");
+  });
+
+  it("skips when room has many exits", () => {
+    expect(
+      carriageTravelActions({
+        items: [{ id: "da che", name: "大车", kind: "item" }],
+        exits: [
+          { dir: "north" },
+          { dir: "south" },
+          { dir: "east" },
+        ],
+      })
+    ).toEqual([]);
+  });
+
+  it("ground item sheet offers destinations instead of get", () => {
+    const cmds = groundItemActions("da che", "大车").map((a) => a.command);
+    expect(cmds[0]).toMatch(/^look /);
+    expect(cmds).toEqual(
+      expect.arrayContaining(["qu 扬州", "qu 武当", "qu 少林"])
+    );
+    expect(groundItemActions("da che", "大车").map((a) => a.label)).not.toContain(
+      "拿"
+    );
   });
 });
 

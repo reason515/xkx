@@ -8,6 +8,7 @@ import { HelpSheet } from "./HelpSheet";
 import { TrainSheet } from "./TrainSheet";
 import { CombatSheet } from "./CombatSheet";
 import { EntitySheet } from "./EntitySheet";
+import { GuideTip } from "./GuideTip";
 import { sceneActionChips } from "../lib/parser";
 import { useEffect, useRef, useState } from "react";
 import type { ExitInfo, LogEntry } from "../lib/types";
@@ -236,6 +237,9 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             <section className="scene-panel" aria-label="场景">
               <h1 className="room-title">{state.room.title || "…"}</h1>
               <p className="room-desc">{state.room.desc || "环顾四周以了解所处之地。"}</p>
+              {g.guideTip && (
+                <GuideTip text={g.guideTip.text} onDismiss={g.dismissGuideTip} />
+              )}
 
               <section className="context">
                 <div className="ctx-block">
@@ -351,6 +355,9 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
         <MapSheet
           roomTitle={state.room.title}
           roomArea={state.room.area}
+          roomPath={state.room.path}
+          roomNpcs={state.room.npcs}
+          roomItems={state.room.items}
           onClose={g.closeSheet}
         />
       )}

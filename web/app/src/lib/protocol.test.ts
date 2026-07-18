@@ -33,6 +33,7 @@ describe("applyEvent", () => {
         title: "北大街",
         long: "一条繁忙的街道。",
         area: "city",
+        path: "beidajie",
         exits: [{ dir: "south", name: "客店" }],
       },
       prev
@@ -40,6 +41,7 @@ describe("applyEvent", () => {
     expect(next.room.title).toBe("北大街");
     expect(next.room.desc).toBe("一条繁忙的街道。");
     expect(next.room.area).toBe("city");
+    expect(next.room.path).toBe("beidajie");
     expect(next.room.exits[0]).toEqual({ dir: "south", label: "南", name: "客店" });
   });
 
@@ -78,6 +80,45 @@ describe("applyEvent", () => {
     );
     expect(next.room.title).toBe("侠客岛挂名处");
     expect(next.room.exits).toEqual([]);
+  });
+
+  it("parses closed doors from room.update and clears them when empty", () => {
+    const prev = basePrev();
+    const withDoor = applyEvent(
+      {
+        v: 1,
+        type: "room.update",
+        title: "石门",
+        long: "面前一道厚重的石门。",
+        exits: [{ dir: "south", name: "甬道" }],
+        doors: [{ dir: "enter", name: "石门", status: "closed" }],
+        npcs: [],
+        items: [],
+      },
+      prev
+    );
+    expect(withDoor.room.doors).toEqual([
+      { dir: "enter", name: "石门", status: "closed" },
+    ]);
+
+    const opened = applyEvent(
+      {
+        v: 1,
+        type: "room.update",
+        title: "石门",
+        long: "面前一道厚重的石门。",
+        exits: [
+          { dir: "south", name: "甬道" },
+          { dir: "enter", name: "石洞" },
+        ],
+        doors: [],
+        npcs: [],
+        items: [],
+      },
+      withDoor
+    );
+    expect(opened.room.doors).toEqual([]);
+    expect(opened.room.exits.map((e) => e.dir)).toContain("enter");
   });
 
   it("clears room items when room.update sends an empty items array", () => {

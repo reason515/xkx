@@ -356,6 +356,9 @@ const ACTION_VERBS: Record<string, string> = {
   trap: "设陷",
   get: "拿起",
   open: "打开",
+  unlock: "开锁",
+  qu: "乘车去",
+  goto: "乘车去",
   push: "推",
   pull: "拉",
   search: "搜寻",
@@ -542,6 +545,19 @@ export function labelSuggestedAction(
   }
   if (verb === "enter" && parts.length === 1) return "上船";
   if (verb === "knock" && parts[1]) return `敲${parts.slice(1).join(" ")}`;
+  if (verb === "open" && parts[1]) {
+    const what = parts.slice(1).join(" ");
+    if (/^(enter|out|north|south|east|west|up|down)$/i.test(what)) {
+      return `打开门`;
+    }
+    return `打开${what}`;
+  }
+  if (verb === "unlock" && parts[1]) {
+    return `${parts.slice(1).join(" ")}上着锁`;
+  }
+  if ((verb === "qu" || verb === "goto") && parts[1]) {
+    return `乘车去${parts.slice(1).join(" ")}`;
+  }
   if (verb === "wield" && parts[1]) {
     return `${verbLabel}${parts.slice(1).join(" ")}`;
   }
@@ -1029,6 +1045,60 @@ export function waterfallPassageActions(
     { command: "wear rain coat", label: "穿上雨衣" },
     { command: "jump fall", label: "跳进瀑布" },
   ];
+}
+
+/** Shut doors from room.update → scene「打开石门」chips. */
+export function closedDoorActions(
+  doors: { dir: string; name?: string; status?: string }[] | undefined
+): SuggestedAction[] {
+  if (!doors?.length) return [];
+  const out: SuggestedAction[] = [];
+  for (const d of doors) {
+    if (!d.dir) continue;
+    const name = (d.name || "门").trim() || "门";
+    const target = /[\u4e00-\u9fff]/.test(name) ? name : d.dir;
+    if (d.status === "locked") {
+      out.push({ command: `unlock ${target}`, label: `${name}上着锁` });
+      continue;
+    }
+    out.push({ command: `open ${target}`, label: `打开${name}` });
+  }
+  return out;
+}
+
+/** 侠客岛靠岸大车等：id/name 匹配。 */
+export function isCarriageItem(id: string, name: string): boolean {
+  const idL = (id || "").toLowerCase();
+  if (/da\s*che|carriage/.test(idL) || idL === "che") return true;
+  return /大车/.test(name || "");
+}
+
+/** Common `qu` destinations from xiakedao car.c (mobile chips). */
+export const CARRIAGE_DESTINATIONS = [
+  "扬州",
+  "少林",
+  "武当",
+  "华山",
+  "杭州",
+  "泉州",
+  "峨嵋",
+  "大理",
+] as const;
+
+/**
+ * 房间里有大车且几乎无出口（靠岸沙滩）时，提供乘车目的地芯片。
+ */
+export function carriageTravelActions(room: {
+  items?: Entity[];
+  exits?: { dir: string }[];
+}): SuggestedAction[] {
+  const items = room.items || [];
+  if (!items.some((i) => isCarriageItem(i.id, i.name))) return [];
+  if ((room.exits?.length ?? 0) > 2) return [];
+  return CARRIAGE_DESTINATIONS.map((dest) => ({
+    command: `qu ${dest}`,
+    label: `乘车去${dest}`,
+  }));
 }
 
 const SLEEP_TITLE_HINT = /休息室|卧室|厢房|禅房|睡房|寝室|雅房|客店/;
@@ -1645,6 +1715,15 @@ export function groundItemActions(
 ): { label: string; command: string }[] {
   const target = invCommandTarget(id, name);
   if (!target) return [];
+  if (isCarriageItem(id, name)) {
+    return [
+      { label: "看", command: `look ${target}` },
+      ...CARRIAGE_DESTINATIONS.map((dest) => ({
+        label: `去${dest}`,
+        command: `qu ${dest}`,
+      })),
+    ];
+  }
   const kind = classifyInvEquip(id, name);
   const acts: { label: string; command: string }[] = [
     { label: "看", command: `look ${target}` },

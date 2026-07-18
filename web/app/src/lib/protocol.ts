@@ -1,4 +1,12 @@
-import type { AssistConfig, InvItem, MudEvent, RoomState, SkillRow, Vitals } from "./types";
+import type {
+  AssistConfig,
+  DoorInfo,
+  InvItem,
+  MudEvent,
+  RoomState,
+  SkillRow,
+  Vitals,
+} from "./types";
 import {
   DIR_MAP,
   mergeRoomItems,
@@ -7,6 +15,31 @@ import {
 } from "./parser";
 
 export const PROTOCOL_VERSION = 1;
+
+function parseDoors(
+  raw: unknown,
+  fallback: DoorInfo[] | undefined
+): DoorInfo[] | undefined {
+  if (!Array.isArray(raw)) return fallback;
+  const doors: DoorInfo[] = [];
+  for (const d of raw) {
+    if (!d || typeof d !== "object") continue;
+    const dir = typeof (d as { dir?: unknown }).dir === "string"
+      ? (d as { dir: string }).dir
+      : "";
+    if (!dir) continue;
+    const name =
+      typeof (d as { name?: unknown }).name === "string" &&
+      (d as { name: string }).name
+        ? (d as { name: string }).name
+        : "门";
+    const statusRaw = (d as { status?: unknown }).status;
+    const status: DoorInfo["status"] =
+      statusRaw === "locked" ? "locked" : "closed";
+    doors.push({ dir, name, status });
+  }
+  return doors;
+}
 
 export function applyEvent(
   event: MudEvent,
@@ -46,6 +79,10 @@ export function applyEvent(
           typeof event.area === "string" && event.area
             ? event.area
             : prev.room.area,
+        path:
+          typeof event.path === "string"
+            ? event.path || undefined
+            : prev.room.path,
         canSleep: canSleepFlag || roomAllowsSleep({ title, desc }),
         // Empty exits must replace prior room exits (no-exit rooms like 挂名处)
         exits: Array.isArray(rawExits)
@@ -55,6 +92,8 @@ export function applyEvent(
               name: e.name,
             }))
           : prev.room.exits,
+        // Empty doors array clears prior shut-door chips after open
+        doors: parseDoors(event.doors, prev.room.doors),
         // Empty arrays must replace prior lists (e.g. last ground item picked up)
         npcs: Array.isArray(event.npcs)
           ? (event.npcs as RoomState["npcs"])

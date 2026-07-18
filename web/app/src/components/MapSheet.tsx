@@ -3,17 +3,29 @@ import {
   getMapLabel,
   getMapText,
   highlightMapText,
+  mapMarkerOccurrence,
   resolveRegionMapKey,
   worldHighlightMarkers,
 } from "../data/maps";
+import type { Entity } from "../lib/types";
 
 interface Props {
   roomTitle?: string;
   roomArea?: string;
+  roomPath?: string;
+  roomNpcs?: Entity[];
+  roomItems?: Entity[];
   onClose: () => void;
 }
 
-export function MapSheet({ roomTitle, roomArea, onClose }: Props) {
+export function MapSheet({
+  roomTitle,
+  roomArea,
+  roomPath,
+  roomNpcs = [],
+  roomItems = [],
+  onClose,
+}: Props) {
   const [mode, setMode] = useState<"region" | "world">("region");
 
   const regionKey = useMemo(
@@ -25,9 +37,18 @@ export function MapSheet({ roomTitle, roomArea, onClose }: Props) {
 
   const worldText = getMapText("all") || "";
   const regionHtml = useMemo(() => {
-    if (!regionText) return "";
-    return highlightMapText(regionText, [roomTitle]);
-  }, [regionText, roomTitle]);
+    if (!regionText || !roomTitle) return regionText ? highlightMapText(regionText, []) : "";
+    const nth = mapMarkerOccurrence(regionKey, roomTitle, {
+      roomPath,
+      hasFisherman: roomNpcs.some(
+        (n) => /yu fu|渔夫/i.test(n.id) || /渔夫/.test(n.name)
+      ),
+      hasCarriage: roomItems.some(
+        (i) => /da che|carriage/i.test(i.id) || /大车/.test(i.name)
+      ),
+    });
+    return highlightMapText(regionText, [roomTitle], { [roomTitle]: nth });
+  }, [regionText, regionKey, roomTitle, roomPath, roomNpcs, roomItems]);
 
   const worldHtml = useMemo(() => {
     if (!worldText) return "";

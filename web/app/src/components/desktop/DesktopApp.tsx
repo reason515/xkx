@@ -120,6 +120,9 @@ function DesktopShell({
         <MapSheet
           roomTitle={state.room.title}
           roomArea={state.room.area}
+          roomPath={state.room.path}
+          roomNpcs={state.room.npcs}
+          roomItems={state.room.items}
           onClose={g.closeSheet}
         />
       )}

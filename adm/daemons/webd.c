@@ -78,12 +78,12 @@ void mark_web(object me)
 void send_room(object me, object env)
 {
 	mapping exits;
-	string *dirs, *elist, dir, dest;
+	string *dirs, *elist, *dlist, dir, dest, door_name, door_status;
 	object *inv, ob;
 	mapping event;
 	string *npcs, *items;
 	string area, file, *parts;
-	int i;
+	int i, door_st;
 
 	if (!objectp(me) || !objectp(env)) return;
 
@@ -101,6 +101,14 @@ void send_room(object me, object env)
 	}
 	if (!stringp(area)) area = "";
 
+	/* Room file key for map disambiguation, e.g. "shatan" from /d/xiakedao/shatan */
+	file = base_name(env);
+	parts = explode(file, "/");
+	if (sizeof(parts) > 0)
+		file = parts[sizeof(parts) - 1];
+	else
+		file = "";
+
 	event = ([
 		"type": "room.update",
 		"title": env->query("short") || "",
@@ -108,10 +116,22 @@ void send_room(object me, object env)
 	]);
 
 	elist = ({});
+	dlist = ({});
 	if (mapp(exits = env->query("exits"))) {
 		dirs = keys(exits);
 		foreach (dir in dirs) {
-			if ((int)env->query_door(dir, "status") & DOOR_CLOSED) continue;
+			door_st = (int)env->query_door(dir, "status");
+			if (door_st & DOOR_CLOSED) {
+				door_name = env->query_door(dir, "name");
+				if (!stringp(door_name) || door_name == "")
+					door_name = "门";
+				door_status = (door_st & DOOR_LOCKED) ? "locked" : "closed";
+				dlist += ({ sprintf(
+					"{\"dir\":\"%s\",\"name\":\"%s\",\"status\":\"%s\"}",
+					dir, json_escape(door_name), door_status
+				) });
+				continue;
+			}
 			dest = exits[dir];
 			if (objectp(ob = find_object(dest)))
 				elist += ({ sprintf("{\"dir\":\"%s\",\"name\":\"%s\"}", dir, json_escape(ob->query("short") || dir)) });
@@ -120,6 +140,7 @@ void send_room(object me, object env)
 		}
 	}
 	event["exits_json"] = "[" + implode(elist, ",") + "]";
+	event["doors_json"] = "[" + implode(dlist, ",") + "]";
 
 	npcs = ({});
 	items = ({});
@@ -133,12 +154,14 @@ void send_room(object me, object env)
 	}
 
 	emit_raw(me, sprintf(
-		"{\"v\":1,\"type\":\"room.update\",\"title\":\"%s\",\"long\":\"%s\",\"area\":\"%s\",\"canSleep\":%d,\"exits\":%s,\"npcs\":[%s],\"items\":[%s]}",
+		"{\"v\":1,\"type\":\"room.update\",\"title\":\"%s\",\"long\":\"%s\",\"area\":\"%s\",\"path\":\"%s\",\"canSleep\":%d,\"exits\":%s,\"doors\":%s,\"npcs\":[%s],\"items\":[%s]}",
 		json_escape(env->query("short") || ""),
 		json_escape(env->query("long") || ""),
 		json_escape(area),
+		json_escape(file),
 		(env->query("sleep_room") && !env->query("no_sleep_room")) ? 1 : 0,
 		event["exits_json"],
+		event["doors_json"],
 		implode(npcs, ","),
 		implode(items, ",")
 	));
