@@ -43,4 +43,15 @@ describe("buildAssistCommand", () => {
     );
     assert.equal(buildAssistCommand({ mode: "lian" }), null);
   });
+
+  it("builds xiakedao grind assist", () => {
+    assert.equal(
+      buildAssistCommand({ mode: "grind", grindTarget: "haigui_s", lowHpPct: 30 }),
+      "webassist grind haigui_s 30"
+    );
+    assert.equal(
+      buildAssistCommand({ mode: "grind", grindTarget: "bad;target" }),
+      null
+    );
+  });
 });

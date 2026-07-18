@@ -1334,6 +1334,32 @@ test.describe.serial("game smoke", () => {
       .toMatch(/已存档|档案储存完毕/);
   });
 
+  test("动手浮层在侠客岛显示岛上练级并可选小海龟", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await pickTopMenuItem(page, "动手");
+    await expect(page.getByRole("heading", { name: "动手" })).toBeVisible();
+    await expect(page.getByText("岛上练级")).toBeVisible();
+    await expect(page.getByRole("button", { name: "小海龟" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "开始挂机" })).toBeVisible();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+    await expect
+      .poll(async () => {
+        const status = (
+          (await page.locator(".combat-assist").first().textContent()) || ""
+        ).trim();
+        const toast = ((await page.locator(".toast").textContent()) || "").trim();
+        return `${status}\n${toast}`;
+      }, { timeout: 15_000 })
+      .toMatch(/挂机打怪|进行中/);
+    await page.getByRole("button", { name: "停止挂机" }).click();
+    await expect(page.getByRole("button", { name: "开始挂机" })).toBeVisible({
+      timeout: 10_000,
+    });
+  });
+
   test("顶栏修炼可启动吐纳助手并显示状态后停止", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });

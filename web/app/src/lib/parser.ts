@@ -1358,18 +1358,32 @@ export function mergeRoomItems(
   return [...map.values()];
 }
 
+/** 进度条上限：优先受伤后 eff，否则用 max（hp 文本两列时二者相同）。 */
+export function vitalCap(
+  v: Vitals,
+  key: "qi" | "jing" | "jingli" | "neili" | "food" | "water"
+): number | undefined {
+  if (key === "qi") return v.effQi ?? v.maxQi;
+  if (key === "jing") return v.effJing ?? v.maxJing;
+  if (key === "jingli") return v.maxJingli;
+  if (key === "neili") return v.maxNeili;
+  if (key === "food") return v.maxFood;
+  return v.maxWater;
+}
+
 export function parseHp(text: string): Vitals {
   const v: Vitals = {};
   const jing = text.match(/精[：:]\s*(\d+)\/\s*(\d+)/);
   if (jing) {
     v.jing = +jing[1];
-    v.effJing = +jing[1];
+    // hp 第二列是 eff（受伤后上限）；先天 max 由 player.vitals 补全
+    v.effJing = +jing[2];
     v.maxJing = +jing[2];
   }
   const qi = text.match(/气[：:]\s*(\d+)\/\s*(\d+)/);
   if (qi) {
     v.qi = +qi[1];
-    v.effQi = +qi[1];
+    v.effQi = +qi[2];
     v.maxQi = +qi[2];
   }
   const jingli = text.match(/精力[：:]\s*(\d+)\s*\/\s*(\d+)/);

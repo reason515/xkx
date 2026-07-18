@@ -8,9 +8,15 @@ interface Props {
   onClose: () => void;
   onCmd: (cmd: string) => void;
   onStartAssist: (lowHpPct: number, action: "warn" | "flee" | "stop") => void;
+  onStartGrind?: (grindTarget: string, lowHpPct: number) => void;
   onStopAssist: () => void;
   assistActive: boolean;
+  /** 侠客岛场景才显示挂机练级 */
+  showGrind?: boolean;
+  assistStatus?: string;
 }
+
+const GRIND_TARGETS = [{ id: "haigui_s", label: "小海龟" }];
 
 export function CombatSheet({
   npcs,
@@ -18,12 +24,17 @@ export function CombatSheet({
   onClose,
   onCmd,
   onStartAssist,
+  onStartGrind,
   onStopAssist,
   assistActive,
+  showGrind = false,
+  assistStatus = "",
 }: Props) {
   const [target, setTarget] = useState("");
   const [lowHpPct, setLowHpPct] = useState(30);
   const [lowHpAction, setLowHpAction] = useState<"warn" | "flee" | "stop">("flee");
+  const [grindTarget, setGrindTarget] = useState("haigui_s");
+  const [grindLowHp, setGrindLowHp] = useState(30);
 
   return (
     <div className="overlay open" onClick={onClose}>
@@ -35,6 +46,74 @@ export function CombatSheet({
           </button>
         </div>
         <div className="sheet-scroll">
+          {showGrind && (
+            <div className="combat-assist" style={{ marginBottom: 16 }}>
+              <p className="combat-assist-label">岛上练级</p>
+              <p
+                style={{
+                  fontSize: 13,
+                  color: "var(--paper-dim)",
+                  marginBottom: 8,
+                }}
+              >
+                自动寻怪交手；危险时撤回休整，再回场继续。
+              </p>
+              <div className="chips" style={{ marginBottom: 10 }}>
+                {GRIND_TARGETS.map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={`chip ${grindTarget === t.id ? "on" : ""}`}
+                    onClick={() => setGrindTarget(t.id)}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <label className="combat-assist-threshold">
+                气血低于{" "}
+                <input
+                  type="number"
+                  min={5}
+                  max={80}
+                  value={grindLowHp}
+                  onChange={(e) => setGrindLowHp(+e.target.value)}
+                />
+                % 时撤回
+              </label>
+              {assistActive && /挂机打怪/.test(assistStatus) && (
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "var(--jade-bright)",
+                    marginTop: 8,
+                  }}
+                >
+                  {assistStatus}
+                </p>
+              )}
+              {!assistActive ? (
+                <button
+                  type="button"
+                  className="go"
+                  style={{ marginTop: 10, width: "100%" }}
+                  disabled={!onStartGrind || !grindTarget}
+                  onClick={() => onStartGrind?.(grindTarget, grindLowHp)}
+                >
+                  开始挂机
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  style={{ marginTop: 10, width: "100%" }}
+                  onClick={onStopAssist}
+                >
+                  停止挂机
+                </button>
+              )}
+            </div>
+          )}
+
           <p style={{ fontSize: 13, color: "var(--paper-dim)", marginBottom: 8 }}>
             选择目标
           </p>

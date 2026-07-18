@@ -15,7 +15,31 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | grindprep\n");
+
+	if (arg == "grindprep") {
+		ob = load_object("/d/xiakedao/shatans2");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载沙滩刷怪点。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到小海龟出没的沙滩。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		WEBD->send_vitals(me);
+		return 1;
+	}
+
+	if (arg == "hurt") {
+		int before, after;
+		before = (int)me->query("qi");
+		if (before < 20)
+			me->set("qi", 80);
+		before = (int)me->query("qi");
+		me->receive_damage("qi", 15, "e2e");
+		after = (int)me->query("qi");
+		tell_object(me, sprintf("（测试）气血 %d → %d。\n", before, after));
+		return 1;
+	}
 
 	if (arg == "gate") {
 		ob = load_object("/d/xiakedao/gate");
@@ -72,7 +96,7 @@ int main(object me, string arg)
 int help(object me)
 {
 	write(@HELP
-指令格式：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor
+指令格式：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | grindprep
 
 仅在服务器开启 e2e 开关（/adm/etc/xkd_e2e）时可用，供自动化测试：
   grantleave  — 模拟岛主放行
@@ -80,6 +104,8 @@ int help(object me)
   giveweapon  — 发放钢刀供换装测试
   gate        — 传送到侠客岛石门
   closedoor   — 关闭当前房间 enter 方向的门（石门）
+  hurt        — 造成少量气血伤害并触发 player.vitals 推送
+  grindprep   — 传送到小海龟刷怪沙滩（shatans2）
 HELP
 	);
 	return 1;

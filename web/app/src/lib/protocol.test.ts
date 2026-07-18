@@ -190,11 +190,16 @@ describe("applyEvent", () => {
   it("merges vitals from player.vitals event", () => {
     const prev = basePrev();
     const next = applyEvent(
-      { v: 1, type: "player.vitals", vitals: { qi: 80, maxQi: 100 } },
+      {
+        v: 1,
+        type: "player.vitals",
+        vitals: { qi: 80, maxQi: 100, effQi: 90 },
+      },
       prev
     );
     expect(next.vitals.qi).toBe(80);
     expect(next.vitals.maxQi).toBe(100);
+    expect(next.vitals.effQi).toBe(90);
   });
 
   it("appends combat and train logs with cap", () => {

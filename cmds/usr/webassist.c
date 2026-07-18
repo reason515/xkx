@@ -12,7 +12,7 @@ int main(object me, string arg)
 	string mode, stop_when, action, teacher, skill;
 	int count, stop_combat, low_hp;
 
-	if (!arg) return notify_fail("用法：webassist train|learn|combat ...\n");
+	if (!arg) return notify_fail("用法：webassist train|learn|combat|grind ...\n");
 
 	WEBD->mark_web_client(me);
 
@@ -57,6 +57,13 @@ int main(object me, string arg)
 		return 1;
 	}
 
+	if (sscanf(arg, "grind %s %d", action, low_hp) == 2) {
+		if (low_hp < 5) low_hp = 5;
+		if (low_hp > 80) low_hp = 80;
+		ASSIST_D->start_grind(me, action, low_hp);
+		return 1;
+	}
+
 	return notify_fail("参数无法识别。\n");
 }
 
@@ -70,6 +77,7 @@ webassist train lian count 10 1    — 练功 10 次
 webassist learn dizi strike count 10 1 — 向弟子学掌法 10 次
 webassist learn shi literate potential 1 1 — 读书至潜能耗尽
 webassist combat 30 flee         — 自动普攻，低于 30% 逃跑
+webassist grind haigui_s 30      — 侠客岛挂机打小海龟，低于 30% 撤回休整
 webassist stop                   — 停止
 
 HELP);

@@ -32,6 +32,8 @@ varargs int receive_damage(string type, int damage, mixed who)
 	else set( type, -1 );
 
 	set_heart_beat(1);
+	if (userp(this_object()))
+		"/adm/daemons/webd"->notify_vitals(this_object());
 
 	return damage;
 }
@@ -61,6 +63,8 @@ varargs int receive_wound(string type, int damage, mixed who)
 	if( (int)query(type) > val ) set(type, val);
 
 	set_heart_beat(1);
+	if (userp(this_object()))
+		"/adm/daemons/webd"->notify_vitals(this_object());
 
 	return damage;
 }
@@ -79,6 +83,9 @@ int receive_heal(string type, int heal)
 	else if( val > (int)query("max_" + type) && type=="jingli" ) set(type, (int)query("max_" + type));
 	else set( type, val );
 
+	if (userp(this_object()))
+		"/adm/daemons/webd"->notify_vitals(this_object());
+
 	return heal;
 }
 
@@ -95,9 +102,13 @@ int receive_curing(string type, int heal)
 
 	if( val + heal > max ) {
 		set("eff_" + type, max);
+		if (userp(this_object()))
+			"/adm/daemons/webd"->notify_vitals(this_object());
 		return max - val;
 	} else {
 		set( "eff_" + type, val + heal);
+		if (userp(this_object()))
+			"/adm/daemons/webd"->notify_vitals(this_object());
 		return heal;
 	}
 }
@@ -130,6 +141,8 @@ void unconcious()
 	set("jingli", 0);
 	set_temp("block_msg/all", 1);
 	COMBAT_D->announce(this_object(), "unconcious");
+	if (userp(this_object()))
+		"/adm/daemons/webd"->notify_vitals(this_object());
 
 	call_out("revive", random(100 - query("con")) + 30);
 }

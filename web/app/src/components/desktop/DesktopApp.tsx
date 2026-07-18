@@ -158,11 +158,20 @@ function DesktopShell({
           onClose={g.closeSheet}
           onCmd={g.cmd}
           assistActive={state.assistActive}
+          assistStatus={state.assistStatus}
+          showGrind={(state.room.area || "").toLowerCase() === "xiakedao"}
           onStartAssist={(pct, action) =>
             g.startAssist({
               mode: "combat",
               lowHpPct: pct,
               lowHpAction: action,
+            })
+          }
+          onStartGrind={(grindTarget, pct) =>
+            g.startAssist({
+              mode: "grind",
+              grindTarget,
+              lowHpPct: pct,
             })
           }
           onStopAssist={g.stopAssist}

@@ -60,8 +60,8 @@ export function StatusPanel() {
 
       <section>
         <h4>气血精内力</h4>
-        <Bar label="气" cur={v.qi} max={v.maxQi} tone="qi" />
-        <Bar label="精" cur={v.jing} max={v.maxJing} tone="jing" />
+        <Bar label="气" cur={v.qi} max={v.effQi ?? v.maxQi} tone="qi" />
+        <Bar label="精" cur={v.jing} max={v.effJing ?? v.maxJing} tone="jing" />
         <Bar label="内力" cur={v.neili} max={v.maxNeili} tone="neili" />
         <Bar label="精力" cur={v.jingli} max={v.maxJingli} tone="jingli" />
         <Bar label="食物" cur={v.food} max={v.maxFood} tone="food" />

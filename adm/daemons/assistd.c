@@ -4,9 +4,14 @@
 #include <skill.h>
 
 #define WEBD "/adm/daemons/webd"
+#define PATHD "/adm/daemons/xkd_pathd"
 #define MAX_TRAIN_TICKS 500
 #define MAX_LEARN_TICKS 999
 #define MAX_COMBAT_TICKS 2000
+#define MAX_GRIND_TICKS 3000
+#define GRIND_RESUME_PCT 80
+#define GRIND_WOUND_MIN_PCT 60
+#define DADONG_EXP_KICK 10000
 
 // Minimum resources to attempt one round (match cmds/skill thresholds).
 #define DAZUO_MIN_QI 30
@@ -17,6 +22,8 @@
 inherit F_DBASE;
 
 mapping sessions;
+
+void grind_tick(string id);
 
 void create()
 {
@@ -494,6 +501,352 @@ int start_combat(object me, int low_hp, string action)
 	WEBD->mark_web_client(me);
 	WEBD->send_assist_status(me, 1, "战斗辅助：自动普攻");
 	call_out("combat_tick", 1, id);
+	return 1;
+}
+
+string grind_recover_dest(object me)
+{
+	if (!objectp(me)) return "/d/xiakedao/dadong";
+	if ((int)me->query("combat_exp") > DADONG_EXP_KICK)
+		return "/d/xiakedao/xiuxi";
+	return "/d/xiakedao/dadong";
+}
+
+void grind_set_path(mapping cfg, object me, string dest)
+{
+	string *path;
+
+	path = PATHD->path_to_room(me, dest);
+	if (!arrayp(path)) path = ({});
+	cfg["path"] = path;
+	cfg["path_dest"] = dest;
+}
+
+void grind_set_spawn_path(mapping cfg, object me, string target_key)
+{
+	string *path;
+
+	path = PATHD->path_to_nearest_spawn(me, target_key);
+	if (!arrayp(path)) path = ({});
+	cfg["path"] = path;
+	cfg["path_dest"] = "spawn";
+}
+
+int grind_follow_path(object me, mapping cfg)
+{
+	string *path;
+
+	path = cfg["path"];
+	if (!arrayp(path) || !sizeof(path)) return 0;
+	path = PATHD->advance_path(me, path);
+	cfg["path"] = path;
+	return sizeof(path) == 0;
+}
+
+void grind_tick(string id)
+{
+	object me, env, target, dadong;
+	mapping cfg, my;
+	string phase, target_key, home, dest, cmd_id;
+	int pct, max_qi, max_jing, eff_pct;
+	string *path;
+
+	if (undefinedp(sessions[id])) return;
+	me = find_player(id);
+	if (!objectp(me)) {
+		map_delete(sessions, id);
+		return;
+	}
+
+	cfg = sessions[id];
+	if (cfg["kind"] != "grind") return;
+
+	cfg["ticks"]++;
+	if (cfg["ticks"] > MAX_GRIND_TICKS) {
+		stop_assist(me, "挂机时长已达上限");
+		return;
+	}
+
+	env = environment(me);
+	if (!objectp(env) || !PATHD->is_xiakedao(env)) {
+		stop_assist(me, "已离开侠客岛，练级停止");
+		return;
+	}
+
+	phase = cfg["phase"];
+	target_key = cfg["target_key"];
+	my = me->query_entire_dbase();
+	max_qi = my["max_qi"];
+	max_jing = my["max_jing"];
+	if (max_qi < 1) max_qi = 1;
+	if (max_jing < 1) max_jing = 1;
+	pct = my["qi"] * 100 / max_qi;
+
+	switch (phase) {
+	case "hunt":
+		if (me->is_fighting()) {
+			cfg["phase"] = "fight";
+			if (!stringp(cfg["home"]) || cfg["home"] == "")
+				cfg["home"] = PATHD->room_path(env);
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "挂机打怪 · 交手中");
+			call_out("grind_tick", 1, id);
+			return;
+		}
+		if (!PATHD->is_spawn_room(env, target_key)) {
+			path = cfg["path"];
+			if (!arrayp(path) || cfg["path_dest"] != "spawn")
+				grind_set_spawn_path(cfg, me, target_key);
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "无法前往刷怪点");
+				return;
+			}
+			WEBD->send_assist_status(me, 1, "挂机打怪 · 前往刷怪点");
+			grind_follow_path(me, cfg);
+			sessions[id] = cfg;
+			call_out("grind_tick", 2, id);
+			return;
+		}
+		cfg["home"] = PATHD->room_path(env);
+		cfg["path"] = ({});
+		target = PATHD->find_grind_target(env, target_key);
+		if (objectp(target)) {
+			cmd_id = target->query("id") || "small haigui";
+			/* 优先单字 token，避免 multi-word kill 解析失败 */
+			if (target->id("gui")) cmd_id = "gui";
+			else if (target->id("haigui")) cmd_id = "haigui";
+			me->force_me("kill " + cmd_id);
+			cfg["phase"] = "fight";
+			WEBD->send_assist_status(me, 1, "挂机打怪 · 开战");
+			sessions[id] = cfg;
+			WEBD->notify_vitals(me);
+			call_out("grind_tick", 1, id);
+			return;
+		}
+		WEBD->send_assist_status(me, 1, "挂机打怪 · 等候刷新");
+		sessions[id] = cfg;
+		call_out("grind_tick", 3, id);
+		return;
+
+	case "fight":
+		if (!me->is_fighting()) {
+			cfg["phase"] = "hunt";
+			sessions[id] = cfg;
+			call_out("grind_tick", 1, id);
+			return;
+		}
+		if (pct <= cfg["low_hp"]) {
+			me->force_me("halt");
+			if (!stringp(cfg["home"]) || cfg["home"] == "")
+				cfg["home"] = PATHD->room_path(env);
+			cfg["phase"] = "retreat";
+			cfg["path"] = ({});
+			WEBD->send_assist_status(me, 1, "挂机打怪 · 撤回休整");
+			sessions[id] = cfg;
+			WEBD->notify_vitals(me);
+			call_out("grind_tick", 1, id);
+			return;
+		}
+		me->force_me("hit");
+		sessions[id] = cfg;
+		WEBD->notify_vitals(me);
+		call_out("grind_tick", 1, id);
+		return;
+
+	case "retreat":
+		if (me->is_fighting()) {
+			me->force_me("halt");
+			sessions[id] = cfg;
+			call_out("grind_tick", 1, id);
+			return;
+		}
+		dest = grind_recover_dest(me);
+		if (PATHD->room_path(env) == dest) {
+			if (dest == "/d/xiakedao/xiuxi")
+				cfg["phase"] = "recover_sleep";
+			else
+				cfg["phase"] = "recover_zhou";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			call_out("grind_tick", 1, id);
+			return;
+		}
+		if (!arrayp(cfg["path"]) || cfg["path_dest"] != dest)
+			grind_set_path(cfg, me, dest);
+		if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+			stop_assist(me, "无法撤回休整处");
+			return;
+		}
+		WEBD->send_assist_status(me, 1, "挂机打怪 · 撤回休整");
+		grind_follow_path(me, cfg);
+		sessions[id] = cfg;
+		call_out("grind_tick", 2, id);
+		return;
+
+	case "recover_zhou":
+		if (PATHD->room_path(env) != "/d/xiakedao/dadong") {
+			cfg["phase"] = "retreat";
+			sessions[id] = cfg;
+			call_out("grind_tick", 1, id);
+			return;
+		}
+		if (present("laba zhou", me) || present("zhou", me)) {
+			me->force_me("eat laba zhou");
+			if (!present("laba zhou", me) && !present("zhou", me)) {
+				cfg["phase"] = "return";
+				cfg["path"] = ({});
+				WEBD->send_assist_status(me, 1, "挂机打怪 · 体力已恢复");
+				sessions[id] = cfg;
+				WEBD->notify_vitals(me);
+				call_out("grind_tick", 2, id);
+				return;
+			}
+		}
+		dadong = env;
+		if ((int)dadong->query("food_count") < 1) {
+			cfg["phase"] = "recover_sleep";
+			cfg["path"] = ({});
+			WEBD->send_assist_status(me, 1, "挂机打怪 · 粥已罄尽，改去休息");
+			sessions[id] = cfg;
+			call_out("grind_tick", 1, id);
+			return;
+		}
+		me->force_me("ask si pu about 腊八粥");
+		if (present("laba zhou", me) || present("zhou", me)) {
+			me->force_me("eat laba zhou");
+			cfg["phase"] = "return";
+			cfg["path"] = ({});
+			WEBD->send_assist_status(me, 1, "挂机打怪 · 喝粥恢复");
+			sessions[id] = cfg;
+			WEBD->notify_vitals(me);
+			call_out("grind_tick", 2, id);
+			return;
+		}
+		/* 要粥失败（喝光/已有地上碗等）→ 睡觉 */
+		cfg["phase"] = "recover_sleep";
+		cfg["path"] = ({});
+		WEBD->send_assist_status(me, 1, "挂机打怪 · 改去休息室");
+		sessions[id] = cfg;
+		call_out("grind_tick", 1, id);
+		return;
+
+	case "recover_sleep":
+		eff_pct = my["eff_qi"] * 100 / max_qi;
+		if (eff_pct < GRIND_WOUND_MIN_PCT) {
+			stop_assist(me, "外伤过重，粥已不可用，请先疗伤");
+			return;
+		}
+		if (PATHD->room_path(env) != "/d/xiakedao/xiuxi") {
+			if (!arrayp(cfg["path"]) || cfg["path_dest"] != "/d/xiakedao/xiuxi")
+				grind_set_path(cfg, me, "/d/xiakedao/xiuxi");
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "无法前往休息室");
+				return;
+			}
+			WEBD->send_assist_status(me, 1, "挂机打怪 · 前往休息室");
+			grind_follow_path(me, cfg);
+			sessions[id] = cfg;
+			call_out("grind_tick", 2, id);
+			return;
+		}
+		if (my["qi"] * 100 / max_qi >= GRIND_RESUME_PCT
+		 && my["jing"] * 100 / max_jing >= GRIND_RESUME_PCT) {
+			cfg["phase"] = "return";
+			cfg["path"] = ({});
+			WEBD->send_assist_status(me, 1, "挂机打怪 · 睡醒回场");
+			sessions[id] = cfg;
+			WEBD->notify_vitals(me);
+			call_out("grind_tick", 2, id);
+			return;
+		}
+		if (!me->is_busy())
+			me->force_me("sleep");
+		WEBD->send_assist_status(me, 1, "挂机打怪 · 休息室调息");
+		sessions[id] = cfg;
+		WEBD->notify_vitals(me);
+		call_out("grind_tick", 4, id);
+		return;
+
+	case "return":
+		if (me->is_fighting()) {
+			cfg["phase"] = "fight";
+			sessions[id] = cfg;
+			call_out("grind_tick", 1, id);
+			return;
+		}
+		if (PATHD->is_spawn_room(env, target_key)) {
+			cfg["home"] = PATHD->room_path(env);
+			cfg["phase"] = "hunt";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			call_out("grind_tick", 1, id);
+			return;
+		}
+		home = cfg["home"];
+		if (stringp(home) && home != "" && PATHD->room_path(env) != home) {
+			if (!arrayp(cfg["path"]) || cfg["path_dest"] != home)
+				grind_set_path(cfg, me, home);
+		}
+		if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+			grind_set_spawn_path(cfg, me, target_key);
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "无法返回刷怪点");
+				return;
+			}
+		}
+		WEBD->send_assist_status(me, 1, "挂机打怪 · 返回刷怪点");
+		grind_follow_path(me, cfg);
+		sessions[id] = cfg;
+		call_out("grind_tick", 2, id);
+		return;
+
+	default:
+		stop_assist(me, "挂机状态异常");
+		return;
+	}
+}
+
+int start_grind(object me, string target_key, int low_hp)
+{
+	string id;
+	mapping cfg;
+	object env;
+
+	if (!objectp(me)) return 0;
+	env = environment(me);
+	if (!objectp(env) || !PATHD->is_xiakedao(env)) {
+		WEBD->send_assist_status(me, 0, "仅可在侠客岛挂机打怪");
+		return 0;
+	}
+	if (target_key != "haigui_s") {
+		WEBD->send_assist_status(me, 0, "暂不支持该练级目标");
+		return 0;
+	}
+	if (!sizeof(PATHD->spawn_rooms(target_key))) {
+		WEBD->send_assist_status(me, 0, "没有可用的刷怪点");
+		return 0;
+	}
+	if (low_hp < 5) low_hp = 5;
+	if (low_hp > 80) low_hp = 80;
+
+	id = me->query("id");
+	stop_assist(me, 0);
+
+	cfg = ([
+		"kind": "grind",
+		"phase": "hunt",
+		"target_key": target_key,
+		"low_hp": low_hp,
+		"home": "",
+		"path": ({}),
+		"path_dest": "",
+		"ticks": 0,
+	]);
+	sessions[id] = cfg;
+	me->set_temp("web_assist", 1);
+	WEBD->mark_web_client(me);
+	WEBD->send_assist_status(me, 1, "挂机打怪进行中");
+	call_out("grind_tick", 1, id);
 	return 1;
 }
 

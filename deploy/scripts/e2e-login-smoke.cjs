@@ -49,6 +49,10 @@ function openSession(loginPayload, onMessage) {
     let gotRoom = false;
     let lastRoomTitle = "";
     let lastExits = [];
+    let lastVitalsQi = null;
+    let vitalsEvents = 0;
+    let lastAssistMessage = "";
+    let assistActive = false;
     let gotError = "";
     const started = Date.now();
     let settled = false;
@@ -77,6 +81,10 @@ function openSession(loginPayload, onMessage) {
           gotRoom,
           lastRoomTitle,
           lastExits,
+          lastVitalsQi,
+          vitalsEvents,
+          lastAssistMessage,
+          assistActive,
           ms: Date.now() - started,
         });
       }
@@ -95,6 +103,10 @@ function openSession(loginPayload, onMessage) {
       gotRoom: () => gotRoom,
       lastRoomTitle: () => lastRoomTitle,
       lastExits: () => lastExits,
+      lastVitalsQi: () => lastVitalsQi,
+      vitalsEvents: () => vitalsEvents,
+      lastAssistMessage: () => lastAssistMessage,
+      assistActive: () => assistActive,
       done: (result) => finish(null, result || {}),
       fail: (reason) => finish(new Error(reason)),
     };
@@ -122,6 +134,15 @@ function openSession(loginPayload, onMessage) {
         gotRoom = true;
         if (msg.event.title) lastRoomTitle = String(msg.event.title);
         if (Array.isArray(msg.event.exits)) lastExits = msg.event.exits;
+      }
+      if (msg.type === "event" && msg.event?.type === "player.vitals") {
+        vitalsEvents += 1;
+        const qi = msg.event?.vitals?.qi;
+        if (typeof qi === "number") lastVitalsQi = qi;
+      }
+      if (msg.type === "event" && msg.event?.type === "assist.status") {
+        lastAssistMessage = String(msg.event.message || "");
+        assistActive = !!msg.event.active;
       }
       if (msg.type === "text" && msg.text) buf += msg.text;
       onMessage(api, msg);
@@ -205,6 +226,12 @@ async function runNewbiePath() {
   let followTarget = "";
   let phase = "login";
   let beachTimer;
+  let hurtSent = false;
+  let qiBeforeHurt = null;
+  let vitalsCountBeforeHurt = 0;
+  let grindStarted = false;
+  let grindStopped = false;
+  let vitalsQiAfter = null;
 
   console.log("open", WS_URL, "register", id);
 
@@ -285,6 +312,62 @@ async function runNewbiePath() {
           }
         }
 
+        if (phase === "hurt") {
+          const qi = api.lastVitalsQi();
+          const gotNewVitals = api.vitalsEvents() > vitalsCountBeforeHurt;
+          const dropped =
+            typeof qi === "number" &&
+            (qiBeforeHurt == null || qi < qiBeforeHurt);
+          if (gotNewVitals && dropped) {
+            clearTimeout(beachTimer);
+            vitalsQiAfter = qi;
+            phase = "grind";
+            console.log("xkxe2e grindprep");
+            api.sendCmd("xkxe2e grindprep");
+            setTimeout(() => {
+              console.log("webassist grind haigui_s 30");
+              api.sendCmd("webassist grind haigui_s 30");
+              beachTimer = setTimeout(() => {
+                api.fail("grind_assist_not_started");
+              }, 8000);
+            }, 1200);
+          }
+          return;
+        }
+
+        if (phase === "grind") {
+          const msg = api.lastAssistMessage() || "";
+          if (!grindStarted && api.assistActive() && /挂机打怪/.test(msg)) {
+            grindStarted = true;
+            clearTimeout(beachTimer);
+            console.log("grind started", msg);
+            api.sendCmd("webassist stop");
+            beachTimer = setTimeout(() => {
+              api.fail("grind_assist_not_stopped");
+            }, 8000);
+            return;
+          }
+          if (
+            grindStarted &&
+            !grindStopped &&
+            (!api.assistActive() || /停止|手动/.test(msg))
+          ) {
+            grindStopped = true;
+            clearTimeout(beachTimer);
+            api.done({
+              reason: "follow_to_main_beach",
+              follow: followTarget,
+              roomTitle: api.lastRoomTitle(),
+              exits: (api.lastExits() || []).length,
+              vitalsQiBefore: qiBeforeHurt,
+              vitalsQiAfter,
+              vitalsPush: true,
+              grindAssist: true,
+            });
+          }
+          return;
+        }
+
         if (sentFollow) {
           const title = api.lastRoomTitle() || "";
           const exits = api.lastExits() || [];
@@ -298,19 +381,29 @@ async function runNewbiePath() {
             (/渔夫|north|east|northwest/i.test(buf) || exits.length > 0);
           const escorted =
             /先在岛上四处看看|熟悉一下环境/.test(buf) || atMainBeach;
-          if (escorted && hasExit) {
+          if (escorted && hasExit && !hurtSent) {
+            hurtSent = true;
             clearTimeout(beachTimer);
             beachTimer = setTimeout(() => {
               if (/挂名处/.test(api.buf())) {
                 api.fail("landed_at_register");
                 return;
               }
-              api.done({
-                reason: "follow_to_main_beach",
-                follow: followTarget,
-                roomTitle: api.lastRoomTitle(),
-                exits: (api.lastExits() || []).length,
-              });
+              // 先拉一次 hp 作基线，再 hurt，断言伤害路径推送更低的 qi
+              api.sendCmd("hp");
+              setTimeout(() => {
+                phase = "hurt";
+                qiBeforeHurt =
+                  typeof api.lastVitalsQi() === "number"
+                    ? api.lastVitalsQi()
+                    : null;
+                vitalsCountBeforeHurt = api.vitalsEvents();
+                console.log("xkxe2e hurt", "qiBefore", qiBeforeHurt);
+                api.sendCmd("xkxe2e hurt");
+                beachTimer = setTimeout(() => {
+                  api.fail("vitals_not_pushed_after_hurt");
+                }, 8000);
+              }, 1200);
             }, 1500);
           }
         }
@@ -372,6 +465,10 @@ async function runNewbiePath() {
       ms: result.ms + relogin.ms,
       follow: followTarget || undefined,
       roomTitle: result.lastRoomTitle || undefined,
+      vitalsQiBefore: result.vitalsQiBefore,
+      vitalsQiAfter: result.vitalsQiAfter,
+      vitalsPush: result.vitalsPush,
+      grindAssist: result.grindAssist,
       ready: relogin.gotReady,
       room: relogin.gotRoom,
       tail: relogin.buf.slice(-800),

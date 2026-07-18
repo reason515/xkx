@@ -116,6 +116,8 @@ export function useGame(opts?: UseGameOptions) {
   /** Intentional quit → softer disconnect toast. */
   const quittingRef = useRef(false);
   const roomRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** 战斗文案时节流补 hp，兜底尚未推送的 player.vitals。 */
+  const combatHpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<GameState>(initialState);
   const [toast, setToast] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -293,6 +295,14 @@ export function useGame(opts?: UseGameOptions) {
       socket.current.cmd("inventory");
       if (alsoHp) socket.current.cmd("hp");
     }, 280);
+  }, []);
+
+  const scheduleCombatHpRefresh = useCallback(() => {
+    if (combatHpTimer.current) return;
+    combatHpTimer.current = setTimeout(() => {
+      combatHpTimer.current = null;
+      socket.current.cmd("hp");
+    }, 450);
   }, []);
 
   /** 出口/门/甬道等就地变化后，补 look 以拿到最新 room.update。 */
@@ -547,6 +557,8 @@ export function useGame(opts?: UseGameOptions) {
               ...s,
               combatLog: [...s.combatLog.slice(-40), line],
             }));
+            // 涉及「你」的战斗行：立刻节流拉一次气血（服务端 notify_vitals 为主）
+            if (/你/.test(line)) scheduleCombatHpRefresh();
           } else if (isTrainLine(line)) {
             setState((s) => ({
               ...s,
@@ -840,7 +852,16 @@ export function useGame(opts?: UseGameOptions) {
       offMsg();
       offStatus();
     };
-  }, [addLog, appendDocText, showToast, enterGame, cmd, scheduleEquipRefresh, scheduleRoomRefresh]);
+  }, [
+    addLog,
+    appendDocText,
+    showToast,
+    enterGame,
+    cmd,
+    scheduleEquipRefresh,
+    scheduleRoomRefresh,
+    scheduleCombatHpRefresh,
+  ]);
 
   const login = useCallback(
     (opts: {

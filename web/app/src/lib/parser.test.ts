@@ -29,6 +29,7 @@ import {
   parseEntityShort,
   parseExits,
   parseHp,
+  vitalCap,
   parseInventory,
   parseRoom,
   parseScore,
@@ -1113,8 +1114,10 @@ describe("parseHp", () => {
 
     const v = parseHp(text);
     expect(v.jing).toBe(120);
+    expect(v.effJing).toBe(150);
     expect(v.maxJing).toBe(150);
     expect(v.qi).toBe(80);
+    expect(v.effQi).toBe(100);
     expect(v.maxQi).toBe(100);
     expect(v.jingli).toBe(50);
     expect(v.maxJingli).toBe(60);
@@ -1127,6 +1130,12 @@ describe("parseHp", () => {
     expect(v.potential).toBe(100);
     expect(v.maxPotential).toBe(200);
     expect(v.exp).toBe(5000);
+  });
+
+  it("vitalCap prefers eff over max for qi/jing bars", () => {
+    expect(vitalCap({ qi: 80, maxQi: 100, effQi: 90 }, "qi")).toBe(90);
+    expect(vitalCap({ qi: 80, maxQi: 100 }, "qi")).toBe(100);
+    expect(vitalCap({ jing: 10, maxJing: 50, effJing: 40 }, "jing")).toBe(40);
   });
 });
 

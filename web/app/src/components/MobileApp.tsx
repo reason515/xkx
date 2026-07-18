@@ -10,7 +10,7 @@ import { CombatSheet } from "./CombatSheet";
 import { EntitySheet } from "./EntitySheet";
 import { SpeechSheet } from "./SpeechSheet";
 import { GuideTip } from "./GuideTip";
-import { inferredShutDoorActions, sceneActionChips } from "../lib/parser";
+import { inferredShutDoorActions, sceneActionChips, vitalCap } from "../lib/parser";
 import { useEffect, useRef, useState } from "react";
 import type { ExitInfo, LogEntry } from "../lib/types";
 
@@ -170,19 +170,25 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             <div className="vitals">
               <div className="vital hp">
                 <div className="bar">
-                  <div className="fill" style={{ width: pct(v.qi, v.maxQi) }} />
+                  <div className="fill" style={{ width: pct(v.qi, vitalCap(v, "qi")) }} />
                 </div>
                 <span className="n">{v.qi ?? "—"}</span>
               </div>
               <div className="vital sp">
                 <div className="bar">
-                  <div className="fill" style={{ width: pct(v.jing, v.maxJing) }} />
+                  <div
+                    className="fill"
+                    style={{ width: pct(v.jing, vitalCap(v, "jing")) }}
+                  />
                 </div>
                 <span className="n">{v.jing ?? "—"}</span>
               </div>
               <div className="vital mp">
                 <div className="bar">
-                  <div className="fill" style={{ width: pct(v.neili, v.maxNeili) }} />
+                  <div
+                    className="fill"
+                    style={{ width: pct(v.neili, vitalCap(v, "neili")) }}
+                  />
                 </div>
                 <span className="n">{v.neili ?? "—"}</span>
               </div>
@@ -432,8 +438,17 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           onClose={g.closeSheet}
           onCmd={g.cmd}
           assistActive={state.assistActive}
+          assistStatus={state.assistStatus}
+          showGrind={(state.room.area || "").toLowerCase() === "xiakedao"}
           onStartAssist={(pct, action) =>
             g.startAssist({ mode: "combat", lowHpPct: pct, lowHpAction: action })
+          }
+          onStartGrind={(grindTarget, pct) =>
+            g.startAssist({
+              mode: "grind",
+              grindTarget,
+              lowHpPct: pct,
+            })
           }
           onStopAssist={g.stopAssist}
         />

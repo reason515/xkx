@@ -2,6 +2,12 @@ const TOKEN = /^[a-z][a-z0-9_-]*$/i;
 
 export function buildAssistCommand(config = {}) {
   if (config.action === "stop") return "webassist stop";
+  if (config.mode === "grind") {
+    const target = String(config.grindTarget || "haigui_s").toLowerCase();
+    if (!TOKEN.test(target)) return null;
+    const pct = Math.min(80, Math.max(5, Number(config.lowHpPct) || 30));
+    return `webassist grind ${target} ${pct}`;
+  }
   if (config.mode === "combat") {
     const pct = Math.min(80, Math.max(5, Number(config.lowHpPct) || 30));
     const action = ["warn", "flee", "stop"].includes(config.lowHpAction)

@@ -205,13 +205,32 @@ void send_vitals(object me)
 	mapping my;
 	if (!objectp(me)) return;
 	my = me->query_entire_dbase();
+	/* maxQi/maxJing = 先天上限；effQi/effJing = 受伤后当前上限（与 hp 第二列一致）。 */
 	emit_raw(me, sprintf(
-		"{\"v\":1,\"type\":\"player.vitals\",\"vitals\":{\"qi\":%d,\"maxQi\":%d,\"jing\":%d,\"maxJing\":%d,\"jingli\":%d,\"maxJingli\":%d,\"neili\":%d,\"maxNeili\":%d,\"food\":%d,\"maxFood\":%d,\"water\":%d,\"maxWater\":%d,\"potential\":%d,\"exp\":%d}}",
-		my["qi"], my["max_qi"], my["jing"], my["max_jing"],
+		"{\"v\":1,\"type\":\"player.vitals\",\"vitals\":{\"qi\":%d,\"maxQi\":%d,\"effQi\":%d,\"jing\":%d,\"maxJing\":%d,\"effJing\":%d,\"jingli\":%d,\"maxJingli\":%d,\"neili\":%d,\"maxNeili\":%d,\"food\":%d,\"maxFood\":%d,\"water\":%d,\"maxWater\":%d,\"potential\":%d,\"exp\":%d}}",
+		my["qi"], my["max_qi"], my["eff_qi"], my["jing"], my["max_jing"], my["eff_jing"],
 		my["jingli"], my["max_jingli"], my["neili"], my["max_neili"],
 		my["food"], me->max_food_capacity(), my["water"], me->max_water_capacity(),
 		me->query("potential"), my["combat_exp"]
 	));
+}
+
+/* 战斗连击时合并同轮推送，避免每下都刷 JSON。 */
+void flush_vitals(object me)
+{
+	if (!objectp(me)) return;
+	me->delete_temp("web_vitals_pending");
+	if (!userp(me) || !me->query_temp("web_client")) return;
+	send_vitals(me);
+}
+
+void notify_vitals(object me)
+{
+	if (!objectp(me) || !userp(me)) return;
+	if (!me->query_temp("web_client")) return;
+	if (me->query_temp("web_vitals_pending")) return;
+	me->set_temp("web_vitals_pending", 1);
+	call_out("flush_vitals", 0, me);
 }
 
 void send_assist_status(object me, int active, string message)

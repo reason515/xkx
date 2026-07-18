@@ -146,7 +146,7 @@ export interface InvItem {
 }
 
 export interface AssistConfig {
-  mode: "dazuo" | "tuna" | "lian" | "learn" | "combat";
+  mode: "dazuo" | "tuna" | "lian" | "learn" | "combat" | "grind";
   stopWhen?: "full" | "count" | "potential";
   stopCount?: number;
   skill?: string;
@@ -154,6 +154,8 @@ export interface AssistConfig {
   lowHpPct?: number;
   lowHpAction?: "warn" | "flee" | "stop";
   stopOnCombat?: boolean;
+  /** 侠客岛挂机目标，如 haigui_s */
+  grindTarget?: string;
 }
 
 export interface MudEvent {

@@ -7,6 +7,7 @@ import {
   isBasicSkillId,
   isKnowledgeSkill,
   suggestEnableSlots,
+  vitalCap,
 } from "../lib/parser";
 import type { GameState, InvItem, ScoreAttr, ScoreInfo, SkillRow } from "../lib/types";
 
@@ -454,12 +455,12 @@ export function CharacterSheet({ state, tab, onTab, onClose, onCmd }: Props) {
           <div className={`panel ${tab === 1 ? "on" : ""}`}>
             <div className="meter-list">
               {[
-                ["气", v.qi, v.maxQi, "var(--stat-qi)"],
-                ["精", v.jing, v.maxJing, "var(--stat-jing)"],
-                ["精力", v.jingli, v.maxJingli, "var(--stat-jingli)"],
-                ["内力", v.neili, v.maxNeili, "var(--stat-neili)"],
-                ["食物", v.food, v.maxFood, "var(--stat-food)"],
-                ["饮水", v.water, v.maxWater, "var(--stat-water)"],
+                ["气", v.qi, vitalCap(v, "qi"), "var(--stat-qi)"],
+                ["精", v.jing, vitalCap(v, "jing"), "var(--stat-jing)"],
+                ["精力", v.jingli, vitalCap(v, "jingli"), "var(--stat-jingli)"],
+                ["内力", v.neili, vitalCap(v, "neili"), "var(--stat-neili)"],
+                ["食物", v.food, vitalCap(v, "food"), "var(--stat-food)"],
+                ["饮水", v.water, vitalCap(v, "water"), "var(--stat-water)"],
               ].map(([label, cur, max, color]) => (
                 <div key={label as string}>
                   <div className="meter-head">
