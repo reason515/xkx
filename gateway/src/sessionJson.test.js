@@ -94,4 +94,15 @@ describe("stripJsonFrames", () => {
     );
     assert.equal(cleaned, "\x1b[31m警讯\x1b[0m");
   });
+
+  it("raw payload keeps ANSI and drops JSON frames (desktop xterm)", () => {
+    const chunkText =
+      "\x1b[1;32m你来到沙滩。\x1b[0m\n@@JSON@@{\"v\":1,\"type\":\"room.update\"}@@ENDJSON@@\n渔夫朝你微笑。";
+    const raw = stripJsonFrames(chunkText);
+    assert.match(raw, /\x1b\[/);
+    assert.equal(raw.includes("@@JSON@@"), false);
+    assert.equal(raw.includes("@@ENDJSON@@"), false);
+    assert.match(raw, /你来到沙滩/);
+    assert.match(raw, /渔夫朝你微笑/);
+  });
 });

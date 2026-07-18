@@ -73,8 +73,15 @@ const DOC_MAX_MS = 20_000;
 
 let logId = 0;
 
-export function useGame() {
+export type UseGameOptions = {
+  /** Desktop terminal: ANSI raw stream (JSON frames already stripped). */
+  onRawText?: (raw: string) => void;
+};
+
+export function useGame(opts?: UseGameOptions) {
   const socket = useRef(new GameSocket());
+  const onRawTextRef = useRef(opts?.onRawText);
+  onRawTextRef.current = opts?.onRawText;
   const textBuf = useRef("");
   const roomFromEvent = useRef(false);
   const enteredGame = useRef(false);
@@ -370,6 +377,7 @@ export function useGame() {
         return;
       }
       if (msg.type === "text" && msg.text) {
+        if (msg.raw) onRawTextRef.current?.(msg.raw);
         const chunk = msg.text.replace(/\0/g, "");
         textBuf.current += chunk;
 

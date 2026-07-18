@@ -6,6 +6,8 @@ export interface WsMessage {
   text?: string;
   html?: string;
   htmlLines?: string[];
+  /** ANSI retained, JSON frames stripped — for xterm desktop terminal */
+  raw?: string;
   event?: Record<string, unknown>;
   message?: string;
   sessionId?: string;

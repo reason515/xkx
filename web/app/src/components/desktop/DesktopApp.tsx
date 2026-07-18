@@ -1,0 +1,205 @@
+import { useRef, type CSSProperties, type MutableRefObject } from "react";
+import {
+  DesktopProvider,
+  useDesktop,
+  type GameApi,
+} from "../../context/DesktopContext";
+import type { UiMode } from "../../lib/uiMode";
+import { CharacterSheet } from "../CharacterSheet";
+import { CombatSheet } from "../CombatSheet";
+import { EntitySheet } from "../EntitySheet";
+import { HelpSheet } from "../HelpSheet";
+import { MapSheet } from "../MapSheet";
+import { TrainSheet } from "../TrainSheet";
+import { LeftSidebar } from "./LeftSidebar";
+import { ModeSwitch } from "./ModeSwitch";
+import { RightSidebar } from "./RightSidebar";
+import { TerminalPane } from "./TerminalPane";
+
+function ResizeHandle({ onDrag }: { onDrag: (clientX: number) => void }) {
+  return (
+    <div
+      className="desktop-resize"
+      role="separator"
+      aria-orientation="vertical"
+      onPointerDown={(e) => {
+        e.preventDefault();
+        const move = (ev: PointerEvent) => onDrag(ev.clientX);
+        const up = () => {
+          window.removeEventListener("pointermove", move);
+          window.removeEventListener("pointerup", up);
+        };
+        window.addEventListener("pointermove", move);
+        window.addEventListener("pointerup", up);
+      }}
+    />
+  );
+}
+
+function DesktopShell({
+  mode,
+  onModeChange,
+}: {
+  mode: UiMode;
+  onModeChange: (m: UiMode) => void;
+}) {
+  const desk = useDesktop();
+  const g = desk.game;
+  const state = g.state;
+  const shellRef = useRef<HTMLDivElement>(null);
+
+  return (
+    <div className="desktop-app" data-testid="desktop-app" ref={shellRef}>
+      <div className={`toast ${g.toast ? "show" : ""}`}>{g.toast}</div>
+      <header className="desktop-topbar">
+        <div className="desktop-brand">
+          <span className="desktop-title">侠客行</span>
+          <span className="desktop-room" data-testid="desktop-room-title">
+            {state.room.title || "…"}
+          </span>
+        </div>
+        <div className="desktop-top-actions">
+          <ModeSwitch mode={mode} onChange={onModeChange} />
+          <button type="button" onClick={() => g.onOpenHelp()}>
+            帮助
+          </button>
+          <button type="button" onClick={() => g.quit()}>
+            退出
+          </button>
+        </div>
+      </header>
+
+      <div
+        className="desktop-body"
+        style={
+          {
+            "--desktop-left": `${desk.leftWidth}px`,
+            "--desktop-right": `${desk.rightWidth}px`,
+          } as CSSProperties
+        }
+      >
+        <div
+          className="desktop-col-left"
+          style={{ width: desk.leftWidth }}
+        >
+          <LeftSidebar />
+        </div>
+        <ResizeHandle
+          onDrag={(x) => {
+            const rect = shellRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            desk.setLeftWidth(x - rect.left);
+          }}
+        />
+        <TerminalPane />
+        <ResizeHandle
+          onDrag={(x) => {
+            const rect = shellRef.current?.getBoundingClientRect();
+            if (!rect) return;
+            desk.setRightWidth(rect.right - x);
+          }}
+        />
+        <div
+          className="desktop-col-right"
+          style={{ width: desk.rightWidth }}
+        >
+          <RightSidebar />
+        </div>
+      </div>
+
+      {state.sheet === "character" && (
+        <CharacterSheet
+          state={state}
+          tab={g.charTab}
+          onTab={g.setCharTab}
+          onClose={g.closeSheet}
+          onCmd={(c) => g.cmd(c, { silent: true })}
+        />
+      )}
+      {state.sheet === "map" && (
+        <MapSheet
+          roomTitle={state.room.title}
+          roomArea={state.room.area}
+          onClose={g.closeSheet}
+        />
+      )}
+      {state.sheet === "help" && (
+        <HelpSheet
+          docText={state.docText}
+          docLoading={state.docLoading}
+          onClose={g.closeSheet}
+          onPickTopic={g.onHelpTopic}
+          onBackToTopics={g.onBackToHelpTopics}
+        />
+      )}
+      {state.sheet === "train" && (
+        <TrainSheet
+          active={state.assistActive}
+          status={state.assistStatus}
+          trainLog={state.trainLog}
+          onClose={g.closeSheet}
+          onStart={g.startAssist}
+          onStop={g.stopAssist}
+          onCmd={g.cmd}
+        />
+      )}
+      {state.sheet === "combat" && (
+        <CombatSheet
+          npcs={state.room.npcs}
+          combatLog={state.combatLog}
+          onClose={g.closeSheet}
+          onCmd={g.cmd}
+          assistActive={state.assistActive}
+          onStartAssist={(pct, action) =>
+            g.startAssist({
+              mode: "combat",
+              lowHpPct: pct,
+              lowHpAction: action,
+            })
+          }
+          onStopAssist={g.stopAssist}
+        />
+      )}
+      {state.sheet === "entity" && g.selectedEntity && (
+        <EntitySheet
+          id={g.selectedEntity.id}
+          name={g.selectedEntity.name}
+          kind={g.selectedEntity.kind}
+          docText={state.docTarget === "entity" ? state.docText : ""}
+          docLoading={state.docTarget === "entity" && state.docLoading}
+          askHints={state.suggestedActions}
+          onClose={g.closeSheet}
+          onAction={(command) => {
+            g.cmd(command);
+            const verb = command.trim().split(/\s+/)[0]?.toLowerCase();
+            if (verb === "get" || verb === "drop") {
+              g.cmd("look", { silent: true });
+            }
+          }}
+          onDocAction={(command) => g.docCmd(command, "entity")}
+          onAskList={(command) => g.docCmd(command, "entity")}
+          onLearnList={(command) => g.docCmd(command, "entity")}
+          onClearDoc={g.clearDoc}
+        />
+      )}
+    </div>
+  );
+}
+
+export function DesktopApp({
+  game,
+  rawSinkRef,
+  mode,
+  onModeChange,
+}: {
+  game: GameApi;
+  rawSinkRef: MutableRefObject<((raw: string) => void) | null>;
+  mode: UiMode;
+  onModeChange: (m: UiMode) => void;
+}) {
+  return (
+    <DesktopProvider game={game} rawSinkRef={rawSinkRef}>
+      <DesktopShell mode={mode} onModeChange={onModeChange} />
+    </DesktopProvider>
+  );
+}

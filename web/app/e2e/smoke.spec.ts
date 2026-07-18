@@ -1,4 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { forceMobileMode } from "./helpers";
+
+/** 宽屏默认可能进桌面工作台；smoke 全程锁定手机壳，避免误伤。 */
+test.beforeEach(async ({ page }) => {
+  await forceMobileMode(page);
+});
 
 const e2eId = process.env.XKX_E2E_ID;
 const e2ePassword = process.env.XKX_E2E_PASSWORD;
@@ -347,6 +353,8 @@ async function loginAsNewbie(
   page: import("@playwright/test").Page,
   opts?: { id?: string; password?: string; asRegister?: boolean }
 ) {
+  // beforeAll 不跑 beforeEach；登录前务必锁定手机壳
+  await forceMobileMode(page);
   const asRegister = opts?.asRegister ?? (register || !e2eId);
   let id = opts?.id ?? (asRegister || !e2eId ? randomId() : e2eId!);
   const password =
@@ -1086,7 +1094,7 @@ test.describe.serial("game smoke", () => {
     });
   });
 
-  test("桌面端同样场景上见闻下同页", async ({ page }) => {
+  test("宽屏下同样场景上见闻下同页", async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
     await loginAsNewbie(page, {
       id: sharedId,
