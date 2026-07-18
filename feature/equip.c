@@ -3,10 +3,11 @@
 
 #include <dbase.h>
 #include <weapon.h>
+#include <ansi.h>
 
 int wear()
 {
-	object owner;
+	object owner, old;
 	mapping armor_prop, applied_prop;
 	string *apply, type;
 
@@ -26,8 +27,13 @@ int wear()
 		return notify_fail("你只能穿戴可当作护具的东西。\n");
 
 	type = query("armor_type");
-	if( owner->query_temp("armor/" + type))
-		return notify_fail("你已经穿戴了同类型的护具了。\n");
+	// 同槽已有护具：先自动脱下再穿新的（Web/Telnet 一致）
+	if( objectp(old = owner->query_temp("armor/" + type))
+	&&  old != this_object() ) {
+		message_vision(YEL "$N将$n脱了下来。\n" NOR, owner, old);
+		if( !old->unequip() )
+			return notify_fail("你无法脱下目前穿戴的同类型护具。\n");
+	}
 
 	owner->set_temp("armor/" + type, this_object());
 	apply = keys(armor_prop);
@@ -47,7 +53,7 @@ int wield()
 {
 	object owner, old_weapon;
 	mapping weapon_prop;
-	string *apply, type;
+	string *apply;
 	int flag;
 
 	// Only character object can wear armors.
@@ -63,9 +69,17 @@ int wield()
 	flag = query("flag");
 
 	if( flag & TWO_HANDED ) {
-		if( owner->query_temp("weapon")
-		||	owner->query_temp("secondary_weapon")
-		||	owner->query_temp("armor/shield") )
+		if( objectp(old_weapon = owner->query_temp("weapon")) ) {
+			message_vision("$N放下手中的$n。\n", owner, old_weapon);
+			if( !old_weapon->unequip() )
+				return notify_fail("你无法放下目前装备的武器。\n");
+		}
+		if( objectp(old_weapon = owner->query_temp("secondary_weapon")) ) {
+			message_vision("$N放下手中的$n。\n", owner, old_weapon);
+			if( !old_weapon->unequip() )
+				return notify_fail("你无法放下目前装备的武器。\n");
+		}
+		if( owner->query_temp("armor/shield") )
 			return notify_fail("你必须空出双手才能装备双手武器。\n");
 		owner->set_temp("weapon", this_object());
 	} else {
@@ -88,13 +102,25 @@ int wield()
 				owner->set_temp("weapon", this_object());
 				old_weapon->wield();
 
-			// We need unwield our old weapon before we can use this one.
-			} else
-				return notify_fail("你必须先放下你目前装备的武器。\n");
+			// Auto-swap: put down primary then wield the new one
+			} else {
+				message_vision("$N放下手中的$n。\n", owner, old_weapon);
+				if( !old_weapon->unequip() )
+					return notify_fail("你无法放下目前装备的武器。\n");
+				owner->set_temp("weapon", this_object());
+			}
 
 		// We have both hands wearing something.
-		} else
-			return notify_fail("你必须空出一只手来使用武器。\n");
+		} else {
+			// Prefer freeing the primary weapon hand for the new weapon
+			if( objectp(old_weapon = owner->query_temp("weapon")) ) {
+				message_vision("$N放下手中的$n。\n", owner, old_weapon);
+				if( !old_weapon->unequip() )
+					return notify_fail("你无法放下目前装备的武器。\n");
+				owner->set_temp("weapon", this_object());
+			} else
+				return notify_fail("你必须空出一只手来使用武器。\n");
+		}
 	}
 
 	apply = keys(weapon_prop);

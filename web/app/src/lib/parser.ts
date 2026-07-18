@@ -281,6 +281,55 @@ export function isMorePromptLine(line: string): boolean {
   return /未完继续|继续下一页|n 或\s*<ENTER>|q 离开/.test(line);
 }
 
+/** Dialogue / event narrative that must stay in 见闻 (not room look structure). */
+const ROOM_LOOK_KEEP =
+  /说道|问道|喊道|叫道|向.+打听|你向|你从|拉开|推开|露出|脱了下来|装备著|装备着|穿上|戴上/;
+
+/**
+ * True when this chunk is (or contains) a classic room look dump:
+ * title + long / exits / room inventory shorts.
+ */
+export function isRoomLookChunk(chunk: string): boolean {
+  if (!chunk?.trim()) return false;
+  if (EXIT_LINE_RE.test(chunk)) return true;
+  if (/这里没有任何明显的出路/.test(chunk)) return true;
+  const lines = chunk.split(/\r?\n/);
+  const hasTitle = lines.some((l) => {
+    const t = l.trim();
+    return ROOM_TITLE_RE.test(t) || /^.+?\s+-\s*$/.test(t);
+  });
+  if (!hasTitle) return false;
+  const hasEntityShort = lines.some(
+    (l) =>
+      /^\s*.{1,60}\([A-Za-z][A-Za-z0-9_\- ]*\)\s*$/.test(l) &&
+      !ROOM_LOOK_KEEP.test(l)
+  );
+  const hasIndentedDesc = lines.some((l) => /^\s{2,}\S/.test(l));
+  return hasEntityShort || hasIndentedDesc;
+}
+
+/**
+ * Room look structure belongs in the scene panel, not 见闻.
+ * When chunk is a look dump, suppress the whole structure including soft-wrapped
+ * (unindented) description continuations — only dialogue/event lines are kept.
+ */
+export function isRoomLookLine(line: string, chunk?: string): boolean {
+  const t = line.trim();
+  if (!t) return false;
+  // Exit lines are always scene structure
+  if (EXIT_LINE_RE.test(t) || /这里没有任何明显的出路/.test(t)) return true;
+  // Keep event / dialogue even if mixed into a look-sized chunk
+  if (ROOM_LOOK_KEEP.test(t)) return false;
+  // User command echoes are never room look
+  if (/^>\s*\S/.test(t)) return false;
+
+  const inLook = !!chunk && isRoomLookChunk(chunk);
+  if (!inLook) return false;
+
+  // Full look dump (title / long / soft-wraps / entity shorts) → scene only
+  return true;
+}
+
 /**
  * Commands whose full output belongs in a reading panel (帮助 / 告示牌),
  * not as scene action chips or 见闻 dumps.
@@ -809,6 +858,8 @@ export function parseSkillsPanelLearnActions(
 
 /**
  * Extract clickable actions from NPC/room hints like `(follow mu laoqi)`.
+ * Learn / ask still parse into state for人物「学」「问」面板，但不上场景动作区
+ * （见 `isEntitySheetAction` / `sceneActionChips`）。
  */
 export function parseSuggestedActions(
   text: string,
@@ -839,6 +890,59 @@ export function parseSuggestedActions(
   }
 
   return [...found.values()];
+}
+
+/**
+ * Suggested actions embedded in room title/long (e.g. `(yell boat)`, `(sleep)`).
+ * Used on room.update so chips do not depend on look text appearing in 见闻.
+ */
+export function suggestedActionsFromRoomText(
+  desc: string,
+  npcs: Entity[] = [],
+  title = ""
+): SuggestedAction[] {
+  const text = [title, desc].filter(Boolean).join("\n");
+  if (!text.trim()) return [];
+  return [
+    ...parseSuggestedActions(text, npcs),
+    ...parseLearnOfferActions(text, npcs),
+  ];
+}
+
+/**
+ * NPC-scoped actions that belong on the entity sheet (问 / 学), not scene chips.
+ */
+export function isEntitySheetAction(command: string): boolean {
+  const verb = command.trim().split(/\s+/)[0]?.toLowerCase();
+  return verb === "ask" || verb === "learn" || verb === "xue";
+}
+
+/** Scene「动作」chips: room utilities / follow / enter …, excluding 问/学. */
+export function sceneActionChips(
+  actions: SuggestedAction[]
+): SuggestedAction[] {
+  return actions.filter((a) => !isEntitySheetAction(a.command));
+}
+
+/**
+ * Narrative that usually means exits / doors / passages changed in-place
+ * (no move). Web UI should refresh room state (look / room.update).
+ */
+export function suggestsRoomLayoutChange(text: string): boolean {
+  if (!text) return false;
+  return (
+    /露出.{0,16}(甬道|出口|洞口|石门|暗道|小路|通道|石室)/.test(text) ||
+    /拉开.{0,12}(屏风|石门|大门|木门|铁门)/.test(text) ||
+    /推开.{0,12}(门|石门|屏风)/.test(text) ||
+    /打开了?.{0,12}(门|石门|出口)/.test(text) ||
+    /出现了一?条?.{0,10}(甬道|出口|暗道|通道)/.test(text) ||
+    /现出.{0,12}(甬道|出口|暗道)/.test(text) ||
+    /石壁.{0,10}(移开|打开|裂开)/.test(text) ||
+    /墙.{0,8}(移开|打开)/.test(text) ||
+    /多了.{0,8}出口/.test(text) ||
+    /通往.{0,16}(甬道|石室|洞|密室)/.test(text) ||
+    /一扇.{0,8}门.{0,10}开/.test(text)
+  );
 }
 
 /**
@@ -888,7 +992,7 @@ export function mergeSuggestedActions(
 /**
  * Newbie beach greeters (张三/李四): if their greeting was swallowed before
  * the client entered the game, still expose a follow chip from room NPCs.
- * Ask topics are not injected here — only text hints go to 场景动作；其余走人物「问」。
+ * Ask topics are not injected here — learn/ask go to人物「学」「问」；其余走场景动作。
  */
 export function beachGreeterActions(
   roomTitle: string | undefined,
@@ -1363,7 +1467,7 @@ export function parsePrepareMap(text: string): Record<string, string> {
   return map;
 }
 
-/** Classify bag item for wear/wield vs non-equip consumables. */
+/** Classify bag/ground item for wear、wield、eat、drink. */
 export function classifyInvEquip(id: string, name: string, type = ""): InvEquipKind {
   const blob = `${id} ${name} ${type}`.toLowerCase();
   if (/武器/.test(type) || /武器/.test(name)) return "weapon";
@@ -1382,7 +1486,175 @@ export function classifyInvEquip(id: string, name: string, type = ""): InvEquipK
     /[衣甲袍衫靴鞋帽盔带环腕手套裙]/.test(name)
   )
     return "armor";
+  // 丹药优先于「碗/丸」歧义
+  if (
+    /丹|丸|药|散|膏|疗伤|解毒/.test(name) ||
+    /(?:^|[\s_-])(?:pill|yao|dan|san)(?:$|[\s_-])/i.test(blob)
+  )
+    return "drug";
+  // 饮品容器 / 茶酒（粥归食物）
+  if (
+    !/粥|饭|糕|饼|馒/.test(name) &&
+    (/茶|酒|水|壶|葫芦|瓶|杯|坛|碗/.test(name) ||
+      /(?:^|[\s_-])(?:tea|wine|jiu|cha|water|hulu|bottle|cup|hu|wan)(?:$|[\s_-])/i.test(
+        blob
+      ))
+  )
+    return "drink";
+  if (
+    /粥|饭|糕|饼|肉|鸭|鸡|鱼|果|桃|梨|瓜|面|馒|包|点|菜|豆|腿|苹果|糕点/.test(
+      name
+    ) ||
+    /(?:^|[\s_-])(?:zhou|rice|food|guo|ya|rou|kaoya|apple|bread|cake|meat|fruit|doufu|baozi|ji|yu)(?:$|[\s_-])/i.test(
+      blob
+    )
+  )
+    return "food";
   return "other";
+}
+
+/** Preferred mud target token for inventory / ground item commands. */
+export function invCommandTarget(id: string, name: string): string {
+  if (id && /^[a-z][\w]*$/i.test(id)) return id.toLowerCase();
+  if (id && /^[a-z][\w]*(\s+[a-z][\w]*)+$/i.test(id)) {
+    const parts = id.toLowerCase().split(/\s+/).filter(Boolean);
+    return parts[parts.length - 1];
+  }
+  return (name || id || "").trim();
+}
+
+/**
+ * Heuristic armor slot (aligns with LPC armor_type) for optimistic equip swap.
+ * Unknown → "cloth" so same-kind cloth swaps still work in UI.
+ */
+export function suggestArmorSlot(id: string, name: string): string {
+  const blob = `${id} ${name}`.toLowerCase();
+  if (/(?:^|[\s_-])(?:boots|shoes|shoe)(?:$|[\s_-])/i.test(blob) || /靴|鞋/.test(name))
+    return "boots";
+  if (/(?:^|[\s_-])(?:hat|cap|helmet|head)(?:$|[\s_-])/i.test(blob) || /帽|盔/.test(name))
+    return "head";
+  if (/(?:^|[\s_-])(?:neck|necklace)(?:$|[\s_-])/i.test(blob) || /项链|项圈/.test(name))
+    return "neck";
+  if (/(?:^|[\s_-])(?:wrists|wrist)(?:$|[\s_-])/i.test(blob) || /护腕/.test(name))
+    return "wrists";
+  if (/(?:^|[\s_-])(?:finger|ring)(?:$|[\s_-])/i.test(blob) || /戒指|指环/.test(name))
+    return "finger";
+  if (/(?:^|[\s_-])(?:hands|glove|gloves)(?:$|[\s_-])/i.test(blob) || /手套/.test(name))
+    return "hands";
+  if (/(?:^|[\s_-])(?:belt|waist)(?:$|[\s_-])/i.test(blob) || /腰带|束带/.test(name))
+    return "waist";
+  if (/(?:^|[\s_-])(?:surcoat)(?:$|[\s_-])/i.test(blob) || /披风|外袍/.test(name))
+    return "surcoat";
+  if (/(?:^|[\s_-])(?:shield)(?:$|[\s_-])/i.test(blob) || /盾/.test(name))
+    return "shield";
+  if (/(?:^|[\s_-])(?:armor|jia)(?:$|[\s_-])/i.test(blob) || /铠|甲/.test(name))
+    return "armor";
+  return "cloth";
+}
+
+function invItemMatchesTarget(it: InvItem, target: string): boolean {
+  const id = it.id.toLowerCase();
+  const name = it.name.toLowerCase();
+  const t = target.toLowerCase();
+  return (
+    id === t ||
+    name === t ||
+    id.startsWith(t) ||
+    t.startsWith(id) ||
+    invCommandTarget(it.id, it.name).toLowerCase() === t
+  );
+}
+
+/**
+ * Optimistic inventory after wear/wield/remove/unwield, including same-slot swap.
+ */
+export function applyEquipOptimistic(
+  inventory: InvItem[],
+  verb: string,
+  target: string
+): InvItem[] {
+  const v = verb.toLowerCase();
+  if (!target || !["wear", "wield", "remove", "unwield"].includes(v)) {
+    return inventory;
+  }
+  const equipping = v === "wear" || v === "wield";
+  const targetItem = inventory.find((it) => invItemMatchesTarget(it, target));
+  const armorSlot =
+    v === "wear" && targetItem
+      ? suggestArmorSlot(targetItem.id, targetItem.name)
+      : null;
+
+  return inventory.map((it) => {
+    if (invItemMatchesTarget(it, target)) {
+      return { ...it, equipped: equipping };
+    }
+    if (!equipping || !it.equipped) return it;
+    if (v === "wield" && (it.equipKind || classifyInvEquip(it.id, it.name, it.type)) === "weapon") {
+      return { ...it, equipped: false };
+    }
+    if (
+      v === "wear" &&
+      armorSlot &&
+      (it.equipKind || classifyInvEquip(it.id, it.name, it.type)) === "armor" &&
+      suggestArmorSlot(it.id, it.name) === armorSlot
+    ) {
+      return { ...it, equipped: false };
+    }
+    return it;
+  });
+}
+
+/**
+ * Bag item menu: 看 + 穿戴/装备/吃/喝 + 丢下.
+ * Embedded items cannot be operated directly.
+ */
+export function bagItemActions(it: InvItem): { label: string; command: string }[] {
+  const target = invCommandTarget(it.id, it.name);
+  if (it.embedded || !target) return [];
+  const kind = it.equipKind || classifyInvEquip(it.id, it.name, it.type);
+  const acts: { label: string; command: string }[] = [
+    { label: "看", command: `look ${target}` },
+  ];
+
+  if (it.equipped) {
+    if (kind === "weapon") {
+      acts.push({ label: "收起", command: `unwield ${target}` });
+    } else if (kind === "armor") {
+      acts.push({ label: "脱下", command: `remove ${target}` });
+    } else {
+      acts.push({ label: "脱下", command: `remove ${target}` });
+      acts.push({ label: "收起", command: `unwield ${target}` });
+    }
+    return acts;
+  }
+
+  if (kind === "weapon") acts.push({ label: "装备", command: `wield ${target}` });
+  if (kind === "armor") acts.push({ label: "穿上", command: `wear ${target}` });
+  if (kind === "food" || kind === "drug") {
+    acts.push({ label: "吃", command: `eat ${target}` });
+  }
+  if (kind === "drink") acts.push({ label: "喝", command: `drink ${target}` });
+  acts.push({ label: "丢下", command: `drop ${target}` });
+  return acts;
+}
+
+/** Ground / room item menu on entity sheet. */
+export function groundItemActions(
+  id: string,
+  name: string
+): { label: string; command: string }[] {
+  const target = invCommandTarget(id, name);
+  if (!target) return [];
+  const kind = classifyInvEquip(id, name);
+  const acts: { label: string; command: string }[] = [
+    { label: "看", command: `look ${target}` },
+    { label: "拿", command: `get ${target}` },
+  ];
+  if (kind === "food" || kind === "drug") {
+    acts.push({ label: "吃", command: `eat ${target}` });
+  }
+  if (kind === "drink") acts.push({ label: "喝", command: `drink ${target}` });
+  return acts;
 }
 
 function invItem(
@@ -1469,26 +1741,6 @@ export function parseInventory(text: string): InvItem[] {
     }
   }
   return items;
-}
-
-/** Commands to equip / unequip a bag item (Chinese labels, mud ids). */
-export function bagItemActions(it: InvItem): { label: string; command: string }[] {
-  const target = /^[a-z]/i.test(it.id) ? it.id : it.name;
-  if (it.embedded) return [];
-  const kind = it.equipKind || classifyInvEquip(it.id, it.name, it.type);
-  if (it.equipped) {
-    if (kind === "weapon") return [{ label: "收起", command: `unwield ${target}` }];
-    if (kind === "armor") return [{ label: "脱下", command: `remove ${target}` }];
-    return [
-      { label: "脱下", command: `remove ${target}` },
-      { label: "收起武器", command: `unwield ${target}` },
-    ];
-  }
-  if (kind === "weapon") return [{ label: "装备", command: `wield ${target}` }];
-  if (kind === "armor") return [{ label: "穿上", command: `wear ${target}` }];
-  // unknown: offer both; food/misc will just fail with toast
-  if (kind === "other") return [];
-  return [];
 }
 
 export function isCombatLine(text: string): boolean {

@@ -351,7 +351,7 @@ function BagPanel({
 
   return (
     <div className="bag-panel">
-      <p className="skill-hint">点开物品可穿戴、装备或脱下。</p>
+      <p className="skill-hint">点开物品可查看、穿戴、食用或丢下。</p>
       {items.map((it) => {
         const key = `${it.id}-${it.name}`;
         const open = openKey === key;
@@ -361,9 +361,15 @@ function BagPanel({
             ? "武器"
             : it.equipKind === "armor"
               ? "防具"
-              : it.type && /[\u4e00-\u9fff]/.test(it.type)
-                ? it.type
-                : "";
+              : it.equipKind === "food"
+                ? "食物"
+                : it.equipKind === "drink"
+                  ? "饮品"
+                  : it.equipKind === "drug"
+                    ? "药品"
+                    : it.type && /[\u4e00-\u9fff]/.test(it.type)
+                      ? it.type
+                      : "";
         return (
           <div key={key} className={`bag-item ${open ? "open" : ""}`}>
             <button
@@ -381,9 +387,9 @@ function BagPanel({
             {open && (
               <div className="skill-actions">
                 {it.embedded ? (
-                  <p className="skill-hint">嵌在身上，无法直接脱下。</p>
+                  <p className="skill-hint">嵌在身上，无法直接操作。</p>
                 ) : actions.length === 0 ? (
-                  <p className="skill-hint">此物不能穿戴装备。</p>
+                  <p className="skill-hint">暂无可做之事。</p>
                 ) : (
                   <div className="skill-act-chips">
                     {actions.map((a) => (

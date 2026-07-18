@@ -11,6 +11,9 @@ import {
   isProtocolNoise,
   isSelfLookLine,
   isSheetDumpLine,
+  isRoomLookChunk,
+  isRoomLookLine,
+  suggestedActionsFromRoomText,
   isTrainLine,
   labelAskTopic,
   labelSuggestedAction,
@@ -38,8 +41,13 @@ import {
   suggestEnableSlots,
   isBasicSkillId,
   reconcileEnableMap,
+  isEntitySheetAction,
+  sceneActionChips,
+  suggestsRoomLayoutChange,
   classifyInvEquip,
   bagItemActions,
+  groundItemActions,
+  applyEquipOptimistic,
 } from "./parser";
 
 describe("parseExits", () => {
@@ -194,6 +202,61 @@ describe("isProtocolNoise", () => {
       isProtocolNoise('{"v":1,"type":"player.vitals","vitals":{"qi":1}}')
     ).toBe(true);
     expect(isProtocolNoise("你来到了沙滩。")).toBe(false);
+  });
+});
+
+describe("isRoomLookLine", () => {
+  const beachLook = `沙滩 - 
+    蓝蓝的大海一望无边。岸边不远处停着几只小船。
+    太阳正高挂在东方的天空中。
+    这里明显的出口是 north、east 和 northwest。
+  渔夫(Yu fu)
+  石块(Shikuai)`;
+
+  it("filters classic room look structure, keeps dialogue and movement", () => {
+    expect(isRoomLookChunk(beachLook)).toBe(true);
+    expect(isRoomLookLine("沙滩 -", beachLook)).toBe(true);
+    expect(
+      isRoomLookLine("    蓝蓝的大海一望无边。岸边不远处停着几只小船。", beachLook)
+    ).toBe(true);
+    // Soft-wrapped look continuation (no leading indent) must also be filtered
+    expect(
+      isRoomLookLine(
+        "踩在脚下软软的好不舒服。不时有几只小蟹横行而过。",
+        beachLook
+      )
+    ).toBe(true);
+    expect(
+      isRoomLookLine(
+        "    这里明显的出口是 north、east 和 northwest。",
+        beachLook
+      )
+    ).toBe(true);
+    expect(isRoomLookLine("  渔夫(Yu fu)", beachLook)).toBe(true);
+    expect(isRoomLookLine("  石块(Shikuai)", beachLook)).toBe(true);
+    expect(
+      isRoomLookLine("这里明显的出口是 north、east 和 northwest。")
+    ).toBe(true);
+
+    expect(isRoomLookLine("店小二说道：客官里面请")).toBe(false);
+    expect(isRoomLookLine("你向北方走去。")).toBe(false);
+    expect(isRoomLookLine("拉开屏风，露出一条甬道。")).toBe(false);
+    expect(isRoomLookLine("  渔夫(Yu fu)")).toBe(false);
+    expect(isRoomLookLine("> say 测试")).toBe(false);
+    expect(
+      isRoomLookLine(
+        "渔夫说道：这里就是侠客岛。两位岛主每年都派弟子到中原。"
+      )
+    ).toBe(false);
+  });
+
+  it("extracts parenthetical actions from room long without 见闻", () => {
+    const actions = suggestedActionsFromRoomText(
+      "岸边停着小船，不妨 (yell boat) 招呼船家。",
+      [],
+      "汉水南岸"
+    );
+    expect(actions.map((a) => a.command)).toContain("yell boat");
   });
 });
 
@@ -671,6 +734,38 @@ describe("parseLearnOfferActions", () => {
     ).toEqual([]);
   });
 
+  it("keeps learn/ask for entity sheet but hides them from scene chips", () => {
+    const learn = parseLearnOfferActions(
+      "蓝衣弟子说道：你可向我学掌法(strike)，内功(force)。",
+      [disciple]
+    );
+    const mixed = [
+      ...learn,
+      { command: "follow zhang san", label: "跟随张三" },
+      { command: "ask fu about 侠客岛", label: "向渔夫打听侠客岛" },
+      { command: "enter", label: "上船" },
+    ];
+    expect(learn.every((a) => isEntitySheetAction(a.command))).toBe(true);
+    expect(isEntitySheetAction("ask fu about 侠客岛")).toBe(true);
+    expect(isEntitySheetAction("follow zhang san")).toBe(false);
+    expect(sceneActionChips(mixed).map((a) => a.command)).toEqual([
+      "follow zhang san",
+      "enter",
+    ]);
+  });
+
+  it("detects in-place room layout change narratives", () => {
+    expect(
+      suggestsRoomLayoutChange(
+        "向旁缓缓拉开，露出一条长长的甬道。"
+      )
+    ).toBe(true);
+    expect(
+      suggestsRoomLayoutChange("你推开石门，眼前出现了一条甬道。")
+    ).toBe(true);
+    expect(suggestsRoomLayoutChange("渔夫微笑着看着你。")).toBe(false);
+  });
+
   it("merges skills panel of 师父 into learn topics without 见闻 hints", () => {
     const panel = `张三丰目前所学过的技能：（共3项技能）
 
@@ -869,7 +964,7 @@ describe("parseInventory", () => {
       id: "rice",
       name: "米饭",
       equipped: false,
-      equipKind: "other",
+      equipKind: "food",
     });
     expect(items[2]).toMatchObject({
       id: "needle",
@@ -884,19 +979,103 @@ describe("parseInventory", () => {
       equipKind: "weapon",
     });
     expect(bagItemActions(items[0])).toEqual([
+      { label: "看", command: "look cloth" },
       { label: "脱下", command: "remove cloth" },
     ]);
     expect(bagItemActions(items[3])).toEqual([
+      { label: "看", command: "look changjian" },
       { label: "装备", command: "wield changjian" },
+      { label: "丢下", command: "drop changjian" },
     ]);
-    expect(bagItemActions(items[1])).toEqual([]);
+    expect(bagItemActions(items[1])).toEqual([
+      { label: "看", command: "look rice" },
+      { label: "吃", command: "eat rice" },
+      { label: "丢下", command: "drop rice" },
+    ]);
     expect(bagItemActions(items[2])).toEqual([]);
   });
 
   it("classifies wear vs wield by id and name", () => {
     expect(classifyInvEquip("cloth", "布衣")).toBe("armor");
     expect(classifyInvEquip("gangdao", "钢刀")).toBe("weapon");
-    expect(classifyInvEquip("rice", "米饭")).toBe("other");
+    expect(classifyInvEquip("rice", "米饭")).toBe("food");
+    expect(classifyInvEquip("zhou", "腊八粥")).toBe("food");
+    expect(classifyInvEquip("laba zhou", "腊八粥")).toBe("food");
+    expect(classifyInvEquip("wan", "粗磁大碗")).toBe("drink");
+    expect(classifyInvEquip("hulu", "葫芦")).toBe("drink");
+    expect(classifyInvEquip("sanhuang-wan", "三黄丸")).toBe("drug");
+  });
+
+  it("optimistically swaps same-slot armor and primary weapon", () => {
+    const inv = [
+      {
+        id: "cloth",
+        name: "布衣",
+        type: "cloth",
+        equipped: true,
+        equipKind: "armor" as const,
+      },
+      {
+        id: "yuyi",
+        name: "雨衣",
+        type: "cloth",
+        equipped: false,
+        equipKind: "armor" as const,
+      },
+      {
+        id: "changjian",
+        name: "长剑",
+        type: "sword",
+        equipped: true,
+        equipKind: "weapon" as const,
+      },
+      {
+        id: "gangdao",
+        name: "钢刀",
+        type: "blade",
+        equipped: false,
+        equipKind: "weapon" as const,
+      },
+    ];
+    const afterWear = applyEquipOptimistic(inv, "wear", "yuyi");
+    expect(afterWear.find((i) => i.id === "yuyi")?.equipped).toBe(true);
+    expect(afterWear.find((i) => i.id === "cloth")?.equipped).toBe(false);
+    expect(afterWear.find((i) => i.id === "changjian")?.equipped).toBe(true);
+
+    const afterWield = applyEquipOptimistic(inv, "wield", "gangdao");
+    expect(afterWield.find((i) => i.id === "gangdao")?.equipped).toBe(true);
+    expect(afterWield.find((i) => i.id === "changjian")?.equipped).toBe(false);
+    expect(afterWield.find((i) => i.id === "cloth")?.equipped).toBe(true);
+  });
+
+  it("offers look/eat for 腊八粥 and look/drink for tea bowl", () => {
+    expect(
+      bagItemActions({
+        id: "zhou",
+        name: "腊八粥",
+        type: "zhou",
+        equipKind: "food",
+      })
+    ).toEqual([
+      { label: "看", command: "look zhou" },
+      { label: "吃", command: "eat zhou" },
+      { label: "丢下", command: "drop zhou" },
+    ]);
+    expect(
+      bagItemActions({
+        id: "wan",
+        name: "粗磁大碗",
+        type: "wan",
+        equipKind: "drink",
+      })
+    ).toEqual([
+      { label: "看", command: "look wan" },
+      { label: "喝", command: "drink wan" },
+      { label: "丢下", command: "drop wan" },
+    ]);
+    expect(
+      groundItemActions("zhou", "腊八粥").map((a) => a.label)
+    ).toEqual(["看", "拿", "吃"]);
   });
 
   it("ignores help inventory prose", () => {

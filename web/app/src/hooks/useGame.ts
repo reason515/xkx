@@ -8,9 +8,11 @@ import {
   isMorePromptLine,
   isProtocolNoise,
   isSelfLookLine,
+  isRoomLookLine,
   isSheetDumpLine,
   isTrainLine,
   mergeSuggestedActions,
+  suggestedActionsFromRoomText,
   parseEnableMap,
   parseHp,
   parseInventory,
@@ -23,8 +25,10 @@ import {
   reflowSoftWrappedEntries,
   roomUtilityActions,
   stripScoreBanner,
+  suggestsRoomLayoutChange,
   waterfallPassageActions,
   parseLearnOfferActions,
+  applyEquipOptimistic,
 } from "../lib/parser";
 import { applyEvent } from "../lib/protocol";
 import type {
@@ -82,6 +86,9 @@ export function useGame() {
     started: number;
     idleTimer: ReturnType<typeof setTimeout> | null;
   } | null>(null);
+  /** Intentional quit → softer disconnect toast. */
+  const quittingRef = useRef(false);
+  const roomRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<GameState>(initialState);
   const [toast, setToast] = useState("");
   const [loginError, setLoginError] = useState("");
@@ -108,7 +115,12 @@ export function useGame() {
   ) => {
     if (!text.trim()) return;
     if (isMorePromptLine(text)) return;
-    if (isLoginNoise(text) || isProtocolNoise(text) || isSheetDumpLine(text, text))
+    if (
+      isLoginNoise(text) ||
+      isProtocolNoise(text) ||
+      isSheetDumpLine(text, text) ||
+      isRoomLookLine(text, text)
+    )
       return;
     setState((s) => ({
       ...s,
@@ -196,6 +208,23 @@ export function useGame() {
     }, 280);
   }, []);
 
+  const scheduleInvRefresh = useCallback((alsoHp = false) => {
+    window.setTimeout(() => {
+      socket.current.cmd("inventory");
+      if (alsoHp) socket.current.cmd("hp");
+    }, 280);
+  }, []);
+
+  /** 出口/门/甬道等就地变化后，补 look 以拿到最新 room.update。 */
+  const scheduleRoomRefresh = useCallback(() => {
+    if (roomRefreshTimer.current) clearTimeout(roomRefreshTimer.current);
+    roomRefreshTimer.current = setTimeout(() => {
+      roomRefreshTimer.current = null;
+      roomFromEvent.current = false;
+      socket.current.cmd("look");
+    }, 380);
+  }, []);
+
   const cmd = useCallback(
     (command: string, opts?: { silent?: boolean }) => {
       const parts = command.trim().split(/\s+/);
@@ -206,7 +235,7 @@ export function useGame() {
         roomFromEvent.current = false;
         setState((s) => ({ ...s, suggestedActions: [] }));
       }
-      // 穿/脱/装备/收起：先乐观更新行囊标记，再拉 inventory+score 校正攻防
+      // 穿/脱/装备/收起：乐观更新（含同槽卸旧再装新），再拉 inventory+score
       if (
         target &&
         (verb === "wear" ||
@@ -214,19 +243,9 @@ export function useGame() {
           verb === "wield" ||
           verb === "unwield")
       ) {
-        const equipping = verb === "wear" || verb === "wield";
         setState((s) => ({
           ...s,
-          inventory: s.inventory.map((it) => {
-            const id = it.id.toLowerCase();
-            const name = it.name.toLowerCase();
-            const hit =
-              id === target ||
-              name === target ||
-              id.startsWith(target) ||
-              target.startsWith(id);
-            return hit ? { ...it, equipped: equipping } : it;
-          }),
+          inventory: applyEquipOptimistic(s.inventory, verb, target),
         }));
         scheduleEquipRefresh();
       }
@@ -239,8 +258,24 @@ export function useGame() {
           socket.current.cmd("look");
         }, 5500);
       }
+      if (verb === "eat" || verb === "drink") {
+        scheduleInvRefresh(true);
+      } else if (verb === "drop" || verb === "get") {
+        scheduleInvRefresh(false);
+      }
+      // 打听/开门类常就地改出口，补 look 统一刷新场景
+      if (
+        (verb === "ask" && /\babout\b/i.test(command)) ||
+        verb === "open" ||
+        verb === "unlock" ||
+        verb === "push" ||
+        verb === "pull" ||
+        verb === "knock"
+      ) {
+        scheduleRoomRefresh();
+      }
     },
-    [addLog, scheduleEquipRefresh]
+    [addLog, scheduleEquipRefresh, scheduleInvRefresh, scheduleRoomRefresh]
   );
 
   const docCmd = useCallback(
@@ -281,8 +316,10 @@ export function useGame() {
         enteredGame.current = false;
         roomFromEvent.current = false;
         textBuf.current = "";
+        const intentional = quittingRef.current;
+        quittingRef.current = false;
         setState((s) => ({ ...s, connected: false, inGame: false }));
-        showToast("与服务器断开");
+        showToast(intentional ? "已退出" : "与服务器断开");
         return;
       }
       if (msg.type === "ready") {
@@ -305,7 +342,13 @@ export function useGame() {
             ev.type === "room.update" &&
             !!applied.room.title &&
             applied.room.title !== s.room.title;
+          const fromDesc = suggestedActionsFromRoomText(
+            applied.room.desc || "",
+            applied.room.npcs,
+            applied.room.title || ""
+          );
           const greeter = [
+            ...fromDesc,
             ...beachGreeterActions(applied.room.title, applied.room.npcs),
             ...waterfallPassageActions(applied.room.title),
             ...roomUtilityActions(applied.room),
@@ -315,7 +358,7 @@ export function useGame() {
             ...applied,
             inGame: true,
             suggestedActions: roomChanged
-              ? greeter
+              ? mergeSuggestedActions([], greeter, applied.room.npcs)
               : mergeSuggestedActions(
                   s.suggestedActions,
                   greeter,
@@ -393,6 +436,7 @@ export function useGame() {
           if (isLoginNoise(line) || isProtocolNoise(line)) continue;
           if (isMorePromptLine(line)) continue;
           if (isSheetDumpLine(line, chunk)) continue;
+          if (isRoomLookLine(line, chunk)) continue;
           // 仪容分片到达时也挡掉；NPC 打听等不会命中 isSelfLookLine
           if ((suppressSelfLook || expectLookMe.current) && isSelfLookLine(line))
             continue;
@@ -415,6 +459,10 @@ export function useGame() {
         // (also keeps colored HTML spans continuous after gateway color-carry).
         for (const entry of reflowSoftWrappedEntries(pendingLog)) {
           addLog(entry.text, undefined, entry.html);
+        }
+
+        if (!capturingDoc && suggestsRoomLayoutChange(chunk)) {
+          scheduleRoomRefresh();
         }
 
         if (!capturingDoc) {
@@ -616,14 +664,21 @@ export function useGame() {
           }
 
           // 穿戴 / 装备武器反馈 → 刷新行囊与攻防（cmd 侧已乐观更新并预约刷新）
-          if (
+          // 同槽换装已由 LPC 自动卸旧再装；以下两条仅作极旧服务端回退提示
+          if (/已经穿戴了同类型的护具/.test(chunk)) {
+            showToast("同类型护具更换失败");
+            scheduleEquipRefresh();
+          } else if (/必须先放下你目前装备的武器/.test(chunk)) {
+            showToast("更换武器失败");
+            scheduleEquipRefresh();
+          } else if (
             /穿上|戴上|绑在腰间|装备.+作武器|装备著|装备着|你装备/.test(chunk) &&
             /你/.test(chunk)
           ) {
             if (/已经装备/.test(chunk)) {
               showToast("已经装备着了");
               scheduleEquipRefresh();
-            } else if (/作武器/.test(chunk) || /手中的/.test(chunk)) {
+            } else if (/作武器/.test(chunk)) {
               showToast("已装备武器");
               scheduleEquipRefresh();
             } else if (/穿上|戴上|绑在腰间|装备/.test(chunk)) {
@@ -648,6 +703,15 @@ export function useGame() {
             showToast("现在还不能睡觉");
           } else if (/你往床上一躺|进入了梦乡|倒在床上/.test(chunk)) {
             showToast("已入睡");
+          } else if (/档案储存完毕/.test(chunk)) {
+            showToast("已存档");
+          } else if (/储存失败|不能储存/.test(chunk)) {
+            showToast("存档失败");
+          } else if (/不能退出游戏/.test(chunk)) {
+            quittingRef.current = false;
+            showToast("现在不能退出");
+          } else if (/开始退出游戏|游戏退出进程已经启动/.test(chunk)) {
+            showToast("正在退出…");
           }
         }
       }
@@ -661,7 +725,7 @@ export function useGame() {
       offMsg();
       offStatus();
     };
-  }, [addLog, appendDocText, showToast, enterGame, cmd, scheduleEquipRefresh]);
+  }, [addLog, appendDocText, showToast, enterGame, cmd, scheduleEquipRefresh, scheduleRoomRefresh]);
 
   const login = useCallback(
     (opts: {
@@ -783,6 +847,12 @@ export function useGame() {
     [showToast]
   );
 
+  const quit = useCallback(() => {
+    quittingRef.current = true;
+    cmd("quit", { silent: true });
+    showToast("正在退出…");
+  }, [cmd, showToast]);
+
   const stopAssist = useCallback(() => {
     socket.current.assist({ action: "stop" });
     cmd("halt");
@@ -801,6 +871,7 @@ export function useGame() {
     setSelectedEntity,
     login,
     cmd,
+    quit,
     docCmd,
     clearDoc,
     openSheet,

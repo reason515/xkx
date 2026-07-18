@@ -7,66 +7,104 @@ import { TrainSheet } from "./components/TrainSheet";
 import { CombatSheet } from "./components/CombatSheet";
 import { EntitySheet } from "./components/EntitySheet";
 import { useGame } from "./hooks/useGame";
+import { sceneActionChips } from "./lib/parser";
 import { useEffect, useRef, useState } from "react";
 import type { ExitInfo, LogEntry } from "./lib/types";
-
-type MainTab = "log" | "scene";
 
 function pct(cur?: number, max?: number) {
   if (!cur || !max) return "0%";
   return `${Math.min(100, Math.round((cur / max) * 100))}%`;
 }
 
-function EventLog({ logs }: { logs: LogEntry[] }) {
+function EventLog({
+  logs,
+  onCmd,
+}: {
+  logs: LogEntry[];
+  onCmd: (command: string) => void;
+}) {
   const panelRef = useRef<HTMLElement>(null);
   const [following, setFollowing] = useState(true);
+  const [cmdDraft, setCmdDraft] = useState("");
 
   useEffect(() => {
     const panel = panelRef.current;
     if (panel && following) panel.scrollTop = panel.scrollHeight;
   }, [logs, following]);
 
+  const submitCmd = () => {
+    const text = cmdDraft.trim();
+    if (!text) return;
+    onCmd(text);
+    setCmdDraft("");
+  };
+
   return (
-    <section
-      ref={panelRef}
-      className="log log-panel"
-      aria-label="见闻"
-      onScroll={() => {
-        const panel = panelRef.current;
-        if (!panel) return;
-        setFollowing(panel.scrollHeight - panel.scrollTop - panel.clientHeight < 24);
-      }}
-    >
-      {!following && (
-        <div className="log-head">
-          <button
-            type="button"
-            onClick={() => {
-              const panel = panelRef.current;
-              if (panel) panel.scrollTop = panel.scrollHeight;
-              setFollowing(true);
-            }}
-          >
-            最新
-          </button>
-        </div>
-      )}
-      <div aria-live="polite" aria-relevant="additions text">
-        {logs.slice(-100).map((l) =>
-          l.html ? (
-            <p
-              key={l.id}
-              className={l.kind === "combat" ? "hl" : ""}
-              dangerouslySetInnerHTML={{ __html: l.html }}
-            />
-          ) : (
-            <p key={l.id} className={l.kind === "combat" ? "hl" : ""}>
-              {l.text}
-            </p>
-          )
+    <div className="log-section">
+      <section
+        ref={panelRef}
+        className="log log-panel"
+        aria-label="见闻"
+        onScroll={() => {
+          const panel = panelRef.current;
+          if (!panel) return;
+          setFollowing(
+            panel.scrollHeight - panel.scrollTop - panel.clientHeight < 24
+          );
+        }}
+      >
+        {!following && (
+          <div className="log-head">
+            <button
+              type="button"
+              onClick={() => {
+                const panel = panelRef.current;
+                if (panel) panel.scrollTop = panel.scrollHeight;
+                setFollowing(true);
+              }}
+            >
+              最新
+            </button>
+          </div>
         )}
-      </div>
-    </section>
+        <div aria-live="polite" aria-relevant="additions text">
+          {logs.slice(-100).map((l) =>
+            l.html ? (
+              <p
+                key={l.id}
+                className={l.kind === "combat" ? "hl" : ""}
+                dangerouslySetInnerHTML={{ __html: l.html }}
+              />
+            ) : (
+              <p key={l.id} className={l.kind === "combat" ? "hl" : ""}>
+                {l.text}
+              </p>
+            )
+          )}
+        </div>
+      </section>
+      <form
+        className="log-cmd"
+        onSubmit={(e) => {
+          e.preventDefault();
+          submitCmd();
+        }}
+      >
+        <input
+          type="text"
+          className="log-cmd-input"
+          value={cmdDraft}
+          onChange={(e) => setCmdDraft(e.target.value)}
+          placeholder="输入指令…"
+          aria-label="指令"
+          autoComplete="off"
+          spellCheck={false}
+        />
+        <button type="submit" className="log-cmd-send">
+          发送
+        </button>
+      </form>
+    </div>
   );
 }
 
@@ -74,19 +112,44 @@ export default function App() {
   const g = useGame();
   const { state, toast } = g;
   const v = state.vitals;
-  const [mainTab, setMainTab] = useState<MainTab>("log");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [menuOpen]);
 
   const afterEntityAction = (command: string) => {
     g.cmd(command);
     const verb = command.trim().split(/\s+/)[0]?.toLowerCase();
-    // 拾起/丢下后留在场景，方便立刻看到物品列表刷新
-    if (verb === "get" || verb === "drop") setMainTab("scene");
-    else setMainTab("log");
+    // 拾起/丢下后补 look，避免 room.update 迟到时场景列表残留
+    if (verb === "get" || verb === "drop") g.cmd("look", { silent: true });
   };
 
   const afterBoardDocAction = (command: string) => {
     g.docCmd(command, "entity");
   };
+
+  const openMap = () => {
+    g.clearDoc();
+    g.openSheet("map");
+  };
+
+  const sceneActions = sceneActionChips(state.suggestedActions);
 
   if (!state.inGame) {
     return (
@@ -105,32 +168,6 @@ export default function App() {
           <button type="button" className="hero-btn" onClick={g.onOpenCharacter}>
             <div className="hero-meta">
               <div className="hero-name">{state.playerName}</div>
-              {(state.score?.attack != null || state.score?.defense != null) && (
-                <div className="hero-combat" aria-label="攻击与防御">
-                  {state.score?.attack != null && (
-                    <span className="hc atk">
-                      攻{" "}
-                      <b>
-                        {state.score.attack}
-                        {state.score.attackBonus
-                          ? `+${state.score.attackBonus}`
-                          : ""}
-                      </b>
-                    </span>
-                  )}
-                  {state.score?.defense != null && (
-                    <span className="hc def">
-                      防{" "}
-                      <b>
-                        {state.score.defense}
-                        {state.score.defenseBonus
-                          ? `+${state.score.defenseBonus}`
-                          : ""}
-                      </b>
-                    </span>
-                  )}
-                </div>
-              )}
             </div>
             <div className="vitals">
               <div className="vital hp">
@@ -153,148 +190,158 @@ export default function App() {
               </div>
             </div>
           </button>
-          <div className="topbar-tools">
+          <div className="topbar-menu" ref={menuRef}>
             <button
               type="button"
-              className="help-btn"
-              aria-label="帮助"
-              onClick={g.onOpenHelp}
+              className="menu-btn"
+              aria-label="菜单"
+              aria-expanded={menuOpen}
+              aria-haspopup="menu"
+              onClick={() => setMenuOpen((o) => !o)}
             >
-              帮<br />助
+              菜<br />单
             </button>
-            <button
-              type="button"
-              className="map-btn"
-              aria-label="地图"
-              onClick={() => {
-                g.clearDoc();
-                g.openSheet("map");
-              }}
-            >
-              地<br />图
-            </button>
+            {menuOpen && (
+              <div className="menu-panel" role="menu">
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    g.cmd("save");
+                  }}
+                >
+                  存档
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    g.onOpenHelp();
+                  }}
+                >
+                  帮助
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="menu-quit"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    g.quit();
+                  }}
+                >
+                  退出
+                </button>
+              </div>
+            )}
           </div>
         </header>
 
         <main className="main">
-          <div className="game-tabs" role="tablist" aria-label="见闻与场景">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mainTab === "log"}
-              className={mainTab === "log" ? "on" : ""}
-              onClick={() => setMainTab("log")}
-            >
-              见闻
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={mainTab === "scene"}
-              className={mainTab === "scene" ? "on" : ""}
-              onClick={() => setMainTab("scene")}
-            >
-              场景
-            </button>
-          </div>
-
           <div className="game-body">
-            {mainTab === "log" ? (
-              <EventLog logs={state.logs} />
-            ) : (
-              <section className="scene-panel" aria-label="场景">
-                <h1 className="room-title">{state.room.title || "…"}</h1>
-                <p className="room-desc">{state.room.desc || "环顾四周以了解所处之地。"}</p>
+            <section className="scene-panel" aria-label="场景">
+              <h1 className="room-title">{state.room.title || "…"}</h1>
+              <p className="room-desc">{state.room.desc || "环顾四周以了解所处之地。"}</p>
 
-                <section className="context">
-                  <div className="ctx-block">
+              <section className="context">
+                <div className="ctx-block">
+                  <div className="ctx-head">
                     <h2>出口</h2>
-                    <ExitPad
-                      exits={state.room.exits}
-                      onSelect={(ex: ExitInfo) => {
-                        g.clearDoc();
-                        g.setSelectedExit({ dir: ex.dir, name: ex.name });
-                        g.openSheet("exit");
-                        g.docCmd(`look ${ex.dir}`, "exit");
-                      }}
-                    />
+                    <button
+                      type="button"
+                      className="scene-map-btn"
+                      aria-label="地图"
+                      onClick={openMap}
+                    >
+                      地图
+                    </button>
                   </div>
+                  <ExitPad
+                    exits={state.room.exits}
+                    onSelect={(ex: ExitInfo) => {
+                      g.clearDoc();
+                      g.setSelectedExit({ dir: ex.dir, name: ex.name });
+                      g.openSheet("exit");
+                      g.docCmd(`look ${ex.dir}`, "exit");
+                    }}
+                  />
+                </div>
 
-                  {state.room.npcs.length > 0 && (
-                    <div className="ctx-block">
-                      <h2>人物</h2>
-                      <div className="chips">
-                        {state.room.npcs.map((n) => (
-                          <button
-                            key={n.id}
-                            type="button"
-                            className="chip npc"
-                            onClick={() => {
-                              g.clearDoc();
-                              g.setSelectedEntity({
-                                id: n.id,
-                                name: n.name,
-                                kind: "npc",
-                              });
-                              g.openSheet("entity");
-                            }}
-                          >
-                            {n.name}
-                          </button>
-                        ))}
-                      </div>
+                {state.room.npcs.length > 0 && (
+                  <div className="ctx-block">
+                    <h2>人物</h2>
+                    <div className="chips">
+                      {state.room.npcs.map((n) => (
+                        <button
+                          key={n.id}
+                          type="button"
+                          className="chip npc"
+                          onClick={() => {
+                            g.clearDoc();
+                            g.setSelectedEntity({
+                              id: n.id,
+                              name: n.name,
+                              kind: "npc",
+                            });
+                            g.openSheet("entity");
+                          }}
+                        >
+                          {n.name}
+                        </button>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {state.room.items.length > 0 && (
-                    <div className="ctx-block">
-                      <h2>物品</h2>
-                      <div className="chips">
-                        {state.room.items.map((it, idx) => (
-                          <button
-                            key={`${it.id}-${it.name}-${idx}`}
-                            type="button"
-                            className="chip item"
-                            onClick={() => {
-                              g.clearDoc();
-                              g.setSelectedEntity({
-                                id: it.id,
-                                name: it.name,
-                                kind: "item",
-                              });
-                              g.openSheet("entity");
-                            }}
-                          >
-                            {it.name}
-                          </button>
-                        ))}
-                      </div>
+                {state.room.items.length > 0 && (
+                  <div className="ctx-block">
+                    <h2>物品</h2>
+                    <div className="chips">
+                      {state.room.items.map((it, idx) => (
+                        <button
+                          key={`${it.id}-${it.name}-${idx}`}
+                          type="button"
+                          className="chip item"
+                          onClick={() => {
+                            g.clearDoc();
+                            g.setSelectedEntity({
+                              id: it.id,
+                              name: it.name,
+                              kind: "item",
+                            });
+                            g.openSheet("entity");
+                          }}
+                        >
+                          {it.name}
+                        </button>
+                      ))}
                     </div>
-                  )}
+                  </div>
+                )}
 
-                  {state.suggestedActions.length > 0 && (
-                    <div className="ctx-block">
-                      <h2>动作</h2>
-                      <div className="chips">
-                        {state.suggestedActions.map((a) => (
-                          <button
-                            key={a.command}
-                            type="button"
-                            className="chip action"
-                            onClick={() => {
-                              g.cmd(a.command);
-                              setMainTab("log");
-                            }}
-                          >
-                            {a.label}
-                          </button>
-                        ))}
-                      </div>
+                {sceneActions.length > 0 && (
+                  <div className="ctx-block">
+                    <h2>动作</h2>
+                    <div className="chips">
+                      {sceneActions.map((a) => (
+                        <button
+                          key={a.command}
+                          type="button"
+                          className="chip action"
+                          onClick={() => g.cmd(a.command)}
+                        >
+                          {a.label}
+                        </button>
+                      ))}
                     </div>
-                  )}
-                </section>
+                  </div>
+                )}
               </section>
-            )}
+            </section>
+
+            <EventLog logs={state.logs} onCmd={g.cmd} />
           </div>
         </main>
       </div>
@@ -395,10 +442,7 @@ export default function App() {
               <button
                 type="button"
                 className="go"
-                onClick={() => {
-                  g.confirmGo(g.selectedExit!.dir);
-                  setMainTab("log");
-                }}
+                onClick={() => g.confirmGo(g.selectedExit!.dir)}
               >
                 前往
               </button>

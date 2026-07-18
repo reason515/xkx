@@ -14,7 +14,7 @@ export function ExitPad({ exits, onSelect }: Props) {
   const extra = exits.filter((e) => !padDirs.has(e.dir));
 
   return (
-    <>
+    <div className="exit-row">
       <div className="exit-pad">
         {PAD_SLOTS.flat().map((dir, i) => {
           if (!dir) {
@@ -57,6 +57,6 @@ export function ExitPad({ exits, onSelect }: Props) {
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }

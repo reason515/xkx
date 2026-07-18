@@ -9,6 +9,22 @@ inherit F_DBASE;
 
 void send_room(object me, object env);
 
+/* 房间结构变化（出口/描写）后，通知房内所有 Web 客户端刷新场景。 */
+void notify_room(object env)
+{
+	object *inv, ob;
+	int i;
+
+	if (!objectp(env)) return;
+	inv = all_inventory(env);
+	for (i = 0; i < sizeof(inv); i++) {
+		ob = inv[i];
+		if (!objectp(ob) || !userp(ob) || !interactive(ob)) continue;
+		if (!ob->query_temp("web_client")) continue;
+		send_room(ob, env);
+	}
+}
+
 void create()
 {
 	seteuid(getuid());

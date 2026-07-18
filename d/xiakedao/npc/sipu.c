@@ -125,6 +125,7 @@ int ask_daozhu()
 		here->set_temp("opened", 1);
 		desc = sprintf(desc + "    屏风已被拉开，露出一条长长的甬道。\n");
 		here->set("long", desc);
+		"/adm/daemons/webd"->notify_room(here);
 	}
 	else
 	{	say("厮仆微一躬身说道：两位岛主正在石室中苦思，你进去找他们吧。\n");

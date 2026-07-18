@@ -104,7 +104,13 @@ export interface ScoreInfo {
   defenseBonus?: number;
 }
 
-export type InvEquipKind = "weapon" | "armor" | "other";
+export type InvEquipKind =
+  | "weapon"
+  | "armor"
+  | "food"
+  | "drink"
+  | "drug"
+  | "other";
 
 export interface InvItem {
   id: string;
@@ -114,7 +120,7 @@ export interface InvItem {
   equipped?: boolean;
   /** √ embedded (e.g. 毒针), not normal wear */
   embedded?: boolean;
-  /** Heuristic for wear vs wield */
+  /** Heuristic for wear / wield / eat / drink */
   equipKind?: InvEquipKind;
 }
 

@@ -2,6 +2,7 @@ import { useState } from "react";
 import {
   buildAskTopicActions,
   buildLearnTopicActions,
+  groundItemActions,
   mudCommandTarget,
   parseBoardReadActions,
 } from "../lib/parser";
@@ -87,12 +88,9 @@ export function EntitySheet({
     ["浏览留言", "list"],
     ["读新留言", "read new"],
   ];
-  const itemActions: [string, string][] = [
-    ["看", `look ${target}`],
-    ["拿", `get ${target}`],
-    ["用", `use ${target}`],
-    ["丢", `drop ${target}`],
-  ];
+  const itemActions: [string, string][] = groundItemActions(id, name).map(
+    (a) => [a.label, a.command]
+  );
   const actions = kind === "npc" ? npcActions : board ? boardActions : itemActions;
 
   const leaveAskMode = () => {
