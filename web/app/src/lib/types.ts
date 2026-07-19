@@ -146,7 +146,7 @@ export interface InvItem {
 }
 
 export interface AssistConfig {
-  mode: "dazuo" | "tuna" | "lian" | "learn" | "combat" | "grind";
+  mode: "dazuo" | "tuna" | "lian" | "learn" | "combat" | "grind" | "study";
   stopWhen?: "full" | "count" | "potential";
   stopCount?: number;
   skill?: string;

@@ -9,9 +9,12 @@
 #define MAX_LEARN_TICKS 999
 #define MAX_COMBAT_TICKS 2000
 #define MAX_GRIND_TICKS 3000
+#define MAX_STUDY_TICKS 3000
 #define GRIND_RESUME_PCT 80
 #define GRIND_WOUND_MIN_PCT 60
 #define DADONG_EXP_KICK 10000
+#define STUDY_MIN_JING 30
+#define FRUIT_MAX_EXP 250
 
 // Minimum resources to attempt one round (match cmds/skill thresholds).
 #define DAZUO_MIN_QI 30
@@ -24,6 +27,7 @@ inherit F_DBASE;
 mapping sessions;
 
 void grind_tick(string id);
+void study_tick(string id);
 
 void create()
 {
@@ -526,7 +530,10 @@ void grind_set_spawn_path(mapping cfg, object me, string target_key)
 {
 	string *path;
 
-	path = PATHD->path_to_nearest_spawn(me, target_key);
+	/* 优先去仍有活怪的刷怪点；都没有再退回最近刷怪房 */
+	path = PATHD->path_to_spawn_with_target(me, target_key, 0);
+	if (!arrayp(path) || !sizeof(path))
+		path = PATHD->path_to_nearest_spawn(me, target_key);
 	if (!arrayp(path)) path = ({});
 	cfg["path"] = path;
 	cfg["path_dest"] = "spawn";
@@ -655,6 +662,17 @@ void grind_tick(string id)
 			sessions[id] = cfg;
 			WEBD->notify_vitals(me);
 			call_out("grind_tick", 1, id);
+			return;
+		}
+		/* 本地打光：若其它刷怪点还有同类活怪，换点寻找，不原地干等 */
+		path = PATHD->path_to_spawn_with_target(me, target_key, 1);
+		if (arrayp(path) && sizeof(path)) {
+			cfg["path"] = path;
+			cfg["path_dest"] = "spawn";
+			WEBD->send_assist_status(me, 1, "挂机中 · 另寻刷怪点");
+			grind_follow_path(me, cfg);
+			sessions[id] = cfg;
+			call_out("grind_tick", 2, id);
 			return;
 		}
 		WEBD->send_assist_status(me, 1, "挂机中 · 等候刷新");
@@ -886,6 +904,337 @@ int start_grind(object me, string target_key, int low_hp)
 	WEBD->mark_web_client(me);
 	WEBD->send_assist_status(me, 1, "挂机中");
 	call_out("grind_tick", 1, id);
+	return 1;
+}
+
+/* 石壁领悟预检：0=可学，1=精不足，其它字符串原因表示应停止 */
+mixed study_precheck(object me, string skill)
+{
+	string bskill;
+	int exp, lv, check, learn_basic;
+
+	if (!objectp(me) || !stringp(skill) || skill == "")
+		return "领悟目标无效";
+	bskill = PATHD->study_bskill(skill);
+	if (bskill == "")
+		return "暂不支持该石壁武功";
+
+	exp = (int)me->query("combat_exp");
+	learn_basic = (exp < 250) || ((int)me->query_skill(bskill, 1) < 10);
+
+	if (learn_basic) {
+		lv = (int)me->query_skill(bskill, 1);
+		if (lv > 20)
+			return "已无法从石壁再领悟";
+		check = lv * lv * lv;
+		if (check > exp * 10)
+			return "实战经验不足，无法领悟";
+	} else {
+		if ((int)me->query_skill("literate", 1) < 1)
+			return "一字不识，看不懂墙上的注解";
+		lv = (int)me->query_skill(skill, 1);
+		if (lv > 20)
+			return "已无法从石壁再领悟";
+		check = lv * lv * lv;
+		if (check > exp * 10)
+			return "实战经验不足，无法领悟";
+	}
+
+	if ((int)me->query("jing") < STUDY_MIN_JING)
+		return 1;
+	return 0;
+}
+
+void study_set_path(mapping cfg, object me, string dest)
+{
+	string *path;
+
+	path = PATHD->path_to_room(me, dest);
+	if (!arrayp(path)) path = ({});
+	cfg["path"] = path;
+	cfg["path_dest"] = dest;
+}
+
+int study_follow_path(object me, mapping cfg)
+{
+	string *path;
+
+	path = cfg["path"];
+	if (!arrayp(path) || !sizeof(path)) return 0;
+	path = PATHD->advance_path(me, path);
+	cfg["path"] = path;
+	return sizeof(path) == 0;
+}
+
+void study_tick(string id)
+{
+	object me, env, dadong, guo;
+	mapping cfg;
+	string phase, skill, wall, dest;
+	mixed check;
+	int jing_before;
+
+	if (undefinedp(sessions[id])) return;
+	me = find_player(id);
+	if (!objectp(me)) {
+		map_delete(sessions, id);
+		return;
+	}
+
+	cfg = sessions[id];
+	if (cfg["kind"] != "study") return;
+
+	cfg["ticks"]++;
+	if (cfg["ticks"] > MAX_STUDY_TICKS) {
+		stop_assist(me, "挂机时长已达上限");
+		return;
+	}
+
+	env = environment(me);
+	if (!objectp(env) || !PATHD->is_xiakedao(env)) {
+		stop_assist(me, "已离开侠客岛，挂机停止");
+		return;
+	}
+
+	if (me->is_busy() || me->is_fighting()) {
+		sessions[id] = cfg;
+		call_out("study_tick", 2, id);
+		return;
+	}
+
+	phase = cfg["phase"];
+	skill = cfg["skill"];
+	wall = cfg["wall"];
+
+	switch (phase) {
+	case "go_wall":
+		if (PATHD->room_path(env) == wall) {
+			cfg["phase"] = "study";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "挂机中 · 石壁领悟");
+			call_out("study_tick", 1, id);
+			return;
+		}
+		if (!arrayp(cfg["path"]) || cfg["path_dest"] != wall)
+			study_set_path(cfg, me, wall);
+		if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+			stop_assist(me, "无法前往石室");
+			return;
+		}
+		WEBD->send_assist_status(me, 1, "挂机中 · 前往石室");
+		study_follow_path(me, cfg);
+		sessions[id] = cfg;
+		call_out("study_tick", 2, id);
+		return;
+
+	case "study":
+		if (PATHD->room_path(env) != wall) {
+			cfg["phase"] = "go_wall";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			call_out("study_tick", 1, id);
+			return;
+		}
+		check = study_precheck(me, skill);
+		if (stringp(check)) {
+			stop_assist(me, "挂机停止 · " + check);
+			return;
+		}
+		if (check == 1) {
+			if ((int)me->query("combat_exp") > DADONG_EXP_KICK)
+				cfg["phase"] = "recover_fruit";
+			else
+				cfg["phase"] = "recover_zhou";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "挂机中 · 精神不足，去恢复");
+			call_out("study_tick", 1, id);
+			return;
+		}
+		/* study wall 经 call_out 异步扣精，下一 tick 再预检 */
+		me->force_me("study wall");
+		WEBD->notify_vitals(me);
+		WEBD->send_assist_status(me, 1, "挂机中 · 石壁领悟");
+		sessions[id] = cfg;
+		call_out("study_tick", 2, id);
+		return;
+
+	case "recover_zhou":
+		dest = "/d/xiakedao/dadong";
+		if ((int)me->query("combat_exp") > DADONG_EXP_KICK) {
+			cfg["phase"] = "recover_fruit";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			call_out("study_tick", 1, id);
+			return;
+		}
+		if (PATHD->room_path(env) != dest) {
+			if (!arrayp(cfg["path"]) || cfg["path_dest"] != dest)
+				study_set_path(cfg, me, dest);
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				cfg["phase"] = "recover_fruit";
+				cfg["path"] = ({});
+				sessions[id] = cfg;
+				WEBD->send_assist_status(me, 1, "挂机中 · 无法取粥，改摘野果");
+				call_out("study_tick", 1, id);
+				return;
+			}
+			WEBD->send_assist_status(me, 1, "挂机中 · 前往大洞取粥");
+			study_follow_path(me, cfg);
+			/* 高经验进洞被踢回沙滩 */
+			if (PATHD->room_path(environment(me)) != dest
+			 && PATHD->room_path(environment(me)) != PATHD->room_path(env)
+			 && (int)me->query("combat_exp") > DADONG_EXP_KICK) {
+				cfg["phase"] = "recover_fruit";
+				cfg["path"] = ({});
+			}
+			sessions[id] = cfg;
+			call_out("study_tick", 2, id);
+			return;
+		}
+		if (present("laba zhou", me) || present("zhou", me)) {
+			me->force_me("eat laba zhou");
+			if (!present("laba zhou", me) && !present("zhou", me)
+			 && (int)me->query("jing") >= STUDY_MIN_JING) {
+				cfg["phase"] = "go_wall";
+				cfg["path"] = ({});
+				sessions[id] = cfg;
+				WEBD->send_assist_status(me, 1, "挂机中 · 喝粥恢复");
+				WEBD->notify_vitals(me);
+				call_out("study_tick", 2, id);
+				return;
+			}
+		}
+		dadong = env;
+		if ((int)dadong->query("food_count") < 1) {
+			cfg["phase"] = "recover_fruit";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "挂机中 · 粥已罄尽，改摘野果");
+			call_out("study_tick", 1, id);
+			return;
+		}
+		me->force_me("ask si pu about 腊八粥");
+		if (present("laba zhou", me) || present("zhou", me)) {
+			me->force_me("eat laba zhou");
+			if (!present("laba zhou", me) && !present("zhou", me)
+			 && (int)me->query("jing") >= STUDY_MIN_JING) {
+				cfg["phase"] = "go_wall";
+				cfg["path"] = ({});
+				sessions[id] = cfg;
+				WEBD->send_assist_status(me, 1, "挂机中 · 喝粥恢复");
+				WEBD->notify_vitals(me);
+				call_out("study_tick", 2, id);
+				return;
+			}
+		}
+		cfg["phase"] = "recover_fruit";
+		cfg["path"] = ({});
+		sessions[id] = cfg;
+		WEBD->send_assist_status(me, 1, "挂机中 · 要粥失败，改摘野果");
+		call_out("study_tick", 1, id);
+		return;
+
+	case "recover_fruit":
+		if ((int)me->query("combat_exp") > FRUIT_MAX_EXP) {
+			stop_assist(me, "挂机停止 · 无法恢复精神（粥不可用且不能吃野果）");
+			return;
+		}
+		/* 已在树上或身上有果 */
+		if (PATHD->room_path(env) == "/d/xiakedao/tree1") {
+			if (!present("ye guo", me) && !present("guo", me))
+				me->force_me("zhai");
+			guo = present("ye guo", me);
+			if (!objectp(guo)) guo = present("guo", me);
+			if (!objectp(guo)) {
+				stop_assist(me, "挂机停止 · 摘不到野果");
+				return;
+			}
+			jing_before = (int)me->query("jing");
+			me->force_me("eat guo");
+			if ((int)me->query("jing") <= jing_before) {
+				stop_assist(me, "挂机停止 · 无法靠野果恢复");
+				return;
+			}
+			me->force_me("pa down");
+			cfg["phase"] = "go_wall";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "挂机中 · 吃果恢复");
+			WEBD->notify_vitals(me);
+			call_out("study_tick", 2, id);
+			return;
+		}
+		if (present("ye guo", me) || present("guo", me)) {
+			jing_before = (int)me->query("jing");
+			me->force_me("eat guo");
+			if ((int)me->query("jing") <= jing_before) {
+				stop_assist(me, "挂机停止 · 无法靠野果恢复");
+				return;
+			}
+			cfg["phase"] = "go_wall";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "挂机中 · 吃果恢复");
+			WEBD->notify_vitals(me);
+			call_out("study_tick", 2, id);
+			return;
+		}
+		dest = "/d/xiakedao/tree1";
+		if (!arrayp(cfg["path"]) || cfg["path_dest"] != dest)
+			study_set_path(cfg, me, dest);
+		if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+			stop_assist(me, "挂机停止 · 无法前往山顶摘果");
+			return;
+		}
+		WEBD->send_assist_status(me, 1, "挂机中 · 上山摘野果");
+		study_follow_path(me, cfg);
+		sessions[id] = cfg;
+		call_out("study_tick", 2, id);
+		return;
+
+	default:
+		stop_assist(me, "挂机状态异常");
+		return;
+	}
+}
+
+int start_study(object me, string skill)
+{
+	string id, wall;
+	mapping cfg;
+	object env;
+
+	if (!objectp(me)) return 0;
+	env = environment(me);
+	if (!objectp(env) || !PATHD->is_xiakedao(env)) {
+		WEBD->send_assist_status(me, 0, "仅可在侠客岛挂机");
+		return 0;
+	}
+	wall = PATHD->study_wall_room(skill);
+	if (!stringp(wall) || wall == "") {
+		WEBD->send_assist_status(me, 0, "暂不支持该石壁武功");
+		return 0;
+	}
+
+	id = me->query("id");
+	stop_assist(me, 0);
+
+	cfg = ([
+		"kind": "study",
+		"phase": "go_wall",
+		"skill": skill,
+		"wall": wall,
+		"path": ({}),
+		"path_dest": "",
+		"ticks": 0,
+	]);
+	sessions[id] = cfg;
+	me->set_temp("web_assist", 1);
+	WEBD->mark_web_client(me);
+	WEBD->send_assist_status(me, 1, "挂机中 · 石壁领悟");
+	call_out("study_tick", 1, id);
 	return 1;
 }
 

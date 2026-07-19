@@ -54,4 +54,16 @@ describe("buildAssistCommand", () => {
       null
     );
   });
+
+  it("builds xiakedao study wall assist", () => {
+    assert.equal(
+      buildAssistCommand({ mode: "study", skill: "taixuan-gong" }),
+      "webassist study taixuan-gong"
+    );
+    assert.equal(
+      buildAssistCommand({ mode: "study", skill: "bad;skill" }),
+      null
+    );
+    assert.equal(buildAssistCommand({ mode: "study" }), null);
+  });
 });

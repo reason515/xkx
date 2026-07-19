@@ -1011,7 +1011,10 @@ export function useGame(opts?: UseGameOptions) {
     setState((s) => ({
       ...s,
       assistActive: true,
-      assistStatus: config.mode === "grind" ? "挂机中…" : "启动中…",
+      assistStatus:
+        config.mode === "grind" || config.mode === "study"
+          ? "挂机中…"
+          : "启动中…",
     }));
   }, []);
 

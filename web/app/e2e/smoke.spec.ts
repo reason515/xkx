@@ -1341,10 +1341,38 @@ test.describe.serial("game smoke", () => {
 
     await pickTopMenuItem(page, "挂机");
     await expect(page.getByRole("heading", { name: "挂机" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "打怪" })).toBeVisible();
     await expect(page.getByRole("button", { name: "小猴子" })).toBeVisible();
     await expect(page.getByRole("button", { name: "小海龟" })).toBeVisible();
     await expect(page.getByRole("button", { name: "老海盗" })).toBeVisible();
     await page.getByRole("button", { name: "小海龟" }).click();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+    await expect(page.getByRole("heading", { name: "挂机" })).toBeHidden({
+      timeout: 5_000,
+    });
+    await expect(page.getByTestId("grind-banner")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByTestId("grind-banner")).toContainText(/挂机/);
+    await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
+    await expect(page.getByTestId("grind-banner")).toBeHidden({
+      timeout: 10_000,
+    });
+  });
+
+  test("挂机浮层可切换石壁领悟并在主界面显示挂机中", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await pickTopMenuItem(page, "挂机");
+    await expect(page.getByRole("heading", { name: "挂机" })).toBeVisible();
+    await page.getByRole("tab", { name: "石壁领悟" }).click();
+    await expect(page.getByRole("button", { name: "太玄功" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "流星步" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "吴钩剑法" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "无玉掌法" })).toBeVisible();
+    await page.getByRole("button", { name: "太玄功" }).click();
     await page.getByRole("button", { name: "开始挂机" }).click();
     await expect(page.getByRole("heading", { name: "挂机" })).toBeHidden({
       timeout: 5_000,
@@ -1846,6 +1874,102 @@ test.describe.serial("game smoke", () => {
         .getByRole("button", { name: /拿起/ })
         .first()
     ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("山顶向黄衣弟子请教不误指中伯", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 60_000,
+    });
+
+    await sendSilentCmd(page, "xkxe2e shanding");
+    await expect(page.locator(".room-title")).toHaveText(/山顶/, {
+      timeout: 20_000,
+    });
+    await expect(page.locator(".chip.npc").filter({ hasText: /黄衣弟子/ })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.locator(".chip.npc").filter({ hasText: /中伯/ })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    // 等黄衣弟子招呼出现学武提示
+    await expect
+      .poll(
+        async () => {
+          const logs = (await page.locator(".log p").allTextContents()).join("\n");
+          return /可向我学|剑法|sword|force/.test(logs) ? "ready" : "wait";
+        },
+        { timeout: 25_000 }
+      )
+      .toBe("ready");
+
+    await page.locator(".chip.npc").filter({ hasText: /黄衣弟子/ }).click();
+    await page.getByRole("button", { name: "请教", exact: true }).click();
+    await expect(page.getByRole("heading", { name: /向「黄衣弟子」请教/ })).toBeVisible();
+    // 公开教头 skills 会拒，但仍应从见闻招呼恢复出可学功夫
+    await expect(
+      page.locator(".sheet .help-topic, .sheet .skill-act").filter({
+        hasText: /剑法|内功|招架|轻功/,
+      }).first()
+    ).toBeVisible({ timeout: 15_000 });
+    await page
+      .locator(".sheet .help-topic, .sheet .skill-act")
+      .filter({ hasText: /剑法|内功|招架|轻功/ })
+      .first()
+      .click();
+    await page.getByRole("button", { name: "开始学习", exact: true }).click();
+
+    await expect(page.locator(".log-panel")).toBeVisible();
+    await expect
+      .poll(async () => {
+        const logs = (await page.locator(".log p").allTextContents()).join("\n");
+        return logs;
+      }, { timeout: 20_000 })
+      .toMatch(/请教有关「|剑法|内功|招架|轻功|sword|force|parry|dodge|你向/);
+    const logs = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(logs).not.toMatch(/中伯.*怎么敢当|中伯像是受宠若惊/);
+  });
+
+  test("山脚下击打木桩用 strike 而非战斗 hit", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 60_000,
+    });
+
+    await sendSilentCmd(page, "xkxe2e shanxia");
+    await expect(page.locator(".room-title")).toHaveText(/山脚下/, {
+      timeout: 20_000,
+    });
+    await expect(page.locator(".chip.item").filter({ hasText: /木桩/ })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await page.locator(".chip.item").filter({ hasText: /木桩/ }).click();
+    await expect(page.getByRole("button", { name: "击打", exact: true })).toBeVisible({
+      timeout: 10_000,
+    });
+    await page.getByRole("button", { name: "击打", exact: true }).click();
+
+    await expect(page.locator(".log-panel")).toBeVisible();
+    await expect
+      .poll(async () => {
+        const logs = (await page.locator(".log p").allTextContents()).join("\n");
+        return logs;
+      }, { timeout: 20_000 })
+      .toMatch(/挥掌击向木桩|击木桩|领悟|无法领悟|没力气|累的|站都站不起来/);
+    const logs = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(logs).not.toMatch(/你想攻击谁/);
   });
 
   test("查看 NPC 时身上带著后的装备仍进见闻", async ({ page }) => {

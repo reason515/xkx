@@ -172,6 +172,13 @@ function DesktopShell({
             });
             g.closeSheet();
           }}
+          onStartStudy={(skill) => {
+            g.startAssist({
+              mode: "study",
+              skill,
+            });
+            g.closeSheet();
+          }}
           onStopAssist={g.stopAssist}
           onHalt={g.halt}
         />
@@ -188,6 +195,7 @@ function DesktopShell({
           id={g.selectedEntity.id}
           name={g.selectedEntity.name}
           kind={g.selectedEntity.kind}
+          commandId={g.selectedEntity.commandId}
           scenery={g.selectedEntity.scenery}
           canApprentice={g.selectedEntity.canApprentice}
           canTrade={g.selectedEntity.canTrade}
@@ -195,6 +203,10 @@ function DesktopShell({
           docText={state.docTarget === "entity" ? state.docText : ""}
           docLoading={state.docTarget === "entity" && state.docLoading}
           askHints={state.suggestedActions}
+          recentLog={state.logs
+            .slice(-40)
+            .map((l) => l.text)
+            .join("\n")}
           onClose={g.closeSheet}
           onAction={(command) => {
             g.cmd(command);

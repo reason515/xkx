@@ -1,9 +1,12 @@
 import { useState } from "react";
-import { GRIND_TARGETS } from "../lib/grindTargets";
+import { GRIND_TARGETS, STUDY_SKILLS } from "../lib/grindTargets";
+
+type GrindTab = "fight" | "study";
 
 interface Props {
   onClose: () => void;
   onStartGrind?: (grindTarget: string, lowHpPct: number) => void;
+  onStartStudy?: (skill: string) => void;
   onStopAssist: () => void;
   /** 战斗/busy 中停手（不依赖挂机） */
   onHalt?: () => void;
@@ -16,15 +19,19 @@ interface Props {
 export function CombatSheet({
   onClose,
   onStartGrind,
+  onStartStudy,
   onStopAssist,
   onHalt,
   assistActive,
   showGrind = false,
   assistStatus = "",
 }: Props) {
+  const [tab, setTab] = useState<GrindTab>("fight");
   const [grindTarget, setGrindTarget] = useState("haigui_s");
   const [grindLowHp, setGrindLowHp] = useState(30);
+  const [studySkill, setStudySkill] = useState("taixuan-gong");
   const grinding = assistActive && /挂机/.test(assistStatus || "");
+  const studying = grinding && /石壁|领悟|摘野果|取粥|喝粥|吃果/.test(assistStatus || "");
 
   return (
     <div className="overlay open" onClick={onClose}>
@@ -57,47 +64,104 @@ export function CombatSheet({
                   marginBottom: 12,
                 }}
               >
-                自动寻怪交手；气血过低会撤回休整，恢复后再回场。
+                {studying
+                  ? "自动前往石室领悟；精神不足时先取腊八粥，没有则上山摘野果。"
+                  : "自动寻怪交手；气血过低会撤回休整，恢复后再回场。"}
               </p>
             </>
           ) : (
             <>
-              <p className="combat-assist-label">选择对手</p>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "var(--paper-dim)",
-                  marginBottom: 12,
-                }}
-              >
-                按由弱到强排列；开始后自动寻路前往刷怪点。
-              </p>
-              <div className="grind-target-list">
-                {GRIND_TARGETS.map((t) => (
-                  <button
-                    key={t.id}
-                    type="button"
-                    className={`grind-target${
-                      grindTarget === t.id ? " on" : ""
-                    }`}
-                    onClick={() => setGrindTarget(t.id)}
-                  >
-                    <span className="grind-target-name">{t.label}</span>
-                    <span className="grind-target-hint">{t.hint}</span>
-                  </button>
-                ))}
+              <div className="grind-tab-row" role="tablist" aria-label="挂机类型">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === "fight"}
+                  className={`grind-tab${tab === "fight" ? " on" : ""}`}
+                  onClick={() => setTab("fight")}
+                >
+                  打怪
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === "study"}
+                  className={`grind-tab${tab === "study" ? " on" : ""}`}
+                  onClick={() => setTab("study")}
+                >
+                  石壁领悟
+                </button>
               </div>
-              <label className="combat-assist-threshold" style={{ marginTop: 14 }}>
-                气血低于{" "}
-                <input
-                  type="number"
-                  min={5}
-                  max={80}
-                  value={grindLowHp}
-                  onChange={(e) => setGrindLowHp(+e.target.value)}
-                />
-                % 时撤回休整
-              </label>
+              {tab === "fight" ? (
+                <>
+                  <p className="combat-assist-label">选择对手</p>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: "var(--paper-dim)",
+                      marginBottom: 12,
+                    }}
+                  >
+                    按由弱到强排列；开始后自动寻路前往刷怪点。
+                  </p>
+                  <div className="grind-target-list">
+                    {GRIND_TARGETS.map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        className={`grind-target${
+                          grindTarget === t.id ? " on" : ""
+                        }`}
+                        onClick={() => setGrindTarget(t.id)}
+                      >
+                        <span className="grind-target-name">{t.label}</span>
+                        <span className="grind-target-hint">{t.hint}</span>
+                      </button>
+                    ))}
+                  </div>
+                  <label
+                    className="combat-assist-threshold"
+                    style={{ marginTop: 14 }}
+                  >
+                    气血低于{" "}
+                    <input
+                      type="number"
+                      min={5}
+                      max={80}
+                      value={grindLowHp}
+                      onChange={(e) => setGrindLowHp(+e.target.value)}
+                    />
+                    % 时撤回休整
+                  </label>
+                </>
+              ) : (
+                <>
+                  <p className="combat-assist-label">选择武功</p>
+                  <p
+                    style={{
+                      fontSize: 13,
+                      color: "var(--paper-dim)",
+                      marginBottom: 12,
+                    }}
+                  >
+                    开始后自动前往对应石室领悟；精神不足时取粥或摘野果恢复。
+                  </p>
+                  <div className="grind-target-list">
+                    {STUDY_SKILLS.map((s) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        className={`grind-target${
+                          studySkill === s.id ? " on" : ""
+                        }`}
+                        onClick={() => setStudySkill(s.id)}
+                      >
+                        <span className="grind-target-name">{s.label}</span>
+                        <span className="grind-target-hint">{s.hint}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </>
           )}
         </div>
@@ -106,12 +170,21 @@ export function CombatSheet({
             <button type="button" className="danger" onClick={onStopAssist}>
               停止挂机
             </button>
-          ) : (
+          ) : tab === "fight" ? (
             <button
               type="button"
               className="go"
               disabled={!showGrind || !onStartGrind || !grindTarget}
               onClick={() => onStartGrind?.(grindTarget, grindLowHp)}
+            >
+              开始挂机
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="go"
+              disabled={!showGrind || !onStartStudy || !studySkill}
+              onClick={() => onStartStudy?.(studySkill)}
             >
               开始挂机
             </button>

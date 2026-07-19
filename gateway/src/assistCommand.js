@@ -8,6 +8,11 @@ export function buildAssistCommand(config = {}) {
     const pct = Math.min(80, Math.max(5, Number(config.lowHpPct) || 30));
     return `webassist grind ${target} ${pct}`;
   }
+  if (config.mode === "study") {
+    const skill = String(config.skill || "").toLowerCase();
+    if (!TOKEN.test(skill)) return null;
+    return `webassist study ${skill}`;
+  }
   if (config.mode === "combat") {
     const pct = Math.min(80, Math.max(5, Number(config.lowHpPct) || 30));
     const action = ["warn", "flee", "stop"].includes(config.lowHpAction)

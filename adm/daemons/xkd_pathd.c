@@ -1,5 +1,7 @@
 // xkd_pathd.c — 侠客岛挂机练级用小图寻路（白名单 BFS）
 
+#include <room.h>
+
 inherit F_DBASE;
 
 #define PREFIX "/d/xiakedao/"
@@ -9,7 +11,7 @@ void create()
 	seteuid(getuid());
 }
 
-/* 挂机可通行房间（沙滩刷怪 ↔ 瀑布 ↔ 甬道 ↔ 大洞/休息室 ↔ 海盗窝 ↔ 石壁）。 */
+/* 挂机可通行房间（沙滩刷怪 ↔ 瀑布 ↔ 甬道 ↔ 大洞/休息室 ↔ 海盗窝 ↔ 石壁 ↔ 石室）。 */
 string *whitelist()
 {
 	return ({
@@ -29,6 +31,7 @@ string *whitelist()
 		PREFIX + "shanlu2",
 		PREFIX + "shanlu3",
 		PREFIX + "shanding",
+		PREFIX + "tree1",
 		PREFIX + "yelin",
 		PREFIX + "haidaowo",
 		PREFIX + "haidaowo1",
@@ -39,10 +42,38 @@ string *whitelist()
 		PREFIX + "yongdao3",
 		PREFIX + "yongdao4",
 		PREFIX + "yongdao5",
+		PREFIX + "yongdao10",
 		PREFIX + "shibi",
 		PREFIX + "dadong",
 		PREFIX + "xiuxi",
+		PREFIX + "gate",
+		PREFIX + "xiakexing1",
+		PREFIX + "xiakexing2",
+		PREFIX + "xiakexing3",
+		PREFIX + "xkx1",
+		PREFIX + "xkx3",
+		PREFIX + "xkx5",
+		PREFIX + "xkx9",
 	});
+}
+
+/* 石壁领悟：技能 id → 默认石室 */
+string study_wall_room(string skill)
+{
+	if (skill == "taixuan-gong") return PREFIX + "xkx1";
+	if (skill == "liuxing-bu") return PREFIX + "xkx3";
+	if (skill == "wugou-jianfa") return PREFIX + "xkx5";
+	if (skill == "wuyu-zhangfa") return PREFIX + "xkx9";
+	return "";
+}
+
+string study_bskill(string skill)
+{
+	if (skill == "taixuan-gong") return "force";
+	if (skill == "liuxing-bu") return "dodge";
+	if (skill == "wugou-jianfa") return "sword";
+	if (skill == "wuyu-zhangfa") return "strike";
+	return "";
 }
 
 int is_xiakedao(object env)
@@ -178,6 +209,14 @@ mixed *neighbors(string path)
 		out += ({ ({ PREFIX + "shibi", "zuan hole" }) });
 	if (path == PREFIX + "shibi")
 		out += ({ ({ PREFIX + "yongdao2", "zuan hole" }) });
+	/* 大洞 → 甬道：屏风默认关闭，需 ask 岛主打开 enter */
+	if (path == PREFIX + "dadong")
+		out += ({ ({ PREFIX + "yongdao10", "enter yongdao" }) });
+	/* 山顶 ↔ 树上：靠 pa up / pa down */
+	if (path == PREFIX + "shanding")
+		out += ({ ({ PREFIX + "tree1", "pa up" }) });
+	if (path == PREFIX + "tree1")
+		out += ({ ({ PREFIX + "shanding", "pa down" }) });
 
 	return out;
 }
@@ -227,7 +266,7 @@ string *find_path(string from, string to)
 	return 0;
 }
 
-/* 最近刷怪房路径 */
+/* 最近刷怪房路径（不检查是否有活怪） */
 string *path_to_nearest_spawn(object me, string target_key)
 {
 	string from, *spawns, *path, *try_path;
@@ -242,6 +281,49 @@ string *path_to_nearest_spawn(object me, string target_key)
 	path = 0;
 	for (i = 0; i < sizeof(spawns); i++) {
 		try_path = find_path(from, spawns[i]);
+		if (!arrayp(try_path)) continue;
+		if (sizeof(try_path) < best_len) {
+			best_len = sizeof(try_path);
+			path = try_path;
+		}
+	}
+	return path;
+}
+
+/* 该刷怪房是否仍有存活目标 */
+int spawn_has_live_target(string room_file, string target_key)
+{
+	object room;
+
+	if (!stringp(room_file) || room_file == "") return 0;
+	room = find_object(room_file);
+	if (!objectp(room)) room = load_object(room_file);
+	if (!objectp(room)) return 0;
+	return objectp(find_grind_target(room, target_key));
+}
+
+/*
+ * 前往「仍有活怪」的最近刷怪房。
+ * exclude_here=1 时跳过当前房间（用于本地打光后换点，而非原地等刷）。
+ * 若其它点也没有活怪，返回 0（由挂机逻辑决定是否等候刷新）。
+ */
+string *path_to_spawn_with_target(object me, string target_key, int exclude_here)
+{
+	string from, *spawns, *path, *try_path, dest;
+	int i, best_len;
+
+	if (!objectp(me) || !environment(me)) return 0;
+	from = room_path(environment(me));
+	spawns = spawn_rooms(target_key);
+	if (!sizeof(spawns)) return 0;
+
+	best_len = 9999;
+	path = 0;
+	for (i = 0; i < sizeof(spawns); i++) {
+		dest = spawns[i];
+		if (exclude_here && dest == from) continue;
+		if (!spawn_has_live_target(dest, target_key)) continue;
+		try_path = find_path(from, dest);
 		if (!arrayp(try_path)) continue;
 		if (sizeof(try_path) < best_len) {
 			best_len = sizeof(try_path);
@@ -277,24 +359,70 @@ int ensure_rain_coat(object me)
 	return coat->query("equipped") == "worn";
 }
 
+int ensure_door_open(object me, string dir)
+{
+	object env;
+	string dname;
+	int st;
+
+	if (!objectp(me) || !stringp(dir) || dir == "") return 0;
+	env = environment(me);
+	if (!objectp(env)) return 0;
+	st = (int)env->query_door(dir, "status");
+	if (!(st & DOOR_CLOSED)) return 1;
+	dname = env->query_door(dir, "name");
+	if (!stringp(dname) || dname == "") dname = "门";
+	me->force_me("open " + dname);
+	st = (int)env->query_door(dir, "status");
+	return !(st & DOOR_CLOSED);
+}
+
 /* 执行一步；成功返回 1 */
 int take_step(object me, string action)
 {
+	object env;
+	string dir, before;
+
 	if (!objectp(me) || !stringp(action) || action == "") return 0;
 	if (me->is_busy() || me->is_fighting()) return 0;
+	env = environment(me);
+	if (!objectp(env)) return 0;
 
 	if (action == "jump fall") {
-		if (room_path(environment(me)) != PREFIX + "pubu")
+		if (room_path(env) != PREFIX + "pubu")
 			return 0;
 		if (!ensure_rain_coat(me)) return 0;
 		me->force_me("jump fall");
 		return room_path(environment(me)) == PREFIX + "yongdao1";
 	}
 
-	{
-		string dir;
-		if (sscanf(action, "go %s", dir) == 1)
-			return me->force_me("go " + dir);
+	if (action == "enter yongdao") {
+		if (room_path(env) != PREFIX + "dadong")
+			return 0;
+		me->force_me("ask si pu about 岛主");
+		me->force_me("go enter");
+		return room_path(environment(me)) == PREFIX + "yongdao10";
+	}
+
+	if (action == "pa up") {
+		if (room_path(env) != PREFIX + "shanding")
+			return 0;
+		me->force_me("pa up");
+		return room_path(environment(me)) == PREFIX + "tree1";
+	}
+
+	if (action == "pa down") {
+		if (room_path(env) != PREFIX + "tree1")
+			return 0;
+		me->force_me("pa down");
+		return room_path(environment(me)) == PREFIX + "shanding";
+	}
+
+	if (sscanf(action, "go %s", dir) == 1) {
+		before = room_path(env);
+		if (!ensure_door_open(me, dir)) return 0;
+		me->force_me("go " + dir);
+		return room_path(environment(me)) != before;
 	}
 	return me->force_me(action);
 }

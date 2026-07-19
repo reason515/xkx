@@ -452,6 +452,13 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             });
             g.closeSheet();
           }}
+          onStartStudy={(skill) => {
+            g.startAssist({
+              mode: "study",
+              skill,
+            });
+            g.closeSheet();
+          }}
           onStopAssist={g.stopAssist}
           onHalt={g.halt}
         />
@@ -468,6 +475,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           id={g.selectedEntity.id}
           name={g.selectedEntity.name}
           kind={g.selectedEntity.kind}
+          commandId={g.selectedEntity.commandId}
           scenery={g.selectedEntity.scenery}
           canApprentice={g.selectedEntity.canApprentice}
           canTrade={g.selectedEntity.canTrade}
@@ -475,6 +483,10 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           docText={state.docTarget === "entity" ? state.docText : ""}
           docLoading={state.docTarget === "entity" && state.docLoading}
           askHints={state.suggestedActions}
+          recentLog={state.logs
+            .slice(-40)
+            .map((l) => l.text)
+            .join("\n")}
           onClose={g.closeSheet}
           onAction={afterEntityAction}
           onDocAction={afterBoardDocAction}
