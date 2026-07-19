@@ -10,7 +10,7 @@ const basePrev = () => ({
     npcs: [] as RoomState["npcs"],
     items: [] as RoomState["items"],
   } satisfies RoomState,
-  vitals: { qi: 100, maxQi: 100 } satisfies Vitals,
+  vitals: { qi: 100, maxQi: 100 } as Vitals,
   skills: [] as SkillRow[],
   inventory: [] as InvItem[],
   lookText: "",
@@ -221,6 +221,26 @@ describe("applyEvent", () => {
     expect(next.vitals.qi).toBe(80);
     expect(next.vitals.maxQi).toBe(100);
     expect(next.vitals.effQi).toBe(90);
+  });
+
+  it("hp-style partial vitals keep innate maxQi", () => {
+    const prev = basePrev();
+    prev.vitals = { qi: 100, maxQi: 100, effQi: 100 };
+    const afterPush = applyEvent(
+      {
+        v: 1,
+        type: "player.vitals",
+        vitals: { qi: 80, maxQi: 100, effQi: 90 },
+      },
+      prev
+    );
+    // 模拟 parseHp 只回填 qi/effQi，不得冲掉 maxQi
+    const afterHp = {
+      ...afterPush,
+      vitals: { ...afterPush.vitals, qi: 80, effQi: 90 },
+    };
+    expect(afterHp.vitals.maxQi).toBe(100);
+    expect(afterHp.vitals.effQi).toBe(90);
   });
 
   it("appends combat and train logs with cap", () => {

@@ -124,6 +124,7 @@ function DesktopShell({
           onTab={g.setCharTab}
           onClose={g.closeSheet}
           onCmd={(c) => g.cmd(c, { silent: true })}
+          onSetWimpy={g.setWimpy}
         />
       )}
       {state.sheet === "map" && (
@@ -210,10 +211,6 @@ function DesktopShell({
           onClose={g.closeSheet}
           onAction={(command) => {
             g.cmd(command);
-            const verb = command.trim().split(/\s+/)[0]?.toLowerCase();
-            if (verb === "get" || verb === "drop") {
-              g.cmd("look", { silent: true });
-            }
           }}
           onDocAction={(command) => g.docCmd(command, "entity")}
           onAskList={(command) => g.docCmd(command, "entity")}

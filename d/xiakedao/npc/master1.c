@@ -39,7 +39,7 @@ void greeting(object ob)
 	if( !ob || environment(ob) != environment() ) return;
 
 	command("say 欢迎这位"+RANK_D->query_respect(ob)+
-		"，你可向我学掌法(strike)，内功(force)，\n"+
+		"，你可向我学剑法(sword)，内功(force)，\n"+
 		"招架(parry)及轻功(dodge)。");
 }
 

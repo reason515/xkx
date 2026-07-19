@@ -81,7 +81,7 @@ void send_room(object me, object env)
 	string *dirs, *elist, *dlist, dir, dest, door_name, door_status;
 	object *inv, ob;
 	mapping event;
-	string *npcs, *items, *command_ids;
+	string *npcs, *items, *command_ids, *multi_tails, *singles, *id_parts;
 	string area, file, *parts, item_desc_text, item_key, command_id, candidate;
 	mixed item_value;
 	int i, door_st;
@@ -148,10 +148,22 @@ void send_room(object me, object env)
 				continue;
 			}
 			dest = exits[dir];
-			if (objectp(ob = find_object(dest)))
-				elist += ({ sprintf("{\"dir\":\"%s\",\"name\":\"%s\"}", dir, json_escape(ob->query("short") || dir)) });
-			else
-				elist += ({ sprintf("{\"dir\":\"%s\",\"name\":\"%s\"}", dir, dir) });
+			/*
+			 * 出口目标尚未加载时，find_object() 会返回空。旧逻辑因此把
+			 * north/east/up 当作场景名称发给 Web。有效房间按路径安全加载，
+			 * 始终使用目标房间 short；加载失败则留空，勿泄露英文方向名。
+			 */
+			ob = find_object(dest);
+			if (!objectp(ob)) {
+				if (catch(ob = load_object(dest)))
+					ob = 0;
+			}
+			elist += ({ sprintf(
+				"{\"dir\":\"%s\",\"name\":\"%s\"}",
+				dir,
+				json_escape(objectp(ob) && stringp(ob->query("short"))
+					? ob->query("short") : "")
+			) });
 		}
 	}
 	event["exits_json"] = "[" + implode(elist, ",") + "]";
@@ -162,27 +174,56 @@ void send_room(object me, object env)
 	inv = all_inventory(env);
 	foreach (ob in inv) {
 		if (ob == me || !me->visible(ob)) continue;
-		if (ob->is_character()) {
-			command_id = ob->query("id") || "";
-			if (function_exists("parse_command_id_list", ob)) {
-				command_ids = ob->parse_command_id_list();
-				foreach (candidate in command_ids) {
-					if (stringp(candidate) && candidate != "" && strsrch(candidate, " ") < 0) {
-						command_id = candidate;
-						break;
-					}
+		/* Prefer a unique single-token id. Skip generic suffixes of
+		 * multi-word ids (e.g. "dizi" from "huangyi dizi") so present()
+		 * does not hit the wrong NPC when several share that alias.
+		 * Items likewise need pancake not bare bing from "jian bing". */
+		command_id = "";
+		command_ids = ({});
+		multi_tails = ({});
+		singles = ({});
+		if (function_exists("parse_command_id_list", ob))
+			command_ids = ob->parse_command_id_list();
+		if (sizeof(command_ids)) {
+			foreach (candidate in command_ids) {
+				if (!stringp(candidate) || candidate == "") continue;
+				if (strsrch(candidate, " ") >= 0) {
+					id_parts = explode(candidate, " ");
+					if (sizeof(id_parts))
+						multi_tails += ({ id_parts[sizeof(id_parts) - 1] });
+				} else
+					singles += ({ candidate });
+			}
+			foreach (candidate in singles) {
+				if (member_array(candidate, multi_tails) < 0) {
+					command_id = candidate;
+					break;
 				}
 			}
+			if (command_id == "" && sizeof(singles))
+				command_id = singles[0];
+			if (command_id == "")
+				command_id = command_ids[0];
+		}
+		if (command_id == "")
+			command_id = ob->query("id") || "";
+		if (ob->is_character()) {
 			npcs += ({ sprintf(
 				"{\"id\":\"%s\",\"commandId\":\"%s\",\"name\":\"%s\",\"kind\":\"npc\",\"canApprentice\":%d,\"canTrade\":%d}",
 				json_escape(ob->query("id") || ""),
 				json_escape(command_id),
 				json_escape(ob->name() || ""),
 				(!userp(ob) && mapp(ob->query("family"))) ? 1 : 0,
-				arrayp(ob->query("vendor_goods")) ? 1 : 0
+				(arrayp(ob->query("vendor_goods"))
+				 || mapp(ob->query("vendor_goods"))) ? 1 : 0
 			) });
 		} else
-			items += ({ sprintf("{\"id\":\"%s\",\"name\":\"%s\",\"kind\":\"item\"}", json_escape(ob->query("id") || ""), json_escape(ob->name() || "")) });
+			items += ({ sprintf(
+				"{\"id\":\"%s\",\"commandId\":\"%s\",\"name\":\"%s\",\"kind\":\"item\"}",
+				json_escape(ob->query("id") || ""),
+				json_escape(command_id),
+				json_escape(ob->name() || "")
+			) });
 	}
 
 	emit_raw(me, sprintf(

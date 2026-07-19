@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useDesktop } from "../../context/DesktopContext";
+import { formatVitalMeter, vitalCap } from "../../lib/parser";
 import type { SkillRow } from "../../lib/types";
 
 function pct(cur?: number, max?: number) {
@@ -11,20 +12,27 @@ function Bar({
   label,
   cur,
   max,
+  innate,
   tone,
+  testId,
 }: {
   label: string;
   cur?: number;
   max?: number;
+  innate?: number;
   tone: string;
+  testId?: string;
 }) {
+  const wounded =
+    innate != null && max != null && innate > max;
   return (
-    <div className={`desktop-stat ${tone}`}>
+    <div
+      className={`desktop-stat ${tone}${wounded ? " wounded" : ""}`}
+      data-testid={testId}
+    >
       <div className="desktop-stat-label">
         <span>{label}</span>
-        <span>
-          {cur ?? "—"}/{max ?? "—"}
-        </span>
+        <span>{formatVitalMeter(cur, max, innate)}</span>
       </div>
       <div className="desktop-stat-bar">
         <div className="fill" style={{ width: `${pct(cur, max)}%` }} />
@@ -60,8 +68,22 @@ export function StatusPanel() {
 
       <section>
         <h4>气血精内力</h4>
-        <Bar label="气" cur={v.qi} max={v.effQi ?? v.maxQi} tone="qi" />
-        <Bar label="精" cur={v.jing} max={v.effJing ?? v.maxJing} tone="jing" />
+        <Bar
+          label="气"
+          cur={v.qi}
+          max={vitalCap(v, "qi")}
+          innate={v.maxQi}
+          tone="qi"
+          testId="vital-qi"
+        />
+        <Bar
+          label="精"
+          cur={v.jing}
+          max={vitalCap(v, "jing")}
+          innate={v.maxJing}
+          tone="jing"
+          testId="vital-jing"
+        />
         <Bar label="内力" cur={v.neili} max={v.maxNeili} tone="neili" />
         <Bar label="精力" cur={v.jingli} max={v.maxJingli} tone="jingli" />
         <Bar label="食物" cur={v.food} max={v.maxFood} tone="food" />

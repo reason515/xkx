@@ -15,7 +15,62 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | grindprep | yongdao2 | bingqi\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | haidaowo | dadong | yingbin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | givemoney\n");
+
+	if (arg == "dadong") {
+		ob = load_object("/d/xiakedao/dadong");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载大山洞。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到大山洞。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
+	if (arg == "yingbin") {
+		ob = load_object("/d/xiakedao/yingbin");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载迎宾馆。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到迎宾馆。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
+	if (arg == "haidaowo") {
+		ob = load_object("/d/xiakedao/haidaowo1");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载海盗窝。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到海盗窝。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
+	if (arg == "shanding") {
+		ob = load_object("/d/xiakedao/shanding");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载山顶。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到山顶。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
+	if (arg == "shanxia") {
+		ob = load_object("/d/xiakedao/shanxia");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载山脚下。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到山脚下。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
 
 	if (arg == "yongdao2") {
 		ob = load_object("/d/xiakedao/yongdao2");
@@ -60,6 +115,90 @@ int main(object me, string arg)
 		me->receive_damage("qi", 15, "e2e");
 		after = (int)me->query("qi");
 		tell_object(me, sprintf("（测试）气血 %d → %d。\n", before, after));
+		return 1;
+	}
+
+	if (arg == "wound") {
+		int max_qi, before_eff, after_eff, dmg;
+		max_qi = (int)me->query("max_qi");
+		if (max_qi < 1) max_qi = 1;
+		/* 恢复到满上限再受伤，保证 e2e 能看到 eff < max */
+		me->set("eff_qi", max_qi);
+		me->set("qi", max_qi);
+		before_eff = max_qi;
+		dmg = max_qi / 5;
+		if (dmg < 10) dmg = 10;
+		if (dmg >= max_qi) dmg = max_qi / 2;
+		if (dmg < 1) dmg = 1;
+		me->receive_wound("qi", dmg, "e2e");
+		after_eff = (int)me->query("eff_qi");
+		tell_object(me, sprintf(
+			"（测试）气上限受伤 %d → %d（先天 %d）。\n",
+			before_eff, after_eff, max_qi
+		));
+		WEBD->send_vitals(me);
+		return 1;
+	}
+
+	if (arg == "tovoid") {
+		ob = load_object("/clone/misc/void");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载 VOID。\n");
+		/* 故意写成 void，模拟重启误存后的档案 */
+		me->set("startroom", "/clone/misc/void");
+		me->move(ob);
+		tell_object(me, "（测试）你被送入最後乐园。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
+	if (arg == "zuixianlou") {
+		ob = load_object("/d/city/zuixianlou");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载醉仙楼。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到醉仙楼。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
+	if (arg == "givemoney") {
+		ob = new("/clone/money/silver");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法发放银两。\n");
+		ob->set_amount(20);
+		ob->move(me);
+		tell_object(me, "（测试）你得到二十两白银。\n");
+		return 1;
+	}
+
+	if (arg == "lowqi") {
+		int max_qi, after;
+		max_qi = (int)me->query("max_qi");
+		if (max_qi < 1) max_qi = 1;
+		me->set("qi", max_qi * 15 / 100);
+		if ((int)me->query("qi") < 1) me->set("qi", 1);
+		after = (int)me->query("qi");
+		tell_object(me, sprintf("（测试）气血降至 %d/%d。\n", after, max_qi));
+		WEBD->send_vitals(me);
+		return 1;
+	}
+
+	if (arg == "lowjingli") {
+		int max_jl, after;
+		max_jl = (int)me->query("max_jingli");
+		if (max_jl < 20) {
+			me->set("max_jingli", 100);
+			me->set("eff_jingli", 100);
+			max_jl = 100;
+		}
+		me->set("jingli", max_jl / 20);
+		if ((int)me->query("jingli") < 1) me->set("jingli", 1);
+		after = (int)me->query("jingli");
+		tell_object(me, sprintf("（测试）精力降至 %d/%d。\n", after, max_jl));
+		WEBD->send_vitals(me);
 		return 1;
 	}
 
@@ -118,18 +257,29 @@ int main(object me, string arg)
 int help(object me)
 {
 	write(@HELP
-指令格式：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | grindprep | yongdao2 | bingqi
+指令格式：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | grindprep | haidaowo | dadong | yongdao2 | bingqi | shanding | shanxia
 
 仅在服务器开启 e2e 开关（/adm/etc/xkd_e2e）时可用，供自动化测试：
   grantleave  — 模拟岛主放行
   givearmor   — 发放同槽护具（油布雨衣）供换装测试
   giveweapon  — 发放钢刀供换装测试
+  haidaowo    — 传送到海盗窝（受伤/小/老海盗）
+  dadong      — 传送到大山洞（挂机寻路途经 yongdao10 回归）
+  yingbin     — 传送到迎宾馆（要粥吃喝 / 煎饼）
   gate        — 传送到侠客岛石门
   closedoor   — 关闭当前房间 enter 方向的门（石门）
   hurt        — 造成少量气血伤害并触发 player.vitals 推送
+  wound       — 降低气的受伤上限（eff_qi < max_qi）并推送 vitals
+  tovoid      — 传送到 VOID（最後乐园）并污染 startroom，供落点救援回归
+  zuixianlou  — 传送到扬州醉仙楼（店小二商店）
+  givemoney   — 发放二十两白银供购买回归
+  lowqi       — 将气血降至约 15%（挂机低血撤回回归）
+  lowjingli   — 将精力降至可走动阈值以下（挂机赶路调息回归）
   grindprep   — 传送到小海龟刷怪沙滩（shatans2）
   yongdao2    — 传送到迎宾馆西侧甬道（洞/钻场景解析回归）
   bingqi      — 传送到兵器房（取用器械回归）
+  shanding    — 传送到山顶（黄衣弟子/中伯 dizi 歧义回归）
+  shanxia     — 传送到山脚下（木桩 strike 回归）
 HELP
 	);
 	return 1;

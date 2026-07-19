@@ -12,13 +12,15 @@ import { EntitySheet } from "./EntitySheet";
 import { SpeechSheet } from "./SpeechSheet";
 import { GuideTip } from "./GuideTip";
 import { inferredShutDoorActions, sceneActionChips, vitalCap } from "../lib/parser";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ExitInfo, LogEntry } from "../lib/types";
 
 function pct(cur?: number, max?: number) {
   if (!cur || !max) return "0%";
   return `${Math.min(100, Math.round((cur / max) * 100))}%`;
 }
+
+const LOG_FOLLOW_PX = 48;
 
 function EventLog({
   logs,
@@ -28,13 +30,28 @@ function EventLog({
   onCmd: (command: string) => void;
 }) {
   const panelRef = useRef<HTMLElement>(null);
+  const followingRef = useRef(true);
+  const pinningRef = useRef(false);
   const [following, setFollowing] = useState(true);
   const [cmdDraft, setCmdDraft] = useState("");
+  const lastLogId = logs.length ? logs[logs.length - 1]!.id : 0;
 
-  useEffect(() => {
+  const pinToBottom = () => {
     const panel = panelRef.current;
-    if (panel && following) panel.scrollTop = panel.scrollHeight;
-  }, [logs, following]);
+    if (!panel) return;
+    pinningRef.current = true;
+    panel.scrollTop = panel.scrollHeight;
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        pinningRef.current = false;
+      });
+    });
+  };
+
+  // 新消息到来时在绘制前贴底，避免内容变高触发 onScroll 误判为「已上翻」。
+  useLayoutEffect(() => {
+    if (followingRef.current) pinToBottom();
+  }, [lastLogId, logs.length]);
 
   const submitCmd = () => {
     const text = cmdDraft.trim();
@@ -49,12 +66,16 @@ function EventLog({
         ref={panelRef}
         className="log log-panel"
         aria-label="见闻"
+        data-testid="event-log"
         onScroll={() => {
+          if (pinningRef.current) return;
           const panel = panelRef.current;
           if (!panel) return;
-          setFollowing(
-            panel.scrollHeight - panel.scrollTop - panel.clientHeight < 24
-          );
+          const atBottom =
+            panel.scrollHeight - panel.scrollTop - panel.clientHeight <
+            LOG_FOLLOW_PX;
+          followingRef.current = atBottom;
+          setFollowing(atBottom);
         }}
       >
         {!following && (
@@ -62,9 +83,9 @@ function EventLog({
             <button
               type="button"
               onClick={() => {
-                const panel = panelRef.current;
-                if (panel) panel.scrollTop = panel.scrollHeight;
+                followingRef.current = true;
                 setFollowing(true);
+                pinToBottom();
               }}
             >
               最新
@@ -138,9 +159,6 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
 
   const afterEntityAction = (command: string) => {
     g.cmd(command);
-    const verb = command.trim().split(/\s+/)[0]?.toLowerCase();
-    // 拾起/丢下后补 look，避免 room.update 迟到时场景列表残留
-    if (verb === "get" || verb === "drop") g.cmd("look", { silent: true });
   };
 
   const afterBoardDocAction = (command: string) => {
@@ -404,6 +422,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           onTab={g.setCharTab}
           onClose={g.closeSheet}
           onCmd={(c) => g.cmd(c, { silent: true })}
+          onSetWimpy={g.setWimpy}
         />
       )}
       {state.sheet === "map" && (

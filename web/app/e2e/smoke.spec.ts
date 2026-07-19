@@ -557,6 +557,66 @@ test.describe.serial("game smoke", () => {
     }
   });
 
+  test("见闻有新消息时自动滚到底，上翻后可点最新", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    const log = page.getByTestId("event-log");
+    await expect(log).toBeVisible({ timeout: 30_000 });
+
+    // 灌一些见闻，确保超出视口
+    for (let i = 0; i < 6; i++) {
+      await sendSilentCmd(page, `say 见闻滚动${i}`);
+      await page.waitForTimeout(200);
+    }
+
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const el = document.querySelector(
+              '[data-testid="event-log"]'
+            ) as HTMLElement | null;
+            if (!el || el.scrollHeight <= el.clientHeight + 8) return "short";
+            const gap = el.scrollHeight - el.scrollTop - el.clientHeight;
+            return gap < 48 ? "bottom" : `gap:${Math.round(gap)}`;
+          }),
+        { timeout: 15_000 }
+      )
+      .toBe("bottom");
+
+    await log.evaluate((el) => {
+      (el as HTMLElement).scrollTop = 0;
+    });
+    await expect(page.getByRole("button", { name: "最新" })).toBeVisible({
+      timeout: 5_000,
+    });
+
+    await sendSilentCmd(page, "say 新消息应贴底");
+    // 上翻跟随后不应被新消息强行拽走
+    await expect(page.getByRole("button", { name: "最新" })).toBeVisible({
+      timeout: 5_000,
+    });
+
+    await page.getByRole("button", { name: "最新" }).click();
+    await expect(page.getByRole("button", { name: "最新" })).toHaveCount(0);
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const el = document.querySelector(
+              '[data-testid="event-log"]'
+            ) as HTMLElement | null;
+            if (!el) return "missing";
+            const gap = el.scrollHeight - el.scrollTop - el.clientHeight;
+            return gap < 48 ? "bottom" : `gap:${Math.round(gap)}`;
+          }),
+        { timeout: 5_000 }
+      )
+      .toBe("bottom");
+  });
+
   test("场景上见闻下同页可滚，地图在出口旁，无底栏操作", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, {
@@ -787,6 +847,8 @@ test.describe.serial("game smoke", () => {
     expect(logBlob).not.toMatch(/^[┌└│]/m);
     expect(logBlob).not.toMatch(/初学乍练|粗通皮毛/);
     expect(logBlob).not.toMatch(/^【[^】]{1,12}】.+\([A-Za-z]/m);
+    expect(logBlob).not.toMatch(/你现在的当[「"]气[」"]低/);
+    expect(logBlob).not.toMatch(/^>\s*wimpy\b/m);
     // look me 头衔短称 + 粘提示符的气血行，不得灌进见闻
     expect(logBlob).not.toMatch(/普通百姓\s+\S+\([A-Za-z]/);
     expect(logBlob).not.toMatch(/精\s*[：:]/);
@@ -869,6 +931,160 @@ test.describe.serial("game smoke", () => {
         }, { timeout: 15_000 })
         .toMatch(wasEquipped ? /^off\|.*穿上/ : /^eq\|.*脱下/);
     }
+  });
+
+  test("气血栏在受伤后显示先天上限", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await sendSilentCmd(page, "xkxe2e wound");
+    await waitForLogPattern(page, /气上限受伤|先天/, 15_000);
+
+    await page.locator(".hero-btn").click();
+    await page.getByRole("button", { name: "气血" }).click();
+
+    const qiMeter = page.getByTestId("vital-qi");
+    await expect(qiMeter).toBeVisible({ timeout: 15_000 });
+    await expect
+      .poll(async () => ((await qiMeter.textContent()) || "").trim(), {
+        timeout: 15_000,
+      })
+      .toMatch(/气.*\d+\/\d+（先天\s*\d+）/);
+
+    // 切换仪容再回气血（会触发 refreshCharacter / hp），先天不得被盖掉
+    await page.getByRole("button", { name: "仪容" }).click();
+    await page.getByRole("button", { name: "气血" }).click();
+    await expect
+      .poll(async () => ((await qiMeter.textContent()) || "").trim(), {
+        timeout: 15_000,
+      })
+      .toMatch(/气.*\d+\/\d+（先天\s*\d+）/);
+  });
+
+  test("误入最後乐园会被送回侠客岛沙滩", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    // 先离开沙滩，避免「命令没生效却仍在沙滩」的假绿
+    await sendSilentCmd(page, "xkxe2e haidaowo");
+    await expect(page.locator(".room-title")).toHaveText(/海盗窝/, {
+      timeout: 20_000,
+    });
+
+    await sendSilentCmd(page, "xkxe2e tovoid");
+    await expect
+      .poll(async () => ((await page.locator(".room-title").textContent()) || "").trim(), {
+        timeout: 25_000,
+      })
+      .toMatch(/沙滩/);
+    await expect(page.locator(".room-title")).not.toHaveText(/乐园|海盗窝/);
+  });
+
+  test("出口统一显示目标场景名称而非英文方向", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await sendSilentCmd(page, "xkxe2e zuixianlou");
+    await expect(page.locator(".room-title")).toHaveText(/醉仙楼/, {
+      timeout: 20_000,
+    });
+
+    const exitText = (await page.locator(".cell.open").allTextContents()).map(
+      (text) => text.replace(/\s+/g, "")
+    );
+    expect(exitText).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/西.*北集市/),
+        expect.stringMatching(/上.*醉仙楼二楼/),
+      ])
+    );
+    expect(exitText.join("\n")).not.toMatch(/\b(?:west|up)\b/i);
+  });
+
+  test("醉仙楼店小二货品可点选购买酒袋", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await sendSilentCmd(page, "xkxe2e zuixianlou");
+    await expect(page.locator(".room-title")).toHaveText(/醉仙楼/, {
+      timeout: 20_000,
+    });
+    await sendSilentCmd(page, "xkxe2e givemoney");
+    await waitForLogPattern(page, /二十两白银|白银/, 15_000);
+
+    await expect(page.locator(".chip.npc").filter({ hasText: /店小二/ })).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.locator(".chip.npc").filter({ hasText: /店小二/ }).click();
+    await expect(page.getByTestId("entity-trade")).toBeVisible({ timeout: 10_000 });
+    await page.getByTestId("entity-trade").click();
+
+    await expect(page.getByTestId("buy-jiudai")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("buy-baozi")).toBeVisible();
+    await page.getByTestId("buy-jiudai").click();
+
+    await waitForLogPattern(page, /买下了|牛皮酒袋/, 15_000);
+    // 关掉人物浮层，避免挡住角色卡
+    await page.locator(".sheet .close").click();
+    await page.locator(".hero-btn").click();
+    await page.getByRole("button", { name: "行囊" }).click();
+    await expect
+      .poll(async () => ((await page.locator(".panel.on").textContent()) || "").trim(), {
+        timeout: 20_000,
+      })
+      .toMatch(/酒袋/);
+  });
+
+  test("档案遇险撤退可设置并显示当前值", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, {
+      id: sharedId,
+      password: sharedPassword,
+      asRegister: false,
+    });
+
+    await expect(page.locator(".log-panel")).toBeVisible({
+      timeout: 90_000,
+    });
+
+    // 清掉可能残留的阈值，便于断言「未设置 · 建议 50%」
+    await sendSilentCmd(page, "wimpy 0");
+    await page.locator(".hero-btn").click();
+    await page.getByRole("button", { name: "档案" }).click();
+
+    const wimpy = page.locator(".wimpy-block");
+    await expect(wimpy).toBeVisible({ timeout: 20_000 });
+    await expect
+      .poll(async () => ((await wimpy.textContent()) || "").trim(), {
+        timeout: 15_000,
+      })
+      .toMatch(/当前未设置|当前\s*\d+%/);
+
+    const suggest50 = wimpy.getByRole("button", { name: /50%.*建议|50%/ });
+    await expect(suggest50.first()).toBeVisible();
+
+    await wimpy.getByRole("button", { name: /^60%$/ }).click();
+    await expect
+      .poll(
+        async () => ((await page.locator(".toast").textContent()) || "").trim(),
+        { timeout: 8_000 }
+      )
+      .toMatch(/遇险撤退.*60%/);
+    await expect
+      .poll(async () => ((await wimpy.textContent()) || "").trim(), {
+        timeout: 10_000,
+      })
+      .toMatch(/当前\s*60%/);
+    await expect(wimpy.locator("button.chip.on")).toHaveText(/60%/);
+
+    const logs = await page.locator(".log p").allTextContents();
+    const logBlob = logs.join("\n");
+    expect(logBlob).not.toMatch(/你现在的当[「"]气[」"]低/);
+    expect(logBlob).not.toMatch(/^>\s*wimpy\b/m);
   });
 
   test("同类型护具自动卸旧再穿新", async ({ page }) => {
@@ -1073,6 +1289,61 @@ test.describe.serial("game smoke", () => {
         { timeout: 20_000 }
       )
       .toEqual({ total: beforeTotal - 1, same: beforeSame - 1 });
+  });
+
+  test("迎宾馆要粥后场景出现茶食且可进食", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await sendSilentCmd(page, "xkxe2e yingbin");
+    await expect(page.locator(".room-title")).toHaveText(/迎宾馆/, {
+      timeout: 20_000,
+    });
+
+    // 要粥前：地上应无茶/点心（或已有也无妨，点击后须刷新出碗）
+    await expect(
+      page.getByRole("button", { name: /要些吃喝|要粥/ })
+    ).toBeVisible({ timeout: 15_000 });
+    await page.getByRole("button", { name: /要些吃喝|要粥/ }).click();
+
+    await expect
+      .poll(
+        async () =>
+          (await page.locator(".chip.item").allTextContents())
+            .map((t) => t.trim())
+            .join("|"),
+        { timeout: 15_000 }
+      )
+      .toMatch(/粗磁大碗|大碗/);
+    await expect
+      .poll(
+        async () =>
+          (await page.locator(".chip.item").allTextContents())
+            .map((t) => t.trim())
+            .join("|"),
+        { timeout: 10_000 }
+      )
+      .toMatch(/煎饼|烧卖|春卷|蒸糕/);
+
+    const food = page
+      .locator(".chip.item")
+      .filter({ hasText: /煎饼|烧卖|春卷|蒸糕/ })
+      .first();
+    await food.click();
+    await expect(page.getByRole("button", { name: "吃", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "拿", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "吃", exact: true }).click();
+    await expect
+      .poll(
+        async () =>
+          ((await page.locator(".log").textContent()) || "").trim(),
+        { timeout: 15_000 }
+      )
+      // 新手常已吃饱；能发出 eat <正确 id> 即表示可进食（非找不到东西）
+      .toMatch(/咬了几口|吃得乾|吃得干|吃太饱|塞不下/);
   });
 
   test("望海亭嵌套景物可查看并呈现情境动作", async ({ page }) => {
@@ -1342,10 +1613,18 @@ test.describe.serial("game smoke", () => {
     await pickTopMenuItem(page, "挂机");
     await expect(page.getByRole("heading", { name: "挂机" })).toBeVisible();
     await expect(page.getByRole("tab", { name: "打怪" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "小猴子" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "小海龟" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "老海盗" })).toBeVisible();
-    await page.getByRole("button", { name: "小海龟" }).click();
+    const grindNames = await page.locator(".grind-target-name").allTextContents();
+    expect(grindNames.map((t) => t.trim())).toEqual([
+      "小猴子",
+      "小海龟",
+      "海龟",
+      "麻雀",
+      "乌鸦",
+      "受伤海盗",
+      "小海盗",
+      "老海盗",
+    ]);
+    await page.locator(".grind-target").filter({ hasText: /小海龟/ }).click();
     await page.getByRole("button", { name: "开始挂机" }).click();
     await expect(page.getByRole("heading", { name: "挂机" })).toBeHidden({
       timeout: 5_000,
@@ -1358,6 +1637,59 @@ test.describe.serial("game smoke", () => {
     await expect(page.getByTestId("grind-banner")).toBeHidden({
       timeout: 10_000,
     });
+  });
+
+  test("落点沙滩启动石壁领悟会提示先跟随", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    // 故意不 follow：落点 shatan1 无出口，挂机不可寻路
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 90_000,
+    });
+
+    await pickTopMenuItem(page, "挂机");
+    await page.getByRole("tab", { name: "石壁领悟" }).click();
+    await page.getByRole("button", { name: "太玄功" }).click();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+
+    await expect
+      .poll(
+        async () => ((await page.locator(".toast").textContent()) || "").trim(),
+        { timeout: 10_000 }
+      )
+      .toMatch(/跟随张三|跟随李四|落点沙滩/);
+    await expect(page.getByTestId("grind-banner")).toHaveCount(0);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/);
+  });
+
+  test("主沙滩启动石壁领悟会离开沙滩", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 20_000,
+    });
+
+    await pickTopMenuItem(page, "挂机");
+    await page.getByRole("tab", { name: "石壁领悟" }).click();
+    await page.getByRole("button", { name: "太玄功" }).click();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+
+    await expect(page.getByTestId("grind-banner")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByTestId("grind-banner")).toContainText(
+      /前往石室|石壁领悟|挂机/
+    );
+    await expect
+      .poll(async () => (await page.locator(".room-title").textContent()) || "", {
+        timeout: 60_000,
+      })
+      .not.toMatch(/沙滩/);
+    await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
   test("挂机浮层可切换石壁领悟并在主界面显示挂机中", async ({ page }) => {
@@ -1385,6 +1717,103 @@ test.describe.serial("game smoke", () => {
     await expect(page.getByTestId("grind-banner")).toBeHidden({
       timeout: 10_000,
     });
+  });
+
+  test("海盗窝挂受伤海盗会开战而非空等刷新", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await sendSilentCmd(page, "halt");
+    await sendSilentCmd(page, "xkxe2e haidaowo");
+    await expect(page.locator(".room-title")).toHaveText(/海盗窝/, {
+      timeout: 20_000,
+    });
+    await expect(page.locator(".chip.npc").filter({ hasText: /受伤海盗/ })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.locator(".chip.npc").filter({ hasText: /小海盗/ })).toBeVisible();
+
+    await pickTopMenuItem(page, "挂机");
+    await page.locator(".grind-target").filter({ hasText: /受伤海盗/ }).click();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+
+    await expect(page.getByTestId("grind-banner")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect
+      .poll(
+        async () =>
+          ((await page.getByTestId("grind-banner").textContent()) || "").trim(),
+        { timeout: 20_000 }
+      )
+      .toMatch(/开战|交手中/);
+    await expect(page.getByTestId("grind-banner")).not.toContainText(/等候.*刷新/);
+    await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
+  });
+
+  test("迎宾馆启动挂机可寻路离开迎宾馆", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await sendSilentCmd(page, "halt");
+    await sendSilentCmd(page, "xkxe2e yingbin");
+    await expect(page.locator(".room-title")).toHaveText(/迎宾馆/, {
+      timeout: 20_000,
+    });
+
+    await pickTopMenuItem(page, "挂机");
+    await page.locator(".grind-target").filter({ hasText: /小海龟/ }).click();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+
+    await expect(page.getByTestId("grind-banner")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByTestId("grind-banner")).toContainText(
+      /前往|开战|交手|挂机/
+    );
+    await expect
+      .poll(async () => (await page.locator(".room-title").textContent()) || "", {
+        timeout: 60_000,
+      })
+      .not.toMatch(/迎宾馆/);
+    await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
+  });
+
+  test("山顶启动石壁领悟会自动寻路离开山顶", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await sendSilentCmd(page, "halt");
+    await sendSilentCmd(page, "xkxe2e shanding");
+    await expect(page.locator(".room-title")).toHaveText(/山顶/, {
+      timeout: 20_000,
+    });
+    await sendSilentCmd(page, "look");
+
+    await pickTopMenuItem(page, "挂机");
+    await page.getByRole("tab", { name: "石壁领悟" }).click();
+    await page.getByRole("button", { name: "太玄功" }).click();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+
+    await expect(page.getByTestId("grind-banner")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByTestId("grind-banner")).toContainText(/挂机/);
+    await expect
+      .poll(async () => (await page.locator(".room-title").textContent()) || "", {
+        timeout: 60_000,
+      })
+      .not.toMatch(/山顶/);
+    await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
   test("顶栏修炼可启动吐纳助手并显示状态后停止", async ({ page }) => {
@@ -1759,15 +2188,35 @@ test.describe.serial("game smoke", () => {
     await expect(
       page.getByRole("radio", { name: "学到潜能耗尽" })
     ).toBeVisible();
+    await learnCount.fill("3");
+    await expect(learnCount).toHaveValue("3");
     await page.getByRole("button", { name: "开始学习", exact: true }).click();
 
     await expect(page.locator(".log-panel")).toBeVisible();
+    // 批量 learn … 3：一次请教即可完成；toast 较短，连同挂机条一起轮询
     await expect
       .poll(async () => {
-        const logs = await page.locator(".log p").allTextContents();
-        return logs.join("\n");
-      }, { timeout: 20_000 })
-      .toMatch(/请教有关「|掌法|strike|你向/);
+        const toast = ((await page.locator(".toast").textContent()) || "").trim();
+        const banner = page.getByTestId("grind-banner");
+        const bannerText = (await banner.count())
+          ? ((await banner.textContent()) || "").trim()
+          : "";
+        const logs = (await page.locator(".log p").allTextContents()).join("\n");
+        if (/已完成设定的学习次数/.test(toast)) return "done";
+        if (/已学\s*3\s*次/.test(`${toast}\n${bannerText}`)) return "learned3";
+        if (
+          !(await banner.count()) &&
+          /请教有关「/.test(logs) &&
+          /心得|掌法|strike/.test(logs)
+        )
+          return "done";
+        if (/请教有关「|你向/.test(logs)) return "learning";
+        return "wait";
+      }, { timeout: 25_000 })
+      .toMatch(/done|learned3/);
+    const after = (await page.locator(".log p").allTextContents()).join("\n");
+    const askHits = after.match(/请教有关「/g) || [];
+    expect(askHits.length).toBeLessThanOrEqual(2);
   });
 
   test("行囊腊八粥可看可吃", async ({ page }) => {

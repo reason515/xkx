@@ -5,6 +5,10 @@
 #include <command.h>
 #include <login.h>
 
+#ifndef VOID_OB
+#define VOID_OB "/clone/misc/void"
+#endif
+
 #define SUICIDE_LIST "/log/static/SUICIDE.c"
 #define MAX_USERS 230
 
@@ -656,6 +660,17 @@ HIG"
 			if( select == 5 ) startroom = "/d/dali/wangfu1";
 								if( select == 5 ) startroom = "/d/hangzhou/kedian";
 */
+		/* 勿从 VOID（最後乐园）进世界：多见于重启时房间销毁把人挤进 void 后误存档 */
+		if (stringp(startroom)
+		 && (strsrch(startroom, "void") >= 0
+		  || startroom == VOID_OB
+		  || startroom == VOID_OB + ".c")) {
+			if (!user->query("family") && (int)user->query("combat_exp") < 10000)
+				startroom = "/d/xiakedao/shatan";
+			else
+				startroom = START_ROOM;
+			user->set("startroom", startroom);
+		}
 		/* 新号未完成迎宾引导：先进锁沙滩（与 registered 解耦，不再走挂名处） */
 		if (!user->query("xkd/intro_done") &&
 		    user->query("combat_exp") < 1 &&

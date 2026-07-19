@@ -14,7 +14,7 @@ int ask_menpai(string* message);
 
 void create()
 {
-	set_name("中伯", ({ "wudang dizi", "dizi", "zhongbo" }));
+	set_name("中伯", ({ "wudang dizi", "zhongbo", "dizi" }));
 	set("long", 
 		"他是武当山的小辈弟子。\n");
 	set("gender", "男性");

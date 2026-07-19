@@ -15,7 +15,7 @@ private static int persistent;
 
 // set_persistent only callable by this_object() (including inheritors)
 
-static void
+private void
 set_persistent(int which)
 {
    persistent = which;

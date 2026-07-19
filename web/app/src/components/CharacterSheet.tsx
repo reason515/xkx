@@ -2,11 +2,13 @@ import { useState } from "react";
 import {
   bagItemActions,
   canPrepareSkill,
+  DEFAULT_WIMPY_PCT,
   enableSlotLabel,
   findEnabledSlot,
   isBasicSkillId,
   isKnowledgeSkill,
   suggestEnableSlots,
+  formatVitalMeter,
   vitalCap,
 } from "../lib/parser";
 import type { GameState, InvItem, ScoreAttr, ScoreInfo, SkillRow } from "../lib/types";
@@ -30,6 +32,7 @@ interface Props {
   onTab: (n: number) => void;
   onClose: () => void;
   onCmd: (cmd: string) => void;
+  onSetWimpy?: (pct: number) => void;
 }
 
 function pct(cur?: number, max?: number) {
@@ -180,19 +183,39 @@ function ScorePanel({ score, fallbackHtml, fallbackText }: {
   );
 }
 
-function WimpyBlock({ onCmd }: { onCmd: (cmd: string) => void }) {
+function WimpyBlock({
+  current,
+  onSetWimpy,
+}: {
+  current?: number;
+  onSetWimpy?: (pct: number) => void;
+}) {
+  const set = typeof current === "number" && current > 0 ? current : null;
+  const highlight = set ?? DEFAULT_WIMPY_PCT;
   return (
     <div className="wimpy-block">
-      <p className="skill-hint">遇险撤退：气血过低时自动逃离战斗。新手宜偏高。</p>
+      <p className="skill-hint">遇险撤退：气血低于设定比例时自动逃离战斗。新手宜偏高。</p>
+      <p className="wimpy-current">
+        {set == null ? (
+          <>
+            当前未设置 · 建议 <strong>{DEFAULT_WIMPY_PCT}%</strong>
+          </>
+        ) : (
+          <>
+            当前 <strong>{set}%</strong>
+          </>
+        )}
+      </p>
       <div className="skill-act-chips">
         {WIMPY_PRESETS.map((n) => (
           <button
             key={n}
             type="button"
-            className="skill-act chip"
-            onClick={() => onCmd(`set wimpy ${n}`)}
+            className={`skill-act chip${highlight === n ? " on" : ""}`}
+            onClick={() => onSetWimpy?.(n)}
           >
             {n}%
+            {n === DEFAULT_WIMPY_PCT && set == null ? " · 建议" : ""}
           </button>
         ))}
       </div>
@@ -436,7 +459,14 @@ function BagPanel({
   );
 }
 
-export function CharacterSheet({ state, tab, onTab, onClose, onCmd }: Props) {
+export function CharacterSheet({
+  state,
+  tab,
+  onTab,
+  onClose,
+  onCmd,
+  onSetWimpy,
+}: Props) {
   const v = state.vitals;
   const tabs = ["仪容", "气血", "档案", "武功", "行囊"];
 
@@ -476,32 +506,89 @@ export function CharacterSheet({ state, tab, onTab, onClose, onCmd }: Props) {
           </div>
           <div className={`panel ${tab === 1 ? "on" : ""}`}>
             <div className="meter-list">
-              {[
-                ["气", v.qi, vitalCap(v, "qi"), "var(--stat-qi)"],
-                ["精", v.jing, vitalCap(v, "jing"), "var(--stat-jing)"],
-                ["精力", v.jingli, vitalCap(v, "jingli"), "var(--stat-jingli)"],
-                ["内力", v.neili, vitalCap(v, "neili"), "var(--stat-neili)"],
-                ["食物", v.food, vitalCap(v, "food"), "var(--stat-food)"],
-                ["饮水", v.water, vitalCap(v, "water"), "var(--stat-water)"],
-              ].map(([label, cur, max, color]) => (
-                <div key={label as string}>
-                  <div className="meter-head">
-                    <span>{label as string}</span>
-                    <span>
-                      {cur ?? "—"}/{max ?? "—"}
-                    </span>
+              {(
+                [
+                  {
+                    key: "qi",
+                    label: "气",
+                    cur: v.qi,
+                    cap: vitalCap(v, "qi"),
+                    innate: v.maxQi,
+                    color: "var(--stat-qi)",
+                  },
+                  {
+                    key: "jing",
+                    label: "精",
+                    cur: v.jing,
+                    cap: vitalCap(v, "jing"),
+                    innate: v.maxJing,
+                    color: "var(--stat-jing)",
+                  },
+                  {
+                    key: "jingli",
+                    label: "精力",
+                    cur: v.jingli,
+                    cap: vitalCap(v, "jingli"),
+                    color: "var(--stat-jingli)",
+                  },
+                  {
+                    key: "neili",
+                    label: "内力",
+                    cur: v.neili,
+                    cap: vitalCap(v, "neili"),
+                    color: "var(--stat-neili)",
+                  },
+                  {
+                    key: "food",
+                    label: "食物",
+                    cur: v.food,
+                    cap: vitalCap(v, "food"),
+                    color: "var(--stat-food)",
+                  },
+                  {
+                    key: "water",
+                    label: "饮水",
+                    cur: v.water,
+                    cap: vitalCap(v, "water"),
+                    color: "var(--stat-water)",
+                  },
+                ] as Array<{
+                  key: string;
+                  label: string;
+                  cur?: number;
+                  cap?: number;
+                  innate?: number;
+                  color: string;
+                }>
+              ).map((row) => {
+                const wounded =
+                  row.innate != null &&
+                  row.cap != null &&
+                  row.innate > row.cap;
+                return (
+                  <div
+                    key={row.key}
+                    data-testid={`vital-${row.key}`}
+                    className={wounded ? "meter wounded" : "meter"}
+                  >
+                    <div className="meter-head">
+                      <span>{row.label}</span>
+                      <span className="meter-val">
+                        {formatVitalMeter(row.cur, row.cap, row.innate)}
+                      </span>
+                    </div>
+                    <div className="meter-track">
+                      <div
+                        className="meter-fill"
+                        style={{
+                          width: `${pct(row.cur, row.cap)}%`,
+                          background: row.color,
+                        }}
+                      />
+                    </div>
                   </div>
-                  <div className="meter-track">
-                    <div
-                      className="meter-fill"
-                      style={{
-                        width: `${pct(cur as number, max as number)}%`,
-                        background: color as string,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
+                );
+              })}
               <p style={{ marginTop: 12, fontSize: 13, color: "var(--paper-dim)" }}>
                 经验 <span style={{ color: "var(--stat-exp)" }}>{v.exp ?? "—"}</span>
                 {" · "}
@@ -515,7 +602,7 @@ export function CharacterSheet({ state, tab, onTab, onClose, onCmd }: Props) {
               fallbackHtml={state.scoreHtml}
               fallbackText={state.scoreText}
             />
-            <WimpyBlock onCmd={onCmd} />
+            <WimpyBlock current={state.wimpyPct} onSetWimpy={onSetWimpy} />
           </div>
           <div className={`panel ${tab === 3 ? "on" : ""}`}>
             <SkillsPanel state={state} onCmd={onCmd} />

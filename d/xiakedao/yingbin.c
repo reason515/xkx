@@ -76,5 +76,6 @@ int do_serve()
 	else
 	{	message_vision("小僮对$N笑了笑说道：先吃完再要吧。\n", me);
 	}
+	"/adm/daemons/webd"->notify_room(room);
 	return 1;
 }

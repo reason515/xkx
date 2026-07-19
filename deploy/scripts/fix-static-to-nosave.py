@@ -8,7 +8,8 @@ import sys
 
 root = Path(os.environ.get("XKX_ROOT") or (sys.argv[1] if len(sys.argv) > 1 else "/opt/xkx"))
 paths = []
-for sub in ("feature", "inherit", "clone", "adm", "cmds", "kungfu"):
+# d/ 也要扫：挂机寻路 load 房间时会刷 NPC，未转换的 static 会拖垮整个挂机。
+for sub in ("feature", "inherit", "clone", "adm", "cmds", "kungfu", "d"):
     p = root / sub
     if p.exists():
         paths.extend(p.rglob("*.c"))

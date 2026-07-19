@@ -33,6 +33,7 @@ import {
   parseScore,
   parseSkills,
   parseSuggestedActions,
+  parseWimpyPct,
   reconcileEnableMap,
   reflowSoftWrappedEntries,
   roomUtilityActions,
@@ -42,6 +43,7 @@ import {
   parseLearnOfferActions,
   applyEquipOptimistic,
 } from "../lib/parser";
+import { createToastScheduler } from "../lib/toastScheduler";
 import {
   buildGuideContext,
   matchGuideTip,
@@ -82,6 +84,7 @@ const initialState = (): GameState => ({
   inventory: [],
   enabled: {},
   prepared: {},
+  wimpyPct: 0,
   combatLog: [],
   trainLog: [],
   assistActive: false,
@@ -111,6 +114,8 @@ export function useGame(opts?: UseGameOptions) {
   const enteredGame = useRef(false);
   /** Suppress look-me narrative from 见闻 while capturing 仪容. */
   const expectLookMe = useRef(false);
+  /** After silent `wimpy N`，吞掉回显 Ok. */
+  const expectWimpySet = useRef(false);
   /** Capture help / board list·read into doc panel instead of 见闻. */
   const expectDoc = useRef<{
     target: DocTarget;
@@ -124,6 +129,8 @@ export function useGame(opts?: UseGameOptions) {
   const combatHpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<GameState>(initialState);
   const [toast, setToast] = useState("");
+  // setToast 身份稳定，scheduler 只建一次即可
+  const toastScheduler = useRef(createToastScheduler(setToast));
   const [loginError, setLoginError] = useState("");
   const [selectedExit, setSelectedExit] = useState<{
     dir: string;
@@ -138,8 +145,7 @@ export function useGame(opts?: UseGameOptions) {
   const [seenXiakedao, setSeenXiakedao] = useState(() => readSeenXiakedao());
 
   const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(""), 2200);
+    toastScheduler.current.show(msg);
   }, []);
 
   useEffect(() => {
@@ -364,11 +370,21 @@ export function useGame(opts?: UseGameOptions) {
       }
       if (verb === "eat" || verb === "drink") {
         scheduleInvRefresh(true);
-      } else if (verb === "drop" || verb === "get") {
+        // 地上吃喝后物品可能消失；LPC move/destruct 可能不通知时 look 兜底
+        roomFromEvent.current = false;
+        scheduleRoomRefresh();
+      } else if (verb === "drop" || verb === "get" || verb === "buy" || verb === "sell") {
+        // 货品面板 list 捕获中点购买：先结束捕获，让回显进见闻
+        if ((verb === "buy" || verb === "sell") && expectDoc.current) {
+          finishDocCapture();
+        }
         scheduleInvRefresh(false);
+        // 地上物进出由 feature/move.c notify_room 推送；此处不再强制 look，
+        // 避免与结构化 room.update 竞态把已捡起物品刷回来。
       }
-      // 打听/开门类常就地改出口，补 look 统一刷新场景
+      // 要粥/打听/开门等就地改场景：补 look（LPC notify_room 优先，look 兜底）
       if (
+        verb === "serve" ||
         (verb === "ask" && /\babout\b/i.test(command)) ||
         verb === "open" ||
         verb === "unlock" ||
@@ -376,10 +392,12 @@ export function useGame(opts?: UseGameOptions) {
         verb === "pull" ||
         verb === "knock"
       ) {
+        // serve 等不会先有 room.update：允许 look 兜底刷新
+        if (verb === "serve") roomFromEvent.current = false;
         scheduleRoomRefresh();
       }
     },
-    [addLog, scheduleEquipRefresh, scheduleInvRefresh, scheduleRoomRefresh]
+    [addLog, finishDocCapture, scheduleEquipRefresh, scheduleInvRefresh, scheduleRoomRefresh]
   );
 
   const docCmd = useCallback(
@@ -443,13 +461,20 @@ export function useGame(opts?: UseGameOptions) {
         if (ev.type === "assist.status") {
           const message = String(ev.message || "").trim();
           if (ev.active) {
-            if (/助手进行中|战斗辅助/.test(message)) showToast(message);
+            // 重要提示弹 toast；例行心跳（交手中/等候刷新）只走挂机条，避免刷屏冲掉可读时间
+            if (
+              /助手进行中|战斗辅助|前往石室|石壁领悟|精力不足|无法赶路|无法前往|撤回受阻|请先跟随|落点沙滩|动作受阻|改道前往|忙碌中|正在调息|力尽昏迷/.test(
+                message
+              )
+            ) {
+              toastScheduler.current.showUnlessSame(message);
+            }
           } else if (
             message &&
             message !== "已停止" &&
             message !== "手动停止"
           ) {
-            showToast(message);
+            toastScheduler.current.show(message);
           }
         }
         setState((s) => {
@@ -554,6 +579,13 @@ export function useGame(opts?: UseGameOptions) {
           if (isLoginNoise(line) || isProtocolNoise(line)) continue;
           if (isMorePromptLine(line)) continue;
           if (isSheetDumpLine(line, chunk)) continue;
+          if (
+            expectWimpySet.current &&
+            /^>?Ok\.?\s*$/i.test(line.trim())
+          ) {
+            expectWimpySet.current = false;
+            continue;
+          }
           if (isRoomLookLine(line, chunk)) continue;
           if (isStaticPassageLine(line)) continue;
           // 仪容分片到达时也挡掉；NPC 打听等不会命中 isSelfLookLine
@@ -672,6 +704,20 @@ export function useGame(opts?: UseGameOptions) {
         if (/精[：:]/.test(chunk) && /气[：:]/.test(chunk)) {
           const v = parseHp(chunk);
           if (v.qi) setState((s) => ({ ...s, vitals: { ...s.vitals, ...v } }));
+        }
+
+        {
+          const wimpy =
+            parseWimpyPct(chunk) ??
+            chunk
+              .split("\n")
+              .map((ln) => parseWimpyPct(ln))
+              .find((n) => n != null);
+          if (wimpy != null) {
+            setState((s) =>
+              s.wimpyPct === wimpy ? s : { ...s, wimpyPct: wimpy }
+            );
+          }
         }
 
         if (/个人档案|膂力|悟性|根骨|身法|攻击力|防御力/.test(chunk)) {
@@ -948,7 +994,26 @@ export function useGame(opts?: UseGameOptions) {
     cmd("enable", { silent: true });
     cmd("prepare", { silent: true });
     cmd("inventory", { silent: true });
+    cmd("wimpy", { silent: true });
   }, [cmd]);
+
+  const setWimpy = useCallback(
+    (pct: number) => {
+      const n = Math.min(80, Math.max(0, Math.round(pct)));
+      setState((s) => ({ ...s, wimpyPct: n }));
+      showToast(
+        n > 0
+          ? `遇险撤退：气血低于 ${n}% 时逃离`
+          : "已关闭遇险撤退"
+      );
+      expectWimpySet.current = true;
+      window.setTimeout(() => {
+        expectWimpySet.current = false;
+      }, 3000);
+      cmd(`wimpy ${n}`, { silent: true });
+    },
+    [cmd, showToast]
+  );
 
   const onOpenCharacter = useCallback(() => {
     clearDoc();
@@ -1007,14 +1072,16 @@ export function useGame(opts?: UseGameOptions) {
 
   const startAssist = useCallback((config: AssistConfig) => {
     socket.current.assist(config);
-    // 等服务端 assist.status 确认；勿先 toast「已启动」，失败时否则界面无反馈。
+    // 等服务端 assist.status 确认再标「进行中」，避免失败时卡在「挂机中…」。
     setState((s) => ({
       ...s,
-      assistActive: true,
+      assistActive: false,
       assistStatus:
-        config.mode === "grind" || config.mode === "study"
-          ? "挂机中…"
-          : "启动中…",
+        config.mode === "study"
+          ? "正在启动石壁领悟…"
+          : config.mode === "grind"
+            ? "正在启动挂机…"
+            : "启动中…",
     }));
   }, []);
 
@@ -1063,6 +1130,7 @@ export function useGame(opts?: UseGameOptions) {
     halt,
     showToast,
     refreshCharacter,
+    setWimpy,
   };
 }
 

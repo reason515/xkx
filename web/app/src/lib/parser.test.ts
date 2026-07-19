@@ -19,6 +19,8 @@ import {
   isSelfLookLine,
   isSelfLookStopLine,
   isSheetDumpLine,
+  DEFAULT_WIMPY_PCT,
+  parseWimpyPct,
   isRoomLookChunk,
   isRoomLookLine,
   suggestedActionsFromRoomText,
@@ -30,6 +32,8 @@ import {
   parseEntityShort,
   parseExits,
   parseHp,
+  formatVitalMeter,
+  parseVendorGoods,
   vitalCap,
   parseInventory,
   parseRoom,
@@ -56,6 +60,7 @@ import {
   suggestsRoomLayoutChange,
   isStaticPassageLine,
   classifyInvEquip,
+  invCommandTarget,
   bagItemActions,
   groundItemActions,
   applyEquipOptimistic,
@@ -305,6 +310,34 @@ describe("isRoomLookLine", () => {
       groundItemActions("book", "线装书", true).map((a) => a.command)
     ).toEqual(["look book", "du book"]);
   });
+
+  it("木桩练功用 strike，勿发战斗 hit", () => {
+    const shanxia =
+      "山脚下是一块平地，四周摆了几个木桩(muzhuang)。这里好象是个练武场。";
+    expect(
+      suggestedActionsFromRoomText(shanxia).map((a) => a.command)
+    ).toContain("strike muzhuang");
+    expect(
+      suggestedActionsFromRoomText(shanxia).map((a) => a.command)
+    ).not.toContain("hit muzhuang");
+    expect(
+      groundItemActions("muzhuang", "木桩", true).map((a) => a.command)
+    ).toEqual(["look muzhuang", "strike muzhuang"]);
+    expect(labelSuggestedAction("strike muzhuang")).toBe("击打木桩");
+
+    // 山洞描写偶写 (hit zhuang)，归一成 strike
+    const cave =
+      "地上埋着几根木桩(zhuang),一个年青小伙子正踩着马步打着木桩(hit zhuang)。";
+    expect(
+      suggestedActionsFromRoomText(cave).map((a) => a.command)
+    ).toContain("strike zhuang");
+    expect(
+      suggestedActionsFromRoomText(cave).map((a) => a.command)
+    ).not.toContain("hit zhuang");
+    expect(
+      groundItemActions("zhuang", "木桩", true).map((a) => a.command)
+    ).toEqual(["look zhuang", "strike zhuang"]);
+  });
 });
 
 describe("isSheetDumpLine", () => {
@@ -379,6 +412,28 @@ describe("isSheetDumpLine", () => {
         "渔夫说道：这里就是侠客岛。两位岛主每年都派弟子到中原。"
       )
     ).toBe(false);
+    expect(isSheetDumpLine("> wimpy")).toBe(true);
+    expect(
+      isSheetDumpLine("你现在的当「气」低於 50% 时就会尝试逃跑。")
+    ).toBe(true);
+    expect(isSheetDumpLine("设定环境变量：wimpy = 60")).toBe(true);
+  });
+});
+
+describe("parseWimpyPct", () => {
+  it("parses query / set feedback and clamps", () => {
+    expect(DEFAULT_WIMPY_PCT).toBe(50);
+    expect(parseWimpyPct("你现在的当「气」低於 50% 时就会尝试逃跑。")).toBe(
+      50
+    );
+    expect(parseWimpyPct('你现在的当"气"低于 0% 时就会尝试逃跑。')).toBe(0);
+    expect(parseWimpyPct("设定环境变量：wimpy = 70")).toBe(70);
+    expect(parseWimpyPct(">  你现在的当「气」低於 80% 时就会尝试逃跑。")).toBe(
+      80
+    );
+    expect(parseWimpyPct("设定环境变量：wimpy = 99")).toBe(80);
+    expect(parseWimpyPct("Ok.")).toBeNull();
+    expect(parseWimpyPct("店小二说道：客官里面请")).toBeNull();
   });
 });
 
@@ -821,6 +876,80 @@ describe("mudCommandTarget / buildAskTopicActions", () => {
     expect(mudCommandTarget("xiao er", "店小二")).toBe("er");
   });
 
+  it("avoids generic dizi suffix and prefers commandId", () => {
+    // 山顶：黄衣弟子 / 中伯 都有 dizi，末词会指错人
+    expect(mudCommandTarget("huangyi dizi", "黄衣弟子")).toBe("huangyi");
+    expect(mudCommandTarget("wudang dizi", "中伯")).toBe("wudang");
+    expect(mudCommandTarget("huangyi dizi", "黄衣弟子", "huangyi")).toBe(
+      "huangyi"
+    );
+    expect(mudCommandTarget("wudang dizi", "中伯", "zhongbo")).toBe("zhongbo");
+  });
+
+  it("learn topics for 黄衣弟子 use unique teacher id not dizi", () => {
+    const hints = [
+      { command: "learn dizi sword", label: "向黄衣弟子学剑法" },
+      { command: "learn huangyi force", label: "向黄衣弟子学内功" },
+    ];
+    const topics = buildLearnTopicActions(
+      "huangyi dizi",
+      "黄衣弟子",
+      hints,
+      "",
+      "huangyi"
+    );
+    expect(topics.map((a) => a.command)).toEqual([
+      "learn huangyi sword",
+      "learn huangyi force",
+    ]);
+    expect(topics.map((a) => a.label)).toEqual(["剑法", "内功"]);
+    expect(
+      parseLearnOfferActions(
+        "黄衣弟子说道：你可向我学剑法(sword)，内功(force)。",
+        [
+          {
+            id: "huangyi dizi",
+            name: "黄衣弟子",
+            kind: "npc",
+            commandId: "huangyi",
+          },
+          {
+            id: "wudang dizi",
+            name: "中伯",
+            kind: "npc",
+            commandId: "zhongbo",
+          },
+        ]
+      ).map((a) => a.command)
+    ).toEqual(["learn huangyi sword", "learn huangyi force"]);
+  });
+
+  it("recovers teach offers from recent 见闻 when glued with another NPC", () => {
+    const log =
+      "中伯说道：这位小兄弟你有什麽问题问我就好啦。\n" +
+      "(ask dizi about 武当) 或试试 help wudang黄衣弟子说道：欢迎这位小兄弟，你可向我学剑法(sword)，内功(force)，招架(parry)及轻功(dodge)。";
+    const topics = buildLearnTopicActions(
+      "huangyi dizi",
+      "黄衣弟子",
+      [],
+      "你要察看谁的技能？\n",
+      "huangyi",
+      log
+    );
+    expect(topics.map((a) => a.command)).toEqual([
+      "learn huangyi sword",
+      "learn huangyi force",
+      "learn huangyi parry",
+      "learn huangyi dodge",
+    ]);
+    expect(topics.map((a) => a.label)).toEqual([
+      "剑法",
+      "内功",
+      "招架",
+      "轻功",
+    ]);
+  });
+
   it("labels universal ask topics in Chinese", () => {
     expect(labelAskTopic("ask fu about name")).toBe("姓名");
     expect(labelAskTopic("ask fu about here")).toBe("此地");
@@ -948,8 +1077,11 @@ describe("xiakedao help-gap room actions", () => {
 
   it("groundItemActions for coconut tree and mountain tree scenery", () => {
     expect(
-      groundItemActions("yezi tree", "椰子树").map((a) => a.command)
+      groundItemActions("yezi tree", "椰子树", false, "tree").map((a) => a.command)
     ).toEqual(["look tree", "pa tree"]);
+    expect(
+      groundItemActions("yezi tree", "椰子树").map((a) => a.command)
+    ).toEqual(["look yezi tree", "pa tree"]);
     expect(
       groundItemActions("tree", "大树", true).map((a) => a.command)
     ).toContain("pa up");
@@ -984,7 +1116,7 @@ describe("weaponRoomActions", () => {
       ],
     });
     expect(actions.map((a) => a.command)).toEqual(
-      expect.arrayContaining(["get dao", "get zhujian", "ask pu about 武器"])
+      expect.arrayContaining(["get mu dao", "get zhujian", "ask pu about 武器"])
     );
     expect(actions.map((a) => a.label)).toEqual(
       expect.arrayContaining(["拿起木刀", "拿起竹剑", "问仆人要武器"])
@@ -1090,15 +1222,16 @@ describe("parseLearnOfferActions", () => {
     const text =
       "蓝衣弟子说道：欢迎这位少侠，你可向我学掌法(strike)，内功(force)，\n" +
       "招架(parry)及轻功(dodge)。";
+    // 用 lanyi 而非共享别名 dizi，避免与同房其它弟子冲突
     expect(
       parseLearnOfferActions(text, [disciple]).map((a) => a.command)
     ).toEqual([
-      "learn dizi strike",
-      "learn dizi force",
-      "learn dizi parry",
-      "learn dizi dodge",
+      "learn lanyi strike",
+      "learn lanyi force",
+      "learn lanyi parry",
+      "learn lanyi dodge",
     ]);
-    expect(labelSuggestedAction("learn dizi strike", [disciple])).toBe(
+    expect(labelSuggestedAction("learn lanyi strike", [disciple])).toBe(
       "向蓝衣弟子学掌法"
     );
   });
@@ -1272,10 +1405,10 @@ describe("parseHp", () => {
     const v = parseHp(text);
     expect(v.jing).toBe(120);
     expect(v.effJing).toBe(150);
-    expect(v.maxJing).toBe(150);
+    expect(v.maxJing).toBeUndefined();
     expect(v.qi).toBe(80);
     expect(v.effQi).toBe(100);
-    expect(v.maxQi).toBe(100);
+    expect(v.maxQi).toBeUndefined();
     expect(v.jingli).toBe(50);
     expect(v.maxJingli).toBe(60);
     expect(v.neili).toBe(30);
@@ -1293,6 +1426,41 @@ describe("parseHp", () => {
     expect(vitalCap({ qi: 80, maxQi: 100, effQi: 90 }, "qi")).toBe(90);
     expect(vitalCap({ qi: 80, maxQi: 100 }, "qi")).toBe(100);
     expect(vitalCap({ jing: 10, maxJing: 50, effJing: 40 }, "jing")).toBe(40);
+  });
+
+  it("formatVitalMeter shows innate max when wounded", () => {
+    expect(formatVitalMeter(80, 90, 100)).toBe("80/90（先天 100）");
+    expect(formatVitalMeter(80, 100, 100)).toBe("80/100");
+    expect(formatVitalMeter(80, 100)).toBe("80/100");
+    expect(formatVitalMeter(undefined, undefined)).toBe("—/—");
+  });
+
+  it("parseVendorGoods extracts buy commands from dealer list", () => {
+    const text = `                        烤鸡腿(Jitui)：五十文铜板
+                           包子(Baozi)：三十文铜板
+                       牛皮酒袋(Jiudai)：五十文铜板
+你可以向店小二购买下列武器：
+`;
+    expect(parseVendorGoods(text)).toEqual([
+      {
+        name: "烤鸡腿",
+        id: "jitui",
+        price: "五十文铜板",
+        command: "buy jitui",
+      },
+      {
+        name: "包子",
+        id: "baozi",
+        price: "三十文铜板",
+        command: "buy baozi",
+      },
+      {
+        name: "牛皮酒袋",
+        id: "jiudai",
+        price: "五十文铜板",
+        command: "buy jiudai",
+      },
+    ]);
   });
 });
 
@@ -1531,6 +1699,20 @@ describe("parseInventory", () => {
     expect(
       groundItemActions("zhou", "腊八粥").map((a) => a.label)
     ).toEqual(["看", "拿", "吃"]);
+  });
+
+  it("uses full multi-word food id or pancake commandId (not bare bing)", () => {
+    expect(invCommandTarget("jian bing", "煎饼")).toBe("jian bing");
+    expect(invCommandTarget("jian bing", "煎饼", "pancake")).toBe("pancake");
+    expect(
+      groundItemActions("jian bing", "煎饼", false, "pancake").map((a) => a.command)
+    ).toEqual(["look pancake", "get pancake", "eat pancake"]);
+    expect(
+      groundItemActions("chun juan", "春卷").map((a) => a.label)
+    ).toEqual(["看", "拿", "吃"]);
+    expect(
+      groundItemActions("shao mai", "烧卖").map((a) => a.command)
+    ).toEqual(["look shao mai", "get shao mai", "eat shao mai"]);
   });
 
   it("ignores help inventory prose", () => {

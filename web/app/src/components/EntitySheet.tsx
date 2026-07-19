@@ -5,6 +5,7 @@ import {
   groundItemActions,
   mudCommandTarget,
   parseBoardReadActions,
+  parseVendorGoods,
 } from "../lib/parser";
 import type { AssistConfig, InvItem, SuggestedAction } from "../lib/types";
 import { ChoiceRow } from "./ChoiceRow";
@@ -13,6 +14,8 @@ interface Props {
   id: string;
   name: string;
   kind: "npc" | "item";
+  /** Unique single-token id from room.update; preferred over last id word. */
+  commandId?: string;
   scenery?: boolean;
   canApprentice?: boolean | number;
   canTrade?: boolean | number;
@@ -21,6 +24,8 @@ interface Props {
   docLoading?: boolean;
   /** Scene ask/learn chips already known for this NPC (e.g. beach / teacher hints). */
   askHints?: SuggestedAction[];
+  /** Recent 见闻 text to recover teach offers if scene chips were cleared. */
+  recentLog?: string;
   onClose: () => void;
   /** Ordinary entity actions (look / get / …); sheet may close after. */
   onAction: (cmd: string) => void;
@@ -47,6 +52,7 @@ export function EntitySheet({
   id,
   name,
   kind,
+  commandId,
   scenery,
   canApprentice = false,
   canTrade = false,
@@ -54,6 +60,7 @@ export function EntitySheet({
   docText = "",
   docLoading = false,
   askHints = [],
+  recentLog = "",
   onClose,
   onAction,
   onDocAction,
@@ -73,19 +80,31 @@ export function EntitySheet({
   // Prefer english id for mud commands when available
   const target =
     id && /^[a-z][\w\s]*$/i.test(id) && id !== name ? id : name;
-  const askTarget = mudCommandTarget(id, name);
+  const askTarget = mudCommandTarget(id, name, commandId);
 
   const board = kind === "item" && isBulletinBoard(id, name);
   const reading = board && (!!docText || docLoading);
   const readActions = reading ? parseBoardReadActions(docText) : [];
   const askTopics = asking
-    ? buildAskTopicActions(id, name, askHints, docText)
+    ? buildAskTopicActions(id, name, askHints, docText, [], commandId)
     : [];
+  const vendorGoods = trading ? parseVendorGoods(docText) : [];
   const learnTopics = learning
-    ? buildLearnTopicActions(id, name, askHints, docText)
+    ? buildLearnTopicActions(
+        id,
+        name,
+        askHints,
+        docText,
+        commandId,
+        recentLog
+      )
     : [];
+  // skills 对 recognize_apprentice 教头也会拒绝；有见闻传授提示时不算「不可请教」
   const learnRefused =
-    learning && !docLoading && /你要察看谁的技能/.test(docText);
+    learning &&
+    !docLoading &&
+    learnTopics.length === 0 &&
+    /你要察看谁的技能/.test(docText);
   const learnEmpty =
     learning &&
     !docLoading &&
@@ -98,9 +117,12 @@ export function EntitySheet({
     ["浏览留言", "list"],
     ["读新留言", "read new"],
   ];
-  const itemActions: [string, string][] = groundItemActions(id, name, scenery).map(
-    (a) => [a.label, a.command]
-  );
+  const itemActions: [string, string][] = groundItemActions(
+    id,
+    name,
+    scenery,
+    commandId
+  ).map((a) => [a.label, a.command]);
   const actions = board ? boardActions : itemActions;
   const giveItems = inventory.filter((item) => !item.equipped && !item.embedded);
 
@@ -236,7 +258,7 @@ export function EntitySheet({
                     </label>
                   )}
                   <p className="learn-assist-hint">
-                    精不足或授业者疲劳时会原地等候，恢复后继续。
+                    按次数时一次学完设定次数；精不足或授业者疲劳时会原地等候，恢复后继续。
                   </p>
                   <button
                     type="button"
@@ -308,8 +330,33 @@ export function EntitySheet({
               </button>
               {docLoading && !docText ? (
                 <p className="doc-status">正在查看货品…</p>
+              ) : vendorGoods.length ? (
+                <>
+                  <p className="entity-mode-hint">点选购买：</p>
+                  <div className="help-topics entity-item-list">
+                    {vendorGoods.map((g) => (
+                      <button
+                        key={g.id}
+                        type="button"
+                        className="help-topic"
+                        data-testid={`buy-${g.id}`}
+                        onClick={() => onAction(g.command)}
+                      >
+                        {g.name}
+                        {g.price ? (
+                          <span className="entity-good-price">
+                            {" "}
+                            · {g.price}
+                          </span>
+                        ) : null}
+                      </button>
+                    ))}
+                  </div>
+                </>
               ) : (
-                <pre className="doc-body">{docText || "对方目前没有列出货品。"}</pre>
+                <pre className="doc-body">
+                  {docText || "对方目前没有列出货品。"}
+                </pre>
               )}
             </>
           ) : reading ? (
@@ -400,6 +447,7 @@ export function EntitySheet({
                   {!!canTrade && (
                     <button
                       type="button"
+                      data-testid="entity-trade"
                       onClick={() => {
                         setTrading(true);
                         onDocAction?.("list");

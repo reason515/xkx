@@ -5,8 +5,8 @@
 
 #include <dbase.h>
 
-static int weight = 0;
-static int encumb = 0, max_encumb = 0;
+nosave int weight = 0;
+nosave int encumb = 0, max_encumb = 0;
 
 nomask int query_encumbrance() { return encumb; }
 nomask int over_encumbranced() { return encumb > max_encumb; }
@@ -82,17 +82,33 @@ varargs int move(mixed dest, int silently)
 	}
 
 	// Move the object and update encumbrance
+	env = environment();
 	if( environment() ) environment()->add_encumbrance( - weight());
 	ob->add_encumbrance(weight());
 	move_object(ob);
 // this_object might have been destructed after move_object. xuy, 8/10/97
 	if (!this_object()) {
+		/* 物品销毁前已离开旧环境时，仍通知 Web 刷新地上物 */
+		if (!silently && objectp(env))
+			"/adm/daemons/webd"->notify_room(env);
 		return 0;
 	}
 // this_object might have been moved to other environment after move_object.
 	if( environment() != ob ) {
 		log_file("move.bug", sprintf("%O wasn't moved into %O as it should.\n", this_object(), ob));
 		return 0;
+	}
+
+	/*
+	 * 非人物物品进出房间时，通知房内 Web 客户端刷新场景物品列表。
+	 * （serve 上菜、丢下/捡起等不必再依赖离开再进房。）
+	 * 目的地/来源若是玩家行囊，notify_room 不会误推（行囊内无 web 玩家）。
+	 */
+	if (!silently && !interactive(this_object()) && !this_object()->is_character()) {
+		if (objectp(env) && env != ob)
+			"/adm/daemons/webd"->notify_room(env);
+		if (objectp(ob))
+			"/adm/daemons/webd"->notify_room(ob);
 	}
 
 	// If we are players, try look where we are.

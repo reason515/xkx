@@ -31,7 +31,9 @@ export function CombatSheet({
   const [grindLowHp, setGrindLowHp] = useState(30);
   const [studySkill, setStudySkill] = useState("taixuan-gong");
   const grinding = assistActive && /挂机/.test(assistStatus || "");
-  const studying = grinding && /石壁|领悟|摘野果|取粥|喝粥|吃果/.test(assistStatus || "");
+  const studying =
+    grinding &&
+    /石壁|领悟|前往石室|摘野果|取粥|喝粥|吃果/.test(assistStatus || "");
 
   return (
     <div className="overlay open" onClick={onClose}>

@@ -205,6 +205,8 @@ export interface GameState {
   enabled: Record<string, EnabledSkill>;
   /** prepare/bei map: basic fist slot → special skill id. */
   prepared: Record<string, string>;
+  /** 遇险撤退阈值（env/wimpy）；0/未同步视为未设置。 */
+  wimpyPct?: number;
   combatLog: string[];
   trainLog: string[];
   assistActive: boolean;

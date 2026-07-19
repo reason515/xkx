@@ -7,6 +7,10 @@
 inherit F_DBASE;
 inherit F_CLEAN_UP;
 
+#ifndef VOID_OB
+#define VOID_OB "/clone/misc/void"
+#endif
+
 private int slow_quit(object);
 
 void create() 
@@ -18,6 +22,8 @@ void create()
 
 int main(object me, string arg)
 {
+	string sr, env_path;
+
 	if( (me->is_busy() || me->is_fighting() || me->query_temp("cursed", 1)) 
 	&&  !me->query_temp("quit/forced") )
 		return notify_fail("你现在正忙着做其他事，不能退出游戏！\n");
@@ -27,13 +33,27 @@ int main(object me, string arg)
 	if( me->query_temp("quitting") )
 		return notify_fail("游戏退出进程已经启动，正在进行中！\n");
 
+	env_path = base_name(environment(me));
 	if( environment(me)->query("invalid_startroom") ) 
 	{
 	// the following two lines added by Mongol. 6/12/97.  To avoid login
 	// from hell, etc.
 //		me->delete("startroom");
-		me->set("startroom", "/d/city/kedian");
-		tell_object( me, "\n你在一个不能进入游戏的地方退出，下次进入游戏将从别的地方开始。\n");
+		/* VOID：保留原先有效 startroom，避免重启落 VOID 后把落点写成乐园 */
+		if (env_path == VOID_OB
+		 || strsrch(env_path, "/clone/misc/void") >= 0) {
+			sr = me->query("startroom");
+			if (!stringp(sr) || strsrch(sr, "void") >= 0) {
+				if (!me->query("family") && (int)me->query("combat_exp") < 10000)
+					me->set("startroom", "/d/xiakedao/shatan");
+				else
+					me->set("startroom", "/d/city/kedian");
+			}
+			tell_object(me, "\n你从异常空间退出，下次仍从先前安全地点进入。\n");
+		} else {
+			me->set("startroom", "/d/city/kedian");
+			tell_object( me, "\n你在一个不能进入游戏的地方退出，下次进入游戏将从别的地方开始。\n");
+		}
 		me->set_temp("quitting", 1);
 		tell_object( me, "\n开始退出游戏，进行中 ...\n\n" );
 		call_out("slow_quit", 10 + random(10), me);
@@ -43,7 +63,10 @@ int main(object me, string arg)
 		slow_quit(me);
 	} else {
 		tell_object( me, "\n开始退出游戏，进行中 ...\n\n" );
-		me->set("startroom", base_name(environment(me)));
+		/* 普通房间可记落点，但绝不可把 VOID 写成 startroom */
+		if (env_path != VOID_OB
+		 && strsrch(env_path, "/clone/misc/void") < 0)
+			me->set("startroom", env_path);
 		me->set_temp("quitting", 1);
 		call_out("slow_quit", 10 + random(10), me);
 	}

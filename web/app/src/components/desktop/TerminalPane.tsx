@@ -57,7 +57,11 @@ export function TerminalPane() {
     termRef.current = term;
 
     registerTermWriter((raw) => {
-      term.write(raw.replace(/\n/g, "\r\n"));
+      const buf = term.buffer.active;
+      const wasAtBottom = buf.viewportY >= buf.baseY;
+      term.write(raw.replace(/\n/g, "\r\n"), () => {
+        if (wasAtBottom) term.scrollToBottom();
+      });
     });
     registerClear(() => term.clear());
 

@@ -3,7 +3,7 @@ inherit NPC;
 
 void create()
 {
-        set_name("蓝衣弟子", ({ "lanyi dizi", "lan yi", "dizi"}));
+        set_name("蓝衣弟子", ({ "lanyi dizi", "lanyi", "lan yi", "dizi"}));
         set("long", "他是木岛主的一名弟子，专管传授岛上弟子的基本功夫。\n");
         set("gender", "男性");
         set("age", 34);

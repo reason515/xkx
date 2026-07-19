@@ -79,10 +79,10 @@ Web 挂机助手（官方，非脚本）：
 
 webassist train dazuo full 0 1   — 打坐至近满，遇战停
 webassist train lian count 10 1    — 练功 10 次
-webassist learn dizi strike count 10 1 — 向弟子学掌法 10 次
-webassist learn shi literate potential 1 1 — 读书至潜能耗尽
+webassist learn dizi strike count 10 1 — 向弟子学掌法 10 次（一次 learn N）
+webassist learn shi literate potential 1 1 — 读书至潜能耗尽（按精批量 learn）
 webassist combat 30 flee         — 自动普攻，低于 30% 逃跑
-webassist grind haigui_s 30      — 侠客岛挂机打小海龟，低于 30% 撤回休整
+webassist grind haigui_s 30      — 挂机打怪（monkey|haigui_s|haigui|maque|wuya|haidao_*）
 webassist study taixuan-gong     — 侠客岛石壁领悟太玄功
 webassist stop                   — 停止
 

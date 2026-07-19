@@ -30,6 +30,11 @@ string *whitelist()
 		PREFIX + "shanlu1",
 		PREFIX + "shanlu2",
 		PREFIX + "shanlu3",
+		PREFIX + "shanlu4",
+		PREFIX + "shanxia",
+		PREFIX + "xiaolu3",
+		PREFIX + "caodi",
+		PREFIX + "tulu",
 		PREFIX + "shanding",
 		PREFIX + "tree1",
 		PREFIX + "yelin",
@@ -46,6 +51,12 @@ string *whitelist()
 		PREFIX + "shibi",
 		PREFIX + "dadong",
 		PREFIX + "xiuxi",
+		PREFIX + "yingbin",
+		PREFIX + "bingqi",
+		PREFIX + "liangong",
+		PREFIX + "yangxinju",
+		PREFIX + "xianliao",
+		PREFIX + "shufang",
 		PREFIX + "gate",
 		PREFIX + "xiakexing1",
 		PREFIX + "xiakexing2",
@@ -91,7 +102,7 @@ string room_path(object env)
 	return base_name(env);
 }
 
-/* 刷怪房：由弱到强 */
+/* 刷怪房：由弱到强（combat_exp：猴30→小龟50→龟80→雀100→鸦120→伤盗140→小盗180→老盗230） */
 string *spawn_rooms(string target_key)
 {
 	if (target_key == "monkey")
@@ -100,6 +111,10 @@ string *spawn_rooms(string target_key)
 		return ({ PREFIX + "shatans2", PREFIX + "shatann1" });
 	if (target_key == "haigui")
 		return ({ PREFIX + "shatans3", PREFIX + "shatann3" });
+	if (target_key == "maque")
+		return ({ PREFIX + "shanlu3" });
+	if (target_key == "wuya")
+		return ({ PREFIX + "yelin" });
 	if (target_key == "haidao_w"
 	 || target_key == "haidao_s"
 	 || target_key == "haidao_o")
@@ -133,6 +148,10 @@ int grind_target_match(object ob, string target_key)
 	if (target_key == "haigui")
 		return strsrch(file, "haigui_s") < 0
 		    && (strsrch(file, "/haigui") >= 0 || ob->query("id") == "haigui");
+	if (target_key == "maque")
+		return strsrch(file, "/maque") >= 0 || ob->id("ma que");
+	if (target_key == "wuya")
+		return strsrch(file, "/wuya") >= 0 || ob->id("wuya");
 	if (target_key == "haidao_w")
 		return strsrch(file, "haidao_w") >= 0 || ob->id("shang haidao");
 	if (target_key == "haidao_s")
@@ -178,7 +197,9 @@ mixed *neighbors(string path)
 	if (!in_whitelist(path)) return out;
 
 	room = find_object(path);
-	if (!objectp(room)) room = load_object(path);
+	/* catch：房间 reset 刷怪时若某物件编译失败，勿让错误冒泡掐断挂机寻路 */
+	if (!objectp(room))
+		catch(room = load_object(path));
 	if (!objectp(room)) return out;
 
 	if (mapp(exits = room->query("exits"))) {
@@ -193,9 +214,15 @@ mixed *neighbors(string path)
 					dest_path = replace_string(dest_path, ".c", "");
 				if (objectp(dest = find_object(dest_path)))
 					dest_path = base_name(dest);
-				else if (objectp(dest = load_object(dest_path)))
-					dest_path = base_name(dest);
+				else {
+					catch(dest = load_object(dest_path));
+					if (objectp(dest))
+						dest_path = base_name(dest);
+				}
 			}
+			/* 野林 east/west 自环：走了等于没走，勿纳入寻路 */
+			if (!stringp(dest_path) || dest_path == "" || dest_path == path)
+				continue;
 			if (!in_whitelist(dest_path)) continue;
 			out += ({ ({ dest_path, "go " + dir }) });
 		}
@@ -297,7 +324,8 @@ int spawn_has_live_target(string room_file, string target_key)
 
 	if (!stringp(room_file) || room_file == "") return 0;
 	room = find_object(room_file);
-	if (!objectp(room)) room = load_object(room_file);
+	if (!objectp(room))
+		catch(room = load_object(room_file));
 	if (!objectp(room)) return 0;
 	return objectp(find_grind_target(room, target_key));
 }

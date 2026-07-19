@@ -230,8 +230,17 @@ async function runNewbiePath() {
   let qiBeforeHurt = null;
   let vitalsCountBeforeHurt = 0;
   let grindStarted = false;
+  let grindEngaged = false;
+  let grindLowQiSent = false;
+  let grindRetreated = false;
   let grindStopSent = false;
   let grindStopped = false;
+  let grindHaidaoSent = false;
+  let grindHaidaoStarted = false;
+  let grindHaidaoStopSent = false;
+  let grindYingbinSent = false;
+  let grindYingbinStarted = false;
+  let grindYingbinStopSent = false;
   let vitalsQiAfter = null;
 
   console.log("open", WS_URL, "register", id);
@@ -342,7 +351,6 @@ async function runNewbiePath() {
             grindStarted = true;
             clearTimeout(beachTimer);
             console.log("grind started", msg);
-            // 等进入交手/开战，再停；超时也停，避免卡死门禁
             beachTimer = setTimeout(() => {
               if (grindStopSent || grindStopped) return;
               grindStopSent = true;
@@ -351,20 +359,45 @@ async function runNewbiePath() {
               beachTimer = setTimeout(() => {
                 api.fail("grind_assist_not_stopped");
               }, 8000);
-            }, 12000);
+            }, 16000);
             return;
           }
           if (
             grindStarted &&
-            !grindStopSent &&
+            !grindEngaged &&
             !grindStopped &&
             api.assistActive() &&
-            /交手中|开战|寻找下一目标|等候刷新/.test(msg)
+            /交手中|开战|寻找下一目标|等候刷新|另寻刷怪点/.test(msg)
           ) {
-            // 已进入战斗循环（含打死/打晕后寻下一目标），可停止
-            grindStopSent = true;
+            grindEngaged = true;
             clearTimeout(beachTimer);
             console.log("grind engaged", msg);
+            console.log("xkxe2e lowqi");
+            grindLowQiSent = true;
+            api.sendCmd("xkxe2e lowqi");
+            beachTimer = setTimeout(() => {
+              if (grindRetreated || grindStopSent || grindStopped) return;
+              grindStopSent = true;
+              console.log("grind retreat wait timeout, stop");
+              api.sendCmd("webassist stop");
+              beachTimer = setTimeout(() => {
+                api.fail("grind_retreat_not_seen");
+              }, 8000);
+            }, 10000);
+            return;
+          }
+          if (
+            grindEngaged &&
+            grindLowQiSent &&
+            !grindRetreated &&
+            !grindStopped &&
+            api.assistActive() &&
+            /撤回休整|前往大洞|喝粥|休息室|体力已恢复/.test(msg)
+          ) {
+            grindRetreated = true;
+            clearTimeout(beachTimer);
+            console.log("grind retreated", msg);
+            grindStopSent = true;
             api.sendCmd("webassist stop");
             beachTimer = setTimeout(() => {
               api.fail("grind_assist_not_stopped");
@@ -376,7 +409,95 @@ async function runNewbiePath() {
             !grindStopped &&
             (!api.assistActive() || /停止|手动/.test(msg))
           ) {
+            if (grindEngaged && grindLowQiSent && !grindRetreated) {
+              api.fail("grind_retreat_not_seen");
+              return;
+            }
             grindStopped = true;
+            clearTimeout(beachTimer);
+            /* 大洞→海盗窝寻路会 load yongdao10（刷丐帮弟子/布袋），回归「事情不大对了」卡死 */
+            phase = "grind_haidao";
+            console.log("xkxe2e dadong");
+            api.sendCmd("xkxe2e dadong");
+            setTimeout(() => {
+              console.log("xkxe2e lowjingli");
+              api.sendCmd("xkxe2e lowjingli");
+              setTimeout(() => {
+                grindHaidaoSent = true;
+                console.log("webassist grind haidao_s 30");
+                api.sendCmd("webassist grind haidao_s 30");
+                beachTimer = setTimeout(() => {
+                  api.fail("grind_haidao_path_not_started");
+                }, 12000);
+              }, 800);
+            }, 1200);
+          }
+          return;
+        }
+
+        if (phase === "grind_haidao") {
+          const msg = api.lastAssistMessage() || "";
+          if (
+            grindHaidaoSent &&
+            !grindHaidaoStarted &&
+            api.assistActive() &&
+            /前往|调息|挂机/.test(msg)
+          ) {
+            grindHaidaoStarted = true;
+            clearTimeout(beachTimer);
+            console.log("grind haidao path ok", msg);
+            grindHaidaoStopSent = true;
+            api.sendCmd("webassist stop");
+            beachTimer = setTimeout(() => {
+              api.fail("grind_haidao_assist_not_stopped");
+            }, 8000);
+            return;
+          }
+          if (
+            grindHaidaoStarted &&
+            grindHaidaoStopSent &&
+            (!api.assistActive() || /停止|手动/.test(msg))
+          ) {
+            clearTimeout(beachTimer);
+            /* 迎宾馆曾不在白名单：启动后无寻路/像卡住 */
+            phase = "grind_yingbin";
+            console.log("xkxe2e yingbin");
+            api.sendCmd("xkxe2e yingbin");
+            setTimeout(() => {
+              grindYingbinSent = true;
+              console.log("webassist grind haigui_s 30");
+              api.sendCmd("webassist grind haigui_s 30");
+              beachTimer = setTimeout(() => {
+                api.fail("grind_yingbin_path_not_started");
+              }, 10000);
+            }, 1200);
+          }
+          return;
+        }
+
+        if (phase === "grind_yingbin") {
+          const msg = api.lastAssistMessage() || "";
+          if (
+            grindYingbinSent &&
+            !grindYingbinStarted &&
+            api.assistActive() &&
+            /前往|挂机/.test(msg)
+          ) {
+            grindYingbinStarted = true;
+            clearTimeout(beachTimer);
+            console.log("grind yingbin path ok", msg);
+            grindYingbinStopSent = true;
+            api.sendCmd("webassist stop");
+            beachTimer = setTimeout(() => {
+              api.fail("grind_yingbin_assist_not_stopped");
+            }, 8000);
+            return;
+          }
+          if (
+            grindYingbinStarted &&
+            grindYingbinStopSent &&
+            (!api.assistActive() || /停止|手动/.test(msg))
+          ) {
             clearTimeout(beachTimer);
             api.done({
               reason: "follow_to_main_beach",
@@ -387,6 +508,9 @@ async function runNewbiePath() {
               vitalsQiAfter,
               vitalsPush: true,
               grindAssist: true,
+              grindRetreat: grindRetreated,
+              grindHaidaoPath: true,
+              grindYingbinPath: true,
             });
           }
           return;
@@ -493,6 +617,9 @@ async function runNewbiePath() {
       vitalsQiAfter: result.vitalsQiAfter,
       vitalsPush: result.vitalsPush,
       grindAssist: result.grindAssist,
+      grindRetreat: result.grindRetreat,
+      grindHaidaoPath: result.grindHaidaoPath,
+      grindYingbinPath: result.grindYingbinPath,
       ready: relogin.gotReady,
       room: relogin.gotRoom,
       tail: relogin.buf.slice(-800),

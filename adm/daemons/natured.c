@@ -5,7 +5,7 @@
 // Fixed natured stuck problem also added garbage cleanup fucntion, sdong, 12/3/99
 #define TIME_TICK (time()*60)
 
-static int current_day_phase;
+nosave int current_day_phase;
 mapping *day_phase;
 
 string *weather_msg = ({

@@ -381,6 +381,8 @@ const ACTION_VERBS: Record<string, string> = {
   du: "研读",
   lingwu: "领悟",
   hit: "击打",
+  /** 练功木桩等场景动作（非技能 id；技能中文见 SKILL_LABELS） */
+  strike: "击打",
   pa: "爬",
   zhai: "摘",
   za: "砸开",
@@ -474,6 +476,7 @@ const TARGET_REQUIRED_VERBS = new Set([
   "drop",
   "steal",
   "hit",
+  "strike",
   "kill",
   "accept",
   "help",
@@ -562,8 +565,11 @@ export function labelSuggestedAction(
   }
   if (verb === "hit" && parts[1]) {
     const what = parts.slice(1).join(" ");
-    if (/^zhuang$/i.test(what)) return "击打木桩";
+    if (/^(?:mu)?zhuang$/i.test(what)) return "击打木桩";
     return `击打${displayNameForTarget(what, npcs)}`;
+  }
+  if (verb === "strike" && parts[1] && /^(?:mu)?zhuang$/i.test(parts[1])) {
+    return "击打木桩";
   }
   if (verb === "jump" && parts[1]) {
     const where = parts.slice(1).join(" ");
@@ -671,20 +677,61 @@ function normalizeActionCommand(raw: string): string | null {
       verb = "learn";
     }
   }
+  // 木桩练功：房间描写偶写 (hit zhuang)，实际 add_action 是 strike
+  if (
+    verb === "hit" &&
+    parts[1] &&
+    /^(?:mu)?zhuang$/i.test(parts[1])
+  ) {
+    parts[0] = "strike";
+    cmd = parts.join(" ");
+  }
   return cmd;
 }
 
 /**
- * Pick a single token for mud commands that use `sscanf("%s about %s")`
- * (multi-word english ids like `yu fu` break bare ask). Prefer last id token.
+ * Shared last-token aliases that collide when many NPCs use them
+ * (山顶「黄衣弟子」+「中伯」都有 dizi → present 会指错人)。
  */
-export function mudCommandTarget(id: string, name: string): string {
+const GENERIC_ID_SUFFIXES = new Set([
+  "dizi",
+  "ren",
+  "shi",
+  "han",
+  "tong",
+  "pu",
+]);
+
+/**
+ * Pick a single token for mud commands that use `sscanf("%s …")`
+ * (multi-word english ids like `yu fu` break bare ask).
+ *
+ * Prefer server `commandId` when present. For multi-word ids, last token is
+ * usually the short alias (yu fu → fu), but avoid generic suffixes like
+ * `dizi` that collide across NPCs — then use the first token (huangyi dizi → huangyi).
+ */
+export function mudCommandTarget(
+  id: string,
+  name: string,
+  commandId?: string
+): string {
+  const cmd = (commandId || "").trim();
+  if (cmd && /^[a-z][\w]*$/i.test(cmd)) return cmd.toLowerCase();
+
   const idTrim = (id || "").trim();
   if (idTrim && /^[a-z][\w]*$/i.test(idTrim)) return idTrim.toLowerCase();
-  // Multi-word english id: last token is usually the short alias (yu fu → fu)
   if (idTrim && /^[a-z][\w]*(\s+[a-z][\w]*)+$/i.test(idTrim)) {
     const parts = idTrim.toLowerCase().split(/\s+/).filter(Boolean);
-    return parts[parts.length - 1];
+    const last = parts[parts.length - 1];
+    const first = parts[0];
+    if (
+      GENERIC_ID_SUFFIXES.has(last) &&
+      first &&
+      !GENERIC_ID_SUFFIXES.has(first)
+    ) {
+      return first;
+    }
+    return last;
   }
   const nameTrim = (name || "").trim();
   if (nameTrim && !/\s/.test(nameTrim)) return nameTrim;
@@ -703,15 +750,18 @@ export function labelAskTopic(command: string): string {
 function askCommandMatchesEntity(
   command: string,
   id: string,
-  name: string
+  name: string,
+  commandId?: string
 ): boolean {
   const m = command.trim().match(/^ask\s+(.+?)\s+about\s+\S+/i);
   if (!m) return false;
   const who = m[1].trim().toLowerCase();
   const idL = (id || "").trim().toLowerCase();
   const nameL = (name || "").trim().toLowerCase();
-  const targetL = mudCommandTarget(id, name).toLowerCase();
-  if (who === targetL || who === idL || who === nameL) return true;
+  const cmdL = (commandId || "").trim().toLowerCase();
+  const targetL = mudCommandTarget(id, name, commandId).toLowerCase();
+  if (who === targetL || who === idL || who === nameL || (cmdL && who === cmdL))
+    return true;
   if (!idL) return false;
   const idParts = idL.split(/\s+/).filter(Boolean);
   return idParts.includes(who) || idL.endsWith(` ${who}`);
@@ -726,16 +776,17 @@ export function buildAskTopicActions(
   name: string,
   hinted: SuggestedAction[] = [],
   listText = "",
-  npcs: Entity[] = []
+  npcs: Entity[] = [],
+  commandId?: string
 ): SuggestedAction[] {
-  const target = mudCommandTarget(id, name);
+  const target = mudCommandTarget(id, name, commandId);
   const found = new Map<string, SuggestedAction>();
 
   const consider = (command: string) => {
     const cmd = command.trim().replace(/\s+/g, " ");
     if (!/^ask\s+\S.+\s+about\s+\S/i.test(cmd)) return;
     if (
-      !askCommandMatchesEntity(cmd, id, name) &&
+      !askCommandMatchesEntity(cmd, id, name, commandId) &&
       !cmd.toLowerCase().startsWith(`ask ${target.toLowerCase()} about`)
     ) {
       return;
@@ -764,11 +815,13 @@ export function buildAskTopicActions(
 const TEACH_OFFER_RE =
   /(?:可)?向我学|跟我学|可以向我学|跟我学点|可向.+?学|专管传授/;
 
-/** Chinese label + english skill id, e.g. 掌法(strike). */
+/** Chinese label + english skill id, e.g. 掌法(strike). Keep label short. */
 const SKILL_PAIR_RE =
-  /([\u4e00-\u9fff]{1,12})\(([a-z][a-z0-9_\-]{1,30})\)/gi;
+  /([\u4e00-\u9fff]{1,6})\(([a-z][a-z0-9_\-]{1,30})\)/gi;
 
-const SPEAKER_RE = /([^\n\r。！？]{1,24}?)(?:说道|问道|喊道|笑道|答道)[：:]/;
+/** Prefer a Chinese name immediately before 说道 (avoid lazy 1-char match on 弟子→子). */
+const SPEAKER_RE =
+  /([\u4e00-\u9fff]{2,12})(?:说道|问道|喊道|笑道|答道)[：:]/;
 
 function resolveLearnTeacher(
   speakerName: string | undefined,
@@ -785,18 +838,23 @@ function resolveLearnTeacher(
     );
     if (npc) {
       return {
-        target: mudCommandTarget(npc.id, npc.name),
+        target: mudCommandTarget(npc.id, npc.name, npc.commandId),
         name: npc.name,
       };
     }
-    // Speaker known but room list not yet updated — Chinese who still works for learn
-    if (nameL && !/\s/.test(nameL)) {
+    // Bare Chinese fallback only when room NPC list is empty (not yet synced).
+    // If npcs is non-empty but speaker isn't among them, skip — avoid attributing
+    // 黄衣弟子的传授提示 to 中伯 when both appear in the same 见闻 blob.
+    if (npcs.length === 0 && nameL && !/\s/.test(nameL)) {
       return { target: nameL, name: nameL };
     }
   }
   if (npcs.length === 1) {
     const n = npcs[0];
-    return { target: mudCommandTarget(n.id, n.name), name: n.name };
+    return {
+      target: mudCommandTarget(n.id, n.name, n.commandId),
+      name: n.name,
+    };
   }
   return null;
 }
@@ -804,15 +862,18 @@ function resolveLearnTeacher(
 function learnCommandMatchesEntity(
   command: string,
   id: string,
-  name: string
+  name: string,
+  commandId?: string
 ): boolean {
   const m = command.trim().match(/^(?:learn|xue)\s+(\S+)\s+(\S+)/i);
   if (!m) return false;
   const who = m[1].trim().toLowerCase();
   const idL = (id || "").trim().toLowerCase();
   const nameL = (name || "").trim().toLowerCase();
-  const targetL = mudCommandTarget(id, name).toLowerCase();
-  if (who === targetL || who === idL || who === nameL) return true;
+  const cmdL = (commandId || "").trim().toLowerCase();
+  const targetL = mudCommandTarget(id, name, commandId).toLowerCase();
+  if (who === targetL || who === idL || who === nameL || (cmdL && who === cmdL))
+    return true;
   if (!idL) return false;
   const idParts = idL.split(/\s+/).filter(Boolean);
   return idParts.includes(who) || idL.endsWith(` ${who}`);
@@ -824,6 +885,56 @@ export function labelLearnTopic(command: string): string {
   if (parts.length < 3) return "学";
   const skill = parts[2].toLowerCase();
   return SKILL_LABELS[skill] || skill;
+}
+
+export type VendorGood = {
+  name: string;
+  id: string;
+  price: string;
+  command: string;
+};
+
+/** Strip common MudOS/FluffOS ANSI color codes from list lines. */
+function stripMudAnsi(s: string): string {
+  return s.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+/**
+ * Parse F_DEALER `list` output into buy chips.
+ * e.g. `烤鸡腿(Jitui)：五十文铜板` → buy jitui
+ */
+export function parseVendorGoods(text: string): VendorGood[] {
+  const out: VendorGood[] = [];
+  const seen = new Set<string>();
+  for (const raw of text.split(/\r?\n/)) {
+    const line = stripMudAnsi(raw).trim();
+    if (!line) continue;
+    if (
+      /目前没有可以买|你想看哪一柜|你可以向.+购买|有下列.+出售/.test(line) &&
+      !/\([A-Za-z]/.test(line)
+    ) {
+      continue;
+    }
+    const m = line.match(
+      /^(.+?)\(([A-Za-z][\w\s-]*)\)\s*[：:]\s*(.+)$/
+    );
+    if (!m) continue;
+    const name = m[1].replace(/\s+/g, " ").trim();
+    const id = m[2].trim().toLowerCase().replace(/\s+/g, " ");
+    let price = m[3].trim();
+    price = price
+      .replace(/[（(]还剩[^）)]*[）)]\s*$/, "")
+      .trim();
+    if (!name || !id || seen.has(id)) continue;
+    seen.add(id);
+    out.push({
+      name,
+      id,
+      price,
+      command: `buy ${id}`,
+    });
+  }
+  return out;
 }
 
 /**
@@ -854,20 +965,25 @@ export function parseLearnOfferActions(
     consider(m[1]);
   }
 
-  if (!TEACH_OFFER_RE.test(text)) return [...found.values()];
+  // Split by speaker so 中伯+黄衣弟子粘在同一段见闻时，各自技能不串台
+  const segments = text.split(
+    /(?=[\u4e00-\u9fff]{2,12}(?:说道|问道|喊道|笑道|答道)[：:])/
+  );
+  for (const segment of segments) {
+    if (!TEACH_OFFER_RE.test(segment)) continue;
+    const speaker = segment.match(SPEAKER_RE)?.[1]?.trim();
+    const teacher = resolveLearnTeacher(speaker, npcs);
+    if (!teacher) continue;
 
-  const speaker = text.match(SPEAKER_RE)?.[1]?.trim();
-  const teacher = resolveLearnTeacher(speaker, npcs);
-  if (!teacher) return [...found.values()];
-
-  SKILL_PAIR_RE.lastIndex = 0;
-  for (const m of text.matchAll(SKILL_PAIR_RE)) {
-    const cn = m[1];
-    const skill = m[2].toLowerCase();
-    if (NON_SKILL_IDS.has(skill)) continue;
-    if (ACTION_VERBS[skill] && !SKILL_LABELS[skill]) continue;
-    const command = `learn ${teacher.target} ${skill}`;
-    consider(command, `向${teacher.name}学${cn}`);
+    SKILL_PAIR_RE.lastIndex = 0;
+    for (const m of segment.matchAll(SKILL_PAIR_RE)) {
+      const cn = m[1];
+      const skill = m[2].toLowerCase();
+      if (NON_SKILL_IDS.has(skill)) continue;
+      if (ACTION_VERBS[skill] && !SKILL_LABELS[skill]) continue;
+      const command = `learn ${teacher.target} ${skill}`;
+      consider(command, `向${teacher.name}学${cn}`);
+    }
   }
 
   return [...found.values()];
@@ -881,16 +997,22 @@ export function buildLearnTopicActions(
   id: string,
   name: string,
   hinted: SuggestedAction[] = [],
-  skillsText = ""
+  skillsText = "",
+  commandId?: string,
+  /** Recent 见闻 — re-parse teach offers if chips were dropped after room.update. */
+  recentLog = ""
 ): SuggestedAction[] {
-  const target = mudCommandTarget(id, name);
+  const target = mudCommandTarget(id, name, commandId);
   const found = new Map<string, SuggestedAction>();
+  const selfNpc: Entity[] = [
+    { id, name, kind: "npc", commandId },
+  ];
 
   const consider = (command: string, label?: string) => {
     const cmd = command.trim().replace(/\s+/g, " ");
     if (!/^(?:learn|xue)\s+\S+\s+\S+/i.test(cmd)) return;
     if (
-      !learnCommandMatchesEntity(cmd, id, name) &&
+      !learnCommandMatchesEntity(cmd, id, name, commandId) &&
       !cmd.toLowerCase().startsWith(`learn ${target.toLowerCase()} `) &&
       !cmd.toLowerCase().startsWith(`xue ${target.toLowerCase()} `)
     ) {
@@ -900,14 +1022,23 @@ export function buildLearnTopicActions(
     const skill = parts[2];
     if (!skill) return;
     const normalized = `learn ${target} ${skill.toLowerCase()}`;
+    const topicLabel = labelLearnTopic(normalized);
     if (found.has(normalized) && !label) return;
-    found.set(normalized, {
-      command: normalized,
-      label: label || found.get(normalized)?.label || labelLearnTopic(normalized),
-    });
+    const prev = found.get(normalized)?.label;
+    // skills 面板中文名优先；见闻噪声标签「向…学你可向我学剑法」改用短名
+    const neat =
+      label && /[\u4e00-\u9fff]/.test(label) && !/^向/.test(label)
+        ? label
+        : topicLabel !== "学"
+          ? topicLabel
+          : label || prev || topicLabel;
+    found.set(normalized, { command: normalized, label: neat });
   };
 
-  for (const a of hinted) consider(a.command);
+  for (const a of hinted) consider(a.command, a.label);
+  for (const a of parseLearnOfferActions(recentLog, selfNpc)) {
+    consider(a.command, a.label);
+  }
   for (const a of parseSkillsPanelLearnActions(skillsText, target)) {
     consider(a.command, a.label);
   }
@@ -1057,8 +1188,9 @@ export function suggestedActionsFromRoomText(
 }
 
 /**
- * Scenery that teaches by study/du/hit even when item_desc omits (study wall).
- * E.g. 大石壁(wall)、线装书(book)、木桩(zhuang).
+ * Scenery that teaches by study/du/strike even when item_desc omits (study wall).
+ * E.g. 大石壁(wall)、线装书(book)、木桩(zhuang|muzhuang)。
+ * 注意：侠客岛木桩练功是 strike，不是战斗指令 hit。
  */
 const SCENERY_PRACTICE: Record<
   string,
@@ -1066,7 +1198,8 @@ const SCENERY_PRACTICE: Record<
 > = {
   wall: { verb: "study", label: "领悟", nameHint: /石壁|岩壁|墙壁/ },
   book: { verb: "du", label: "研读", nameHint: /书|经|谱|册/ },
-  zhuang: { verb: "hit", label: "击打", nameHint: /木桩|木椿|木桩/ },
+  zhuang: { verb: "strike", label: "击打", nameHint: /木桩|木椿/ },
+  muzhuang: { verb: "strike", label: "击打", nameHint: /木桩|木椿/ },
 };
 
 export function sceneryPracticeActions(
@@ -1087,7 +1220,7 @@ export function sceneryPracticeActions(
     return [{ label: "研读", command: `du ${idL}` }];
   }
   if (/木桩|木椿/.test(name)) {
-    return [{ label: "击打", command: `hit ${idL}` }];
+    return [{ label: "击打", command: `strike ${idL}` }];
   }
   return [];
 }
@@ -1206,7 +1339,15 @@ export function mergeSuggestedActions(
   // 关门/开锁等场景关键动作优先保留，避免被 slice 挤掉
   const pinned = all.filter((a) => {
     const v = a.command.trim().split(/\s+/)[0]?.toLowerCase();
-    return v === "open" || v === "unlock" || v === "close";
+    // learn/ask 与开关门一样优先保留，避免被房间芯片挤掉后请教列表变空
+    return (
+      v === "open" ||
+      v === "unlock" ||
+      v === "close" ||
+      v === "learn" ||
+      v === "xue" ||
+      v === "ask"
+    );
   });
   const rest = all.filter((a) => !pinned.includes(a));
   return [...pinned, ...rest.slice(-(Math.max(0, limit - pinned.length)))];
@@ -1559,20 +1700,40 @@ export function vitalCap(
   return v.maxWater;
 }
 
+/**
+ * 气/精数值文案：当前 / 受伤后上限；若上限低于先天则标出先天。
+ * 例：未伤 `80/100`；已伤 `80/90（先天 100）`
+ */
+export function formatVitalMeter(
+  cur?: number,
+  cap?: number,
+  innate?: number
+): string {
+  if (cur == null && cap == null) return "—/—";
+  const left = cur ?? "—";
+  const right = cap ?? "—";
+  if (
+    typeof innate === "number" &&
+    typeof cap === "number" &&
+    innate > cap
+  ) {
+    return `${left}/${right}（先天 ${innate}）`;
+  }
+  return `${left}/${right}`;
+}
+
 export function parseHp(text: string): Vitals {
   const v: Vitals = {};
   const jing = text.match(/精[：:]\s*(\d+)\/\s*(\d+)/);
   if (jing) {
     v.jing = +jing[1];
-    // hp 第二列是 eff（受伤后上限）；先天 max 由 player.vitals 补全
+    // hp 第二列是 eff（受伤后上限）；勿写入 max——否则会盖掉 player.vitals 的先天上限
     v.effJing = +jing[2];
-    v.maxJing = +jing[2];
   }
   const qi = text.match(/气[：:]\s*(\d+)\/\s*(\d+)/);
   if (qi) {
     v.qi = +qi[1];
     v.effQi = +qi[2];
-    v.maxQi = +qi[2];
   }
   const jingli = text.match(/精力[：:]\s*(\d+)\s*\/\s*(\d+)/);
   if (jingli) {
@@ -1926,6 +2087,14 @@ export function classifyInvEquip(id: string, name: string, type = ""): InvEquipK
   const blob = `${id} ${name} ${type}`.toLowerCase();
   if (/武器/.test(type) || /武器/.test(name)) return "weapon";
   if (/防具|衣物|护甲/.test(type) || /防具/.test(name)) return "armor";
+  // 中文点心/主食优先：避免「jian bing / 煎饼」被 id 里的 jian 判成兵器
+  if (
+    /粥|饭|糕|饼|肉|鸭|鸡|鱼|果|桃|梨|瓜|面|馒|包|点|菜|豆|腿|苹果|糕点|卷|卖|饺|酥|粽/.test(
+      name
+    ) ||
+    /pancake|dumpling|eggroll|shaomai|chunjuan/i.test(blob)
+  )
+    return "food";
   if (
     /(?:^|[\s_-])(?:sword|jian|blade|dao|stick|bang|staff|club|gun|whip|bian|hammer|chui|hook|gou|pike|qiang|spear|axe|fu|bow|arrow|zhen|bi$|xiao|qin|falun|dagger|needle)(?:$|[\s_-])/i.test(
       blob
@@ -1956,10 +2125,7 @@ export function classifyInvEquip(id: string, name: string, type = ""): InvEquipK
   )
     return "drink";
   if (
-    /粥|饭|糕|饼|肉|鸭|鸡|鱼|果|桃|梨|瓜|面|馒|包|点|菜|豆|腿|苹果|糕点/.test(
-      name
-    ) ||
-    /(?:^|[\s_-])(?:zhou|rice|food|guo|ya|rou|kaoya|apple|bread|cake|meat|fruit|doufu|baozi|ji|yu)(?:$|[\s_-])/i.test(
+    /(?:^|[\s_-])(?:zhou|rice|food|guo|ya|rou|kaoya|apple|bread|cake|meat|fruit|doufu|baozi|ji|yu|gao|mai|juan)(?:$|[\s_-])/i.test(
       blob
     )
   )
@@ -1967,13 +2133,21 @@ export function classifyInvEquip(id: string, name: string, type = ""): InvEquipK
   return "other";
 }
 
-/** Preferred mud target token for inventory / ground item commands. */
-export function invCommandTarget(id: string, name: string): string {
+/**
+ * Preferred mud target for inventory / ground item commands.
+ * Prefer single-token commandId (e.g. pancake)；多词 id 须整段下发——
+ * LPC `id()` 只认完整别名（"jian bing"/"pancake"），截成 bing 会找不到。
+ */
+export function invCommandTarget(
+  id: string,
+  name: string,
+  commandId?: string
+): string {
+  const cmd = (commandId || "").trim();
+  if (cmd && /^[a-z][\w]*$/i.test(cmd)) return cmd.toLowerCase();
   if (id && /^[a-z][\w]*$/i.test(id)) return id.toLowerCase();
-  if (id && /^[a-z][\w]*(\s+[a-z][\w]*)+$/i.test(id)) {
-    const parts = id.toLowerCase().split(/\s+/).filter(Boolean);
-    return parts[parts.length - 1];
-  }
+  if (id && /^[a-z][\w]*(\s+[a-z][\w]*)+$/i.test(id))
+    return id.trim().toLowerCase();
   return (name || id || "").trim();
 }
 
@@ -2107,9 +2281,10 @@ export function bagItemActions(
 export function groundItemActions(
   id: string,
   name: string,
-  scenery = false
+  scenery = false,
+  commandId?: string
 ): { label: string; command: string }[] {
-  const target = invCommandTarget(id, name);
+  const target = invCommandTarget(id, name, commandId);
   if (!target) return [];
   if (isCoconutTree(id, name)) {
     return [
@@ -2306,15 +2481,37 @@ export function stripMudPrompt(line: string): string {
   return line.replace(/^(?:\s*>)+\s*/, "");
 }
 
+/** 档案「遇险撤退」默认建议值（与 cmds/usr/wimpy 上限 80 一致、新手偏安全）。 */
+export const DEFAULT_WIMPY_PCT = 50;
+
+/** Parse `wimpy` / `set wimpy` feedback → percent, or null if not a wimpy line. */
+export function parseWimpyPct(text: string): number | null {
+  const plain = stripMudPrompt(text).trim();
+  const status = plain.match(/你现在的当[「"]气[」"]低[於于]\s*(\d+)\s*%/);
+  if (status) {
+    const n = Number(status[1]);
+    if (Number.isFinite(n)) return Math.min(80, Math.max(0, n));
+  }
+  const setEnv = plain.match(/设定环境变量：\s*wimpy\s*=\s*(\d+)/i);
+  if (setEnv) {
+    const n = Number(setEnv[1]);
+    if (Number.isFinite(n)) return Math.min(80, Math.max(0, n));
+  }
+  return null;
+}
+
 /** Character-panel dumps (hp / score / skills / inventory) belong in 角色卡片, not 见闻. */
 export function isSheetDumpLine(line: string, chunk?: string): boolean {
   const t = line.trim();
   if (!t) return false;
-  if (/你要看什么？/.test(t)) return true;
-  if (/^>\s*(look\s+me|hp|score|skills|inventory|i|enable|jifa|prepare|bei)\b/i.test(t))
-    return true;
   // Vital / score rows may arrive with a glued prompt — match the bare content.
   const plain = stripMudPrompt(t).trim();
+  if (/你要看什么？/.test(t)) return true;
+  if (/^>\s*(look\s+me|hp|score|skills|inventory|i|enable|jifa|prepare|bei|wimpy)\b/i.test(t))
+    return true;
+  if (/你现在的当[「"]气[」"]低[於于]\s*\d+\s*%/.test(plain)) return true;
+  if (/[「"]气[」"]低[於于]\s*\d+\s*%\s*时就会尝试逃跑/.test(plain)) return true;
+  if (/设定环境变量：\s*wimpy\s*=/i.test(plain)) return true;
   if (/【侠客行个人档案】/.test(plain)) return true;
   if (/个人档案/.test(plain) && /中文/.test(plain)) return true;
   // score rank + short: 【 布  衣 】张三(Zhang San) — 勿单靠【】以免误伤【公告】等
