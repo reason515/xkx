@@ -24,6 +24,7 @@ describe("EntitySheet NPC actions", () => {
       "交手",
       "切磋",
       "攻击",
+      "停手",
     ]) {
       expect(html).toContain(text);
     }

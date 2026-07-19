@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   beachGreeterActions,
+  weaponRoomActions,
   buildScoreHtml,
   carriageTravelActions,
   chunkLooksLikeSelfLook,
+  coconutTreeActions,
+  fishingSpotActions,
   inferredShutDoorActions,
   extractLookBlock,
   extractSelfLookPanel,
@@ -20,6 +23,7 @@ import {
   isTrainLine,
   labelSuggestedAction,
   mergeSuggestedActions,
+  mountainFruitActions,
   suggestedActionsFromRoomText,
   parseEnableMap,
   parseHp,
@@ -470,6 +474,10 @@ export function useGame(opts?: UseGameOptions) {
             ...fromDesc,
             ...beachGreeterActions(applied.room.title, applied.room.npcs),
             ...waterfallPassageActions(applied.room.title),
+            ...weaponRoomActions(applied.room),
+            ...coconutTreeActions(applied.room),
+            ...mountainFruitActions(applied.room.title),
+            ...fishingSpotActions(applied.room, s.inventory),
             ...roomUtilityActions(applied.room),
             ...inferredShutDoorActions(applied.room),
             ...carriageTravelActions(applied.room),
@@ -628,6 +636,10 @@ export function useGame(opts?: UseGameOptions) {
               const roomHints = [
                 ...beachGreeterActions(nextRoom.title, npcs),
                 ...waterfallPassageActions(nextRoom.title),
+                ...weaponRoomActions(nextRoom),
+                ...coconutTreeActions(nextRoom),
+                ...mountainFruitActions(nextRoom.title),
+                ...fishingSpotActions(nextRoom, s.inventory),
                 ...roomUtilityActions(nextRoom),
                 ...inferredShutDoorActions(nextRoom),
                 ...carriageTravelActions({
@@ -717,7 +729,15 @@ export function useGame(opts?: UseGameOptions) {
             /^[□√]/.test(chunk.trim()) ||
             /^\s{2,}.+\([A-Za-z]/.test(chunk);
           if (invEmpty) {
-            setState((s) => ({ ...s, inventory: [] }));
+            setState((s) => ({
+              ...s,
+              inventory: [],
+              suggestedActions: mergeSuggestedActions(
+                s.suggestedActions.filter((a) => a.command !== "fishing"),
+                fishingSpotActions(s.room, []),
+                s.room.npcs
+              ),
+            }));
           } else if (invHeader && (/身上带[着著]下列/.test(chunk) || looksLikeInvRows)) {
             const idx = Math.max(
               recent.lastIndexOf("身上带著下列"),
@@ -725,7 +745,17 @@ export function useGame(opts?: UseGameOptions) {
             );
             const panel = idx >= 0 ? recent.slice(idx) : chunk;
             const inventory = parseInventory(panel);
-            if (inventory.length) setState((s) => ({ ...s, inventory }));
+            if (inventory.length) {
+              setState((s) => ({
+                ...s,
+                inventory,
+                suggestedActions: mergeSuggestedActions(
+                  s.suggestedActions.filter((a) => a.command !== "fishing"),
+                  fishingSpotActions(s.room, inventory),
+                  s.room.npcs
+                ),
+              }));
+            }
           }
 
           // enable / jifa 槽位
@@ -981,7 +1011,7 @@ export function useGame(opts?: UseGameOptions) {
     setState((s) => ({
       ...s,
       assistActive: true,
-      assistStatus: "启动中…",
+      assistStatus: config.mode === "grind" ? "挂机中…" : "启动中…",
     }));
   }, []);
 
@@ -995,6 +1025,10 @@ export function useGame(opts?: UseGameOptions) {
     socket.current.assist({ action: "stop" });
     cmd("halt");
     setState((s) => ({ ...s, assistActive: false, assistStatus: "已停止" }));
+  }, [cmd]);
+
+  const halt = useCallback(() => {
+    cmd("halt");
   }, [cmd]);
 
   return {
@@ -1023,6 +1057,7 @@ export function useGame(opts?: UseGameOptions) {
     confirmGo,
     startAssist,
     stopAssist,
+    halt,
     showToast,
     refreshCharacter,
   };

@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import { buildSpeechCommand } from "./speech";
 
 describe("buildSpeechCommand", () => {
-  it("builds public, nearby whisper, tell and reply commands", () => {
+  it("builds public, chat, nearby whisper, tell and reply commands", () => {
     expect(buildSpeechCommand({ mode: "say", message: "  大家好  " })).toBe(
       "say 大家好"
+    );
+    expect(buildSpeechCommand({ mode: "chat", message: "岛上可好" })).toBe(
+      "chat 岛上可好"
     );
     expect(
       buildSpeechCommand({

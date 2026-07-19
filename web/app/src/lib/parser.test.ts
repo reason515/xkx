@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   beachGreeterActions,
+  weaponRoomActions,
   buildAskTopicActions,
   buildScoreHtml,
   carriageTravelActions,
@@ -38,6 +39,7 @@ import {
   parseSceneryFromDesc,
   roomUtilityActions,
   reflowSoftWrappedEntries,
+  reflowSoftWrappedText,
   shouldJoinSoftWrap,
   stripScoreBanner,
   waterfallPassageActions,
@@ -57,6 +59,12 @@ import {
   bagItemActions,
   groundItemActions,
   applyEquipOptimistic,
+  coconutTreeActions,
+  mountainFruitActions,
+  fishingSpotActions,
+  parseHelpDocActions,
+  inventoryHasStone,
+  inventoryHasFishingPole,
 } from "./parser";
 
 describe("parseExits", () => {
@@ -350,6 +358,19 @@ describe("isSheetDumpLine", () => {
     ).toBe(true);
     const invChunk = "你身上带著下列这些东西(负重 3%)：\n  布衣(Cloth)\n□长剑(Sword)";
     expect(isSheetDumpLine("  布衣(Cloth)", invChunk)).toBe(true);
+    // look me / 行囊：□ 装备仍属角色卡
+    const selfLook =
+      "你看起来约二十多岁。\n你身上带著：\n  □布衣(Cloth)\n  □长剑(Changjian)";
+    expect(isSheetDumpLine("  □布衣(Cloth)", selfLook)).toBe(true);
+    // NPC look：同包或拆包到达的装备都必须进见闻
+    const npcLook =
+      "一个二十来岁的男装女子。\n她看起来约二十多岁。\n她看起来气血充盈，并没有受伤。\n她身上带著：\n  □白袍(Bai pao)";
+    expect(isSheetDumpLine("她身上带著：", npcLook)).toBe(false);
+    expect(isSheetDumpLine("  □白袍(Bai pao)", npcLook)).toBe(false);
+    // 真实链路：装备行常在下一 TCP 分片，包内没有「身上带著」头
+    expect(isSheetDumpLine("  □白袍(Bai pao)", "  □白袍(Bai pao)\r\n> ")).toBe(
+      false
+    );
     expect(isSheetDumpLine("店小二说道：客官里面请")).toBe(false);
     expect(isSheetDumpLine("你向北方走去。")).toBe(false);
     expect(isSheetDumpLine("  渔夫(Fu)")).toBe(false);
@@ -636,6 +657,38 @@ describe("parseSuggestedActions", () => {
     ).toEqual(["sleep"]);
   });
 
+  it("treats 洞(hole)+钻(zuan) as scenery+action, not fake items", () => {
+    // yongdao2 / shibi: 「洞(hole)，好象可以钻(zuan)进去」must not yield
+    // items「洞」「象可以钻」— only lookable hole + zuan hole chip.
+    const yongdao =
+      "西边有一个洞(hole)，好象可以钻(zuan)进去。";
+    expect(parseSceneryFromDesc(yongdao)).toEqual([
+      { id: "hole", name: "洞", kind: "item", scenery: true },
+    ]);
+    expect(suggestedActionsFromRoomText(yongdao).map((a) => a.command)).toEqual(
+      ["zuan hole"]
+    );
+    expect(labelSuggestedAction("zuan hole")).toBe("钻洞");
+
+    const shibi =
+      "左边好象有个小洞(hole)，似乎可以钻(zuan)进去。从这跳(jump)下去就是山脚了。";
+    expect(parseSceneryFromDesc(shibi)).toEqual([
+      { id: "hole", name: "小洞", kind: "item", scenery: true },
+    ]);
+    const shibiCmds = suggestedActionsFromRoomText(shibi).map((a) => a.command);
+    expect(shibiCmds).toContain("zuan hole");
+    expect(shibiCmds).toContain("jump down");
+    expect(shibiCmds).not.toContain("jump hole");
+    expect(shibiCmds).not.toContain("jump zuan");
+
+    // penglai: bare zuan with no hole id
+    expect(
+      suggestedActionsFromRoomText("如想通过就只有钻(zuan)进石缝。").map(
+        (a) => a.command
+      )
+    ).toEqual(["zuan"]);
+  });
+
   it("names 瀑布(fall) as 瀑布 not 是一道瀑布", () => {
     // pubu.c long: 「迎面是一道瀑布(fall)」—「面」曾被量词表误吞
     const desc =
@@ -699,7 +752,7 @@ describe("parseSuggestedActions", () => {
       labelSuggestedAction("move stone", [
         { id: "stone", name: "大石", kind: "item", scenery: true },
       ])
-    ).toBe("搬动大石");
+    ).toBe("搬开大石");
     expect(groundItemActions("fish", "鱼儿", true)).toEqual([
       { label: "查看", command: "look fish" },
     ]);
@@ -841,6 +894,110 @@ describe("waterfallPassageActions", () => {
     expect(labelSuggestedAction("wear rain coat")).toBe("穿上雨衣");
     expect(labelSuggestedAction("jump fall")).toBe("跳进瀑布");
     expect(waterfallPassageActions("沙滩")).toEqual([]);
+  });
+});
+
+describe("xiakedao help-gap room actions", () => {
+  it("coconutTreeActions offers pa tree", () => {
+    expect(
+      coconutTreeActions({
+        items: [{ id: "yezi tree", name: "椰子树", kind: "item" }],
+      }).map((a) => a.command)
+    ).toEqual(["pa tree"]);
+    expect(labelSuggestedAction("pa tree")).toBe("爬树摘椰子");
+    expect(coconutTreeActions({ items: [] })).toEqual([]);
+  });
+
+  it("mountainFruitActions for 山顶 and 树上", () => {
+    expect(mountainFruitActions("山顶").map((a) => a.command)).toEqual([
+      "pa up",
+    ]);
+    expect(mountainFruitActions("树上").map((a) => a.command)).toEqual([
+      "zhai guo",
+      "pa down",
+    ]);
+    expect(mountainFruitActions("沙滩")).toEqual([]);
+  });
+
+  it("fishingSpotActions needs pole for fishing chip", () => {
+    expect(
+      fishingSpotActions({ title: "望海亭" }).map((a) => a.command)
+    ).toEqual(["move stone"]);
+    expect(
+      fishingSpotActions(
+        { title: "望海亭" },
+        [{ id: "pole", name: "钓鱼杆", type: "pole" }]
+      ).map((a) => a.command)
+    ).toEqual(["move stone", "fishing"]);
+    expect(
+      inventoryHasFishingPole([{ id: "pole", name: "钓鱼杆", type: "" }])
+    ).toBe(true);
+  });
+
+  it("bag smash coconut when stone present", () => {
+    const yezi = { id: "yezi", name: "椰子", type: "yezi" };
+    const stone = { id: "shikuai", name: "石块", type: "stone" };
+    expect(inventoryHasStone([stone])).toBe(true);
+    expect(bagItemActions(yezi, [yezi, stone]).map((a) => a.label)).toContain(
+      "砸开"
+    );
+    expect(bagItemActions(yezi, [yezi]).map((a) => a.label)).not.toContain(
+      "砸开"
+    );
+  });
+
+  it("groundItemActions for coconut tree and mountain tree scenery", () => {
+    expect(
+      groundItemActions("yezi tree", "椰子树").map((a) => a.command)
+    ).toEqual(["look tree", "pa tree"]);
+    expect(
+      groundItemActions("tree", "大树", true).map((a) => a.command)
+    ).toContain("pa up");
+  });
+
+  it("parseHelpDocActions extracts study/sleep/fishing", () => {
+    const help = `石壁上领悟(study wall)。休息室可用(sleep)。还可(fishing)。`;
+    expect(parseHelpDocActions(help).map((a) => a.command)).toEqual([
+      "study wall",
+      "sleep",
+      "fishing",
+    ]);
+  });
+});
+
+describe("weaponRoomActions", () => {
+  it("offers get chips for ground weapons in 兵器房", () => {
+    const actions = weaponRoomActions({
+      title: "兵器房",
+      items: [
+        { id: "mu dao", name: "木刀", kind: "item" },
+        { id: "zhujian", name: "竹剑", kind: "item" },
+        { id: "board", name: "告示牌", kind: "item", scenery: true },
+      ],
+      npcs: [
+        {
+          id: "pu ren",
+          commandId: "pu",
+          name: "黄衣仆人",
+          kind: "npc",
+        },
+      ],
+    });
+    expect(actions.map((a) => a.command)).toEqual(
+      expect.arrayContaining(["get dao", "get zhujian", "ask pu about 武器"])
+    );
+    expect(actions.map((a) => a.label)).toEqual(
+      expect.arrayContaining(["拿起木刀", "拿起竹剑", "问仆人要武器"])
+    );
+  });
+
+  it("is empty outside weapon rooms", () => {
+    expect(
+      weaponRoomActions({
+        title: "甬道",
+        items: [{ id: "mu dao", name: "木刀", kind: "item" }],
+      })
+    ).toEqual([]);
   });
 });
 
@@ -1442,5 +1599,24 @@ describe("reflowSoftWrappedEntries", () => {
     expect(shouldJoinSoftWrap(a, b)).toBe(true);
     const out = reflowSoftWrappedEntries([{ text: a }, { text: b }]);
     expect(out[0].text).toBe(`${a} ${b}`);
+  });
+});
+
+describe("reflowSoftWrappedText", () => {
+  it("joins help-file terminal wraps into continuous paragraphs", () => {
+    const raw = `【出生】
+
+    新玩家首次连线进入侠客行，会发现自己置身于一个与世隔绝的
+什么小岛--侠客岛上，岛上住着龙，木两位岛主和若干弟子，以及从
+中原武林请来的各门个派的高手。
+
+chat  公共聊天频道，说的话全侠客行可以看到。
+例子：         chat hi`;
+    const out = reflowSoftWrappedText(raw);
+    expect(out).toContain("与世隔绝的什么小岛");
+    expect(out).toContain("以及从中原武林请来");
+    expect(out).not.toMatch(/与世隔绝的\n什么小岛/);
+    expect(out).toContain("【出生】");
+    expect(out).toMatch(/可以看到。\n例子：/);
   });
 });

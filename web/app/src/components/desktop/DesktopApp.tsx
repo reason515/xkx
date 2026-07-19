@@ -7,6 +7,7 @@ import {
 import type { UiMode } from "../../lib/uiMode";
 import { CharacterSheet } from "../CharacterSheet";
 import { CombatSheet } from "../CombatSheet";
+import { GrindBanner } from "../GrindBanner";
 import { EntitySheet } from "../EntitySheet";
 import { HelpSheet } from "../HelpSheet";
 import { MapSheet } from "../MapSheet";
@@ -72,6 +73,11 @@ function DesktopShell({
           </button>
         </div>
       </header>
+      <GrindBanner
+        active={state.assistActive}
+        status={state.assistStatus}
+        onStop={g.stopAssist}
+      />
 
       <div
         className="desktop-body"
@@ -138,6 +144,7 @@ function DesktopShell({
           onClose={g.closeSheet}
           onPickTopic={g.onHelpTopic}
           onBackToTopics={g.onBackToHelpTopics}
+          onCmd={(command) => g.cmd(command)}
         />
       )}
       {state.sheet === "train" && (
@@ -153,28 +160,20 @@ function DesktopShell({
       )}
       {state.sheet === "combat" && (
         <CombatSheet
-          npcs={state.room.npcs}
-          combatLog={state.combatLog}
           onClose={g.closeSheet}
-          onCmd={g.cmd}
           assistActive={state.assistActive}
           assistStatus={state.assistStatus}
           showGrind={(state.room.area || "").toLowerCase() === "xiakedao"}
-          onStartAssist={(pct, action) =>
-            g.startAssist({
-              mode: "combat",
-              lowHpPct: pct,
-              lowHpAction: action,
-            })
-          }
-          onStartGrind={(grindTarget, pct) =>
+          onStartGrind={(grindTarget, pct) => {
             g.startAssist({
               mode: "grind",
               grindTarget,
               lowHpPct: pct,
-            })
-          }
+            });
+            g.closeSheet();
+          }}
           onStopAssist={g.stopAssist}
+          onHalt={g.halt}
         />
       )}
       {state.sheet === "speech" && (

@@ -92,6 +92,29 @@ describe("matchGuideTip", () => {
     ).toBe("waterfall");
   });
 
+  it("wanghai / shanding / yangxin tips", () => {
+    expect(
+      matchGuideTip(
+        buildGuideContext({ area: "xiakedao", title: "望海亭", exits: [] })
+      )?.id
+    ).toBe("wanghai-fish");
+    expect(
+      matchGuideTip(
+        buildGuideContext({ area: "xiakedao", title: "山顶", exits: [] })
+      )?.id
+    ).toBe("shanding-fruit");
+    expect(
+      matchGuideTip(
+        buildGuideContext({
+          area: "xiakedao",
+          title: "养心居",
+          exits: [],
+          npcs: [{ id: "doctor", name: "医者", kind: "npc" }],
+        })
+      )?.id
+    ).toBe("yangxin-coconut");
+  });
+
   it("dadong without enter asks about 岛主", () => {
     expect(
       matchGuideTip(

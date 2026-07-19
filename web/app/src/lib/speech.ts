@@ -1,4 +1,4 @@
-export type SpeechMode = "say" | "whisper" | "tell" | "reply";
+export type SpeechMode = "say" | "chat" | "whisper" | "tell" | "reply";
 
 export interface SpeechDraft {
   mode: SpeechMode;
@@ -15,6 +15,7 @@ export function buildSpeechCommand({
   const body = message.replace(/\s+/g, " ").trim();
   if (!body) return null;
   if (mode === "say") return `say ${body}`;
+  if (mode === "chat") return `chat ${body}`;
   if (mode === "reply") return `reply ${body}`;
 
   const who = target.trim().toLowerCase();

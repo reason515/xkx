@@ -15,7 +15,29 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | grindprep\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | grindprep | yongdao2 | bingqi\n");
+
+	if (arg == "yongdao2") {
+		ob = load_object("/d/xiakedao/yongdao2");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载甬道。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到迎宾馆西侧甬道。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
+	if (arg == "bingqi") {
+		ob = load_object("/d/xiakedao/bingqi");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载兵器房。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到兵器房。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
 
 	if (arg == "grindprep") {
 		ob = load_object("/d/xiakedao/shatans2");
@@ -96,7 +118,7 @@ int main(object me, string arg)
 int help(object me)
 {
 	write(@HELP
-指令格式：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | grindprep
+指令格式：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | grindprep | yongdao2 | bingqi
 
 仅在服务器开启 e2e 开关（/adm/etc/xkd_e2e）时可用，供自动化测试：
   grantleave  — 模拟岛主放行
@@ -106,6 +128,8 @@ int help(object me)
   closedoor   — 关闭当前房间 enter 方向的门（石门）
   hurt        — 造成少量气血伤害并触发 player.vitals 推送
   grindprep   — 传送到小海龟刷怪沙滩（shatans2）
+  yongdao2    — 传送到迎宾馆西侧甬道（洞/钻场景解析回归）
+  bingqi      — 传送到兵器房（取用器械回归）
 HELP
 	);
 	return 1;

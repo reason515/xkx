@@ -9,7 +9,7 @@ void create()
 	seteuid(getuid());
 }
 
-/* 挂机可通行房间（沙滩刷怪 ↔ 瀑布 ↔ 甬道 ↔ 大洞/休息室）。 */
+/* 挂机可通行房间（沙滩刷怪 ↔ 瀑布 ↔ 甬道 ↔ 大洞/休息室 ↔ 海盗窝 ↔ 石壁）。 */
 string *whitelist()
 {
 	return ({
@@ -27,12 +27,19 @@ string *whitelist()
 		PREFIX + "ybting",
 		PREFIX + "shanlu1",
 		PREFIX + "shanlu2",
+		PREFIX + "shanlu3",
+		PREFIX + "shanding",
+		PREFIX + "yelin",
+		PREFIX + "haidaowo",
+		PREFIX + "haidaowo1",
 		PREFIX + "wanghait",
 		PREFIX + "pubu",
 		PREFIX + "yongdao1",
 		PREFIX + "yongdao2",
 		PREFIX + "yongdao3",
 		PREFIX + "yongdao4",
+		PREFIX + "yongdao5",
+		PREFIX + "shibi",
 		PREFIX + "dadong",
 		PREFIX + "xiuxi",
 	});
@@ -53,11 +60,19 @@ string room_path(object env)
 	return base_name(env);
 }
 
-/* 刷怪房：小海龟 */
+/* 刷怪房：由弱到强 */
 string *spawn_rooms(string target_key)
 {
+	if (target_key == "monkey")
+		return ({ PREFIX + "shibi" });
 	if (target_key == "haigui_s")
 		return ({ PREFIX + "shatans2", PREFIX + "shatann1" });
+	if (target_key == "haigui")
+		return ({ PREFIX + "shatans3", PREFIX + "shatann3" });
+	if (target_key == "haidao_w"
+	 || target_key == "haidao_s"
+	 || target_key == "haidao_o")
+		return ({ PREFIX + "haidaowo1" });
 	return ({});
 }
 
@@ -74,22 +89,43 @@ int is_spawn_room(object env, string target_key)
 	return 0;
 }
 
-/* 匹配小海龟：文件 haigui_s 或 id small haigui */
+int grind_target_match(object ob, string target_key)
+{
+	string file;
+
+	if (!objectp(ob)) return 0;
+	file = base_name(ob);
+	if (target_key == "monkey")
+		return strsrch(file, "/monkey") >= 0 || ob->id("monkey");
+	if (target_key == "haigui_s")
+		return strsrch(file, "haigui_s") >= 0 || ob->id("small haigui");
+	if (target_key == "haigui")
+		return strsrch(file, "haigui_s") < 0
+		    && (strsrch(file, "/haigui") >= 0 || ob->query("id") == "haigui");
+	if (target_key == "haidao_w")
+		return strsrch(file, "haidao_w") >= 0 || ob->id("shang haidao");
+	if (target_key == "haidao_s")
+		return strsrch(file, "haidao_s") >= 0 || ob->id("xiao haidao");
+	if (target_key == "haidao_o")
+		return strsrch(file, "haidao_o") >= 0 || ob->id("lao haidao");
+	return 0;
+}
+
+/* 匹配练级目标：只取仍存活的 NPC */
 object find_grind_target(object env, string target_key)
 {
 	object *inv, ob;
-	string file;
 	int i;
 
-	if (!objectp(env) || target_key != "haigui_s") return 0;
+	if (!objectp(env) || !stringp(target_key) || target_key == "")
+		return 0;
+	if (!sizeof(spawn_rooms(target_key))) return 0;
 	inv = all_inventory(env);
 	for (i = 0; i < sizeof(inv); i++) {
 		ob = inv[i];
 		if (!objectp(ob) || !ob->is_character() || userp(ob)) continue;
 		if (!living(ob)) continue;
-		file = base_name(ob);
-		if (strsrch(file, "haigui_s") >= 0) return ob;
-		if (ob->id("small haigui")) return ob;
+		if (grind_target_match(ob, target_key)) return ob;
 	}
 	return 0;
 }
@@ -137,6 +173,11 @@ mixed *neighbors(string path)
 	/* 瀑布进洞：普通 exits 只有 out，进洞靠 jump fall */
 	if (path == PREFIX + "pubu")
 		out += ({ ({ PREFIX + "yongdao1", "jump fall" }) });
+	/* 甬道 ↔ 石壁：靠 zuan hole */
+	if (path == PREFIX + "yongdao2")
+		out += ({ ({ PREFIX + "shibi", "zuan hole" }) });
+	if (path == PREFIX + "shibi")
+		out += ({ ({ PREFIX + "yongdao2", "zuan hole" }) });
 
 	return out;
 }

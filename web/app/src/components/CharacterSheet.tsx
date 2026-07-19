@@ -44,6 +44,8 @@ function attrTone(a?: ScoreAttr): "up" | "down" | "same" {
   return "same";
 }
 
+const WIMPY_PRESETS = [40, 50, 60, 70] as const;
+
 function ScorePanel({ score, fallbackHtml, fallbackText }: {
   score?: ScoreInfo;
   fallbackHtml?: string;
@@ -174,6 +176,26 @@ function ScorePanel({ score, fallbackHtml, fallbackText }: {
         )}
       </div>
       <p className="attr-legend">当前含装备与临时加成；气血详见上一页。</p>
+    </div>
+  );
+}
+
+function WimpyBlock({ onCmd }: { onCmd: (cmd: string) => void }) {
+  return (
+    <div className="wimpy-block">
+      <p className="skill-hint">遇险撤退：气血过低时自动逃离战斗。新手宜偏高。</p>
+      <div className="skill-act-chips">
+        {WIMPY_PRESETS.map((n) => (
+          <button
+            key={n}
+            type="button"
+            className="skill-act chip"
+            onClick={() => onCmd(`set wimpy ${n}`)}
+          >
+            {n}%
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -356,7 +378,7 @@ function BagPanel({
       {items.map((it) => {
         const key = `${it.id}-${it.name}`;
         const open = openKey === key;
-        const actions = bagItemActions(it);
+        const actions = bagItemActions(it, items);
         const kindLabel =
           it.equipKind === "weapon"
             ? "武器"
@@ -493,6 +515,7 @@ export function CharacterSheet({ state, tab, onTab, onClose, onCmd }: Props) {
               fallbackHtml={state.scoreHtml}
               fallbackText={state.scoreText}
             />
+            <WimpyBlock onCmd={onCmd} />
           </div>
           <div className={`panel ${tab === 3 ? "on" : ""}`}>
             <SkillsPanel state={state} onCmd={onCmd} />

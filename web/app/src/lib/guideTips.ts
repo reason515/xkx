@@ -168,7 +168,28 @@ const RULES: Rule[] = [
     priority: 95,
     text: "这里可以休息恢复。养好伤、睡一觉后再继续探索。",
     match: (ctx) =>
-      isXiakedao(ctx) && /休息室|养心居/.test(titleOf(ctx)),
+      isXiakedao(ctx) && /休息室/.test(titleOf(ctx)),
+  },
+  {
+    id: "yangxin-coconut",
+    priority: 96,
+    text: "养心居的医者爱吃椰子。若有椰子，点开医者选「给予」便可请他疗伤。",
+    match: (ctx) =>
+      isXiakedao(ctx) &&
+      /养心居/.test(titleOf(ctx)) &&
+      hasNpc(ctx.npcs, /doctor|yizhe|医者/i),
+  },
+  {
+    id: "wanghai-fish",
+    priority: 97,
+    text: "亭旁大石后藏有钓竿。先搬开大石，再点「垂钓」可练招架。",
+    match: (ctx) => isXiakedao(ctx) && /望海亭/.test(titleOf(ctx)),
+  },
+  {
+    id: "shanding-fruit",
+    priority: 98,
+    text: "山顶大树可爬上去摘野果补精力。场景下方有「爬上树」。",
+    match: (ctx) => isXiakedao(ctx) && /山顶/.test(titleOf(ctx)),
   },
 ];
 

@@ -11,6 +11,7 @@ interface Props {
 
 const MODES: { id: SpeechMode; label: string; hint: string }[] = [
   { id: "say", label: "公开", hint: "同一地点的人都能听见" },
+  { id: "chat", label: "闲聊", hint: "全侠客行都能听见的公共闲聊" },
   { id: "whisper", label: "耳语", hint: "只让身边指定的人听见" },
   { id: "tell", label: "传音", hint: "向在线玩家私下传音" },
   { id: "reply", label: "回复", hint: "回复最近向你传音的人" },

@@ -32,8 +32,8 @@ string* weapons = ({
 
 void create()
 {
-	set_name("仆人", ({ "pu ren", "pu"}));
-	set("long", "他\n");
+	set_name("黄衣仆人", ({ "pu ren", "pu", "puren"}));
+	set("long", "一位身着黄衣的仆人，正在兵器房清点整理各式兵刃。\n");
 	set("gender", "男性");
 	set("age", 40);
 	set("attitude", "peaceful");
@@ -66,6 +66,8 @@ void create()
 	
 	set("inquiry", ([
 			"武器"   :  (: ask_weapon :),
+			"兵器"   :  (: ask_weapon :),
+			"器械"   :  (: ask_weapon :),
 			"防具"   :  (: ask_armor :),
 			"中原"   : 	(: ask_leave :),
 			"岛主"   : 	"岛主好象在後山\n",
@@ -91,15 +93,13 @@ void init()
 
 void greeting(object me)
 {	
-	say("仆人微微一笑说道：这位" + 
-			RANK_D->query_respect(me) + "走山路或野路时要小心野兽，老虎和毒蛇见人就咬的。\n");
-	say("仆人说道：你身上可有当武器的东西? 刀，剑，石块或树枝都可以用来加强你的攻击力。\n");
-	say("仆人说道：如果有你可以用来装备自己(wield item)。如果没有你可以去买(buy item)。\n");
-	say("仆人说道：我这里正好有几件，你要的话就告诉我(ask pu about 武器)。\n");
-	say("仆人说道：还有你可以找些东西来穿，狗皮，牛皮，皮背心，或铁甲等等。\n");
-	say("仆人说道：这些都可以增加你的防御能力。有就快穿上吧(wear item)。\n");
-	say("仆人说道：我这好象也还有一两件，要就问我要吧(ask pu about 防具)。\n");
-
+	if (!objectp(me) || !interactive(me)) return;
+	if (me->query_temp("xkd_puren_greet")) return;
+	me->set_temp("xkd_puren_greet", 1);
+	command("say 这位" + RANK_D->query_respect(me) +
+		"，架上兵刃可随意取用，拿起地上的即可。");
+	command("say 若地上没有合用的，告诉我便是" +
+		"(ask pu about 武器)。");
 }
 int ask_leave()
 {	

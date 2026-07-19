@@ -413,7 +413,7 @@ export function EntitySheet({
 
               <details className="entity-danger">
                 <summary>交手</summary>
-                <p>切磋点到为止；攻击会进入生死战。</p>
+                <p>切磋点到为止；攻击会进入生死战。缠斗中可先停手再撤离。</p>
                 <div className="entity-action-grid">
                   <button
                     type="button"
@@ -427,6 +427,9 @@ export function EntitySheet({
                     onClick={() => runNpcAction(`kill ${askTarget}`)}
                   >
                     攻击
+                  </button>
+                  <button type="button" onClick={() => runNpcAction("halt")}>
+                    停手
                   </button>
                 </div>
               </details>

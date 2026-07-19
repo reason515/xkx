@@ -382,6 +382,11 @@ const ACTION_VERBS: Record<string, string> = {
   lingwu: "领悟",
   hit: "击打",
   pa: "爬",
+  zhai: "摘",
+  za: "砸开",
+  halt: "停手",
+  zuan: "钻",
+  leave: "离开",
 };
 
 /** Common skill ids → Chinese when prose does not supply a name. */
@@ -480,7 +485,14 @@ const TARGET_REQUIRED_VERBS = new Set([
   "du",
   "lingwu",
   "pa",
+  "zuan",
 ]);
+
+/**
+ * Verbs that often appear bare in long text (`钻(zuan)进石缝`) but also bind
+ * to a nearby scenery id when one exists (`洞(hole)…钻(zuan)` → zuan hole).
+ */
+const OPTIONAL_TARGET_VERBS = new Set(["zuan", "leave", "swim", "serve"]);
 
 function displayNameForTarget(target: string, npcs: Entity[] = []): string {
   const key = target.toLowerCase();
@@ -517,6 +529,27 @@ export function labelSuggestedAction(
     if (/^tree$/i.test(parts[1])) return "爬树取雨衣";
     return `爬${parts.slice(1).join(" ")}`;
   }
+  if (verb === "pa" && parts[1]) {
+    const where = parts.slice(1).join(" ");
+    if (/^tree$/i.test(where) || where === "树") return "爬树摘椰子";
+    if (/^up$/i.test(where)) return "爬上树";
+    if (/^down$/i.test(where)) return "爬下树";
+    return `爬${where}`;
+  }
+  if (verb === "zhai" && parts[1]) {
+    if (/^guo$/i.test(parts[1]) || parts[1] === "果") return "摘野果";
+    return `摘${parts.slice(1).join(" ")}`;
+  }
+  if (verb === "za" && parts[1]) {
+    if (/^yezi$|^ye$/i.test(parts[1]) || parts[1] === "椰子") return "砸开椰子";
+    return `砸开${parts.slice(1).join(" ")}`;
+  }
+  if (verb === "move" && parts[1]) {
+    if (/^stone$/i.test(parts[1]) || parts[1] === "石") return "搬开大石";
+    return `搬动${parts.slice(1).join(" ")}`;
+  }
+  if (verb === "halt") return "停手";
+  if (verb === "fishing") return "垂钓";
   if ((verb === "study" || verb === "lingwu") && parts[1]) {
     const what = parts.slice(1).join(" ");
     if (/^wall$/i.test(what)) return "领悟石壁";
@@ -535,7 +568,13 @@ export function labelSuggestedAction(
   if (verb === "jump" && parts[1]) {
     const where = parts.slice(1).join(" ");
     if (/^fall$/i.test(where)) return "跳进瀑布";
+    if (/^down$/i.test(where)) return "跳下去";
     return `跳向${where}`;
+  }
+  if (verb === "zuan" && parts[1]) {
+    const what = parts.slice(1).join(" ");
+    if (/^hole$/i.test(what)) return "钻洞";
+    return `钻${displayNameForTarget(what, npcs)}`;
   }
   if (verb === "wear" && parts[1]) {
     const what = parts.slice(1).join(" ");
@@ -614,7 +653,14 @@ function normalizeActionCommand(raw: string): string | null {
   if (!verb || !/^[a-z][a-z0-9_\-]*$/.test(verb)) return null;
   if (SKIP_ACTION_VERBS.has(verb)) return null;
   if (!ACTION_VERBS[verb]) return null;
-  if (TARGET_REQUIRED_VERBS.has(verb) && parts.length === 1) return null;
+  // Bare (get)/(move) tutorial noise is skipped; optional-target verbs like
+  // zuan may appear without an object (`钻(zuan)进石缝`).
+  if (
+    TARGET_REQUIRED_VERBS.has(verb) &&
+    parts.length === 1 &&
+    !OPTIONAL_TARGET_VERBS.has(verb)
+  )
+    return null;
   // learn|xue <teacher> <skill> [times]
   if (verb === "learn" || verb === "xue") {
     if (parts.length < 3) return null;
@@ -935,9 +981,19 @@ export function parseSuggestedActions(
         verb !== "get" &&
         TARGET_REQUIRED_VERBS.has(verb)
       ) {
+        const hintAt = m.index || 0;
+        const after = text.slice(hintAt + m[0].length, hintAt + m[0].length + 6);
+        // Directional prose: 跳(jump)下去 / 爬(climb)上去 — not scenery targets
+        if (verb === "jump" && /^下去/.test(after)) {
+          consider("jump down", "跳下去");
+          continue;
+        }
+        if (verb === "jump" && /^下来/.test(after)) {
+          consider("jump down", "跳下来");
+          continue;
+        }
         // item_desc often says「大石…移开(move)」. Prefer the server's
         // current item marker; fall back to the nearest preceding id mention.
-        const hintAt = m.index || 0;
         const fullBefore = text.slice(0, hintAt);
         const before = text.slice(Math.max(0, hintAt - 180), hintAt);
         const markers = [
@@ -961,6 +1017,9 @@ export function parseSuggestedActions(
             `${verb} ${sceneryId}`,
             `${ACTION_VERBS[verb]}${scenery.name || sceneryId}`
           );
+        } else if (OPTIONAL_TARGET_VERBS.has(verb)) {
+          // 钻(zuan)进石缝 — no hole id nearby; bare verb is valid
+          consider(part);
         }
         continue;
       }
@@ -1195,6 +1254,128 @@ export function waterfallPassageActions(
   ];
 }
 
+/** 沙滩/海边椰子树：LPC `pa tree` / `climb tree` 摘椰子（兼练轻功）。 */
+export function isCoconutTree(id: string, name: string): boolean {
+  const idL = (id || "").toLowerCase();
+  if (/yezi\s*tree|^tree$/i.test(idL) && /椰子/.test(name || "")) return true;
+  return /椰子树/.test(name || "");
+}
+
+/** 行囊是否有砸椰子用的石块（shikuai）。 */
+export function inventoryHasStone(items: InvItem[] = []): boolean {
+  return items.some(
+    (it) =>
+      !it.embedded &&
+      (/shikuai|shi\s*kuai|^stone$/i.test(it.id || "") || /石块|石头/.test(it.name || ""))
+  );
+}
+
+/** 行囊是否有钓竿。 */
+export function inventoryHasFishingPole(items: InvItem[] = []): boolean {
+  return items.some(
+    (it) =>
+      !it.embedded &&
+      (/fishing\s*pole|^pole$/i.test(it.id || "") || /钓竿|鱼杆|鱼竿/.test(it.name || ""))
+  );
+}
+
+/**
+ * 房间内椰子树 →「爬树摘椰子」。
+ * 树为 no_get 物品，不能靠 get；与瀑布 climb tree（取雨衣）指令不同，用 pa tree。
+ */
+export function coconutTreeActions(room: {
+  items?: Entity[];
+}): SuggestedAction[] {
+  if (!(room.items || []).some((it) => isCoconutTree(it.id, it.name))) return [];
+  return [{ command: "pa tree", label: "爬树摘椰子" }];
+}
+
+/**
+ * 山顶爬树摘果：山顶 `pa up`，树上 `zhai guo` / `pa down`。
+ */
+export function mountainFruitActions(
+  roomTitle: string | undefined
+): SuggestedAction[] {
+  if (!roomTitle) return [];
+  if (/山顶/.test(roomTitle)) {
+    return [{ command: "pa up", label: "爬上树" }];
+  }
+  if (/^树上$|树上/.test(roomTitle) && !/椰子/.test(roomTitle)) {
+    return [
+      { command: "zhai guo", label: "摘野果" },
+      { command: "pa down", label: "爬下树" },
+    ];
+  }
+  return [];
+}
+
+/**
+ * 望海亭钓鱼：搬石得竿 + 有竿时垂钓。
+ * item_desc 虽有 (move)，环顾偶发漏芯片，故按房间标题补齐。
+ */
+export function fishingSpotActions(
+  room: { title?: string },
+  inventory: InvItem[] = []
+): SuggestedAction[] {
+  if (!/望海亭/.test(room.title || "")) return [];
+  const out: SuggestedAction[] = [
+    { command: "move stone", label: "搬开大石" },
+  ];
+  if (inventoryHasFishingPole(inventory)) {
+    out.push({ command: "fishing", label: "垂钓" });
+  }
+  return out;
+}
+
+/**
+ * 兵器房：描写写「随意取用」但无括号动作；把地上兵器做成「拿起…」场景 chip。
+ * 若有黄衣仆人，再补「问仆人要武器」。
+ */
+export function weaponRoomActions(room: {
+  title?: string;
+  items?: Entity[];
+  npcs?: Entity[];
+}): SuggestedAction[] {
+  if (!room.title || !/兵器房|武器库|兵器库/.test(room.title)) return [];
+  const out: SuggestedAction[] = [];
+  const seen = new Set<string>();
+  for (const it of room.items || []) {
+    if (it.scenery) continue;
+    const kind = classifyInvEquip(it.id, it.name);
+    if (kind !== "weapon" && !/刀|剑|枪|棍|棒|杖|鞭|锤|斧|匕|针|铲|锄/.test(it.name))
+      continue;
+    const target = invCommandTarget(it.id, it.name);
+    if (!target) continue;
+    const command = `get ${target}`;
+    if (seen.has(command)) continue;
+    seen.add(command);
+    out.push({ command, label: `拿起${it.name}` });
+  }
+  const servant = (room.npcs || []).find(
+    (n) =>
+      /pu ren|^pu$|puren|da han|^han$/i.test(n.id || "") ||
+      /仆人|大汉/.test(n.name || "")
+  );
+  if (servant) {
+    // Prefer server commandId (e.g. pu); avoid mudCommandTarget「pu ren」→ ren
+    const who =
+      (servant.commandId && /^[a-z][\w]*$/i.test(servant.commandId)
+        ? servant.commandId
+        : ""
+      ) ||
+      (/^pu\b/i.test(servant.id || "")
+        ? "pu"
+        : /^da han$/i.test(servant.id || "")
+          ? "han"
+          : mudCommandTarget(servant.id, servant.name));
+    out.push({
+      command: `ask ${who} about 武器`,
+      label: "问仆人要武器",
+    });
+  }
+  return out;
+}
+
 /** Shut doors from room.update → scene「打开石门」chips. */
 export function closedDoorActions(
   doors: { dir: string; name?: string; status?: string }[] | undefined
@@ -1296,9 +1477,13 @@ export function roomUtilityActions(room: {
   return [{ command: "sleep", label: "睡觉" }];
 }
 
+/** Prose glue mistaken for scenery labels, e.g. 「好象可以钻(zuan)」. */
+const SCENERY_NAME_NOISE =
+  /可以|好象|似乎|只有|试试|不妨|想要|忍不住|不知|能不能/;
+
 /**
  * Scenery in room long / item_desc hints: 小条子(tiaozi) → lookable item chip.
- * Skips known action verbs like sleep / enter.
+ * Skips known action verbs like sleep / enter / zuan.
  */
 export function parseSceneryFromDesc(desc: string): Entity[] {
   if (!desc) return [];
@@ -1308,14 +1493,17 @@ export function parseSceneryFromDesc(desc: string): Entity[] {
     // Strip prose glue / classifiers: 「是一道瀑布」→「瀑布」, 「旁的大石」→「大石」
     const name =
       nameRaw
-        .replace(/^(?:不时|时|这里|那里|水中|空中)?有/, "")
+        .replace(/^(?:不时|时|这里|那里|水中|空中|左边|右边|西边|东边)?有/, "")
         .replace(/^[是在于]/, "")
         .replace(
-          /^[一两二三四五六七八九十几數数]+[张条个块面扇座间片本封只株棵道]/,
+          /^[一两二三四五六七八九十几數数]*[张条个块面扇座间片本封只株棵道]/,
           ""
         )
         .replace(/^.*的(?=[\u4e00-\u9fff]{1,6}$)/, "") || nameRaw;
     if (!name || ACTION_VERBS[id] || SKIP_ACTION_VERBS.has(id) || DIR_MAP[id])
+      return;
+    // 「好象可以钻」「就只有钻」是动作提示，不是可查看物品
+    if (SCENERY_NAME_NOISE.test(name) || SCENERY_NAME_NOISE.test(nameRaw))
       return;
     // Skill prose also uses 中文(skill); room ids such as stone/tree/fish must stay.
     if (SKILL_LABELS[id] || found.has(id)) return;
@@ -1323,13 +1511,13 @@ export function parseSceneryFromDesc(desc: string): Entity[] {
   };
   // …一张小条子(tiaozi) — number + measure required so「迎面」的「面」不会误吞
   for (const m of desc.matchAll(
-    /[一两二三四五六七八九十几數数]+[张条个块面扇座间片本封只株棵道]([\u4e00-\u9fff]{2,6})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
+    /[一两二三四五六七八九十几數数]+[张条个块面扇座间片本封只株棵道]([\u4e00-\u9fff]{1,6})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
   )) {
     addScenery(m[2], m[1]);
   }
-  // 告示牌(board) / 石碑(stele) / 瀑布(fall) without measure word
+  // 洞(hole) / 告示牌(board) / 瀑布(fall) — 1–4 字（含单字场景）
   for (const m of desc.matchAll(
-    /([\u4e00-\u9fff]{2,4})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
+    /([\u4e00-\u9fff]{1,4})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
   )) {
     addScenery(m[2], m[1]);
   }
@@ -1874,7 +2062,10 @@ export function applyEquipOptimistic(
  * Bag item menu: 看 + 穿戴/装备/吃/喝 + 丢下.
  * Embedded items cannot be operated directly.
  */
-export function bagItemActions(it: InvItem): { label: string; command: string }[] {
+export function bagItemActions(
+  it: InvItem,
+  inventory: InvItem[] = []
+): { label: string; command: string }[] {
   const target = invCommandTarget(it.id, it.name);
   if (it.embedded || !target) return [];
   const kind = it.equipKind || classifyInvEquip(it.id, it.name, it.type);
@@ -1900,6 +2091,14 @@ export function bagItemActions(it: InvItem): { label: string; command: string }[
     acts.push({ label: "吃", command: `eat ${target}` });
   }
   if (kind === "drink") acts.push({ label: "喝", command: `drink ${target}` });
+  // 椰子需石块砸开（za yezi），不能直接吃
+  if (
+    (/^yezi$|^ye$/i.test(it.id) || /椰子/.test(it.name)) &&
+    !/壳/.test(it.name) &&
+    inventoryHasStone(inventory)
+  ) {
+    acts.push({ label: "砸开", command: "za yezi" });
+  }
   acts.push({ label: "丢下", command: `drop ${target}` });
   return acts;
 }
@@ -1912,11 +2111,26 @@ export function groundItemActions(
 ): { label: string; command: string }[] {
   const target = invCommandTarget(id, name);
   if (!target) return [];
-  if (scenery) {
+  if (isCoconutTree(id, name)) {
     return [
+      { label: "查看", command: `look ${target}` },
+      { label: "爬树摘椰子", command: "pa tree" },
+    ];
+  }
+  if (scenery) {
+    const acts: { label: string; command: string }[] = [
       { label: "查看", command: `look ${target}` },
       ...sceneryPracticeActions(id, name),
     ];
+    // 山顶大树(tree)：描写无括号动作
+    if (/^tree$/i.test(id) || (/大树|高树/.test(name) && !/椰子/.test(name))) {
+      acts.push({ label: "爬上树", command: "pa up" });
+    }
+    // 望海亭大石(stone)；勿匹配「大石壁」
+    if (/^stone$/i.test(id) || name === "大石") {
+      acts.push({ label: "搬开大石", command: "move stone" });
+    }
+    return acts;
   }
   if (isCarriageItem(id, name)) {
     return [
@@ -1937,6 +2151,37 @@ export function groundItemActions(
   }
   if (kind === "drink") acts.push({ label: "喝", command: `drink ${target}` });
   return acts;
+}
+
+/**
+ * 帮助正文中的括号指令 → 可点动作（与场景芯片同一套 label）。
+ * 例：(study wall)、(sleep)、(fishing)
+ */
+export function parseHelpDocActions(
+  text: string,
+  limit = 16
+): SuggestedAction[] {
+  if (!text) return [];
+  const found = new Map<string, SuggestedAction>();
+  const re = /\(([^)]{2,48})\)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    for (const piece of splitCombinedHint(m[1])) {
+      const command = normalizeActionCommand(piece);
+      if (!command) continue;
+      const verb = command.split(/\s+/)[0]?.toLowerCase();
+      if (!verb || !ACTION_VERBS[verb]) continue;
+      if (verb === "help" || verb === "ask" || verb === "learn" || verb === "xue")
+        continue;
+      if (found.has(command)) continue;
+      found.set(command, {
+        command,
+        label: labelSuggestedAction(command),
+      });
+      if (found.size >= limit) return [...found.values()];
+    }
+  }
+  return [...found.values()];
 }
 
 function invItem(
@@ -2112,8 +2357,20 @@ export function isSheetDumpLine(line: string, chunk?: string): boolean {
     )
   )
     return true;
-  // equipped inventory / look-me gear: □布衣(Cloth)
-  if (/^[□√]\s*.+\([A-Za-z][A-Za-z0-9_\- ]*\)\s*$/.test(t)) return true;
+  // equipped gear: □白袍(Bai pao) — 仅在自己仪容/行囊/面板块里挡；
+  // NPC look 的装备常随 TCP 拆到下一包（包内没有「她身上带著」），默认放行进见闻。
+  if (/^[□√]\s*.+\([A-Za-z][A-Za-z0-9_\- ]*\)\s*$/.test(t)) {
+    if (!chunk) return true;
+    if (
+      /你身上带[着著]|身上带[着著]下列|负重\s*\d+\s*%|目前你身上没有任何东西|身上没有携带任何东西/.test(
+        chunk
+      ) ||
+      isSheetDumpChunk(chunk)
+    ) {
+      return true;
+    }
+    return false;
+  }
   // unequipped inventory shorts only when this chunk is clearly an inventory dump
   // (avoid swallowing room look NPC lines like "  渔夫(Fu)")
   if (
@@ -2126,12 +2383,14 @@ export function isSheetDumpLine(line: string, chunk?: string): boolean {
   )
     return true;
   // score / skills chunk extras (rank without 【 already handled; leftover shorts)
+  // 勿用裸「身上带」——会误伤 NPC look「他身上带著：」后的装备行
   if (
     chunk &&
     isSheetDumpChunk(chunk) &&
     /^.{1,60}\([A-Za-z][A-Za-z0-9_\- ]*\)\s*$/.test(t) &&
     !/说道|问道|喊道|向.+打听/.test(t) &&
-    (/【/.test(chunk) || /膂力|所学过的技能|负重|身上带/.test(chunk))
+    (/【/.test(chunk) ||
+      /膂力|所学过的技能|负重|身上带[着著]下列|你身上带[着著]/.test(chunk))
   )
     return true;
   return false;
@@ -2458,6 +2717,16 @@ export function reflowSoftWrappedEntries(
     }
   }
   return out;
+}
+
+/** Reflow help / doc prose that was hard-wrapped for an 80-col terminal. */
+export function reflowSoftWrappedText(text: string): string {
+  if (!text) return text;
+  return reflowSoftWrappedEntries(
+    text.split(/\r?\n/).map((line) => ({ text: line }))
+  )
+    .map((e) => e.text)
+    .join("\n");
 }
 
 export { PAD_SLOTS, DIR_MAP };

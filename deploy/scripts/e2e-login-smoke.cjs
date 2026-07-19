@@ -230,6 +230,7 @@ async function runNewbiePath() {
   let qiBeforeHurt = null;
   let vitalsCountBeforeHurt = 0;
   let grindStarted = false;
+  let grindStopSent = false;
   let grindStopped = false;
   let vitalsQiAfter = null;
 
@@ -337,10 +338,33 @@ async function runNewbiePath() {
 
         if (phase === "grind") {
           const msg = api.lastAssistMessage() || "";
-          if (!grindStarted && api.assistActive() && /挂机打怪/.test(msg)) {
+          if (!grindStarted && api.assistActive() && /挂机/.test(msg)) {
             grindStarted = true;
             clearTimeout(beachTimer);
             console.log("grind started", msg);
+            // 等进入交手/开战，再停；超时也停，避免卡死门禁
+            beachTimer = setTimeout(() => {
+              if (grindStopSent || grindStopped) return;
+              grindStopSent = true;
+              console.log("grind stop after engage wait");
+              api.sendCmd("webassist stop");
+              beachTimer = setTimeout(() => {
+                api.fail("grind_assist_not_stopped");
+              }, 8000);
+            }, 12000);
+            return;
+          }
+          if (
+            grindStarted &&
+            !grindStopSent &&
+            !grindStopped &&
+            api.assistActive() &&
+            /交手中|开战|寻找下一目标|等候刷新/.test(msg)
+          ) {
+            // 已进入战斗循环（含打死/打晕后寻下一目标），可停止
+            grindStopSent = true;
+            clearTimeout(beachTimer);
+            console.log("grind engaged", msg);
             api.sendCmd("webassist stop");
             beachTimer = setTimeout(() => {
               api.fail("grind_assist_not_stopped");

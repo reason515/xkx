@@ -157,7 +157,7 @@ export function LeftSidebar() {
             修炼
           </button>
           <button type="button" onClick={() => game.openSheet("combat")}>
-            战斗
+            挂机
           </button>
           <button type="button" onClick={() => game.onOpenCharacter()}>
             角色
@@ -203,7 +203,7 @@ export function LeftSidebar() {
                   setMenu(null);
                 }}
               >
-                动手
+                切磋
               </button>
               <button
                 type="button"

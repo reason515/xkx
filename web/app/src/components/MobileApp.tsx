@@ -7,6 +7,7 @@ import { MapSheet } from "./MapSheet";
 import { HelpSheet } from "./HelpSheet";
 import { TrainSheet } from "./TrainSheet";
 import { CombatSheet } from "./CombatSheet";
+import { GrindBanner } from "./GrindBanner";
 import { EntitySheet } from "./EntitySheet";
 import { SpeechSheet } from "./SpeechSheet";
 import { GuideTip } from "./GuideTip";
@@ -237,7 +238,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                     g.openSheet("combat");
                   }}
                 >
-                  动手
+                  挂机
                 </button>
                 <button
                   type="button"
@@ -280,6 +281,11 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             <section className="scene-panel" aria-label="场景">
               <h1 className="room-title">{state.room.title || "…"}</h1>
               <p className="room-desc">{state.room.desc || "环顾四周以了解所处之地。"}</p>
+              <GrindBanner
+                active={state.assistActive}
+                status={state.assistStatus}
+                onStop={g.stopAssist}
+              />
               {g.guideTip && (
                 <GuideTip text={g.guideTip.text} onDismiss={g.dismissGuideTip} />
               )}
@@ -418,6 +424,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           onClose={g.closeSheet}
           onPickTopic={g.onHelpTopic}
           onBackToTopics={g.onBackToHelpTopics}
+          onCmd={(command) => g.cmd(command)}
         />
       )}
       {state.sheet === "train" && (
@@ -433,24 +440,20 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
       )}
       {state.sheet === "combat" && (
         <CombatSheet
-          npcs={state.room.npcs}
-          combatLog={state.combatLog}
           onClose={g.closeSheet}
-          onCmd={g.cmd}
           assistActive={state.assistActive}
           assistStatus={state.assistStatus}
           showGrind={(state.room.area || "").toLowerCase() === "xiakedao"}
-          onStartAssist={(pct, action) =>
-            g.startAssist({ mode: "combat", lowHpPct: pct, lowHpAction: action })
-          }
-          onStartGrind={(grindTarget, pct) =>
+          onStartGrind={(grindTarget, pct) => {
             g.startAssist({
               mode: "grind",
               grindTarget,
               lowHpPct: pct,
-            })
-          }
+            });
+            g.closeSheet();
+          }}
           onStopAssist={g.stopAssist}
+          onHalt={g.halt}
         />
       )}
       {state.sheet === "speech" && (

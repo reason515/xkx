@@ -543,11 +543,48 @@ int grind_follow_path(object me, mapping cfg)
 	return sizeof(path) == 0;
 }
 
+/*
+ * kill 后目标昏迷时，玩家仍 is_killing，remove_enemy 不会清敌，
+ * is_fighting() 一直为真，挂机会卡在「交手中」。丢掉昏迷/不在场的仇敌，
+ * 以便 hunt 阶段找下一只活怪。
+ */
+void grind_drop_invalid_foes(object me)
+{
+	object *enemies, ob;
+	int i;
+
+	if (!objectp(me)) return;
+	enemies = me->query_enemy();
+	if (!arrayp(enemies) || !sizeof(enemies)) return;
+	enemies = enemies + ({});
+	for (i = 0; i < sizeof(enemies); i++) {
+		ob = enemies[i];
+		if (!objectp(ob)
+		 || !living(ob)
+		 || environment(ob) != environment(me))
+			me->remove_killer(ob);
+	}
+}
+
+/* 对已找到的活怪开战（避免 present(id) 先命中同名昏迷体） */
+void grind_engage(object me, object target)
+{
+	if (!objectp(me) || !objectp(target)) return;
+	if (!living(target) || environment(target) != environment(me)) return;
+	message_vision("\n$N对著$n喝道：「今日不是你死就是我活！」\n\n", me, target);
+	me->kill_ob(target);
+	if (!userp(target)) {
+		catch(call_other(target, "accept_kill", me));
+		if (!function_exists("is_grpfight", target) || !target->is_grpfight())
+			target->kill_ob(me);
+	}
+}
+
 void grind_tick(string id)
 {
 	object me, env, target, dadong;
 	mapping cfg, my;
-	string phase, target_key, home, dest, cmd_id;
+	string phase, target_key, home, dest;
 	int pct, max_qi, max_jing, eff_pct;
 	string *path;
 
@@ -584,12 +621,13 @@ void grind_tick(string id)
 
 	switch (phase) {
 	case "hunt":
+		grind_drop_invalid_foes(me);
 		if (me->is_fighting()) {
 			cfg["phase"] = "fight";
 			if (!stringp(cfg["home"]) || cfg["home"] == "")
 				cfg["home"] = PATHD->room_path(env);
 			sessions[id] = cfg;
-			WEBD->send_assist_status(me, 1, "挂机打怪 · 交手中");
+			WEBD->send_assist_status(me, 1, "挂机中 · 交手中");
 			call_out("grind_tick", 1, id);
 			return;
 		}
@@ -601,7 +639,7 @@ void grind_tick(string id)
 				stop_assist(me, "无法前往刷怪点");
 				return;
 			}
-			WEBD->send_assist_status(me, 1, "挂机打怪 · 前往刷怪点");
+			WEBD->send_assist_status(me, 1, "挂机中 · 前往刷怪点");
 			grind_follow_path(me, cfg);
 			sessions[id] = cfg;
 			call_out("grind_tick", 2, id);
@@ -611,26 +649,25 @@ void grind_tick(string id)
 		cfg["path"] = ({});
 		target = PATHD->find_grind_target(env, target_key);
 		if (objectp(target)) {
-			cmd_id = target->query("id") || "small haigui";
-			/* 优先单字 token，避免 multi-word kill 解析失败 */
-			if (target->id("gui")) cmd_id = "gui";
-			else if (target->id("haigui")) cmd_id = "haigui";
-			me->force_me("kill " + cmd_id);
+			grind_engage(me, target);
 			cfg["phase"] = "fight";
-			WEBD->send_assist_status(me, 1, "挂机打怪 · 开战");
+			WEBD->send_assist_status(me, 1, "挂机中 · 开战");
 			sessions[id] = cfg;
 			WEBD->notify_vitals(me);
 			call_out("grind_tick", 1, id);
 			return;
 		}
-		WEBD->send_assist_status(me, 1, "挂机打怪 · 等候刷新");
+		WEBD->send_assist_status(me, 1, "挂机中 · 等候刷新");
 		sessions[id] = cfg;
 		call_out("grind_tick", 3, id);
 		return;
 
 	case "fight":
+		/* 打晕/打死：清掉无效仇敌后立刻 hunt 下一只 */
+		grind_drop_invalid_foes(me);
 		if (!me->is_fighting()) {
 			cfg["phase"] = "hunt";
+			WEBD->send_assist_status(me, 1, "挂机中 · 寻找下一目标");
 			sessions[id] = cfg;
 			call_out("grind_tick", 1, id);
 			return;
@@ -641,13 +678,13 @@ void grind_tick(string id)
 				cfg["home"] = PATHD->room_path(env);
 			cfg["phase"] = "retreat";
 			cfg["path"] = ({});
-			WEBD->send_assist_status(me, 1, "挂机打怪 · 撤回休整");
+			WEBD->send_assist_status(me, 1, "挂机中 · 撤回休整");
 			sessions[id] = cfg;
 			WEBD->notify_vitals(me);
 			call_out("grind_tick", 1, id);
 			return;
 		}
-		me->force_me("hit");
+		/* 普攻由 heart_beat/COMBAT_D 推进；此处仅维持 vitals 推送 */
 		sessions[id] = cfg;
 		WEBD->notify_vitals(me);
 		call_out("grind_tick", 1, id);
@@ -677,7 +714,7 @@ void grind_tick(string id)
 			stop_assist(me, "无法撤回休整处");
 			return;
 		}
-		WEBD->send_assist_status(me, 1, "挂机打怪 · 撤回休整");
+		WEBD->send_assist_status(me, 1, "挂机中 · 撤回休整");
 		grind_follow_path(me, cfg);
 		sessions[id] = cfg;
 		call_out("grind_tick", 2, id);
@@ -695,7 +732,7 @@ void grind_tick(string id)
 			if (!present("laba zhou", me) && !present("zhou", me)) {
 				cfg["phase"] = "return";
 				cfg["path"] = ({});
-				WEBD->send_assist_status(me, 1, "挂机打怪 · 体力已恢复");
+				WEBD->send_assist_status(me, 1, "挂机中 · 体力已恢复");
 				sessions[id] = cfg;
 				WEBD->notify_vitals(me);
 				call_out("grind_tick", 2, id);
@@ -706,7 +743,7 @@ void grind_tick(string id)
 		if ((int)dadong->query("food_count") < 1) {
 			cfg["phase"] = "recover_sleep";
 			cfg["path"] = ({});
-			WEBD->send_assist_status(me, 1, "挂机打怪 · 粥已罄尽，改去休息");
+			WEBD->send_assist_status(me, 1, "挂机中 · 粥已罄尽，改去休息");
 			sessions[id] = cfg;
 			call_out("grind_tick", 1, id);
 			return;
@@ -716,7 +753,7 @@ void grind_tick(string id)
 			me->force_me("eat laba zhou");
 			cfg["phase"] = "return";
 			cfg["path"] = ({});
-			WEBD->send_assist_status(me, 1, "挂机打怪 · 喝粥恢复");
+			WEBD->send_assist_status(me, 1, "挂机中 · 喝粥恢复");
 			sessions[id] = cfg;
 			WEBD->notify_vitals(me);
 			call_out("grind_tick", 2, id);
@@ -725,7 +762,7 @@ void grind_tick(string id)
 		/* 要粥失败（喝光/已有地上碗等）→ 睡觉 */
 		cfg["phase"] = "recover_sleep";
 		cfg["path"] = ({});
-		WEBD->send_assist_status(me, 1, "挂机打怪 · 改去休息室");
+		WEBD->send_assist_status(me, 1, "挂机中 · 改去休息室");
 		sessions[id] = cfg;
 		call_out("grind_tick", 1, id);
 		return;
@@ -743,7 +780,7 @@ void grind_tick(string id)
 				stop_assist(me, "无法前往休息室");
 				return;
 			}
-			WEBD->send_assist_status(me, 1, "挂机打怪 · 前往休息室");
+			WEBD->send_assist_status(me, 1, "挂机中 · 前往休息室");
 			grind_follow_path(me, cfg);
 			sessions[id] = cfg;
 			call_out("grind_tick", 2, id);
@@ -753,7 +790,7 @@ void grind_tick(string id)
 		 && my["jing"] * 100 / max_jing >= GRIND_RESUME_PCT) {
 			cfg["phase"] = "return";
 			cfg["path"] = ({});
-			WEBD->send_assist_status(me, 1, "挂机打怪 · 睡醒回场");
+			WEBD->send_assist_status(me, 1, "挂机中 · 睡醒回场");
 			sessions[id] = cfg;
 			WEBD->notify_vitals(me);
 			call_out("grind_tick", 2, id);
@@ -761,7 +798,7 @@ void grind_tick(string id)
 		}
 		if (!me->is_busy())
 			me->force_me("sleep");
-		WEBD->send_assist_status(me, 1, "挂机打怪 · 休息室调息");
+		WEBD->send_assist_status(me, 1, "挂机中 · 休息室调息");
 		sessions[id] = cfg;
 		WEBD->notify_vitals(me);
 		call_out("grind_tick", 4, id);
@@ -794,7 +831,7 @@ void grind_tick(string id)
 				return;
 			}
 		}
-		WEBD->send_assist_status(me, 1, "挂机打怪 · 返回刷怪点");
+		WEBD->send_assist_status(me, 1, "挂机中 · 返回刷怪点");
 		grind_follow_path(me, cfg);
 		sessions[id] = cfg;
 		call_out("grind_tick", 2, id);
@@ -815,10 +852,12 @@ int start_grind(object me, string target_key, int low_hp)
 	if (!objectp(me)) return 0;
 	env = environment(me);
 	if (!objectp(env) || !PATHD->is_xiakedao(env)) {
-		WEBD->send_assist_status(me, 0, "仅可在侠客岛挂机打怪");
+		WEBD->send_assist_status(me, 0, "仅可在侠客岛挂机");
 		return 0;
 	}
-	if (target_key != "haigui_s") {
+	if (member_array(target_key, ({
+		"monkey", "haigui_s", "haigui", "haidao_w", "haidao_s", "haidao_o"
+	})) == -1) {
 		WEBD->send_assist_status(me, 0, "暂不支持该练级目标");
 		return 0;
 	}
@@ -845,7 +884,7 @@ int start_grind(object me, string target_key, int low_hp)
 	sessions[id] = cfg;
 	me->set_temp("web_assist", 1);
 	WEBD->mark_web_client(me);
-	WEBD->send_assist_status(me, 1, "挂机打怪进行中");
+	WEBD->send_assist_status(me, 1, "挂机中");
 	call_out("grind_tick", 1, id);
 	return 1;
 }

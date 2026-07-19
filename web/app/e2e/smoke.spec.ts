@@ -1334,28 +1334,27 @@ test.describe.serial("game smoke", () => {
       .toMatch(/已存档|档案储存完毕/);
   });
 
-  test("动手浮层在侠客岛显示岛上练级并可选小海龟", async ({ page }) => {
+  test("挂机浮层列出弱到强对手并在主界面显示挂机中", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
 
-    await pickTopMenuItem(page, "动手");
-    await expect(page.getByRole("heading", { name: "动手" })).toBeVisible();
-    await expect(page.getByText("岛上练级")).toBeVisible();
+    await pickTopMenuItem(page, "挂机");
+    await expect(page.getByRole("heading", { name: "挂机" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "小猴子" })).toBeVisible();
     await expect(page.getByRole("button", { name: "小海龟" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "开始挂机" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "老海盗" })).toBeVisible();
+    await page.getByRole("button", { name: "小海龟" }).click();
     await page.getByRole("button", { name: "开始挂机" }).click();
-    await expect
-      .poll(async () => {
-        const status = (
-          (await page.locator(".combat-assist").first().textContent()) || ""
-        ).trim();
-        const toast = ((await page.locator(".toast").textContent()) || "").trim();
-        return `${status}\n${toast}`;
-      }, { timeout: 15_000 })
-      .toMatch(/挂机打怪|进行中/);
-    await page.getByRole("button", { name: "停止挂机" }).click();
-    await expect(page.getByRole("button", { name: "开始挂机" })).toBeVisible({
+    await expect(page.getByRole("heading", { name: "挂机" })).toBeHidden({
+      timeout: 5_000,
+    });
+    await expect(page.getByTestId("grind-banner")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByTestId("grind-banner")).toContainText(/挂机/);
+    await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
+    await expect(page.getByTestId("grind-banner")).toBeHidden({
       timeout: 10_000,
     });
   });
@@ -1788,6 +1787,105 @@ test.describe.serial("game smoke", () => {
       .toMatch(/喝下|吃|粥/);
   });
 
+  test("甬道洞可查看可钻，不把钻动作提示当成物品", async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 60_000,
+    });
+
+    await sendSilentCmd(page, "xkxe2e yongdao2");
+    await expect(page.locator(".room-title")).toHaveText(/甬道/, {
+      timeout: 20_000,
+    });
+
+    const itemNames = (await page.locator(".chip.item").allTextContents()).map(
+      (n) => n.trim()
+    );
+    expect(itemNames.some((n) => /洞/.test(n))).toBe(true);
+    expect(itemNames.some((n) => /可以钻|象可以|乎可以|就只有钻/.test(n))).toBe(
+      false
+    );
+    await expect(
+      page.locator(".ctx-block").filter({ hasText: "动作" }).getByRole("button", {
+        name: /钻洞/,
+      })
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("兵器房可拿起地上兵器并有黄衣仆人", async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 60_000,
+    });
+
+    await sendSilentCmd(page, "xkxe2e bingqi");
+    await expect(page.locator(".room-title")).toHaveText(/兵器房/, {
+      timeout: 20_000,
+    });
+
+    await expect(page.locator(".chip.npc").filter({ hasText: /仆人/ })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect
+      .poll(async () => page.locator(".chip.item").count(), { timeout: 15_000 })
+      .toBeGreaterThan(0);
+    await expect(
+      page
+        .locator(".ctx-block")
+        .filter({ hasText: "动作" })
+        .getByRole("button", { name: /拿起/ })
+        .first()
+    ).toBeVisible({ timeout: 10_000 });
+  });
+
+  test("查看 NPC 时身上带著后的装备仍进见闻", async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 60_000,
+    });
+
+    // 甬道貂蝉穿着白衣；look 输出「她身上带著：\n  □…」
+    await sendSilentCmd(page, "xkxe2e yongdao2");
+    await expect(page.locator(".room-title")).toHaveText(/甬道/, {
+      timeout: 20_000,
+    });
+    await expect(page.locator(".chip.npc").filter({ hasText: /貂蝉/ })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await page.locator(".chip.npc").filter({ hasText: /貂蝉/ }).click();
+    await expect(page.getByRole("button", { name: "查看", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "查看", exact: true }).click();
+
+    await waitForLogPattern(page, /身上带[着著]/, 15_000);
+    await expect
+      .poll(
+        async () => {
+          const logs = (await page.locator(".log p").allTextContents()).join(
+            "\n"
+          );
+          return logs;
+        },
+        { timeout: 15_000 }
+      )
+      .toMatch(/身上带[着著]：[\s\S]*[□√].*\(/);
+  });
+
   test("大山洞打听岛主后场景出现甬道出口", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
@@ -2061,5 +2159,49 @@ test.describe.serial("game smoke", () => {
     const logs = (await page.locator(".log p").allTextContents()).join("\n");
     expect(logs).not.toMatch(/未完继续/);
     expect(logs).not.toMatch(/^\s*>\s*help\s+board/m);
+  });
+
+  test("帮助侠客岛主题有正文且括号动作可点", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await pickTopMenuItem(page, "帮助");
+    await expect(page.locator(".help-topic").filter({ hasText: "侠客岛地图" })).toBeVisible();
+    await page.locator(".help-topic").filter({ hasText: /^侠客岛$/ }).click();
+    await expect(page.locator(".sheet-top h3")).toHaveText("说明");
+    await expect
+      .poll(
+        async () => (await page.locator(".sheet .doc-body").textContent()) || "",
+        { timeout: 25_000 }
+      )
+      .toMatch(/侠客岛|study wall|离岛/);
+    await expect(page.locator(".help-doc-actions .chip.action").first()).toBeVisible({
+      timeout: 10_000,
+    });
+    await expect(
+      page.locator(".help-doc-actions .chip.action").filter({ hasText: /领悟|睡觉|垂钓|爬/ })
+    ).not.toHaveCount(0);
+  });
+
+  test("帮助正文合并终端软换行且行距紧凑", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await pickTopMenuItem(page, "帮助");
+    await page.locator(".help-topic").filter({ hasText: "新手指南" }).click();
+    await expect(page.locator(".sheet-top h3")).toHaveText("说明");
+    const body = page.locator(".sheet .doc-body.help-doc");
+    await expect
+      .poll(async () => (await body.textContent()) || "", { timeout: 25_000 })
+      .toMatch(/与世隔绝的什么小岛|新手指南|侠客行/);
+    const text = (await body.textContent()) || "";
+    expect(text).not.toMatch(/与世隔绝的\n什么小岛/);
+    const lineHeight = await body.evaluate((el) => getComputedStyle(el).lineHeight);
+    const fontSize = await body.evaluate((el) => getComputedStyle(el).fontSize);
+    expect(parseFloat(lineHeight) / parseFloat(fontSize)).toBeLessThan(1.55);
   });
 });

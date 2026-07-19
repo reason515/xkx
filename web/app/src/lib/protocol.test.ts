@@ -109,6 +109,27 @@ describe("applyEvent", () => {
     );
   });
 
+  it("does not treat 钻(zuan) prose as a room item on room.update", () => {
+    const next = applyEvent(
+      {
+        v: 1,
+        type: "room.update",
+        title: "甬道",
+        long: "西边有一个洞(hole)，好象可以钻(zuan)进去。",
+        exits: [],
+        items: [],
+        npcs: [],
+      },
+      basePrev()
+    );
+    expect(next.room.items).toEqual([
+      expect.objectContaining({ id: "hole", name: "洞", scenery: true }),
+    ]);
+    expect(next.room.items.every((i) => !/可以钻|象可以/.test(i.name))).toBe(
+      true
+    );
+  });
+
   it("replaces exits with empty array for no-exit rooms", () => {
     const prev = basePrev();
     const next = applyEvent(
