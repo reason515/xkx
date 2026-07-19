@@ -27,5 +27,5 @@ export const STUDY_SKILLS: StudySkill[] = [
   { id: "taixuan-gong", label: "太玄功", hint: "内功 · 石室" },
   { id: "liuxing-bu", label: "流星步", hint: "轻功 · 石室" },
   { id: "wugou-jianfa", label: "吴钩剑法", hint: "剑法 · 石室" },
-  { id: "wuyu-zhangfa", label: "无玉掌法", hint: "掌法 · 石室" },
+  { id: "wuyu-zhangfa", label: "五狱掌法", hint: "掌法 · 石室" },
 ];

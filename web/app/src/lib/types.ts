@@ -81,6 +81,10 @@ export interface SkillRow {
   /** MUD text like 初学乍练 / 深不可测. */
   masteryLabel?: string;
   equipped?: boolean;
+  /**
+   * 服务端 valid_enable 确认的可激发门类；有值时前端不再用 id 启发式猜测。
+   */
+  enableSlots?: string[];
 }
 
 /** One enable/jifa slot (内功/轻功/剑法…). */
@@ -203,6 +207,11 @@ export interface GameState {
   inventory: InvItem[];
   /** enable/jifa map: slot id → special skill. */
   enabled: Record<string, EnabledSkill>;
+  /**
+   * skill id → valid_enable slots from MUD `skills.enable` event.
+   * Survives skills-panel text reparse so CharacterSheet stays accurate.
+   */
+  skillEnableSlots: Record<string, string[]>;
   /** prepare/bei map: basic fist slot → special skill id. */
   prepared: Record<string, string>;
   /** 遇险撤退阈值（env/wimpy）；0/未同步视为未设置。 */

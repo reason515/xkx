@@ -5,10 +5,13 @@ import {
   DEFAULT_WIMPY_PCT,
   enableSlotLabel,
   findEnabledSlot,
+  FORCE_EXERT_ACTIONS,
+  formatVitalMeter,
+  hasLearnedForceSkill,
+  hasMappedForce,
   isBasicSkillId,
   isKnowledgeSkill,
-  suggestEnableSlots,
-  formatVitalMeter,
+  resolveEnableSlots,
   vitalCap,
 } from "../lib/parser";
 import type { GameState, InvItem, ScoreAttr, ScoreInfo, SkillRow } from "../lib/types";
@@ -183,6 +186,52 @@ function ScorePanel({ score, fallbackHtml, fallbackText }: {
   );
 }
 
+function ForceExertBlock({
+  state,
+  onCmd,
+}: {
+  state: GameState;
+  onCmd: (cmd: string) => void;
+}) {
+  const mapped = hasMappedForce(state.enabled);
+  const learned = hasLearnedForceSkill(state.skills);
+  if (!mapped && !learned) return null;
+
+  const forceName =
+    state.enabled.force?.name || state.enabled.force?.skill || "内功";
+
+  return (
+    <div className="force-exert" data-testid="force-exert">
+      <h4>运功</h4>
+      {mapped ? (
+        <>
+          <p className="skill-hint">
+            已激发{forceName}。可消耗内力调息恢复，或运转内息疗伤。
+          </p>
+          <div className="skill-act-chips">
+            {FORCE_EXERT_ACTIONS.map((act) => (
+              <button
+                key={act.id}
+                type="button"
+                className="skill-act chip"
+                title={act.hint}
+                data-testid={`force-exert-${act.id}`}
+                onClick={() => onCmd(act.command)}
+              >
+                {act.label}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : (
+        <p className="skill-hint">
+          学会内功后可运功回气、疗伤。请先到「武功」激发一门内功。
+        </p>
+      )}
+    </div>
+  );
+}
+
 function WimpyBlock({
   current,
   onSetWimpy,
@@ -294,7 +343,11 @@ function SkillsPanel({
         const open = openId === sk.id;
         const basic = isBasicSkillId(sk.id);
         const knowledge = isKnowledgeSkill(sk);
-        const slots = suggestEnableSlots(sk.id);
+        const slots = resolveEnableSlots(
+          sk.id,
+          state.skillEnableSlots,
+          sk.enableSlots
+        );
         const mappedSlot = findEnabledSlot(sk.id, state.enabled);
         const prepareSlot = canPrepareSkill(sk.id, state.enabled);
         const special = !basic && !knowledge;
@@ -370,6 +423,9 @@ function SkillsPanel({
                       ))}
                     </div>
                   </>
+                )}
+                {special && slots.length === 0 && !mappedSlot && (
+                  <p className="skill-hint">此武功暂无可激发门类。</p>
                 )}
               </div>
             )}
@@ -594,6 +650,7 @@ export function CharacterSheet({
                 {" · "}
                 潜能 <span style={{ color: "var(--stat-potential)" }}>{v.potential ?? "—"}</span>
               </p>
+              <ForceExertBlock state={state} onCmd={onCmd} />
             </div>
           </div>
           <div className={`panel ${tab === 2 ? "on" : ""}`}>

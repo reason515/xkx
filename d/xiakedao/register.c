@@ -41,9 +41,15 @@ int block_cmd()
 {
         string cmd;
         cmd = query_verb();
-        // webclient/hp：Web 端结构化房间/气血；follow 已无用但勿静默吞掉造成「只回显无响应」
-        if ( cmd == "quit" || cmd == "goto" || cmd == "suicide" || cmd == "register" || cmd == "tell" || cmd == "say" || cmd == "reply" || cmd == "look" || cmd == "webassist" || cmd == "webclient" || cmd == "hp" || cmd == "follow" )
+        // webclient/hp：Web 端结构化房间/气血；面板指令放行，避免静默无响应
+        if ( cmd == "quit" || cmd == "goto" || cmd == "suicide" || cmd == "register"
+          || cmd == "tell" || cmd == "say" || cmd == "reply" || cmd == "look"
+          || cmd == "webassist" || cmd == "webclient" || cmd == "hp" || cmd == "follow"
+          || cmd == "score" || cmd == "inventory" || cmd == "i"
+          || cmd == "skills" || cmd == "enable" || cmd == "prepare" || cmd == "wimpy"
+          || cmd == "help" || cmd == "xkxe2e" )
                 return 0;
+        write("请先在此办理挂名手续，或跟随迎宾弟子离开。\n");
         return 1;
 }
 

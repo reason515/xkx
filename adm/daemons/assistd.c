@@ -13,7 +13,6 @@
 #define MAX_STUDY_TICKS 3000
 #define GRIND_RESUME_PCT 80
 #define GRIND_WOUND_MIN_PCT 60
-#define DADONG_EXP_KICK 10000
 #define STUDY_MIN_JING 30
 #define FRUIT_MAX_EXP 250
 
@@ -36,6 +35,8 @@ void grind_set_spawn_path(mapping cfg, object me, string target_key);
 int grind_follow_path(object me, mapping cfg);
 int grind_jingli_too_low(object me);
 int grind_try_recover_jingli(object me);
+int grind_try_yun_recover(object me, int need_pct);
+int grind_dispose_zhou(object me);
 int grind_step_or_rest(object me, mapping cfg);
 string assist_unreachable_hint(object me, string dest);
 string grind_target_label(string target_key);
@@ -619,7 +620,8 @@ int start_combat(object me, int low_hp, string action)
 string grind_recover_dest(object me)
 {
 	if (!objectp(me)) return "/d/xiakedao/dadong";
-	if ((int)me->query("combat_exp") > DADONG_EXP_KICK)
+	/* 经验超过 250 后粥和野果均不可用，直接去休息室睡觉。 */
+	if ((int)me->query("combat_exp") > FRUIT_MAX_EXP)
 		return "/d/xiakedao/xiuxi";
 	return "/d/xiakedao/dadong";
 }
@@ -701,14 +703,69 @@ int grind_jingli_too_low(object me)
 	return jl < max / 10;
 }
 
+/* 大洞持粥 valid_leave 会拦出门；吃不下（太饱）时倒掉以免挂机空转 */
+int grind_dispose_zhou(object me)
+{
+	object zhou;
+
+	if (!objectp(me)) return 1;
+	zhou = present("laba zhou", me);
+	if (!objectp(zhou))
+		zhou = present("zhou", me);
+	if (!objectp(zhou)) return 1;
+
+	if ((int)me->query("food") >= (int)me->max_food_capacity() - 5)
+		me->set("food", (int)me->max_food_capacity() - 40);
+	me->force_me("eat laba zhou");
+
+	zhou = present("laba zhou", me);
+	if (!objectp(zhou))
+		zhou = present("zhou", me);
+	if (objectp(zhou)) {
+		destruct(zhou);
+		tell_object(me, "你把冷掉的腊八粥倒掉了，好继续赶路。\n");
+	}
+	return !present("laba zhou", me) && !present("zhou", me);
+}
+
+/*
+ * 已激发内功且有内力时运功回气（yun recover）。
+ * 1=气已高于 need_pct；0=未激发/内力不足/已贴受伤上限/仍低于阈值。
+ */
+int grind_try_yun_recover(object me, int need_pct)
+{
+	int max_qi, qi, eff_qi;
+	string force;
+
+	if (!objectp(me) || !living(me)) return 0;
+	max_qi = (int)me->query("max_qi");
+	if (max_qi < 1) max_qi = 1;
+	qi = (int)me->query("qi");
+	if (qi * 100 / max_qi > need_pct) return 1;
+
+	force = me->query_skill_mapped("force");
+	if (!stringp(force) || force == "") return 0;
+	if ((int)me->query("neili") < 20) return 0;
+
+	eff_qi = (int)me->query("eff_qi");
+	/* 当前气已贴受伤上限时 recover 无效，应撤回休整/疗伤 */
+	if (qi >= eff_qi - 2) return 0;
+	if (me->is_busy()) return 0;
+
+	me->force_me("yun recover");
+	qi = (int)me->query("qi");
+	return qi * 100 / max_qi > need_pct;
+}
+
 /* 赶路耗尽精力时：吃粥/果，或触发 heal_up 调息。1=已够走路，0=仍不足 */
 int grind_try_recover_jingli(object me)
 {
-	int max, need;
+	int max, need, cost;
 
 	if (!objectp(me) || !living(me)) return 0;
 	if (!grind_jingli_too_low(me)) return 1;
 
+	grind_dispose_zhou(me);
 	if (present("laba zhou", me) || present("zhou", me)) {
 		me->force_me("eat laba zhou");
 		if (!grind_jingli_too_low(me)) return 1;
@@ -723,10 +780,22 @@ int grind_try_recover_jingli(object me)
 	catch(me->heal_up());
 	if (!grind_jingli_too_low(me)) return 1;
 
-	/* 仍不足：至少抬到可走动阈值，避免人机都卡死在「精疲力尽」 */
+	/*
+	 * 切勿只抬到 max/10+1：go 过关后还会扣 env cost*2，
+	 * 下一间会立刻再精疲力尽，表现为「走到野林就卡住」。
+	 */
 	max = (int)me->query("max_jingli");
 	if (max < 1) return 1;
-	need = max / 10 + 1;
+	need = max * 60 / 100;
+	if (need < max / 10 + 20)
+		need = max / 10 + 20;
+	if (need > max) need = max;
+	if (objectp(environment(me))) {
+		cost = (int)environment(me)->query("cost") * 2;
+		if (need < cost + max / 10 + 5)
+			need = cost + max / 10 + 5;
+		if (need > max) need = max;
+	}
 	if ((int)me->query("jingli") < need)
 		me->set("jingli", need);
 	return !grind_jingli_too_low(me);
@@ -743,6 +812,12 @@ int grind_step_or_rest(object me, mapping cfg)
 		/* 打坐/吐纳中开挂机：先停手再赶路，否则会一直「无反应」 */
 		me->force_me("halt");
 		if (me->is_busy()) return -2;
+	}
+	/* 持粥卡在大洞：先处理再走，否则会无限「改道」 */
+	if (!grind_dispose_zhou(me)
+	 && PATHD->room_path(environment(me)) == "/d/xiakedao/dadong") {
+		WEBD->send_assist_status(me, 1, "挂机中 · 请先喝掉腊八粥再出门");
+		return -2;
 	}
 	/* 先补精力再走：否则 go 失败后手动出口也同样失灵 */
 	if (arrayp(cfg["path"]) && sizeof(cfg["path"]) && grind_jingli_too_low(me)) {
@@ -819,10 +894,11 @@ void grind_tick(string id)
 
 void do_grind_tick(string id)
 {
-	object me, env, target, dadong;
+	object me, env, target, dadong, foe;
+	object *enemies;
 	mapping cfg, my;
 	string phase, target_key, home, dest;
-	int pct, max_qi, max_jing, eff_pct;
+	int pct, max_qi, max_jing, eff_pct, ei, keep_fight;
 	string *path;
 
 	if (undefinedp(sessions[id])) return;
@@ -865,20 +941,71 @@ void do_grind_tick(string id)
 	case "hunt":
 		grind_drop_invalid_foes(me);
 		if (me->is_fighting()) {
-			if (pct <= cfg["low_hp"]) {
-				grind_begin_retreat(me, cfg);
+			/* 赶路途中误入战斗（如野林乌鸦）勿卡死在「交手中」，清掉非目标继续走 */
+			if (!PATHD->is_spawn_room(env, target_key)) {
+				keep_fight = 0;
+				enemies = me->query_enemy();
+				if (arrayp(enemies)) {
+					enemies = enemies + ({});
+					for (ei = 0; ei < sizeof(enemies); ei++) {
+						foe = enemies[ei];
+						if (objectp(foe)
+						 && living(foe)
+						 && environment(foe) == env
+						 && PATHD->grind_target_match(foe, target_key))
+							keep_fight = 1;
+						else if (objectp(foe))
+							me->remove_killer(foe);
+					}
+				}
+				if (!keep_fight && !me->is_fighting()) {
+					/* fall through to path walking */
+				} else 				if (keep_fight) {
+					if (pct <= cfg["low_hp"]) {
+						if (grind_try_yun_recover(me, cfg["low_hp"])) {
+							sessions[id] = cfg;
+							WEBD->send_assist_status(me, 1, "挂机中 · 运功回气");
+							WEBD->notify_vitals(me);
+							call_out("grind_tick", 1, id);
+							return;
+						}
+						grind_begin_retreat(me, cfg);
+						sessions[id] = cfg;
+						WEBD->notify_vitals(me);
+						call_out("grind_tick", 1, id);
+						return;
+					}
+					cfg["phase"] = "fight";
+					if (!stringp(cfg["home"]) || cfg["home"] == "")
+						cfg["home"] = PATHD->room_path(env);
+					sessions[id] = cfg;
+					WEBD->send_assist_status(me, 1, "挂机中 · 交手中");
+					call_out("grind_tick", 1, id);
+					return;
+				}
+			} else {
+				if (pct <= cfg["low_hp"]) {
+					if (grind_try_yun_recover(me, cfg["low_hp"])) {
+						sessions[id] = cfg;
+						WEBD->send_assist_status(me, 1, "挂机中 · 运功回气");
+						WEBD->notify_vitals(me);
+						call_out("grind_tick", 1, id);
+						return;
+					}
+					grind_begin_retreat(me, cfg);
+					sessions[id] = cfg;
+					WEBD->notify_vitals(me);
+					call_out("grind_tick", 1, id);
+					return;
+				}
+				cfg["phase"] = "fight";
+				if (!stringp(cfg["home"]) || cfg["home"] == "")
+					cfg["home"] = PATHD->room_path(env);
 				sessions[id] = cfg;
-				WEBD->notify_vitals(me);
+				WEBD->send_assist_status(me, 1, "挂机中 · 交手中");
 				call_out("grind_tick", 1, id);
 				return;
 			}
-			cfg["phase"] = "fight";
-			if (!stringp(cfg["home"]) || cfg["home"] == "")
-				cfg["home"] = PATHD->room_path(env);
-			sessions[id] = cfg;
-			WEBD->send_assist_status(me, 1, "挂机中 · 交手中");
-			call_out("grind_tick", 1, id);
-			return;
 		}
 		if (!PATHD->is_spawn_room(env, target_key)) {
 			path = cfg["path"];
@@ -978,6 +1105,13 @@ void do_grind_tick(string id)
 			return;
 		}
 		if (pct <= cfg["low_hp"]) {
+			if (grind_try_yun_recover(me, cfg["low_hp"])) {
+				sessions[id] = cfg;
+				WEBD->send_assist_status(me, 1, "挂机中 · 运功回气");
+				WEBD->notify_vitals(me);
+				call_out("grind_tick", 1, id);
+				return;
+			}
 			grind_begin_retreat(me, cfg);
 			sessions[id] = cfg;
 			WEBD->notify_vitals(me);
@@ -1376,13 +1510,18 @@ void study_tick(string id)
 			return;
 		}
 		if (check == 1) {
-			if ((int)me->query("combat_exp") > DADONG_EXP_KICK)
-				cfg["phase"] = "recover_fruit";
+			if ((int)me->query("combat_exp") > FRUIT_MAX_EXP)
+				cfg["phase"] = "recover_sleep";
 			else
 				cfg["phase"] = "recover_zhou";
 			cfg["path"] = ({});
 			sessions[id] = cfg;
-			WEBD->send_assist_status(me, 1, "挂机中 · 精神不足，去恢复");
+			WEBD->send_assist_status(
+				me, 1,
+				(int)me->query("combat_exp") > FRUIT_MAX_EXP
+					? "挂机中 · 精神不足，去休息室睡觉"
+					: "挂机中 · 精神不足，去恢复"
+			);
 			call_out("study_tick", 1, id);
 			return;
 		}
@@ -1396,10 +1535,11 @@ void study_tick(string id)
 
 	case "recover_zhou":
 		dest = "/d/xiakedao/dadong";
-		if ((int)me->query("combat_exp") > DADONG_EXP_KICK) {
-			cfg["phase"] = "recover_fruit";
+		if ((int)me->query("combat_exp") > FRUIT_MAX_EXP) {
+			cfg["phase"] = "recover_sleep";
 			cfg["path"] = ({});
 			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "挂机中 · 改去休息室睡觉");
 			call_out("study_tick", 1, id);
 			return;
 		}
@@ -1416,13 +1556,6 @@ void study_tick(string id)
 			}
 			WEBD->send_assist_status(me, 1, "挂机中 · 前往大洞取粥");
 			study_follow_path(me, cfg);
-			/* 高经验进洞被踢回沙滩 */
-			if (PATHD->room_path(environment(me)) != dest
-			 && PATHD->room_path(environment(me)) != PATHD->room_path(env)
-			 && (int)me->query("combat_exp") > DADONG_EXP_KICK) {
-				cfg["phase"] = "recover_fruit";
-				cfg["path"] = ({});
-			}
 			sessions[id] = cfg;
 			call_out("study_tick", 2, id);
 			return;
@@ -1472,7 +1605,11 @@ void study_tick(string id)
 
 	case "recover_fruit":
 		if ((int)me->query("combat_exp") > FRUIT_MAX_EXP) {
-			stop_assist(me, "挂机停止 · 无法恢复精神（粥不可用且不能吃野果）");
+			cfg["phase"] = "recover_sleep";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "挂机中 · 改去休息室睡觉");
+			call_out("study_tick", 1, id);
 			return;
 		}
 		/* 已在树上或身上有果 */
@@ -1526,6 +1663,37 @@ void study_tick(string id)
 		study_follow_path(me, cfg);
 		sessions[id] = cfg;
 		call_out("study_tick", 2, id);
+		return;
+
+	case "recover_sleep":
+		dest = "/d/xiakedao/xiuxi";
+		if (PATHD->room_path(env) != dest) {
+			if (!arrayp(cfg["path"]) || cfg["path_dest"] != dest)
+				study_set_path(cfg, me, dest);
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "挂机停止 · 无法前往休息室");
+				return;
+			}
+			WEBD->send_assist_status(me, 1, "挂机中 · 前往休息室睡觉");
+			study_follow_path(me, cfg);
+			sessions[id] = cfg;
+			call_out("study_tick", 2, id);
+			return;
+		}
+		if ((int)me->query("jing") >= STUDY_MIN_JING) {
+			cfg["phase"] = "go_wall";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "挂机中 · 睡醒返回石室");
+			WEBD->notify_vitals(me);
+			call_out("study_tick", 2, id);
+			return;
+		}
+		me->force_me("sleep");
+		WEBD->send_assist_status(me, 1, "挂机中 · 休息室睡觉恢复");
+		sessions[id] = cfg;
+		WEBD->notify_vitals(me);
+		call_out("study_tick", 4, id);
 		return;
 
 	default:

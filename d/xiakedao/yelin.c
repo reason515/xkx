@@ -15,8 +15,6 @@ LONG
 
     	set("exits", ([
 		       "northup": __DIR__"shanding",
-		       "east" : __DIR__"yelin",
-		       "west" : __DIR__"yelin",
 		       "south" : __DIR__"haidaowo",
 		       ]));
     	set("outdoors", "xiakedao");
@@ -26,5 +24,3 @@ LONG
 
     	setup();
 }
-
-

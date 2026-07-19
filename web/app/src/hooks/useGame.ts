@@ -42,6 +42,7 @@ import {
   waterfallPassageActions,
   parseLearnOfferActions,
   applyEquipOptimistic,
+  applySkillEnableSlots,
 } from "../lib/parser";
 import { createToastScheduler } from "../lib/toastScheduler";
 import {
@@ -83,6 +84,7 @@ const initialState = (): GameState => ({
   skills: [],
   inventory: [],
   enabled: {},
+  skillEnableSlots: {},
   prepared: {},
   wimpyPct: 0,
   combatLog: [],
@@ -421,6 +423,10 @@ export function useGame(opts?: UseGameOptions) {
       socket.current.cmd("hp");
       socket.current.cmd("score");
     }, 350);
+    // 可激发门类稍后拉取，勿挤在进游戏首包指令里拖慢走动
+    setTimeout(() => {
+      socket.current.cmd("webclient skills");
+    }, 1200);
   }, []);
 
   useEffect(() => {
@@ -761,7 +767,7 @@ export function useGame(opts?: UseGameOptions) {
             if (skills.length) {
               setState((s) => ({
                 ...s,
-                skills,
+                skills: applySkillEnableSlots(skills, s.skillEnableSlots),
                 enabled: reconcileEnableMap(s.enabled, skills),
               }));
             }
@@ -839,12 +845,14 @@ export function useGame(opts?: UseGameOptions) {
             );
             window.setTimeout(() => {
               cmd("skills", { silent: true });
+              cmd("webclient skills", { silent: true });
               cmd("enable", { silent: true });
             }, 200);
           } else if (/好吧，只用基本功夫/.test(chunk)) {
             showToast("已卸下特殊武功");
             window.setTimeout(() => {
               cmd("skills", { silent: true });
+              cmd("webclient skills", { silent: true });
               cmd("enable", { silent: true });
             }, 200);
           } else if (/完成技能准备/.test(chunk)) {
@@ -864,6 +872,12 @@ export function useGame(opts?: UseGameOptions) {
             showToast("你还不会这种武功");
           } else if (/尚未激发或目前不能准备/.test(chunk)) {
             showToast("请先激发该武功再准备");
+          } else if (/还不能自由走动|请先跟随张三或李四/.test(chunk)) {
+            showToast("请先跟随张三或李四离开落点");
+          } else if (/精疲力尽，动弹不得/.test(chunk)) {
+            showToast("精力不足，稍作调息后再走");
+          } else if (/上一个动作还没有完成|你正忙着/.test(chunk)) {
+            showToast("还在忙，稍后再试");
           }
 
           // 穿戴 / 装备武器反馈 → 刷新行囊与攻防（cmd 侧已乐观更新并预约刷新）
@@ -991,6 +1005,7 @@ export function useGame(opts?: UseGameOptions) {
     cmd("hp", { silent: true });
     cmd("score", { silent: true });
     cmd("skills", { silent: true });
+    cmd("webclient skills", { silent: true });
     cmd("enable", { silent: true });
     cmd("prepare", { silent: true });
     cmd("inventory", { silent: true });

@@ -933,6 +933,109 @@ test.describe.serial("game smoke", () => {
     }
   });
 
+  test("武功激发选项按 valid_enable 精准显示", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await sendSilentCmd(page, "xkxe2e grantskills");
+    await sendSilentCmd(page, "skills");
+    await sendSilentCmd(page, "webclient skills");
+
+    await page.locator(".hero-btn").click();
+    await page.getByRole("button", { name: "武功" }).click();
+    await expect
+      .poll(
+        async () =>
+          ((await page.locator(".panel.on").first().textContent()) || "").trim(),
+        { timeout: 20_000 }
+      )
+      .toMatch(/太玄功|五狱掌法/);
+
+    await page
+      .locator(".skill-row-btn")
+      .filter({ hasText: /太玄功/ })
+      .click();
+    const taixuanActs = page.locator(".skill-row.open .skill-actions");
+    await expect(taixuanActs).toBeVisible();
+    await expect(taixuanActs.getByRole("button", { name: "内功" })).toBeVisible();
+    await expect(taixuanActs.locator(".skill-act.chip")).toHaveCount(1);
+    await expect(taixuanActs).not.toContainText(/轻功|拳脚|招架|掌法/);
+
+    await page
+      .locator(".skill-row-btn")
+      .filter({ hasText: /五狱掌法/ })
+      .click();
+    const wuyuActs = page.locator(".skill-row.open .skill-actions");
+    await expect(wuyuActs).toBeVisible();
+    await expect(wuyuActs.getByRole("button", { name: "掌法" })).toBeVisible();
+    await expect(wuyuActs.getByRole("button", { name: "招架" })).toBeVisible();
+    await expect(wuyuActs.locator(".skill-act.chip")).toHaveCount(2);
+    await expect(wuyuActs).not.toContainText(/内功|轻功|拳脚/);
+  });
+
+  test("激发内功后气血栏出现运功回气入口", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await sendSilentCmd(page, "xkxe2e grantforce");
+    await sendSilentCmd(page, "xkxe2e lowqi");
+    await sendSilentCmd(page, "enable");
+    await sendSilentCmd(page, "hp");
+
+    await page.locator(".hero-btn").click();
+    await page.getByRole("button", { name: "气血" }).click();
+
+    const exert = page.getByTestId("force-exert");
+    await expect(exert).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("force-exert-recover")).toHaveText("回气");
+    await expect(page.getByTestId("force-exert-regenerate")).toHaveText("回精");
+    await expect(page.getByTestId("force-exert-refresh")).toHaveText("回精力");
+    await expect(page.getByTestId("force-exert-heal")).toHaveText("疗伤");
+    await expect(exert).not.toContainText(/yun|exert|recover/i);
+
+    await page.getByTestId("force-exert-recover").click();
+    await waitForLogPattern(page, /脸色看起来好多了|气力充沛|内力不够/, 20_000);
+  });
+
+  test("挂机气不足且已激发内功时先运功回气", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await sendSilentCmd(page, "xkxe2e grantforce");
+    await sendSilentCmd(page, "xkxe2e grindprep");
+    await sendSilentCmd(page, "enable");
+
+    await pickTopMenuItem(page, "挂机");
+    await page.locator(".grind-target").filter({ hasText: /小海龟/ }).click();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+    await expect(page.getByTestId("grind-banner")).toBeVisible({
+      timeout: 20_000,
+    });
+
+    await expect
+      .poll(
+        async () =>
+          ((await page.getByTestId("grind-banner").textContent()) || "").trim(),
+        { timeout: 45_000 }
+      )
+      .toMatch(/开战|交手中|寻找下一目标/);
+
+    await sendSilentCmd(page, "xkxe2e lowqi");
+    await expect
+      .poll(
+        async () =>
+          ((await page.getByTestId("grind-banner").textContent()) || "").trim(),
+        { timeout: 20_000 }
+      )
+      .toMatch(/运功回气|交手中|开战|寻找下一目标/);
+    await expect(page.getByTestId("grind-banner")).not.toContainText(/撤回休整/);
+
+    await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
+  });
+
   test("气血栏在受伤后显示先天上限", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -1639,6 +1742,31 @@ test.describe.serial("game smoke", () => {
     });
   });
 
+  test("落点沙滩被拦指令会提示跟随而非静默无响应", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 90_000,
+    });
+    // 故意不 follow：发 go 应有明确提示（旧版静默 return 1 → 像卡死）
+    await page.evaluate(() => {
+      (window as unknown as { __xkxCmd?: (c: string) => void }).__xkxCmd?.(
+        "go north"
+      );
+    });
+    await expect
+      .poll(
+        async () => {
+          const toast = ((await page.locator(".toast").textContent()) || "").trim();
+          const feed = (await page.locator(".log p").allTextContents()).join("\n");
+          return `${toast}\n${feed}`;
+        },
+        { timeout: 12_000 }
+      )
+      .toMatch(/跟随张三|跟随李四|还不能自由走动/);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/);
+  });
+
   test("落点沙滩启动石壁领悟会提示先跟随", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -1703,7 +1831,7 @@ test.describe.serial("game smoke", () => {
     await expect(page.getByRole("button", { name: "太玄功" })).toBeVisible();
     await expect(page.getByRole("button", { name: "流星步" })).toBeVisible();
     await expect(page.getByRole("button", { name: "吴钩剑法" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "无玉掌法" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "五狱掌法" })).toBeVisible();
     await page.getByRole("button", { name: "太玄功" }).click();
     await page.getByRole("button", { name: "开始挂机" }).click();
     await expect(page.getByRole("heading", { name: "挂机" })).toBeHidden({
@@ -1717,6 +1845,72 @@ test.describe.serial("game smoke", () => {
     await expect(page.getByTestId("grind-banner")).toBeHidden({
       timeout: 10_000,
     });
+  });
+
+  test("经验超过250后石壁领悟精神不足会直接去睡觉", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await sendSilentCmd(page, "xkxe2e studyrecoverprep");
+    await expect(page.locator(".room-title")).toHaveText(/石室/, {
+      timeout: 20_000,
+    });
+
+    await pickTopMenuItem(page, "挂机");
+    await page.getByRole("tab", { name: "石壁领悟" }).click();
+    await page.getByRole("button", { name: "太玄功" }).click();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+
+    await expect(page.getByTestId("grind-banner")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect
+      .poll(
+        async () => {
+          const room = ((await page.locator(".room-title").textContent()) || "").trim();
+          const status =
+            ((await page.getByTestId("grind-banner").textContent()) || "").trim();
+          return `${room}\n${status}`;
+        },
+        { timeout: 60_000 }
+      )
+      .toMatch(/休息室|睡觉/);
+    await expect(page.getByTestId("grind-banner")).not.toContainText(/腊八粥|野果/);
+
+    await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
+  });
+
+  test("大洞持粥后挂机小海盗能穿过野林到达海盗窝", async ({ page }) => {
+    test.setTimeout(150_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await sendSilentCmd(page, "xkxe2e dadong");
+    await expect(page.locator(".room-title")).toHaveText(/大山洞/, {
+      timeout: 20_000,
+    });
+    await askNpcViaEntitySheet(page, /厮仆/, "腊八粥");
+    await waitForLogPattern(page, /腊八粥|给你|端起/, 20_000);
+    // 故意不手动喝完：挂机须自行处理持粥挡门，并补足精力穿过野林
+    await pickTopMenuItem(page, "挂机");
+    await page.getByRole("tab", { name: "打怪" }).click();
+    await page.locator(".grind-target").filter({ hasText: /小海盗/ }).click();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+    await expect(page.getByTestId("grind-banner")).toBeVisible({
+      timeout: 10_000,
+    });
+
+    await expect
+      .poll(
+        async () => ((await page.locator(".room-title").textContent()) || "").trim(),
+        { timeout: 90_000 }
+      )
+      .toMatch(/海盗窝/);
+    await expect(page.getByTestId("grind-banner")).toBeVisible();
+    await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
   test("海盗窝挂受伤海盗会开战而非空等刷新", async ({ page }) => {

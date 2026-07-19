@@ -17,7 +17,7 @@ const WS_URL = process.env.XKX_E2E_WS || "ws://127.0.0.1:3001/ws";
 const MODE = process.env.XKX_E2E_MODE || "register";
 const SKIP_FOLLOW = process.env.XKX_E2E_SKIP_FOLLOW === "1";
 const TIMEOUT_MS = Number(
-  process.env.XKX_E2E_TIMEOUT_MS || (MODE === "register" ? 120000 : 45000)
+  process.env.XKX_E2E_TIMEOUT_MS || (MODE === "register" ? 180000 : 45000)
 );
 
 function randomId() {
@@ -312,6 +312,22 @@ async function runNewbiePath() {
             }
           }
           if (target) {
+            // 落点沙滩曾静默吞掉 go：先探测拦截提示，避免「操作两下没反应」假绿
+            if (phase === "beach") {
+              phase = "block_probe";
+              console.log("block_probe go north");
+              api.sendCmd("go north");
+              setTimeout(() => {
+                if (phase === "block_probe") {
+                  api.fail("landing_block_silent");
+                }
+              }, 5000);
+              return;
+            }
+            if (phase === "block_probe") {
+              if (!/请先跟随|还不能自由走动/.test(buf)) return;
+              console.log("block_probe ok");
+            }
             sentFollow = true;
             followTarget = target;
             phase = "follow";
@@ -420,16 +436,19 @@ async function runNewbiePath() {
             console.log("xkxe2e dadong");
             api.sendCmd("xkxe2e dadong");
             setTimeout(() => {
-              console.log("xkxe2e lowjingli");
-              api.sendCmd("xkxe2e lowjingli");
+              console.log("ask 腊八粥 + lowjingli");
+              api.sendCmd("ask si pu about 腊八粥");
               setTimeout(() => {
-                grindHaidaoSent = true;
-                console.log("webassist grind haidao_s 30");
-                api.sendCmd("webassist grind haidao_s 30");
-                beachTimer = setTimeout(() => {
-                  api.fail("grind_haidao_path_not_started");
-                }, 12000);
-              }, 800);
+                api.sendCmd("xkxe2e lowjingli");
+                setTimeout(() => {
+                  grindHaidaoSent = true;
+                  console.log("webassist grind haidao_s 30");
+                  api.sendCmd("webassist grind haidao_s 30");
+                  beachTimer = setTimeout(() => {
+                    api.fail("grind_haidao_path_not_started");
+                  }, 45000);
+                }, 800);
+              }, 1000);
             }, 1200);
           }
           return;
@@ -437,15 +456,27 @@ async function runNewbiePath() {
 
         if (phase === "grind_haidao") {
           const msg = api.lastAssistMessage() || "";
+          const title = api.lastRoomTitle() || "";
+          if (
+            grindHaidaoSent &&
+            !grindHaidaoStarted &&
+            /野林/.test(title)
+          ) {
+            if (!global.__smokeYelinAt) global.__smokeYelinAt = Date.now();
+            else if (Date.now() - global.__smokeYelinAt > 22000) {
+              api.fail("grind_haidao_stuck_yelin");
+              return;
+            }
+          }
           if (
             grindHaidaoSent &&
             !grindHaidaoStarted &&
             api.assistActive() &&
-            /前往|调息|挂机/.test(msg)
+            /海盗窝/.test(title)
           ) {
             grindHaidaoStarted = true;
             clearTimeout(beachTimer);
-            console.log("grind haidao path ok", msg);
+            console.log("grind haidao path ok", title, msg);
             grindHaidaoStopSent = true;
             api.sendCmd("webassist stop");
             beachTimer = setTimeout(() => {

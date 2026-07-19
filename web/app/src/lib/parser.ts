@@ -1885,7 +1885,6 @@ export function parseSkills(text: string): SkillRow[] {
 export const ENABLE_SLOTS: { id: string; label: string }[] = [
   { id: "force", label: "内功" },
   { id: "dodge", label: "轻功" },
-  { id: "parry", label: "招架" },
   { id: "unarmed", label: "拳脚" },
   { id: "strike", label: "掌法" },
   { id: "cuff", label: "拳法" },
@@ -1902,6 +1901,8 @@ export const ENABLE_SLOTS: { id: string; label: string }[] = [
   { id: "hammer", label: "锤法" },
   { id: "hook", label: "钩法" },
   { id: "pike", label: "枪法" },
+  // 招架放在攻击门类之后，避免「五狱掌法」等同时可激发时招架抢在掌法前面
+  { id: "parry", label: "招架" },
   { id: "magic", label: "法术" },
 ];
 
@@ -1956,7 +1957,7 @@ function idLooksKnowledge(id: string): boolean {
   );
 }
 
-/** Heuristic slots a special skill can likely enable into. */
+/** Heuristic slots a special skill can likely enable into (fallback only). */
 export function suggestEnableSlots(skillId: string): string[] {
   const id = skillId.toLowerCase();
   if (isBasicSkillId(id) || idLooksKnowledge(id)) return [];
@@ -1968,9 +1969,10 @@ export function suggestEnableSlots(skillId: string): string[] {
     }
   };
 
-  if (/force|shengong|xuangong|xinfa|qigong|neigong/.test(id)) add("force");
-  if (/dodge|shenfa|bu$|shenxing|xiaoyao|lingbo/.test(id)) add("dodge");
-  if (/jian|sword/.test(id)) add("sword", "parry");
+  if (/force|shengong|xuangong|xinfa|qigong|neigong|taixuan/.test(id))
+    add("force");
+  if (/dodge|shenfa|bu$|shenxing|xiaoyao|lingbo|liuxing/.test(id)) add("dodge");
+  if (/jian|sword|wugou/.test(id)) add("sword", "parry");
   if (/(?:^|-)dao$|blade|daofa/.test(id)) add("blade", "parry");
   if (/(?:^|-)stick$|dagou-bang|bangfa/.test(id)) add("stick", "parry");
   if (/(?:^|-)staff$|gunzhang/.test(id)) add("staff", "parry");
@@ -1980,7 +1982,8 @@ export function suggestEnableSlots(skillId: string): string[] {
   if (/hook|goufa|(?:^|-)gou$/.test(id)) add("hook", "parry");
   if (/pike|qiang|spear/.test(id)) add("pike", "parry");
   if (/quan|cuff/.test(id)) add("cuff", "unarmed", "parry");
-  if (/strike|palm|(?:^|-)zhang$/.test(id)) add("strike", "unarmed", "parry");
+  if (/strike|palm|zhangfa|(?:^|-)zhang$/.test(id))
+    add("strike", "parry");
   if (/finger|zhi/.test(id)) add("finger", "parry");
   if (/hand|shou/.test(id) && !/shenfa|shengong/.test(id)) add("hand", "parry");
   if (/claw|zhua/.test(id)) add("claw", "parry");
@@ -1989,12 +1992,52 @@ export function suggestEnableSlots(skillId: string): string[] {
   if (/parry|zhaojia|zhao$/.test(id)) add("parry");
   if (/magic|spells|fashu/.test(id)) add("magic");
 
-  // Prefer a weapon/force/dodge primary; always allow 招架 as alternate if empty
-  if (!hits.length) add("parry", "force", "dodge", "unarmed");
-  else if (!hits.includes("parry") && !hits.includes("force") && !hits.includes("dodge"))
-    add("parry");
-
+  // 未知武功勿乱猜 4 个门类；等服务端 skills.enable 补齐
   return hits;
+}
+
+export function resolveEnableSlots(
+  skillId: string,
+  known?: Record<string, string[]> | null,
+  rowSlots?: string[] | null
+): string[] {
+  const id = skillId.toLowerCase();
+  let slots: string[] = [];
+  if (Array.isArray(rowSlots))
+    slots = rowSlots.filter((s) => ENABLE_SLOT_IDS.has(s));
+  else if (known) {
+    const direct = known[id] ?? known[skillId];
+    if (Array.isArray(direct))
+      slots = direct.filter((s) => ENABLE_SLOT_IDS.has(s));
+    else {
+      const hit = Object.entries(known).find(([k]) => k.toLowerCase() === id);
+      if (hit && Array.isArray(hit[1]))
+        slots = hit[1].filter((s) => ENABLE_SLOT_IDS.has(s));
+    }
+  }
+  if (!slots.length) slots = suggestEnableSlots(id);
+  // 统一按 ENABLE_SLOTS 顺序：掌法在招架前
+  const order = new Map(ENABLE_SLOTS.map((s, i) => [s.id, i]));
+  return [...slots].sort(
+    (a, b) => (order.get(a) ?? 99) - (order.get(b) ?? 99)
+  );
+}
+
+/** Merge server enable-slot map onto skill rows (and keep map for later reparses). */
+export function applySkillEnableSlots(
+  skills: SkillRow[],
+  slots: Record<string, string[]>
+): SkillRow[] {
+  if (!skills.length) return skills;
+  return skills.map((sk) => {
+    const id = sk.id.toLowerCase();
+    const fromMap =
+      slots[id] ??
+      slots[sk.id] ??
+      Object.entries(slots).find(([k]) => k.toLowerCase() === id)?.[1];
+    if (!fromMap) return sk;
+    return { ...sk, enableSlots: fromMap };
+  });
 }
 
 export function canPrepareSkill(
@@ -2017,6 +2060,38 @@ export function findEnabledSlot(
     if (ent.skill === id) return slot;
   }
   return null;
+}
+
+/** 通用内功运功（yun / exert），需先 enable 内功。文案勿暴露命令名。 */
+export const FORCE_EXERT_ACTIONS: {
+  id: string;
+  label: string;
+  command: string;
+  hint: string;
+}[] = [
+  { id: "recover", label: "回气", command: "yun recover", hint: "以内力调匀气息，恢复当前气" },
+  { id: "regenerate", label: "回精", command: "yun regenerate", hint: "以内力恢复当前精" },
+  { id: "refresh", label: "回精力", command: "yun refresh", hint: "以内力恢复精力" },
+  { id: "heal", label: "疗伤", command: "yun heal", hint: "运转内息治疗内伤" },
+];
+
+export function hasMappedForce(
+  enabled: Record<string, EnabledSkill> | null | undefined
+): boolean {
+  const force = enabled?.force;
+  return !!force?.skill && force.skill !== "无";
+}
+
+/** 是否已学会可激发为内功的功夫（尚未激发时用于提示）。 */
+export function hasLearnedForceSkill(skills: SkillRow[] | null | undefined): boolean {
+  if (!skills?.length) return false;
+  return skills.some((s) => {
+    const id = s.id.toLowerCase();
+    if (id === "force") return s.level > 0;
+    if (s.category === "force") return true;
+    if (s.enableSlots?.includes("force")) return true;
+    return suggestEnableSlots(id).includes("force");
+  });
 }
 
 /**

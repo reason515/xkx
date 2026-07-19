@@ -53,6 +53,11 @@ import {
   parseSkillsPanelLearnActions,
   parseEnableMap,
   suggestEnableSlots,
+  resolveEnableSlots,
+  applySkillEnableSlots,
+  hasMappedForce,
+  hasLearnedForceSkill,
+  FORCE_EXERT_ACTIONS,
   isBasicSkillId,
   reconcileEnableMap,
   isEntitySheetAction,
@@ -1519,6 +1524,103 @@ describe("enable / jifa helpers", () => {
       expect.arrayContaining(["sword", "parry"])
     );
     expect(suggestEnableSlots("taiji-shengong")).toEqual(["force"]);
+  });
+
+  it("maps 太玄功 / 五狱掌法 to precise slots without bogus defaults", () => {
+    expect(suggestEnableSlots("taixuan-gong")).toEqual(["force"]);
+    expect(suggestEnableSlots("wuyu-zhangfa")).toEqual(["strike", "parry"]);
+    // 未知武功勿再默认甩出 招架/内功/轻功/拳脚
+    expect(suggestEnableSlots("mystery-unknown-art")).toEqual([]);
+  });
+
+  it("prefers server valid_enable slots over heuristics", () => {
+    expect(
+      resolveEnableSlots("taixuan-gong", {
+        "taixuan-gong": ["force"],
+      })
+    ).toEqual(["force"]);
+    expect(
+      resolveEnableSlots("wuyu-zhangfa", {
+        "wuyu-zhangfa": ["parry", "strike"],
+      })
+    ).toEqual(["strike", "parry"]);
+    expect(
+      resolveEnableSlots("taixuan-gong", undefined, ["force"])
+    ).toEqual(["force"]);
+  });
+
+  it("applies enable slot map onto skill rows", () => {
+    const rows = applySkillEnableSlots(
+      [
+        {
+          id: "taixuan-gong",
+          name: "太玄功",
+          level: 30,
+          learned: 0,
+          category: "force",
+          mastery: 2,
+        },
+        {
+          id: "wuyu-zhangfa",
+          name: "五狱掌法",
+          level: 30,
+          learned: 0,
+          category: "misc",
+          mastery: 2,
+        },
+      ],
+      {
+        "taixuan-gong": ["force"],
+        "wuyu-zhangfa": ["strike", "parry"],
+      }
+    );
+    expect(rows[0].enableSlots).toEqual(["force"]);
+    expect(rows[1].enableSlots).toEqual(["strike", "parry"]);
+  });
+
+  it("lists force exert entry only after mapping force", () => {
+    expect(FORCE_EXERT_ACTIONS.map((a) => a.label)).toEqual([
+      "回气",
+      "回精",
+      "回精力",
+      "疗伤",
+    ]);
+    expect(FORCE_EXERT_ACTIONS.every((a) => a.command.startsWith("yun "))).toBe(
+      true
+    );
+    expect(hasMappedForce({})).toBe(false);
+    expect(hasMappedForce({ force: { skill: "无", level: 0 } })).toBe(false);
+    expect(
+      hasMappedForce({
+        force: { skill: "taixuan-gong", name: "太玄功", level: 30 },
+      })
+    ).toBe(true);
+    expect(
+      hasLearnedForceSkill([
+        {
+          id: "taixuan-gong",
+          name: "太玄功",
+          level: 30,
+          learned: 0,
+          category: "force",
+          mastery: 2,
+          enableSlots: ["force"],
+        },
+      ])
+    ).toBe(true);
+    expect(
+      hasLearnedForceSkill([
+        {
+          id: "wuyu-zhangfa",
+          name: "五狱掌法",
+          level: 20,
+          learned: 0,
+          category: "misc",
+          mastery: 1,
+          enableSlots: ["strike", "parry"],
+        },
+      ])
+    ).toBe(false);
   });
 
   it("parses enable panel and reconciles chinese names to ids", () => {

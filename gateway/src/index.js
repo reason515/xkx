@@ -189,8 +189,13 @@ wss.on("connection", (ws, req) => {
           ws.send(JSON.stringify({ type: "error", message: "未登录" }));
           return;
         }
+        const command = typeof msg.command === "string" ? msg.command : "";
+        if (!command.trim()) {
+          ws.send(JSON.stringify({ type: "error", message: "空指令" }));
+          return;
+        }
         metrics.incCommands();
-        mud.send(msg.command);
+        mud.send(command);
         return;
       }
 

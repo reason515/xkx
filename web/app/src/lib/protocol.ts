@@ -9,6 +9,7 @@ import type {
 } from "./types";
 import {
   DIR_MAP,
+  applySkillEnableSlots,
   mergeRoomItems,
   parseSceneryFromDesc,
   roomAllowsSleep,
@@ -56,9 +57,13 @@ export function applyEvent(
     assistStatus: string;
     combatLog: string[];
     trainLog: string[];
+    skillEnableSlots?: Record<string, string[]>;
   }
 ) {
-  const next = { ...prev };
+  const next = {
+    ...prev,
+    skillEnableSlots: prev.skillEnableSlots || {},
+  };
 
   switch (event.type) {
     case "room.update": {
@@ -121,9 +126,34 @@ export function applyEvent(
       next.scoreText = (event.text as string) || prev.scoreText;
       if (typeof event.html === "string") next.scoreHtml = event.html;
       break;
-    case "skills.update":
-      next.skills = (event.skills as SkillRow[]) || prev.skills;
+    case "skills.update": {
+      const incoming = (event.skills as SkillRow[]) || prev.skills;
+      next.skills = applySkillEnableSlots(
+        incoming,
+        next.skillEnableSlots || {}
+      );
       break;
+    }
+    case "skills.enable": {
+      const raw = event.slots;
+      const slots: Record<string, string[]> = {};
+      if (raw && typeof raw === "object" && !Array.isArray(raw)) {
+        for (const [id, list] of Object.entries(
+          raw as Record<string, unknown>
+        )) {
+          if (!Array.isArray(list)) continue;
+          slots[id.toLowerCase()] = list
+            .filter((s): s is string => typeof s === "string" && !!s)
+            .map((s) => s.toLowerCase());
+        }
+      }
+      next.skillEnableSlots = slots;
+      next.skills = applySkillEnableSlots(
+        (event.skills as SkillRow[]) || prev.skills,
+        slots
+      );
+      break;
+    }
     case "inv.update":
       next.inventory = (event.items as InvItem[]) || prev.inventory;
       break;

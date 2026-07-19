@@ -75,8 +75,17 @@ int block_cmd()
         string cmd;
         cmd = query_verb();
         // webclient/hp：Web 端标记与刷新气血；勿静默拦截否则无 room.update
-        if ( cmd == "quit" || cmd == "goto" || cmd == "suicide" || cmd == "follow" || cmd == "tell" || cmd == "say" || cmd == "reply" || cmd == "look" || cmd == "webassist" || cmd == "webclient" || cmd == "hp" || cmd == "xkxe2e" )
+        // score/inventory/skills…：角色卡会静默拉取，放行以免「点了没反应」
+        if ( cmd == "quit" || cmd == "goto" || cmd == "suicide" || cmd == "follow"
+          || cmd == "tell" || cmd == "say" || cmd == "reply" || cmd == "look"
+          || cmd == "webassist" || cmd == "webclient" || cmd == "hp" || cmd == "xkxe2e"
+          || cmd == "score" || cmd == "inventory" || cmd == "i"
+          || cmd == "skills" || cmd == "enable" || cmd == "prepare" || cmd == "wimpy"
+          || cmd == "help" )
                 return 0;
+        // 切勿只 return 1：Web 上 go/走动等会被静默吞掉，像整页卡死
+        // return 1 表示已处理：必须 write，仅 notify_fail 不会显示给玩家
+        write("这里还不能自由走动，请先跟随张三或李四。(follow zhang san / follow li si)\n");
         return 1;
 }
 

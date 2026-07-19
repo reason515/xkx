@@ -112,7 +112,12 @@ export function TrainSheet({
           </div>
           {mode === "dazuo" && !hasForce && (
             <p className="doc-status train-gate-hint">
-              打坐需先激发内功。请打开角色「武功」，将一门内功 enable 到内功栏。
+              打坐需先激发内功。请打开角色「武功」，将一门内功激发到内功栏。
+            </p>
+          )}
+          {hasForce && (
+            <p className="doc-status train-gate-hint">
+              气、精不足时，可打开角色「气血」用运功回气、回精、回精力或疗伤。
             </p>
           )}
           {mode === "lian" && (

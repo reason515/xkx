@@ -297,3 +297,62 @@ void send_combat_event(object me, string text)
 		json_escape(text || "")
 	));
 }
+
+/*
+ * 按每门武功的 valid_enable() 推送可激发门类，供 Web 精准显示选项。
+ * 勿用前端英文 id 启发式猜测（太玄功会误出 4 项、五狱掌法会漏掌法）。
+ */
+void send_skills_enable(object me)
+{
+	mapping skl;
+	string *sname, *slot_ids, *entries, *slots, *slot_json;
+	string sid, slot;
+	object skob;
+	int i, j, ok;
+
+	if (!objectp(me) || !userp(me) || !me->query_temp("web_client"))
+		return;
+
+	slot_ids = ({
+		"force", "dodge", "unarmed",
+		"strike", "cuff", "finger", "hand", "claw", "kick",
+		"sword", "blade", "stick", "staff", "club",
+		"whip", "hammer", "hook", "pike",
+		"parry", "magic"
+	});
+
+	skl = me->query_skills();
+	if (!mapp(skl) || !sizeof(skl)) {
+		emit_raw(me, "{\"v\":1,\"type\":\"skills.enable\",\"slots\":{}}");
+		return;
+	}
+
+	sname = keys(skl);
+	entries = ({});
+	for (i = 0; i < sizeof(sname); i++) {
+		sid = sname[i];
+		if (!stringp(sid) || sid == "") continue;
+		slots = ({});
+		skob = 0;
+		if (!catch(skob = load_object(SKILL_D(sid))) && objectp(skob)) {
+			for (j = 0; j < sizeof(slot_ids); j++) {
+				slot = slot_ids[j];
+				ok = 0;
+				if (!catch(ok = skob->valid_enable(slot)) && ok)
+					slots += ({ slot });
+			}
+		}
+		slot_json = ({});
+		for (j = 0; j < sizeof(slots); j++)
+			slot_json += ({ sprintf("\"%s\"", slots[j]) });
+		entries += ({ sprintf("\"%s\":[%s]",
+			json_escape(sid),
+			implode(slot_json, ",")
+		) });
+	}
+
+	emit_raw(me, sprintf(
+		"{\"v\":1,\"type\":\"skills.enable\",\"slots\":{%s}}",
+		implode(entries, ",")
+	));
+}

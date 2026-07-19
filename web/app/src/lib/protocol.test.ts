@@ -281,6 +281,49 @@ describe("applyEvent", () => {
     const next = applyEvent({ v: 1, type: "error", message: "连接断开" }, prev);
     expect(next.combatLog).toContain("连接断开");
   });
+
+  it("merges skills.enable slots from MUD valid_enable", () => {
+    const prev = {
+      ...basePrev(),
+      skills: [
+        {
+          id: "taixuan-gong",
+          name: "太玄功",
+          level: 30,
+          learned: 0,
+          category: "force",
+          mastery: 2,
+        },
+        {
+          id: "wuyu-zhangfa",
+          name: "五狱掌法",
+          level: 20,
+          learned: 0,
+          category: "misc",
+          mastery: 2,
+        },
+      ] as SkillRow[],
+      skillEnableSlots: {},
+    };
+    const next = applyEvent(
+      {
+        v: 1,
+        type: "skills.enable",
+        slots: {
+          "taixuan-gong": ["force"],
+          "wuyu-zhangfa": ["strike", "parry"],
+        },
+      },
+      prev
+    );
+    expect(next.skillEnableSlots["taixuan-gong"]).toEqual(["force"]);
+    expect(next.skillEnableSlots["wuyu-zhangfa"]).toEqual([
+      "strike",
+      "parry",
+    ]);
+    expect(next.skills[0].enableSlots).toEqual(["force"]);
+    expect(next.skills[1].enableSlots).toEqual(["strike", "parry"]);
+  });
 });
 
 describe("buildAssistPayload", () => {

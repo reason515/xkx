@@ -15,7 +15,7 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | haidaowo | dadong | yingbin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | givemoney\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | studyrecoverprep | haidaowo | dadong | yingbin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | givemoney | grantskills | grantforce\n");
 
 	if (arg == "dadong") {
 		ob = load_object("/d/xiakedao/dadong");
@@ -106,6 +106,21 @@ int main(object me, string arg)
 		return 1;
 	}
 
+	if (arg == "studyrecoverprep") {
+		ob = load_object("/d/xiakedao/xkx1");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载太玄功石室。\n");
+		me->move(ob);
+		me->set("combat_exp", 251);
+		me->set_skill("force", 1);
+		me->set("jing", 10);
+		tell_object(me, "（测试）经验已超过二百五十，精神不足。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		WEBD->send_vitals(me);
+		return 1;
+	}
+
 	if (arg == "hurt") {
 		int before, after;
 		before = (int)me->query("qi");
@@ -115,6 +130,7 @@ int main(object me, string arg)
 		me->receive_damage("qi", 15, "e2e");
 		after = (int)me->query("qi");
 		tell_object(me, sprintf("（测试）气血 %d → %d。\n", before, after));
+		WEBD->send_vitals(me);
 		return 1;
 	}
 
@@ -251,6 +267,33 @@ int main(object me, string arg)
 		return 1;
 	}
 
+	if (arg == "grantskills") {
+		/* Web 激发选项 e2e：太玄功仅内功，五狱掌法=掌法+招架 */
+		me->set_skill("force", 40);
+		me->set_skill("strike", 40);
+		me->set_skill("parry", 40);
+		me->set_skill("taixuan-gong", 30);
+		me->set_skill("wuyu-zhangfa", 30);
+		tell_object(me, "（测试）已学会太玄功与五狱掌法。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_skills_enable(me);
+		return 1;
+	}
+
+	if (arg == "grantforce") {
+		/* Web 运功入口 e2e：激发太玄功并给足内力 */
+		me->set_skill("force", 50);
+		me->set_skill("taixuan-gong", 30);
+		me->set("max_neili", 220);
+		me->set("neili", 220);
+		me->map_skill("force", "taixuan-gong");
+		tell_object(me, "（测试）已激发太玄功，可运功回气疗伤。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_skills_enable(me);
+		WEBD->send_vitals(me);
+		return 1;
+	}
+
 	return notify_fail("未知子命令。\n");
 }
 
@@ -276,6 +319,7 @@ int help(object me)
   lowqi       — 将气血降至约 15%（挂机低血撤回回归）
   lowjingli   — 将精力降至可走动阈值以下（挂机赶路调息回归）
   grindprep   — 传送到小海龟刷怪沙滩（shatans2）
+  studyrecoverprep — 经验 251 且精神不足，供石壁领悟睡觉恢复回归
   yongdao2    — 传送到迎宾馆西侧甬道（洞/钻场景解析回归）
   bingqi      — 传送到兵器房（取用器械回归）
   shanding    — 传送到山顶（黄衣弟子/中伯 dizi 歧义回归）
