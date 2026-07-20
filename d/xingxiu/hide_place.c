@@ -19,7 +19,7 @@ LONG
         ]) );
 
 	set("item_desc",([
-                "cliff"         :       "一处并不十分陡峭的悬崖，似乎可以爬上去。\n",
+                "cliff"         :       "一处并不十分陡峭的悬崖，似乎可以爬(climb)上去。\n",
         ]));
 
         set("no_clean_up", 0);

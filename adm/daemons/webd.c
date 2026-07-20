@@ -103,16 +103,22 @@ void send_room(object me, object env)
 	if (!stringp(area)) area = "";
 
 	/*
-	 * Include static item_desc prose so Web can expose nested scenery:
+	 * Include item_desc so Web can expose nested scenery.
+	 * String values are sent in full; closures/functions get a
+	 * placeholder so the key at least appears as a clickable target.
 	 * room long「深涧(stream)」→ item_desc「鱼儿(fish)」.
-	 * Only string values are safe; closures/functions remain server-side.
 	 */
 	item_desc_text = "";
 	item_desc = env->query("item_desc");
 	if (mapp(item_desc)) {
 		foreach (item_key, item_value in item_desc) {
-			if (!stringp(item_value) || item_value == "") continue;
-			item_desc_text += "@@ITEM:" + item_key + "@@\n" + item_value + "\n";
+			if (stringp(item_value) && item_value != "") {
+				item_desc_text += "@@ITEM:" + item_key + "@@\n" + item_value + "\n";
+			} else if (functionp(item_value)) {
+				/* 函数式 item_desc（如 (: look_mist :)），只发 key
+				 * 作为占位标记，让 Web 至少能展示可点击目标。 */
+				item_desc_text += "@@ITEM:" + item_key + "@@\n" + item_key + "\n";
+			}
 		}
 	}
 

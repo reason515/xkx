@@ -87,7 +87,7 @@ string ask_me(string name)
         	add("book_count", -1);
         	book = new(__DIR__"obj/claw-book");
         	book->move(this_player());
-        	return "这本「基本爪法」我现在不用，你可以拿去看看。";
+        	return "这本「基本爪法」我现在不用，你可以拿去看看(look)。";
 	*/
 		return "我怎么会有这书？";
 	}
