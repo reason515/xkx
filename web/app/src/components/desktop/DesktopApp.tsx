@@ -200,6 +200,16 @@ function DesktopShell({
           scenery={g.selectedEntity.scenery}
           canApprentice={g.selectedEntity.canApprentice}
           canTrade={g.selectedEntity.canTrade}
+          canSteal={g.selectedEntity.canSteal}
+          isCorpse={g.selectedEntity.isCorpse}
+          canLoot={g.selectedEntity.canLoot}
+          canLead={g.selectedEntity.canLead}
+          canBeg={g.selectedEntity.canBeg}
+          canPersuade={g.selectedEntity.canPersuade}
+          isContainer={g.selectedEntity.isContainer}
+          isBook={g.selectedEntity.isBook}
+          canSit={g.selectedEntity.canSit}
+          canRide={g.selectedEntity.canRide}
           inventory={state.inventory}
           docText={state.docTarget === "entity" ? state.docText : ""}
           docLoading={state.docTarget === "entity" && state.docLoading}

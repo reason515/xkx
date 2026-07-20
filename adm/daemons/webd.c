@@ -215,20 +215,30 @@ void send_room(object me, object env)
 			command_id = ob->query("id") || "";
 		if (ob->is_character()) {
 			npcs += ({ sprintf(
-				"{\"id\":\"%s\",\"commandId\":\"%s\",\"name\":\"%s\",\"kind\":\"npc\",\"canApprentice\":%d,\"canTrade\":%d}",
+				"{\"id\":\"%s\",\"commandId\":\"%s\",\"name\":\"%s\",\"kind\":\"npc\",\"canApprentice\":%d,\"canTrade\":%d,\"canSteal\":%d,\"isCorpse\":%d,\"canLoot\":%d,\"canLead\":%d,\"canBeg\":%d,\"canPersuade\":%d}",
 				json_escape(ob->query("id") || ""),
 				json_escape(command_id),
 				json_escape(ob->name() || ""),
 				(!userp(ob) && mapp(ob->query("family"))) ? 1 : 0,
 				(arrayp(ob->query("vendor_goods"))
-				 || mapp(ob->query("vendor_goods"))) ? 1 : 0
+				 || mapp(ob->query("vendor_goods"))) ? 1 : 0,
+				(!userp(ob)) ? 1 : 0,
+				(function_exists("is_corpse", ob) && ob->is_corpse()) ? 1 : 0,
+				(function_exists("is_container", ob) && ob->is_container()) ? 1 : 0,
+				(!userp(ob)) ? 1 : 0,
+				(!userp(ob)) ? 1 : 0,
+				(!userp(ob)) ? 1 : 0
 			) });
 		} else
 			items += ({ sprintf(
-				"{\"id\":\"%s\",\"commandId\":\"%s\",\"name\":\"%s\",\"kind\":\"item\"}",
+				"{\"id\":\"%s\",\"commandId\":\"%s\",\"name\":\"%s\",\"kind\":\"item\",\"isContainer\":%d,\"isBook\":%d,\"canSit\":%d,\"canRide\":%d}",
 				json_escape(ob->query("id") || ""),
 				json_escape(command_id),
-				json_escape(ob->name() || "")
+				json_escape(ob->name() || ""),
+				(function_exists("is_container", ob) && ob->is_container()) ? 1 : 0,
+				(ob->query("material") == "paper" || stringp(ob->query("skill_type"))) ? 1 : 0,
+				(ob->query("can_sit")) ? 1 : 0,
+				(ob->query("can_ride") || function_exists("is_ridable", ob)) ? 1 : 0
 			) });
 	}
 

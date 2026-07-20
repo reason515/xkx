@@ -43,6 +43,26 @@ export interface Entity {
   canApprentice?: boolean | number;
   /** NPC exposes vendor goods through F_DEALER. */
   canTrade?: boolean | number;
+  /** NPC: can steal from this character. */
+  canSteal?: boolean | number;
+  /** NPC: is a lootable corpse. */
+  isCorpse?: boolean | number;
+  /** NPC/item: is a container that can be opened/looted. */
+  canLoot?: boolean | number;
+  /** NPC: can lead/follow this character. */
+  canLead?: boolean | number;
+  /** NPC: can beg from this character. */
+  canBeg?: boolean | number;
+  /** NPC: can persuade this character. */
+  canPersuade?: boolean | number;
+  /** Item: is a container (box, bag, etc.) that can be opened. */
+  isContainer?: boolean | number;
+  /** Item: is a readable book/letter. */
+  isBook?: boolean | number;
+  /** Item: can sit on it. */
+  canSit?: boolean | number;
+  /** Item: can ride it. */
+  canRide?: boolean | number;
 }
 
 /** Context action hinted by room/NPC text (e.g. follow mu laoqi). */

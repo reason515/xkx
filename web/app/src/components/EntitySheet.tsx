@@ -19,6 +19,16 @@ interface Props {
   scenery?: boolean;
   canApprentice?: boolean | number;
   canTrade?: boolean | number;
+  canSteal?: boolean | number;
+  isCorpse?: boolean | number;
+  canLoot?: boolean | number;
+  canLead?: boolean | number;
+  canBeg?: boolean | number;
+  canPersuade?: boolean | number;
+  isContainer?: boolean | number;
+  isBook?: boolean | number;
+  canSit?: boolean | number;
+  canRide?: boolean | number;
   inventory?: InvItem[];
   docText?: string;
   docLoading?: boolean;
@@ -56,6 +66,16 @@ export function EntitySheet({
   scenery,
   canApprentice = false,
   canTrade = false,
+  canSteal = false,
+  isCorpse = false,
+  canLoot = false,
+  canLead = false,
+  canBeg = false,
+  canPersuade = false,
+  isContainer = false,
+  isBook = false,
+  canSit = false,
+  canRide = false,
   inventory = [],
   docText = "",
   docLoading = false,
@@ -123,7 +143,15 @@ export function EntitySheet({
     scenery,
     commandId
   ).map((a) => [a.label, a.command]);
-  const actions = board ? boardActions : itemActions;
+
+  // Extra item interactions from webd.c flags
+  const extraItemActions: [string, string][] = [];
+  if (!!isContainer && !scenery) extraItemActions.push(["打开", `open ${target}`]);
+  if (!!isBook) extraItemActions.push(["阅读", `read ${target}`]);
+  if (!!canSit) extraItemActions.push(["坐下", `sit ${target}`]);
+  if (!!canRide) extraItemActions.push(["骑乘", `ride ${target}`]);
+
+  const actions = board ? boardActions : [...itemActions, ...extraItemActions];
   const giveItems = inventory.filter((item) => !item.equipped && !item.embedded);
 
   const runNpcAction = (command: string) => {
@@ -392,96 +420,44 @@ export function EntitySheet({
               )}
             </>
           ) : kind === "npc" ? (
-            <div className="entity-action-groups">
+            <>
+              {!!isCorpse && !!canLoot && (
+                <button
+                  type="button"
+                  className="entity-action-jade"
+                  onClick={() => runNpcAction(`get all from ${askTarget}`)}
+                >
+                  搜刮
+                </button>
+              )}
+
+              {!isCorpse && (<>
               <section className="entity-action-group">
-                <h4>常用</h4>
                 <div className="entity-action-grid">
-                  <button
-                    type="button"
-                    onClick={() => runNpcAction(`look ${target}`)}
-                  >
-                    查看
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAsking(true);
-                      onAskList?.(`ask ${askTarget}`);
-                    }}
-                  >
-                    打听
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLearning(true);
-                      onLearnList?.(`skills ${askTarget}`);
-                    }}
-                  >
-                    请教
-                  </button>
+                  <button type="button" onClick={() => runNpcAction(`look ${target}`)}>查看</button>
+                  <button type="button" onClick={() => { setAsking(true); onAskList?.(`ask ${askTarget}`); }}>打听</button>
+                  <button type="button" onClick={() => { setLearning(true); onLearnList?.(`skills ${askTarget}`); }}>请教</button>
+                  <button type="button" onClick={() => runNpcAction(`follow ${askTarget}`)}>跟随</button>
+                  <button type="button" onClick={() => setGiving(true)}>给予</button>
+                  {!!canApprentice && (<button type="button" className="entity-action-jade" onClick={() => runNpcAction(`apprentice ${askTarget}`)}>拜师</button>)}
+                  {!!canTrade && (<button type="button" data-testid="entity-trade" onClick={() => { setTrading(true); onDocAction?.("list"); }}>货品</button>)}
+                  {!!canLead && (<button type="button" onClick={() => runNpcAction(`lead ${askTarget}`)}>带领</button>)}
                 </div>
               </section>
 
-              <section className="entity-action-group">
-                <h4>往来</h4>
+              <details>
+                <summary>江湖手段</summary>
                 <div className="entity-action-grid">
-                  {!!canApprentice && (
-                    <button
-                      type="button"
-                      className="entity-action-jade"
-                      onClick={() => runNpcAction(`apprentice ${askTarget}`)}
-                    >
-                      拜师
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => runNpcAction(`follow ${askTarget}`)}
-                  >
-                    跟随
-                  </button>
-                  <button type="button" onClick={() => setGiving(true)}>
-                    给予
-                  </button>
-                  {!!canTrade && (
-                    <button
-                      type="button"
-                      data-testid="entity-trade"
-                      onClick={() => {
-                        setTrading(true);
-                        onDocAction?.("list");
-                      }}
-                    >
-                      货品
-                    </button>
-                  )}
-                </div>
-              </section>
-
-              <details className="entity-danger">
-                <summary>交手</summary>
-                <p>切磋点到为止；攻击会进入生死战。缠斗中可先停手再撤离。</p>
-                <div className="entity-action-grid">
-                  <button
-                    type="button"
-                    onClick={() => runNpcAction(`fight ${askTarget}`)}
-                  >
-                    切磋
-                  </button>
-                  <button
-                    type="button"
-                    className="entity-action-danger"
-                    onClick={() => runNpcAction(`kill ${askTarget}`)}
-                  >
-                    攻击
-                  </button>
-                  <button type="button" onClick={() => runNpcAction("halt")}>
-                    停手
-                  </button>
+                  {!!canBeg && (<button type="button" onClick={() => runNpcAction(`beg ${askTarget}`)}>讨要</button>)}
+                  {!!canPersuade && (<button type="button" onClick={() => runNpcAction(`persuade ${askTarget}`)}>说服</button>)}
+                  {!!canSteal && (<button type="button" className="entity-action-danger" onClick={() => runNpcAction(`steal ${askTarget}`)}>偷窃</button>)}
+                  <button type="button" onClick={() => runNpcAction(`fight ${askTarget}`)}>切磋</button>
+                  <button type="button" className="entity-action-danger" onClick={() => runNpcAction(`kill ${askTarget}`)}>攻击</button>
+                  <button type="button" onClick={() => runNpcAction("halt")}>停手</button>
                 </div>
               </details>
-            </div>
+              </>)}
+            </>
           ) : (
             <p
               style={{
