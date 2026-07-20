@@ -8,6 +8,7 @@ string day_event() {return NATURE_D->outdoor_room_event();}
 void create()
 {
 	set("short", "客厅");
+	set("outdoors", "huashan");
 	set("long", @LONG
 这是华山掌门岳不群的居所「有所不为轩」，此处是前厅，厅上挂着
 「正气堂」三字匾额。厅中很宽敞，却没什么摆设，靠墙放着两把交椅，

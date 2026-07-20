@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "武器库");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 少林寺的武器库可称天下第一，十八般兵器，这里可谓应有
 尽有。四面一望，令你顿感眼花缭乱。墙上砌了一个个小格子，

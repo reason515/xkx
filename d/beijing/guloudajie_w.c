@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "鼓楼西大街");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是繁华热闹的鼓楼西大街，大街街面宽阔，车水马龙，
 川流不息，人群熙熙攘攘，来来往往。街边上耍枪买艺、百货

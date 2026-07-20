@@ -10,6 +10,7 @@ void reset();
 void create()
 {
     set("short", "走廊");
+    set("outdoors", "huashan");
     set("long", @LONG
 走廊向西伸延过去。旁边有一大片盛开的花朵，随风摇曳，散发阵阵
 幽香。不远处边是华山女弟子的休息室。

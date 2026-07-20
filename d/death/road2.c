@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "鬼门大道");
+        set("outdoors", "death");
         set("long", @LONG
 你走在一条阴森森的路上, 浓浓的雾环绕在你的四周, 好像永
 远都不会散去似的. 整条路前後只看到零星的几盏灯笼........

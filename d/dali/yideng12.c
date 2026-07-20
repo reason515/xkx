@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
         set("short", "庙后石室");
+        set("outdoors", "dali");
         set("long", @LONG
 竹林深处的石室清雅幽静，窗外满眼是幽幽碧竹，正是禅宗参禅之妙所。室
 中小几上点着一炉檀香，几旁一位老僧端坐在蒲团上。

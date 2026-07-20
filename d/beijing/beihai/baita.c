@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "琼岛白塔");
+	set("outdoors", "beijing");
 	set("long", @LONG
 百塔为以琼华岛为主体组成的四面景观的中心。位于北海琼华岛之巅。白塔
 上为喇嘛塔，下为高大的砖石台基，塔座为折角式须弥座，其上承托覆钵式塔身，

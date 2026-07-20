@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
 	set("short","空房间");
+	set("outdoors", "death");
 	set("long","自首吧...\n");
 	set("exits", ([
 		"east" :   __DIR__"noteroom" ]));

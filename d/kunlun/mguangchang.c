@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "巨木旗广场");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这处本是一片密林，后有巨木旗弟子开垦而出。看四周，除了一条小
 径通往山前，广场还是被充满生命的草木包围着。广场东西两侧各竖着几

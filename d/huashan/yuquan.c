@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "玉泉院");
+        set("outdoors", "huashan");
 	set("long", @LONG
 这里因屋后的玉泉而得名，是宋代陈希夷隐居的地方。周围生着十二
 株大龙藤，夭矫多姿，枝干中空，就如飞龙相似，相传是希夷先生陈抟老

@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 		  set("short", HIM"养心殿"NOR);
+		  set("outdoors", "zhongnan");
 		  set("long", @LONG
 这里是重阳宫的养心殿。正中间是个敬香的大香案，地上放着几个蒲团。
 养心殿四周是密密的竹林，环境十分幽雅，是全真宫真人们修身养性的地方。

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "庙前");
+        set("outdoors", "dali");
         set("long", @LONG
 这里是深山巅峰，平地上有一座小小寺院，庙前有一个荷塘，一座小桥横跨
 其上。旁边陡峭的山崖上有一条铁链和一些人工凿出来的台阶，似乎是一条上下

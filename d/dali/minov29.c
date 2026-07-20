@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "杆栏中层");
+	set("outdoors", "dali");
 	set("long", @LONG
 这个杆栏的中层面积颇大，宽敞开阔。正中的香案古色古香，贡着的神像雕
 制精细，显得与众不同，大盘的贡品正飘出香味，尤其当中的一个羊头特别抢眼。

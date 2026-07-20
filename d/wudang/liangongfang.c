@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "练功房");
+	set("outdoors", "wudang");
 	set("long", @LONG
 这里是练功房，地下凌乱地放着几个蒲团，几位武当弟子正盘膝坐在上
 面打坐。

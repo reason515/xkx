@@ -7,6 +7,7 @@ inherit ROOM;
 
 void create()
 {   set("short", "竹径通幽");
+	set("outdoors", "hangzhou");
     set("long", @LONG
 一截花窗短墙，横列在两段曲桥之间，墙的两端，了无衔接；墙
 内竹叶绕径，佐静添幽。墙外假山隔水，一径横陈。南边是花岛亭，

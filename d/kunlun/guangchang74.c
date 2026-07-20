@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "广场");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此处是一个小广场，只见一队队教众来来去去，身着各种服色，有的
 携带刀，枪，棍，杖等兵器，个个身姿矫健，神态庄重。广场不大，贯通

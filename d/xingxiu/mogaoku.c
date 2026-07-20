@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "石窟");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 这里墙壁上绘制着与佛教相关的画面，有仙女飞天，反弹琵琶，和罗汉
 伏虎图(tu)。你被这些瑰丽的文化之宝惊呆了。

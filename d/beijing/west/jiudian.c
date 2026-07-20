@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "小酒店");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一个很小的酒店，生意看上去十分清淡，买的也只是普通白
 干，茴香豆之类。若不是对面有回春堂，恐怕早就关门了。店里零散

@@ -8,6 +8,7 @@ inherit ROOM;
 
 void create() {
 	 set("short", HIW"山道"NOR);
+	 set("outdoors", "bwdh");
 	 set("long", @LONG
 这里是一条陡峭的山道，通望险峻的山峰。这里地势险要，真是一关把道，万夫莫行。
 LONG

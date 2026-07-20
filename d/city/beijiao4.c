@@ -1,7 +1,7 @@
 //Cracked by Roath
 // room: /d/city/beijiao4.c
 // Jay 7/4/96
-#include <ansi.h>;
+#include <ansi.h>
 inherit ROOM;
 
 void create()

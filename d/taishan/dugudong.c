@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "大山洞");
+        set("outdoors", "taishan");
         set("long", @LONG
 这洞其实甚浅，行不到三丈，已抵尽头，洞中除了一张石桌、一张石
 凳之外更无别物。洞角一堆乱石高起，极似一个坟墓(grave)。洞壁(wall)

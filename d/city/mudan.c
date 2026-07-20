@@ -52,6 +52,7 @@ create_wine(string nmstr, string* idlist, string cup, string longstr)
 void create()
 {
         set("short", HIR"牡丹宴厅"NOR);
+        set("outdoors", "city");
         set("long", @LONG
 进门绕过一道淡红绸屏风，迎面墙上挂着一副『牡丹争艳』图，牡丹是中国
 国花，素以富贵著称。图侧有幅对联 (duilian)，衬托了那一茎牡丹分外精神。

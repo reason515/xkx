@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "通道");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是通向出宫的神武门的通道，一侧是数丈高的围墙，另一侧则
 是植满花草树木，鸟语花香令人心旷神怡。

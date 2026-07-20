@@ -15,6 +15,7 @@ int do_count();
 void create()
 {
 	set("short", "蛇场");
+	set("outdoors", "baituo");
 	set("long", @LONG
 这是白驼山庄所建的蛇场，从蛇谷捕捉来的毒蛇都在此饲养，四
 周围以丈许来高的灰色圆墙，墙脚砌成圆弧形，光滑无缝。场里建了

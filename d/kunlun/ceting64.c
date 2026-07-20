@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "侧厅");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 侧厅并非太大，然所置甚为清素。正中一白玉瓷桌，环有四个汉白石
 座。墨荷翠竹琳琅于壁，南墙下为一小案，上有小山假景。北面门外是庭

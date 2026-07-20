@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short","草堂寺");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 这是一座位於终南山北麓的小寺。寺院中的一口古井，名为烟雾井。

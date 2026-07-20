@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
        set("short","海船");
+       set("outdoors", "taohua");
        set("long", @LONG
 这是辽阔的海面，海风「呼呼」在你耳边吹过，海浪一个接着一个向你泼打
 过来，突然一个巨浪打来几乎把你所乘的船掀翻。你快要陷入这个旋涡中了，

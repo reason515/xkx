@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "私塾");
+        set("outdoors", "village");
         set("long", @LONG
 这是村里的一所简陋的私塾，乡下孩童便在此上课。老秀才也是村里的人，
 平时除教学外，也帮村子里的老乡亲写读信件，是以非常得人尊敬。私塾里摆设

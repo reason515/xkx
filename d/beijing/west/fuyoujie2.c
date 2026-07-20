@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "府右街");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一条僻静的青石板街，路上只有潦潦落落几个行人，与京城
 其它大街的热闹劲比起来是远远不及，在这里隐隐可以听到阜城门大

@@ -10,6 +10,7 @@ int do_zuan(string arg);
 void create()
 {
         set("short", "秘道");
+        set("outdoors", "emei");
         set("long", @LONG
 这是一条长长的秘道，只有几盏长明灯，光线极暗。越往下走，越觉得亮，
 前面似乎有阳光透进来，原来到了一个洞口。

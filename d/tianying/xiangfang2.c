@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "女厢房");
+        set("outdoors", "tianying");
         set("long", @LONG
 这里是天鹰教女弟子睡觉的地方，一进门就闻到一阵悠悠的香气。
 墙壁上挂着一幅工笔仕女图，西首一张几上供着一盆兰花。

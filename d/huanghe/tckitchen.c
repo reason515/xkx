@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小茅舍");
+        set("outdoors", "huanghe");
         set("long", @LONG
 推开门一看，原来这是一小小的厨房，左面有一个焦黑的土灶，看来已经
 很久未用过了。灶边有一个大水缸（gang)。

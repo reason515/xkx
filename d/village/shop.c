@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "杂货店");
+        set("outdoors", "village");
         set("long", @LONG
 这是一间小小的杂货店，经营些油、盐、酱、醋及日用百货，村子里的人多数
 是很穷，除了生活必需品，这里很少贩卖其它物品。小店的老板李四不是个喜欢说

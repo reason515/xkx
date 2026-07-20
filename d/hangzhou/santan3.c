@@ -7,6 +7,7 @@ inherit ROOM;
 
 void create()
 {   set("short", "亭亭亭");
+	set("outdoors", "hangzhou");
     set("long", @LONG
 亭外池中有一块形壮怪异的大石，九狮石。你凝神仔细观望，那
 块大石果然有点像一头狮子。往南穿过曲桥是竹径通幽，东南和西南

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "大食殿");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 圣火总坛，弟子众多，故食饮之处宽大，可容千人共餐，因名为大食
 殿。明教历代相传，不茹荤酒，后因为驱除鞑子，废除了这条教规。因此

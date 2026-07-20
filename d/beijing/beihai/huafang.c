@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "画舫斋");
+	set("outdoors", "beijing");
 	set("long", @LONG
 濠濮涧北之画舫斋，又称水殿。为一环绕方形游泳池对称布置之庭院，四面
 迥廊相通。建筑坐北朝南，以池水为中心，南为春雨林塘殿，东西分别是镜香，

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "烈火旗大厅");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 踏入此厅，便觉一阵眩晕。大厅四角各有一大火炉，青蓝色的火苗狂
 欢般跳跃。左右站有两排斥肩光背的大汉，脸上没有一丝痛苦，仿佛以经

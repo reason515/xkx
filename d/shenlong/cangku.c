@@ -24,6 +24,7 @@ void destroy_ob(object);
 void create()
 {
         set("short", "神龙教储藏室");
+        set("outdoors", "shenlong");
         set("long", @LONG
 这里原来是一个长在山壁上的天然溶洞，神龙教把这里改造成了一个仓库。
 LONG

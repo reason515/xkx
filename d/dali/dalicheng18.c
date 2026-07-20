@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "摆夷民居");
+	set("outdoors", "dali");
 	set("long", @LONG
 摆夷是大理第一大族，大多散布在苍山洱海附近。摆夷民居是以石块垒成，
 别局风格。朝花节那天，家家户户都把盆栽花木摆在门口，摆搭成一座座的“花

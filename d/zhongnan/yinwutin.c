@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short","演武厅");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 这演武厅为平时全真弟子聚集之地。比之大殿的庄严肃穆，这ㄦ却

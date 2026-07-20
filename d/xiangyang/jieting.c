@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIW "洁亭" NOR);
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 进入庭院，绕过镂空攀蔓的屏风，是装点园林德怪石群；穿过题有“墨园
 觅境”的牌坊，一座翘角飞檐的小亭—“洁亭”出现眼前。亭前立有“米家山

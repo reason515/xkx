@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "侧厅");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 这屋子虽说是制置使平时接见将官所在，房中却摆满了刀枪剑戟。见地上
 铺着虎皮豹皮，墙上挂着弓矢刀剑，不脱武人粗犷本色。

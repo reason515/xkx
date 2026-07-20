@@ -13,6 +13,7 @@ int do_ketou(string);
 void create()
 {
    set("short", "秘洞");
+   set("outdoors", "huashan");
    set("long", @LONG
 眼前出现了一个极大的石洞，足以容得不千人之众，洞中有七具骸骨   
 ，或坐或卧，身旁均有兵刃，一对铁牌，一对判官笔，一根铁棍，一根铜

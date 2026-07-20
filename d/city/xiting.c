@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "西厅");
+	set("outdoors", "city");
 	set("long", @LONG
 这里是衙门的西厅，乃是提督的书房。书案上凌乱地放着几本发黄的古籍。
 引起你的注意的是墙上挂着一幅很大的地图(ditu)。

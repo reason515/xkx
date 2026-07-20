@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "英雄会馆");
+        set("outdoors", "foshan");
         set("long", @LONG
 赌场里围着黑压压的一群人，正在掷骰子押大小。
 LONG

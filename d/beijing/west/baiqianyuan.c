@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "前院");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是白家大宅的前院，地方虽然不大，但打扫得十分
 整洁，院子中间种着几棵歪脖子杨树，大概已经长了百多

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "药房");
+	set("outdoors", "shenlong");
         set("long", @LONG
 这是陆大夫的药房，靠墙放了许多柜子，抽屉中放满了许多中草药，陆大
 夫常在这儿给岛上的众人抓药、诊治。你可以在这儿向陆大夫要一些雄黄以避

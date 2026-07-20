@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石道");
+	set("outdoors", "taihu");
 	set("long", @LONG
 总算通过了玉蜂的包围，你舒了一口气，却发现脚下踏上了一条
 极窄的石道

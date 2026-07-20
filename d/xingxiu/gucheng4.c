@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "古城破屋");
+	set("outdoors", "xingxiu");
 	set("long", @LONG
 这是古城中心就近的一间屋子。地下凸起一物，形状有异，
 盘根错节，却是个极大的树根。

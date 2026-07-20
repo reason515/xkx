@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "钟楼二层");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 每个楼层上都铺设了结实的木楼板，八角形的墙身上则开
 了四扇大窗。从窗孔看，墙体也是极为厚实。从这里往外眺望，

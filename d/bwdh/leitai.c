@@ -11,6 +11,7 @@ int do_giveup();
 void create()
 {
 	set("short",HIG"擂台"NOR);
+	set("outdoors", "bwdh");
 	set("long", HIY"
 
 		      /I______________I\\               "+HIC"|"+HIR"=====|"+HIY"

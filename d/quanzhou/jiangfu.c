@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "施琅将军府");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 这是一座气势恢宏的大宅院，琉璃瓦顶，飞檐斗拱，风格迥异。大红的正
 门上方挂着一块横匾，上书四个金光闪闪的「靖海侯府」，乃是皇上所敕之宅，

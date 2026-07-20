@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "精练场");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 地是青砖埔，壁为红墙砌。东边置有兵器架，十八般兵器，无一不有。
 再朝西面看，左有梅花桩，右是铁沙场，齐备非常。场子南边齐整地放着

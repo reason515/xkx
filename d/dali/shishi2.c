@@ -11,6 +11,7 @@ int do_leave();
 void create()
 {
 	set("short", "石室");
+	set("outdoors", "dali");
 	set("long", @LONG
 这石室正中立着一座白玉雕成的美女石像(shixiang)，东变石壁上写着许多字，
 都是《庄子》中的句子，笔法飘逸，似是极强腕力用利器写成，每一字都深入石壁

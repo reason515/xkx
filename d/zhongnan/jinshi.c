@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short","静室");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 这静室空荡荡的，只有几个垫子放在一旁，给弟子打坐练功用。这

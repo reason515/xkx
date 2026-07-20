@@ -8,6 +8,7 @@ void init();
 void create()
 {
         set("short", "高升酒馆");
+        set("outdoors", "city");
         set("long", @LONG
 这里是个开张不久的酒馆，几张新的桌子旁有几个酒客在喝酒吃小菜。人
 来人往，时时传来劝酒，行酒令的阵阵喧哗，十分热闹。看来是个打听消息的

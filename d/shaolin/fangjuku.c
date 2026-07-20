@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "防具库");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是一间很大的房间，靠墙整齐地放着一个个大柜子，不少
 柜子门敞开着，露出里面的各种防具，品种之多，是你生平仅见。

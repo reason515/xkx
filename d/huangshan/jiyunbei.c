@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "鲫鱼背");
+	set("outdoors", "huangshan");
     set("long", @LONG
 鲫鱼背就是深渊中连结两峰的一快薄薄石壁，溜平光滑如同鱼脊，
 走在上面不由自主地要心惊胆战，头晕目眩。脚下万丈深渊中乱云飞

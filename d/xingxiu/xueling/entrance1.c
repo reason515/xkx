@@ -12,6 +12,7 @@ int do_cun();
 void create()
 {
   set("short", HIG"群英堂"NOR);
+  set("outdoors", "xingxiu");
   set("long", @LONG
 这里是来试剑山庄的英雄们休息闲谈的地方，此间主人还未现身，
 可是群雄都已经急不可待。从这里往里就是试剑亭，听说有不少珍藏

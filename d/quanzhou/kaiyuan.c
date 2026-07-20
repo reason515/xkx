@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "开元寺");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 这是一座规模宏大的千年古刹，莲宫桂宇，焕彩流金，刺桐掩映，古榕垂
 荫。游人未抵门前，远远可见两座石塔凌空而起，矗立于千楼万舍之上。它建

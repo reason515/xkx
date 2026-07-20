@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "国子监");
+	set("outdoors", "beijing");
 	set("long", @LONG
 国子监是太学生起居、学习的地方，为历朝历代的最高学
 府。国子监中讲习、教师均是饱学鸿儒之士，翰林院的翰林、

@@ -3,7 +3,7 @@
 
 inherit ITEM;
 inherit F_AUTOLOAD;
-#include <ansi.h>;
+#include <ansi.h>
 int is_container() { return 1; }
 int do_put(string);
 void create()

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "观象台");
+	set("outdoors", "beijing");
 	set("long", @LONG
 观象台属钦天监所辖，其中藏有不少极其珍贵的天文学仪
 器，如浑天仪、地动仪之类。钦天监官员如要制订新历法、观

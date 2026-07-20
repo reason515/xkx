@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小木屋");
+        set("outdoors", "xixia");
         set("long", @LONG
 这是座普通的小木屋，可能一个猎人住在这里。里面陈设简单，一
 张桌子，几把椅子，墙边有四张小木床，屋中央是个炉子，上面吊着的

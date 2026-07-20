@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "文殊石");
+	set("outdoors", "huangshan");
     set("long", @LONG
 一块巨石凌空向你扑头盖面般砸将下来，你不由得倒抽一口冷气，
 正要闪开，那大石又不动了。原来那巨石被一道峡谷夹着，没落下来。

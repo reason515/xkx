@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "王府大门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 你正站在一座豪华的府门前，门前有两只极大的石狮子，门
 上高悬一块横匾，上书「康亲王府」四个金字。门口站着两排侍卫，

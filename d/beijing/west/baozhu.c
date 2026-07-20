@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "宝珠胡同");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一条北京城里十分寻常的僻静小胡同，路边种着几棵柳树
 行人也不太多，地上看起来总是灰扑扑的。西边是一家小酒店，东

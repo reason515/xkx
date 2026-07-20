@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "平台");
+        set("outdoors", "taishan");
         set("long", @LONG
 平台大石上「剑冢」两个大字之旁，尚有两行字体较小的石刻(shike)
 。另有一个由许多石块堆成的大坟(grave)。这坟背向山谷，俯仰空阔，占

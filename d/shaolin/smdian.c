@@ -15,6 +15,7 @@ string look_gate();
 void create()
 {
 	set("short", "山门殿");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是少林寺的前殿山门殿。殿内青砖铺地，两侧分列哼、
 哈二将。身躯雄伟，面相忿怒，头带宝冠，上半身裸露，手执

@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "暗道");
+	set("outdoors", "gaibang");
 	set("long", @LONG
 华山暗道至此已到尽头，往上便是华山东村村口。
 LONG

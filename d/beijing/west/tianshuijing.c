@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "甜水井胡同");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这条胡同虽不起眼，但因为胡同里有一口甜水井而得名。北京城中
 水井都出苦水，甜水井极少。紫禁城里用水都要每天去玉泉山运回，这

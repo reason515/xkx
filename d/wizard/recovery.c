@@ -3,6 +3,7 @@ inherit ROOM;
 void create()
 {
         set("short", "急诊室");
+        set("outdoors", "wizard");
         set("long", @LONG
 这是游戏的急诊室，专为治疗因游戏出毛病而无辜受害的玩家
 。急诊室里有许许多多的仪器，外行的人根本看不懂有何用处。正中

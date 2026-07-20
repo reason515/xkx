@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "当铺");
+        set("outdoors", "city");
         set("long", @LONG
 这是一家以买卖公平著称的当铺，一个五尺高的柜台挡在你的面前，柜台上
 摆着一个牌子(paizi)，柜台后面有五个大柜子，分别陈列着各式武器(weapon)、

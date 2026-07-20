@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", GRN"丽春院"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 这是丽春院二楼，不时有丫鬟从各房穿进穿出，端茶送水，递送菜肴。
 有的厢房里不时传出打情骂俏之声，淫声浪语不一而足；有的厢房却门窗紧

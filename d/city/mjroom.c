@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
 	set("short", GRN"麻将堂"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 鹿鼎公的生意越做越大，新开张的麻将堂整天聚着很多人。虽然韦小宝自己
 大字不识一箩，却也附庸风雅地命人在墙上写上一段古训：“入局斗牌，必先炼

@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "仙人洞");
+	set("outdoors", "huangshan");
     set("long", @LONG
 石路旁边有一洞。相传“阴暗之夜，洞口若有灯，朗朗如星月”，
 故得名仙人洞。前边路旁有一座亭，入胜亭。游客们纷纷在那小歇

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "灵境胡同");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一条十分宽阔的胡同，但却没什么普通百姓来往。前面有
 一扇朱漆大门，门口有一对石狮子，守卫相当森严，显然是官宦人

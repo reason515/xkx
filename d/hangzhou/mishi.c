@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "秘室");
+	set("outdoors", "hangzhou");
 	set("long", @LONG
 这是酒馆碗橱之後的一座秘室，只有五六尺见方，里面放了
 一座铁床，一只大铁箱，但却丝毫不现得局促，空气也十分清新，

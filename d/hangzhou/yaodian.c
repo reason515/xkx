@@ -12,6 +12,7 @@ inherit ROOM;
 
 void create()
 {   set("short", "胡庆余堂");
+	set("outdoors", "hangzhou");
     set("long", @LONG
 这是一家明净宽敞的药堂，後墙上是一个大药柜。几个伙计正忙
 着爬上爬下地从小抽屉里抓药。药柜前摆着一张桌子，桌旁一位老者

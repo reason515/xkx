@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 		  set("short", HIC"广宁殿"NOR);
+		  set("outdoors", "zhongnan");
 		  set("long", @LONG
 这里是重阳宫的广宁殿，是全真七子集议之所。正中间是个敬香的大香
 案，靠墙放着七张太师椅，地上放着几个蒲团。东西两侧是走廊，北边是广

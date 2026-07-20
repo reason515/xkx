@@ -10,6 +10,7 @@ string day_event(){ return NATURE_D->outdoor_room_event();}
 void create()
 {
         set("short", "茅");
+        set("outdoors", "wudang");
 	set("long", (: long_desc :));
 	set("exits", ([
                 "east" : __DIR__"doushi",

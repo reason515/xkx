@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "石阶");
+	set("outdoors", "huangshan");
     set("long", @LONG
 走在石阶上，起初还能看到黄山特有的奇松怪石，下了十八道弯
 後，迎面是一座嶙峋奇特的山峰。它太像一只骆驼了，鼻子，眼睛，

@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
     set("short", "御茶膳房");
+    set("outdoors", "beijing");
 	set("long",  @LONG
     这是外膳房.
 LONG

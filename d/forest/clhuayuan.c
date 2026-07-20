@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "花园");
+        set("outdoors", "forest");
         set("long", @LONG
 这个花园是典型的江南风格，精巧细致。园中花卉虽没有什么名贵
 品种，也是争奇斗妍。正中一条石子铺就的小路，上面遍布青苔，甚是

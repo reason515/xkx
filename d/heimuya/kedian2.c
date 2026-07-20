@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "客店二楼");
+        set("outdoors", "heimuya");
         set("long", @LONG
 你正走在客店二楼的走廊上，可以听到从客房里不
 时地呼呼的打酣声，一阵高过一阵。不时有睡意朦胧的

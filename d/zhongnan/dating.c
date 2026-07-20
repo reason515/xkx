@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 		  set("short","大厅");
+		  set("outdoors", "zhongnan");
 
 		  set("long",@LONG
 这大厅布置的极为简单，几张木椅和椅张桌子放在正当中，靠墙的椅

@@ -7,6 +7,7 @@ inherit F_SSERVER;
 void create()
 {
 	set("short", "偏厅");
+	set("outdoors", "huashan");
 	set("long", @LONG
 偏厅里供奉着华山历代祖师的神位。正中神案的墙上是华山派开山祖
 师风祖师的画象。画象神情清隽，非常传神。神案上香炉里插着三柱清香，

@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "一线天");
+	set("outdoors", "huangshan");
     set("long", @LONG
 石缝中，阴森森的凉气从脚下侵入，行至中途，真令人担心两石
 会突然合在一起，把人挤成肉泥。仰面往上看，一缕阳光到射下来，

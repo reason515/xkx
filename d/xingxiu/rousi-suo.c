@@ -3,7 +3,7 @@
 // haowen mar 31st 1999
 inherit ITEM;
 //inherit F_AUTOLOAD;
-#include <ansi.h>;
+#include <ansi.h>
 void create()
 {
         set_name("柔丝索", ({"rousi suo", "rope", "suo"}));

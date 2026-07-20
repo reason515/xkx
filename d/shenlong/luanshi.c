@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "乱石");
+        set("outdoors", "shenlong");
         set("long", @LONG
 这儿是乱石堆，似乎不是天然而成。一阵海风吹来，你打了一
 个哆嗦，不禁害怕起来，但细想一下不知其所以然。

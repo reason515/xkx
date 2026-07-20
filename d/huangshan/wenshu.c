@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "文殊院");
+	set("outdoors", "huangshan");
     set("long", @LONG
 文殊院背靠玉屏峰，东南竖天都，西北插莲花，两山秀色似乎举手
 可采。传说有个名叫普门的五台和尚，梦见一个云雾缥缈的仙境。因此

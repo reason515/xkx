@@ -14,6 +14,7 @@ int dig_times;
 void create()
 {
 	set("short", "郭襄之墓");
+	set("outdoors", "em");
 	set("long", @LONG
 这里是一座规模不大的墓，墓碑上刻着几个大字：峨嵋派祖师郭襄之墓。
 原来这是峨嵋派创派祖师郭襄的墓。郭女侠乃是大侠郭靖的小女儿。她晚年

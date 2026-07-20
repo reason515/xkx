@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "始信峰");
+	set("outdoors", "huangshan");
     set("long", @LONG
 始信峰与上升、石笋峰鼎足而立，奇景天然。峰上多奇松巧石，
 充满诗情画意。从这可眺望不远的石笋矸，矸上一根根石柱参差林立，

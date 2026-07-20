@@ -10,6 +10,7 @@ void init();
 void create()
 {
         set("short", "玩家犯罪记录室");
+        set("outdoors", "death");
         set("long", @LONG
 这里是犯罪记录室，提供巫师记录玩家被抓的原因，以免其他巫师接手
 后听信玩家片面之词而释放错人。

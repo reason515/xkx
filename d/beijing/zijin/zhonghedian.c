@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "中和殿");
+	set("outdoors", "beijing");
 	set("long",  @LONG
 这里又称华盖殿，中极殿，是正方形殿。皇帝在太和殿举办大典
 前，一般在此准备。另外，每十年一次的进呈玉碟（皇帝的家谱）仪

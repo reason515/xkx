@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "悦来客栈");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是一家远近闻名的悦来客栈，生意非常兴隆。外地游客多选择
 在这里落脚，你可以在这里打听到各地的风土人情。店小二里里外外

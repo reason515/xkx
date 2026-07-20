@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "五行洞入口");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是五行洞的入口。四面黑沉沉的，巨石削凿成的墙壁上
 镶嵌了几颗鹅蛋大小的珠子，放出蒙蒙的黄光。就是这样，也只

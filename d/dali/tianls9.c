@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
         set("short", "般若台");
+        set("outdoors", "dali");
         set("long", @LONG
 这是一座孤伶伶的高台，台上除了几个蒲团外空空如野。据闻许多高僧爱在
 此冥思，以求进一步的修行。方案上的那半部梵经，却是来自西域珍奇之物。

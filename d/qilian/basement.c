@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "地下密室");
+        set("outdoors", "qilian");
         set("long", @LONG
 这是一间极其隐避的地下密室，是玄劫教的藏珍之所。室内从北
 往南布满了兵器架，据传其中不少竟是大内藏珍，是真是假就不得而

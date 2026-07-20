@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "渡口");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是一座渡口，专门负责摆渡游客去湖中心的琼岛的。渡口是用结实
 的木料建造的，还铺上了一层垫子。渡船也是很新的双层游船，坐起来稳稳

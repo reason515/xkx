@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "高昌迷宫");
+	set("outdoors", "xingxiu");
 	set("long", @LONG
 洞内甬道又黑又窄。走着走着突然开阔起来。只见里面是一间殿堂，
 四壁供的都是泥塑木雕的佛像。偶然在壁上见到几个汉文，写的是「高

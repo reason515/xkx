@@ -1,6 +1,6 @@
 //Cracked by Roath
 //Ryu 6/22/97;
-#include <ansi.h>;
+#include <ansi.h>
 inherit NPC;
 string ask_me(object who);
 int auto_perform();

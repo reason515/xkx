@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "农舍");
+        set("outdoors", "heimuya");
         set("long", @LONG
 这里盖着一间小木屋，木屋内板壁上挂着耕犁，看
 来是庄稼农人的房子。窗外可以望见对面的一面小湖，

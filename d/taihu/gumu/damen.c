@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "活死人墓");
+	set("outdoors", "taihu");
 	set("long", @LONG
 前面是一座气派森严的大坟墓。令人惊奇的是左侧方竟然
 有炊烟缭绕，哗！莫非有人住在里面？ 

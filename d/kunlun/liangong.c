@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "练功房");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 室间除一香炉和几个座垫，并无它物。四周因有竹林遮掩，没有一丝
 杂音。偶而几声蝉鸣，更显幽静。功力深厚的弟子们常常整日在此勤练内

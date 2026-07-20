@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
     set("short", "暗器部");
+    set("outdoors", "quanzhou");
     set("long", @LONG
 这是武馆的暗器部，由萧飞负责。到处摆着草人靶子，可供练习。
 LONG

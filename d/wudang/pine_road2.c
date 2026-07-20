@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "松林小路");
+	set("outdoors", "wudang");
 	set("long", @LONG
 	这是山脚松林中的小路，两边长满参天的红松树，只能看见一线天空。
 路旁有道士在奋力砍(chop)树。南边通向密林深处，北边可回大道。

@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "鼓楼五层");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 一眼望去，只见蓝天白云，青山列列，令人将尘俗之气，
 顿为一一扫。南至前三殿，北到方丈楼，整个少林寺尽在眼底。

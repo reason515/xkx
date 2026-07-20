@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "宏圣寺塔");
+	set("outdoors", "dali");
 	set("long", @LONG
 这里是宏圣寺塔内部，四面墙壁上都辟有佛龛，龛内置佛像。抬头上望，可
 以看到中心柱、葫芦顶、伞盖、相轮及莲花座托等。伞盖成八角形，角上挂有风

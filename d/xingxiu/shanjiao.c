@@ -5,7 +5,7 @@
 // Ryu 5/10/1997
 
 inherit ROOM;
-#include <ansi.h>;
+#include <ansi.h>
 void create()
 {
 	set("short", "天山脚下");

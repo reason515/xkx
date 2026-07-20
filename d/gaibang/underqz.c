@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "暗道");
+	set("outdoors", "gaibang");
 	set("long", @LONG
 暗道上方连着泉州南门旁的一所破旧的土地庙。平时人烟罕至，
 是以丐帮选此为根据地之一。

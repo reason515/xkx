@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "海老公处");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一间大房，但物事稀少，只一张桌子，一张椅子。
 桌上放着茶壶茶碗，墙上安着两座铜烛台，各点着一只

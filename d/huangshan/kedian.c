@@ -11,6 +11,7 @@ inherit ROOM;
 
 void create()
 {   set("short", "北海客店");
+	set("outdoors", "huangshan");
     set("long", @LONG
 这家客建在这里是为了方便那些浏涟忘返的游客。里面的装饰古
 朴，伙计也十分热情。

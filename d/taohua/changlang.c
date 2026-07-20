@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "长廊");
+	set("outdoors", "taohua");
 	set("long", @LONG
 这是一道长长的由翠绿青竹搭成的走廊，周围种满翠竹，凤尾森森，龙吟细细，
 令人精神为之一振。前面不知什麽地方飘来一股香气，你不由得有点饿了，左右两面

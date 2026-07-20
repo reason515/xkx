@@ -11,6 +11,7 @@ int do_pigua();
 void create()
 {
 	set("short", "清音洞");
+	set("outdoors", "taohua");
 	set("long", @LONG
 此洞面南背北，加之洞口狭小，是以终年不见阳光。但奇怪的是洞内十分干燥，
 也没有什么虫豸。洞壁(wall)上有一些模模糊糊的人形，作扑击格斗之状，像是桃

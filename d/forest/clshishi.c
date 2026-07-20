@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "石室");
+        set("outdoors", "forest");
         set("long", @LONG
 昏暗的石屋没有窗户，乃是长乐帮私设的刑堂及囚室。周围摆放
 着几件刑具，墙上有些新旧不一的血痕，令人不寒而栗。室内甚是潮

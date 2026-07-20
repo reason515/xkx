@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "广安门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是北京城外城五大城门中朝西向的城门--广安门，这里
 的城墙相比显得略微破旧，守备也不如内城森严，但毕竟京畿

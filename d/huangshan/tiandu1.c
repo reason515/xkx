@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "天都峰");
+	set("outdoors", "huangshan");
     set("long", @LONG
 你手脚并用爬这垂直的绝壁，不时要膝盖贴腮，鼻子靠壁。爬了
 一会儿，你不得不停下来歇歇。看看四周的景色，发现到处奇石异态

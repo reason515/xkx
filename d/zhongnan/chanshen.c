@@ -11,6 +11,7 @@ inherit ROOM;
 void create()
 {
 		  set("short", HIM"长生殿"NOR);
+		  set("outdoors", "zhongnan");
 		  set("long", @LONG
 这里是重阳宫的长生殿。正中间是个敬香的大香案，地上放着几个蒲团。
 这里香火极旺，众多香客们正在进香，祈求长生不老。北边通往后殿，南边通

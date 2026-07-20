@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "甬道");
+	set("outdoors", "huashan");
 	set("long", @LONG
 这是山腹内的一条裂缝所形成的狭窄的甬道。十几丈远处，甬道渐高
 ，可挺起身来行走。甬道尽头转向右边，使人无法预知甬道后是什么。

@@ -6,6 +6,7 @@ inherit	ROOM;
 void create()
 {
 		set("short", "竹林小道");
+		set("outdoors", "gaibang");
 		set("long",	@LONG
 这是一条竹林小道，两旁尽是遮天蔽日的茂密的竹林。
 LONG

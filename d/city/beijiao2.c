@@ -2,7 +2,7 @@
 // room: /d/city/beijiao2.c
 // Jay 7/4/96
 
-#include <ansi.h>;
+#include <ansi.h>
 inherit ROOM;
 void create()
 {

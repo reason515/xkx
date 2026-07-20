@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "御花园");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这个花园面积12000多平方米，但由于园艺大师们的精心构
 思，安排得主次分明。特色是以参天古柏，嶙峋山石，红墙黄瓦

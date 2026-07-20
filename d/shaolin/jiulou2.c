@@ -9,6 +9,7 @@ void create()
 {
 	set("name", "迎宾楼");
 	set("short", "迎宾楼二楼");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里楼上的是雅座，文人学士经常在这里吟诗作画，富商土豪也在
 这里边吃喝边作交易。这里经常举办百鱼全席，边上也正开着两桌，

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "杆栏");
+	set("outdoors", "dali");
 	set("long", @LONG
 一间摆夷族的杆栏民居，此间下层没有牛羊，却用竹席围成一个养桑蚕的小
 棚屋，有竹架竹盘。楼上传来阵阵纺纱机的梭飞声。

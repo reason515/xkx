@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "密窖");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 这里伸手不见五指，只能听到唏唏嗦唢爬虫蠕动的声音。
 LONG

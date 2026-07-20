@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "议事殿");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这是皇宫里最大的殿堂，也是西夏皇帝李元昊和群臣议事的地方。
 地上铺着雪白的玉石板，两边是雪白的帷幄，靠北居中放着龙椅，上方

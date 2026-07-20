@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "批本处");
+	set("outdoors", "beijing");
 	set("long", @LONG
 凡是内阁经手的本章都经批本处进呈给皇帝,皇帝阅批后,再由
 批本处交内阁.

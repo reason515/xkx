@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIM "一楼" NOR);
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 岳阳楼主楼平面呈长方形，宽十七米，深十五米，楼有三层三檐，通高二十
 米，重檐盔顶，纯木结构，四面环以明廊，腰檐设有平台，顶层为黄色琉璃瓦顶

@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "厨房");
+	set("outdoors", "taihu");
 	set("long", @LONG
 这里是归云庄的厨房，一个乡下妇人正在灶边忙来忙去，看来她就是
 这里的厨娘了。如果肚子饿了，就赶快找厨娘要(serve)些吃的吧。

@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "大厅口");
+	set("outdoors", "shenlong");
 	set("long", @LONG
 这是大厅的门口，向内可进入神龙教的大厅，门口站着许多神龙教的教徒，
 全副武装，警惕地注视四周，从厅内依稀传来一个浑厚的声音，似乎里面正在

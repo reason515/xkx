@@ -38,6 +38,9 @@ int grind_try_recover_jingli(object me);
 int grind_try_yun_recover(object me, int need_pct);
 int grind_dispose_zhou(object me);
 int grind_step_or_rest(object me, mapping cfg);
+int assist_is_sleeping(object me);
+void assist_finish_sleep(object me);
+int study_resume_jing(object me);
 string assist_unreachable_hint(object me, string dest);
 string grind_target_label(string target_key);
 string grind_unreachable_spawn_msg(object me, string target_key);
@@ -626,6 +629,44 @@ string grind_recover_dest(object me)
 	return "/d/xiakedao/dadong";
 }
 
+/* sleep.c 的 wakeup 在 living 时会提前 return，可能残留 disabled / block_msg */
+int assist_is_sleeping(object me)
+{
+	string dtype;
+
+	if (!objectp(me)) return 0;
+	if (me->query_temp("block_msg/all")) return 1;
+	dtype = me->query("disable_type");
+	if (stringp(dtype) && strsrch(dtype, "睡") >= 0) return 1;
+	return 0;
+}
+
+void assist_finish_sleep(object me)
+{
+	if (!objectp(me)) return;
+	if (me->query_temp("disabled") || me->query_temp("block_msg/all")
+	 || stringp(me->query("disable_type"))) {
+		catch(me->enable_player());
+		me->delete_temp("block_msg/all");
+		me->delete_temp("disabled");
+		me->delete("disable_type");
+	}
+}
+
+int study_resume_jing(object me)
+{
+	int max_jing, need;
+
+	if (!objectp(me)) return STUDY_MIN_JING;
+	max_jing = (int)me->query("max_jing");
+	if (max_jing < 1) max_jing = 1;
+	need = max_jing * 70 / 100;
+	if (need < STUDY_MIN_JING + 20)
+		need = STUDY_MIN_JING + 20;
+	if (need > max_jing) need = max_jing;
+	return need;
+}
+
 void grind_set_path(mapping cfg, object me, string dest)
 {
 	string *path;
@@ -917,7 +958,16 @@ void do_grind_tick(string id)
 		return;
 	}
 
+	phase = cfg["phase"];
 	if (!living(me)) {
+		/* 睡觉中 living 一般仍为真；若驱动判定不同，休整睡觉时不要当昏迷停挂机 */
+		if (phase == "recover_sleep" || assist_is_sleeping(me)) {
+			cfg["slept"] = 1;
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "挂机中 · 休息室睡觉中");
+			call_out("grind_tick", 4, id);
+			return;
+		}
 		stop_assist(me, "挂机停止 · 你已力尽昏迷，请先恢复再挂机");
 		return;
 	}
@@ -928,7 +978,6 @@ void do_grind_tick(string id)
 		return;
 	}
 
-	phase = cfg["phase"];
 	target_key = cfg["target_key"];
 	my = me->query_entire_dbase();
 	max_qi = my["max_qi"];
@@ -1142,9 +1191,10 @@ void do_grind_tick(string id)
 		}
 		dest = grind_recover_dest(me);
 		if (PATHD->room_path(env) == dest) {
-			if (dest == "/d/xiakedao/xiuxi")
+			if (dest == "/d/xiakedao/xiuxi") {
 				cfg["phase"] = "recover_sleep";
-			else
+				cfg["slept"] = 0;
+			} else
 				cfg["phase"] = "recover_zhou";
 			cfg["path"] = ({});
 			sessions[id] = cfg;
@@ -1191,6 +1241,7 @@ void do_grind_tick(string id)
 		dadong = env;
 		if ((int)dadong->query("food_count") < 1) {
 			cfg["phase"] = "recover_sleep";
+			cfg["slept"] = 0;
 			cfg["path"] = ({});
 			WEBD->send_assist_status(me, 1, "挂机中 · 粥已罄尽，改去休息");
 			sessions[id] = cfg;
@@ -1210,6 +1261,7 @@ void do_grind_tick(string id)
 		}
 		/* 要粥失败（喝光/已有地上碗等）→ 睡觉 */
 		cfg["phase"] = "recover_sleep";
+		cfg["slept"] = 0;
 		cfg["path"] = ({});
 		WEBD->send_assist_status(me, 1, "挂机中 · 改去休息室");
 		sessions[id] = cfg;
@@ -1241,19 +1293,41 @@ void do_grind_tick(string id)
 			call_out("grind_tick", 2, id);
 			return;
 		}
-		if (my["qi"] * 100 / max_qi >= GRIND_RESUME_PCT
+		/*
+		 * 赶路途中 heal_up 可能已把气/精抬过阈值；仍须真睡一次，
+		 * 否则「到休息室立刻回场」完全没恢复。
+		 * 先看睡醒恢复，再等睡觉中——wakeup 可能残留 block_msg。
+		 */
+		if (cfg["slept"]
+		 && my["qi"] * 100 / max_qi >= GRIND_RESUME_PCT
 		 && my["jing"] * 100 / max_jing >= GRIND_RESUME_PCT) {
+			assist_finish_sleep(me);
 			cfg["phase"] = "return";
 			cfg["path"] = ({});
+			cfg["slept"] = 0;
 			WEBD->send_assist_status(me, 1, "挂机中 · 睡醒回场");
 			sessions[id] = cfg;
 			WEBD->notify_vitals(me);
 			call_out("grind_tick", 2, id);
 			return;
 		}
-		if (!me->is_busy())
-			me->force_me("sleep");
-		WEBD->send_assist_status(me, 1, "挂机中 · 休息室调息");
+		if (assist_is_sleeping(me)) {
+			cfg["slept"] = 1;
+			WEBD->send_assist_status(me, 1, "挂机中 · 休息室睡觉中");
+			sessions[id] = cfg;
+			WEBD->notify_vitals(me);
+			call_out("grind_tick", 4, id);
+			return;
+		}
+		if (me->is_busy() || me->is_fighting()) {
+			sessions[id] = cfg;
+			call_out("grind_tick", 2, id);
+			return;
+		}
+		me->force_me("sleep");
+		if (assist_is_sleeping(me))
+			cfg["slept"] = 1;
+		WEBD->send_assist_status(me, 1, "挂机中 · 休息室睡觉恢复");
 		sessions[id] = cfg;
 		WEBD->notify_vitals(me);
 		call_out("grind_tick", 4, id);
@@ -1468,6 +1542,9 @@ void study_tick(string id)
 		call_out("study_tick", 2, id);
 		return;
 	}
+	/* 非休整阶段若残留睡觉屏蔽，清掉以免无法行动 */
+	if (assist_is_sleeping(me) && cfg["phase"] != "recover_sleep")
+		assist_finish_sleep(me);
 
 	phase = cfg["phase"];
 	skill = cfg["skill"];
@@ -1510,9 +1587,10 @@ void study_tick(string id)
 			return;
 		}
 		if (check == 1) {
-			if ((int)me->query("combat_exp") > FRUIT_MAX_EXP)
+			if ((int)me->query("combat_exp") > FRUIT_MAX_EXP) {
 				cfg["phase"] = "recover_sleep";
-			else
+				cfg["slept"] = 0;
+			} else
 				cfg["phase"] = "recover_zhou";
 			cfg["path"] = ({});
 			sessions[id] = cfg;
@@ -1537,6 +1615,7 @@ void study_tick(string id)
 		dest = "/d/xiakedao/dadong";
 		if ((int)me->query("combat_exp") > FRUIT_MAX_EXP) {
 			cfg["phase"] = "recover_sleep";
+			cfg["slept"] = 0;
 			cfg["path"] = ({});
 			sessions[id] = cfg;
 			WEBD->send_assist_status(me, 1, "挂机中 · 改去休息室睡觉");
@@ -1606,6 +1685,7 @@ void study_tick(string id)
 	case "recover_fruit":
 		if ((int)me->query("combat_exp") > FRUIT_MAX_EXP) {
 			cfg["phase"] = "recover_sleep";
+			cfg["slept"] = 0;
 			cfg["path"] = ({});
 			sessions[id] = cfg;
 			WEBD->send_assist_status(me, 1, "挂机中 · 改去休息室睡觉");
@@ -1680,16 +1760,33 @@ void study_tick(string id)
 			call_out("study_tick", 2, id);
 			return;
 		}
-		if ((int)me->query("jing") >= STUDY_MIN_JING) {
+		/*
+		 * 赶路途中精神可能已自然回升到 STUDY_MIN_JING；仍须真睡，
+		 * 否则「到休息室立刻回石室」几乎没恢复。
+		 * 注意：先看睡醒恢复，再等睡觉中——wakeup 可能残留 block_msg。
+		 */
+		if (cfg["slept"] && (int)me->query("jing") >= study_resume_jing(me)) {
+			assist_finish_sleep(me);
 			cfg["phase"] = "go_wall";
 			cfg["path"] = ({});
+			cfg["slept"] = 0;
 			sessions[id] = cfg;
 			WEBD->send_assist_status(me, 1, "挂机中 · 睡醒返回石室");
 			WEBD->notify_vitals(me);
 			call_out("study_tick", 2, id);
 			return;
 		}
+		if (assist_is_sleeping(me)) {
+			cfg["slept"] = 1;
+			WEBD->send_assist_status(me, 1, "挂机中 · 休息室睡觉中");
+			sessions[id] = cfg;
+			WEBD->notify_vitals(me);
+			call_out("study_tick", 4, id);
+			return;
+		}
 		me->force_me("sleep");
+		if (assist_is_sleeping(me))
+			cfg["slept"] = 1;
 		WEBD->send_assist_status(me, 1, "挂机中 · 休息室睡觉恢复");
 		sessions[id] = cfg;
 		WEBD->notify_vitals(me);

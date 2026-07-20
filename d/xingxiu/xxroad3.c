@@ -2,7 +2,7 @@
 // Room: /d/xingxiu/xxroad3.c
 
 inherit ROOM;
-#include <ansi.h>;
+#include <ansi.h>
 void create()
 {
         set("short", "六盘山");

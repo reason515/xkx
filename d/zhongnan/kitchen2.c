@@ -7,6 +7,7 @@ int do_serve();
 void create()
 {
 		  set("short","厨房");
+		  set("outdoors", "zhongnan");
 
 		  set("long",@LONG
 这里就是厨房了。只见石室中的桌上放了些香喷喷的小菜及茶水。一

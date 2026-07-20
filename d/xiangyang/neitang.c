@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "内堂");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 此处是接待宾客的厅堂，四周布置清雅，几张梨木椅排开，虽
 非雕梁画栋，但格局开阔，自有气象。西首照壁上悬挂著几幅字画

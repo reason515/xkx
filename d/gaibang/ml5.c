@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "青竹林");
+	set("outdoors", "gaibang");
 	set("long", @LONG
 这是一片茂密的青竹林，一走进来，你仿佛迷失了方向。
 LONG

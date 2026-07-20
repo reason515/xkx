@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "寝宫");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这里就是西夏皇帝的寝宫，一色的白玉地板，白色的纱帐，居中
 是皇帝的龙榻，榻边是一张白老虎皮做的踏脚, 墙上挂着把新月弯刀，

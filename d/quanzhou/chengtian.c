@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "承天寺");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 这是泉州市民祭天求安的寺庙，以保佑年年得以五谷丰登，风调雨顺。寺
 内广场中央有一法坛。承天寺西方通往刺桐南路。

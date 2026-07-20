@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "狮王殿");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此间乃明教狮王殿。殿中摆设并不奢侈，但干净利落，令人肃静。两
 旁置有兵器架，上摆十八种武器。正墙壁上绘着一只金色雄狮，狮口大张，

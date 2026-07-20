@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
         set("short", "学堂");
+        set("outdoors", "quanzhou");
         set("long", @LONG
 这是城里的一所学堂，城中的子弟便在此上课。学堂里的柜子里摆满了书
 籍。教书先生便是响誉泉州的欧阳詹先生。

@@ -10,6 +10,7 @@ string look_sword();
 void create()
 {
 	set("short", "白玉峰大殿");
+	set("outdoors", "xingxiu");
 	set("long", @LONG
 大殿上到处都是骸骨(skeleton)，殿中地下到处是大大小
 小的玉制武器，刀枪剑戟都有，只是形状奇特，与中土习见的

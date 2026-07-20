@@ -3,7 +3,7 @@
 // Date: fear 1999/12/18
 
 inherit ITEM;
-#include <ansi.h>;
+#include <ansi.h>
 
 void on_basket();
 void arrive();
@@ -14,6 +14,7 @@ void reset();
 void create()
 {
         set("short","大竹篓");
+        set("outdoors", "heimuya");
 	set("long",@LONG
 这是一只大竹篓，足可装得十来石米。旁边挂着一个小铜锣。
 LONG);

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "黄龙洞");
+	set("outdoors", "hangzhou");
 	set("long", @LONG
 一进山门，松篁交翠，别有洞天。石壁陡削，苔痕常绿；回廊临
 池，藤萝结。池後石涯上雕刻的黄龙头，泉水从龙口下注入池。池岩

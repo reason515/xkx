@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", HIY"宝源钱庄"NOR);
+        set("outdoors", "beijing");
         set("long", @LONG
 这是京城里最大的一家钱庄，它发行的银票信誉非常好，通行全国。墙上贴
 着一张布告(bugao)。钱庄掌柜和伙计忙忙碌碌地工作着。

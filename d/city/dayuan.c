@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "大院子");
+	set("outdoors", "city");
 	set("long", @LONG
 这里是一块用篱笆围成的大院子，院子中立了一块用花岗岩制成的石碑，上
 面雕刻了几行文字，好象是为了纪念什么人而立在这儿的。这里极其宁静，远处

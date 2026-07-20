@@ -10,6 +10,7 @@ void reset();
 void create()
 {
     set("short", "西廊");
+    set("outdoors", "huashan");
     set("long", @LONG
 走廊西边传来阵阵饭菜香气，不问可知那儿便是华山派的厨房。几个
 华山弟子正兴高彩烈地谈论着自己的风光史及武林中的几件大事。另有几

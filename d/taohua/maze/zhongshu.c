@@ -8,6 +8,7 @@ void create()
 	object ob;
 
         set("short", "石阵中枢");
+        set("outdoors", "taohua");
         set("long", @LONG
 这是桃花岛石阵中枢所在地，四壁(wall)上绘着二十八星宿图，地上
 密密麻麻刻着诸般卦象。地上一个太极图(tu)，周围分别环绕先天八卦与

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "地下水道");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 在地下潜流中,你只觉得水声轰轰,身子不由自主的被强大的水流向前

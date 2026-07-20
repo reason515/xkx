@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "弘义阁");
+	set("outdoors", "beijing");
 	set("long",  @LONG
 这里是宫廷库房，面阔九间，进深三间，院殿式屋顶，是三大殿
 的陪衬建筑。

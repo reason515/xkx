@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "平定酒店");
+        set("outdoors", "heimuya");
         set("long", @LONG
 这里是平定州唯一的酒店，柜台边一名店伴伏在桌
 上打盹，似乎并酒客不多，只有一旁座上两三名酒客正

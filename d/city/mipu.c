@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "米铺");
+        set("outdoors", "city");
         set("long", @LONG
 你好不容易挤了进来，看见两个衙役正在这里维持次序。店里的老板好像不
 在，只有一个不吭声的伙计正低着头给一些人打米。大家的表情好像都很气愤，

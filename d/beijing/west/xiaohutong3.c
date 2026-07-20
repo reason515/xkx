@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "小胡同");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一条北京城里极常见的小胡同，因为地处偏僻，所以行人
 不多，地上看起来也不太干净，一有刮风就尘土飞扬。老北京口中

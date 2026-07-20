@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "天门坎");
+	set("outdoors", "huangshan");
     set("long", @LONG
 天门坎高铺在天都峰与横云岩之间，两面奇峰入云，一条上山之
 路就从天门中穿云而过。

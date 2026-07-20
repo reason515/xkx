@@ -8,6 +8,7 @@ inherit ROOM;
 
 void create() {
     set("short", "东看台四");
+    set("outdoors", "bwdh");
     set("long", @LONG
 这里是比武场的东看台四。现在已经是人声鼎
 沸，群雄议论纷纷，都在猜测哪个团队能折桂。四

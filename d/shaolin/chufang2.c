@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "厨房");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是一间厨房。厨房很大，可能也是因为兼作仓库的缘故。
 灶头砌在北首，一根大烟囱直通出屋顶。房子四壁被常年烟火熏得

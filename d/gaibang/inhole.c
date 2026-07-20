@@ -8,6 +8,7 @@ int do_say(string);
 void create()
 {
 	set("short", "树洞内部");
+	set("outdoors", "gaibang");
 	set("long", @LONG
 这是扬州城中央广场的老槐树内部，也是丐帮秘密地下通道的总交汇处。树
 洞里丢满了各种垃圾，弭漫着一股臭哄哄的味道。树洞壁上钉着一块非常醒目的

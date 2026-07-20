@@ -9,6 +9,7 @@ inherit ROOM;
 
 void create() {
     set("short", "西看台");
+    set("outdoors", "bwdh");
     set("long", @LONG
 这里是比武场的西看台。参加比武的选手也从
 这里入场。现在已经是人声鼎沸，群雄议论纷纷，

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "白府大门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是杨柳胡同里的一所大宅子，听说最近被一帮云南
 客商买下了，日常进出的都是操云南口音的人。现在大门

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "正气厅");
+	set("outdoors", "taishan");
 	set("long", @LONG
 这里是封禅台右边的正气厅，武林盟罚恶使者平时不下山时，
 通常都是在这里处置武林公案。上首正中放着把虎皮椅，罚恶使者

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "逍遥洞");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 这是一个粗糙的石洞，里面铺了几张臭哄哄的草垫子。垫子旁边
 是一些破酒罐子。洞壁(wall)上有些字迹。

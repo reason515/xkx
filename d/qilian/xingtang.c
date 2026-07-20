@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "刑堂");
+        set("outdoors", "qilian");
         set("long", @LONG
 你刚进入这里，就觉得一股热浪迎面扑来，东面有一个两丈多高的火
 炉，里面插着一些烧红的铁铲，铁钩，令人触目惊心，使人感到日月神教

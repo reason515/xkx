@@ -4,7 +4,7 @@
 // Modified by qfy August 24, 96
 
 inherit ROOM;
-#include <ansi.h>;
+#include <ansi.h>
 void create()
 {
 	set("short", "黄土路");

@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "山腰");
+	set("outdoors", "dali");
 	set("long", @LONG
 这里是山的半腰，眼前景色如画，清溪潺潺，水流平稳之极，几似定住不动。
 那溪水宽约丈许，两旁垂柳拂水，绿柳之间夹植着无数桃树，若在春日桃花盛开

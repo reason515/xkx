@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIM"春桃阁"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 这是一间地方不大的小厢房，屋中陈设颇为雅致，屋中装饰以真树真花为
 主，枝干横斜，花叶疏密有致，淡雅天然，真如一幅名家水墨山水一般。屋角

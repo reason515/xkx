@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石门前");
+	set("outdoors", "huashan");
 	set("long", @LONG
 石门(door)紧闭着，看起来似乎相当的厚。门上有两个大石环，各自
 嵌在两个精雕的龙头嘴里。

@@ -1,7 +1,7 @@
 //Cracked by Roath
 // Ryu, 5/10/97
 // wsky, 5/7/00
-#include <ansi.h>;
+#include <ansi.h>
 inherit ROOM;
 string look_stone();
 void create()

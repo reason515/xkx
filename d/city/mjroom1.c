@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", RED"红木亭"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 一间以红木布置成的麻将室，一切家具皆以红木为材料。房间里有一张红木
 雕制成的桌子，铺着一块棕色的戎布，上面写着东，南，西，北，桌上摆着一副

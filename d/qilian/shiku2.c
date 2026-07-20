@@ -5,6 +5,7 @@ inherit ROOM;
 void create ()
 {
   set ("short", "石窟");
+  set("outdoors", "qilian");
   set ("long", @LONG
 这窟中满壁的壁画，由于所绘皆是杀身故事，如舍身喂虎，皆
 是阴森凄惨之悲剧，故设色用笔，均极沉着艰毅。往往于石青石绿

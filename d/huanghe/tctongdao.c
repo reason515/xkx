@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "通道");
+        set("outdoors", "huanghe");
         set("long", @LONG
 一条长长的通道，甬道墙上点着牛油巨烛，走出数丈，便即转弯。整个通
 道一片寂静，显得十分阴森可怖。几个帮众正在来回巡逻。

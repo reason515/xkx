@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "石阶");
+	set("outdoors", "huangshan");
     set("long", @LONG
 越往下走越清凉，正当你开始感到一丝冷意，迎面一股暖气扑面
 而来。原来前面有一天然的温泉，泉水晶莹透明，无色无味，可饮可

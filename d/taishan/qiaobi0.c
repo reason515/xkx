@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "峭壁下");
+        set("outdoors", "taishan");
         set("long", @LONG
 这是一座极大的峭壁，有如一座屏风，冲天而起。峭壁(cliff)中部离地
 约二十馀丈处，生著一块三四丈见方的大石，便似一个平台(tai)，石上隐隐

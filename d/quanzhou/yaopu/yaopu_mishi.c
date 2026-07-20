@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "密室");
+	set("outdoors", "quanzhou");
 	set("long", @LONG
 这里象是一个地窖，可能是药铺收藏珍贵药物的地方。东首一个
 大架子，放着药材和无数小瓷瓶。地上有一只炼药炉，空气中尽是药

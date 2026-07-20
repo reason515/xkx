@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "武馆大门");
+	set("outdoors", "quanzhou");
 	set("long", @LONG
 一所气派辉煌的武馆。朱漆大门旁边摆镇了两头高大威猛，栩栩如生的石
 狮子。门上挂着一块黑底大匾额，四个刷金的大字－「扬威武馆」闪闪生光。

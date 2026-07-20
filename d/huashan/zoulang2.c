@@ -10,6 +10,7 @@ void reset();
 void create()
 {
     set("short", "走廊");
+    set("outdoors", "huashan");
     set("long", @LONG
 走廊向东伸延过去。旁边有一大丛翠茂的竹子，环境十分清幽。不远
 处边是华山男弟子的休息室。

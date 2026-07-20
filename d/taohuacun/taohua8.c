@@ -3,6 +3,7 @@ inherit ROOM;
 void create()
 {
 set("short", "桃花丛");
+	set("outdoors", "taohuacun");
 set("long", @LONG
     这是一片烂漫的桃花丛，满山遍野的桃树枝上，开着桃红的桃
 花。桃花上头，飞满了细细嗡嗡的不甘寂寞的蜜蜂。脚下是一条不

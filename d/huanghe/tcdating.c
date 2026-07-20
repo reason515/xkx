@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "大厅");
+        set("outdoors", "huanghe");
         set("long", @LONG
 转了个弯，你眼前突然大亮，竟是到了一间大厅之中，墙上插着无数
 火把，照耀如同白昼，四周站满了手持铁叉的会众。和这些人恶毒凶狠的

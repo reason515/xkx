@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "后厅");
+        set("outdoors", "wanshou");
         set("long", @LONG
 后厅的面积相当大，是二庄主管见子史仲猛授徒之所，后厅四
 侧的墙壁上绘着虎豹狮象猴五种动物嬉戏搏斗的图形，栩栩如生，

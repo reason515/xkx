@@ -23,6 +23,7 @@ string* books = ({
 void create()
 {
 		  set("short",HIM"藏经阁三楼"NOR);
+		  set("outdoors", "zhongnan");
 
 		  set("long",@LONG
 这ㄦ是重阳宫藏经阁三楼，教内最重要的书典便是存放在此。只见靠墙是一

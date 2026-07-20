@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "藏经楼");
+        set("outdoors", "emei");
 	set("long", @LONG
 这里是报国寺的藏经楼。阁楼上密密麻麻排了好多书架，架上摆满了经书。
 有两个身穿白衣的小师太正在一角静静地读着经书。

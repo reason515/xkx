@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "箭亭");
+	set("outdoors", "beijing");
 	set("long", @LONG
 整个建筑没有一扇窗户,南北向共有三十二扇隔扇门,周围是空
 旷的广场,便于练习可跑马射箭.清代武士殿试,皇帝在此阅技勇.亭

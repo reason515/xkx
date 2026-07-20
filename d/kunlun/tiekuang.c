@@ -11,6 +11,7 @@ int check_busy(object me);
 void create()
 {
         set("short",HIR "铁矿" NOR);
+        set("outdoors", "kunlun");
         set("long", HIW @LONG
 这里是一个光秃秃的小山丘，四周什么花草树木也没有。仔细一看，
 发现山丘周围有些黑黝黝的大石头，这就是光明顶盛产的乌金铁矿石。明

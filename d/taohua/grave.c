@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "墓室");
+	set("outdoors", "taohua");
 	set("long", @LONG
 墓室正中是一道香案，案上供着黄药师夫人冯氏灵位，灵前有两盏琉璃灯，
 昏黄的灯光映着黄药师手绘的夫人遗像(portrait)。墓室中壁间案头尽是古物珍

@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "白衣殿");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是白衣殿，供奉白衣观音大士。大士高居须弥座上，手托
 净瓶，眉含微愁，唇绽浅笑，仿佛对人间疾苦既存忧心，又觉释

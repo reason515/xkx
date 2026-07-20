@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", RED"放鹤亭"NOR);
+	set("outdoors", "hangzhou");
     set("long", @LONG
 亭四周种满了梅花。一到冬末春初，梅花盛放，蔚然可观。此亭
 是为了纪念北宋隐逸诗人林和靖而建。他酷爱梅花。“疏影横斜水清

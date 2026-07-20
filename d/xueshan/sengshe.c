@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "僧舍");
+        set("outdoors", "xueshan");
         set("long", @LONG
 这里是一般僧侣居住的地方，一律为木构平顶小屋组成的小院。僧侣大
 多集中在一处。小院内洁净朴素，清静幽雅。小院之间有小巷相通，每座僧

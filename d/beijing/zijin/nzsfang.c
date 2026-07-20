@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "内奏事房");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里就是内奏事房，是紫禁城中的重地．每天内外臣工所进的
 奏章由外奏事处接收交到这里，再从这里进呈给皇上，批复后再交

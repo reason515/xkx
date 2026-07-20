@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "皇穹宇");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是存放祭祀神牌位的地方。外面有一道圆形磨砖对缝的围墙，是著名的
 “回音壁”。南面大厅入口处放着三块石头。

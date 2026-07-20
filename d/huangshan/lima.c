@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "立马亭");
+	set("outdoors", "huangshan");
     set("long", @LONG
 在朱砂峰畔的树叶中有一座亭。亭对岸的立马峰上有“立马空东
 海，登高望太平”十个石刻大字，每个字有二丈八尺，刻在这上无攀

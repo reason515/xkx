@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "高昌迷宫");
+	set("outdoors", "xingxiu");
 	set("long", @LONG
 这里到处放满了汉人的武器、用具。潮湿的空气使大部
 分物品都已发霉。

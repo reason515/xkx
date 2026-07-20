@@ -9,6 +9,7 @@ int do_study(string);
 void create()
 {
 	set("short", "宏圣寺塔");
+	set("outdoors", "dali");
 	set("long", @LONG
 这里是宏圣寺塔内部，四面墙壁上都辟有佛龛，龛内置佛像。西面塔壁由模
 印砖所砌，上面用梵，汉文刻了阴形文的“阿众佛灭正保咒”。

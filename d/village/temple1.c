@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "玄坛庙");
+	set("outdoors", "village");
 	set("long", @LONG
 这是一间十分破旧的小庙，庙里供的神像是赵玄坛，神像已经很残破
 了，神案上也积了很多尘土，看来已有很久没人来上香进供了。大概村民

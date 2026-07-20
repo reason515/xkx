@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
     set("short", "棒杖部");
+    set("outdoors", "quanzhou");
     set("long", @LONG
 这是武馆的棒杖部，由陈浒负责。到处摆着木人沙包，可供练习。
 LONG

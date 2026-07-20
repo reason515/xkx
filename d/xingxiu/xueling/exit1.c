@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
   set("short", HIG"休息室"NOR);
+  set("outdoors", "xingxiu");
   set("long", @LONG
 这里是比试完毕的英雄们休息的地方，两边的小厮手捧着
 比武前存放的各种物事，恭敬地等着大家来认领。从这里出去

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "土地庙");
+	set("outdoors", "quanzhou");
 	set("long", @LONG
 这是一间十分破旧的土地庙，也不知荒废了多久，梁上地下布满了灰尘。
 土地神像後面的墙上有个洞口，老鼠爬进爬出，恶心极了。

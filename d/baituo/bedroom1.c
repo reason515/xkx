@@ -9,6 +9,7 @@ void wakeup(object me, object where);
 void create()
 {
 	set("short", "少主睡房");
+	set("outdoors", "baituo");
 	set("long", @LONG
 这里是白驼山少主所睡的厢房，房里锦帏绣被，珠帘软帐，柜架上
 摆满了珍奇古玩，红烛高烧，墙边挂着蜀锦文囊，囊上用白丝线绣着一

@@ -8,6 +8,7 @@ inherit ROOM;
 
 void create() {
     set("short", HIR"正厅"NOR);
+    set("outdoors", "bwdh");
     set("long", @LONG
 这里是比武场的正厅，杀气越来越浓了。远处传来
 极低微的呼吸声，偶尔有人影一闪而过。你似乎感觉到

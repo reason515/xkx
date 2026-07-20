@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "琅寰福地");
+	set("outdoors", "dali");
 	set("long", @LONG
 这里原来是个极大的石洞，比外面房间大了数倍，一排排全是书架，可空空的
 一本书也没有。你走近细看，书架上贴满了签条，上写江湖各门各派的名称，少林

@@ -2,7 +2,7 @@
 // pan13.c 十二盘
 // Shan: 96/06/22
 
-#include <ansi.h>;
+#include <ansi.h>
 inherit ROOM;
 
 void create()

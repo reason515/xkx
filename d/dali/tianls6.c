@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
         set("short", "三元宫");
+        set("outdoors", "dali");
         set("long", @LONG
 此处是历代高僧法骨所置之地。一座紫檀木的灵塔立在殿中，高四丈五尺，
 分十三层，呈六边形，端重庄严。四周站了八座二丈余高的护法金刚。瞠目狞牙。

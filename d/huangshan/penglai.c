@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "蓬莱三岛");
+	set("outdoors", "huangshan");
     set("long", @LONG
 从这往南望，只见三座参差不起的小石峰，峰上奇松挺拔，白云
 萦回其间，如海浪拍岸，故得名蓬莱三岛。南边石壁上有一条石缝，

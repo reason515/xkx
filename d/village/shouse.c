@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小土房");
+        set("outdoors", "village");
 	set("long", @LONG
 这是一间用土坯搭成的房屋，屋里只有几件残破的家俱。在靠门口的墙角有
 一只空空的笼子，大概曾经用来养过鸡、鸭之类的家禽。

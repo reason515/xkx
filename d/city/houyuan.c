@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "后院");
+        set("outdoors", "city");
         set("long", @LONG
 这里是翰林府的后院。院子里种了不少的各种奇花异草，不知道是什么原因，
 花草中尤以各色菊花为多。院西是丫鬟的房间，东侧有一扇门(men)。凌翰林正在

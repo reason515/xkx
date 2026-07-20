@@ -10,6 +10,7 @@ string Point2="";
 void create()
 {
 	set("short", "法堂");
+	set("outdoors", "dali");
 	set("long", @LONG
 定安府的法堂内气氛肃穆，堂的上首摆的是一排五个长案，案后坐的是五个
 不同族裔的官员。长案下首有两个通译，有赐座。此外，法堂两边还各站了四五

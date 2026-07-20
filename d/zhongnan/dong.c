@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "山洞");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 在这小山洞的深处，一股强大的水流自地上流出，形成一条小河流向 

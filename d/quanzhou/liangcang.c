@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "粮仓");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 粮仓是所占地宽广的库房，堆放着堆积如山的军粮，逢到旱涝灾年也做济
 灾之用。由于仓广人少，经常引起匪徒的窥视。

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "西偏殿");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这里是西偏殿，是皇上上朝是必经之处，朝上议事的时候内侍们就
 在这里候着。地板是白玉铺成，四周是白色的帷幄。东面的走廊通向议

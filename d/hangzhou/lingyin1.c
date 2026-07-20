@@ -8,6 +8,7 @@ inherit ROOM;
 
 void create()
 {   set("short", "天王殿");
+	set("outdoors", "hangzhou");
     set("long", @LONG
 走进大殿，只见正面坐着袒胸露腹的弭勒佛，两旁是四大天王，
 後面是神态威严的韦驮菩萨。天王殿後面便是大雄宝殿。

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "实录库");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一间空房间，不知道是用来做什么的。
 LONG

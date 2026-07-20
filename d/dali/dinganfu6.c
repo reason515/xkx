@@ -9,6 +9,7 @@ int do_find(string);
 void create()
 {
 	set("short", "库房");
+	set("outdoors", "dali");
 	set("long", @LONG
 大理官府的库房，存放武器和防具等物品，大理的官员、差人等可以到这里
 来取常用的武器工具等物品。靠近门口的地方有一张小桌子，管库的人坐在那里

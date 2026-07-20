@@ -8,6 +8,7 @@ void create()
 {
     int i;
         set("short", "大厅");
+        set("outdoors", "forest");
         set("long", @LONG
 这里是晋阳大侠萧半和家的大厅。今天是萧半和的五十寿诞。
 萧府中贺客盈门，群英济济。萧半和在大厅上接待来贺的各路

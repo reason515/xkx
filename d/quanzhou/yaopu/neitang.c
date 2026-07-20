@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "内堂");
+	set("outdoors", "quanzhou");
 	set("long", @LONG
 这里是药铺的内堂，东首摆了一个书架，上面放了不少医书。此
 外还有几张桌椅。看来大概是药铺接待客人的地方。

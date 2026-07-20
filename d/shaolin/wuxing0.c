@@ -12,6 +12,7 @@ string* dirs = ({"east", "south", "west", "north"});
 void create()
 {
 	set("short",HIY "五行洞" NOR);
+	set("outdoors", "shaolin");
 	set("long", HIY @LONG
 这是五行洞。四周一片亮晶晶的，定睛细看，却是无数锋利
 的刀尖从墙上，地上，顶上，四面八方向你伸过来，稍不留神就

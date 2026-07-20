@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "昂欠二楼");
+        set("outdoors", "xueshan");
         set("long", @LONG
 这里是法王的寝宫。进门是一张铺着红色刺绣软垫的乌檀木大床，四壁
 全是堆满了佛经的书架。

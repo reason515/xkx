@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "刀店");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这是一家以卖西域特产“英吉儿”小刀出名的兵器铺，上百把各式
 各样的“英吉儿”小刀整整齐齐的摆放在柜台上，说是小刀却尺寸型制

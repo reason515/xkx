@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "王铁口算命摊");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这是城市里常见的那种算命的摊子，屋里的陈设很简单, 正中间
 一张八仙桌上面放着一茶壶和几本算卦用的书, 旁边放着几把供客人

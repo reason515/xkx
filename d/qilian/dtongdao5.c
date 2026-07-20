@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
   set ("short", "甬道");
+  set("outdoors", "qilian");
   set ("long", @LONG
 这是一条长长的甬道，两壁上满是彩塑：千佛、飞天、乐妓、
 建筑物、花饰。

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "果园");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里种植了很多果树。每到秋季，果实累累。花草丛中蝴蝶
 纷飞，不时还可以看到几只小兽从旁边跑过。南面便是景山了，远

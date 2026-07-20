@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "走廊");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是禅房走廊。走廊南侧的房顶倚着南面的高墙，另一侧
 凌空架在几根细细的石柱上，倚在栏杆上，北望是一大片竹林，

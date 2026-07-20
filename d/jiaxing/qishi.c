@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "棋室");
+        set("outdoors", "jiaxing");
         set("long", @LONG
 只见好大一间房中，除了一张石几、两只软椅之外，空荡荡
 地一无所有。床脚摆着一张床(bed)。

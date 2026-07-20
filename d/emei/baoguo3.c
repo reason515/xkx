@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "报国寺禅房");
+        set("outdoors", "emei");
         set("long", @LONG
 这是报国寺的禅房，峨嵋男弟子回山之前通常在此借宿一宿，好备足
 体力上山。房内摆有一张长桌，靠墙设有几张木床。

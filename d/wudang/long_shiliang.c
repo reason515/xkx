@@ -11,6 +11,7 @@ int is_burning();
 void create()
 {
         set("short", "龙石梁");
+        set("outdoors", "wudang");
         set("long","石梁上地形险峻，若非轻功极高亦无法跃上来。只见石梁顶端雕刻了一\n"
 "个香炉(lu)。\n\n"
 "    "HBWHT+HIC"这里上接青天，下临深谷，至身其中有如在云幻景。\n\n"NOR

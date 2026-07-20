@@ -12,6 +12,7 @@ string* dirs = ({"east", "south", "west", "north"});
 void create()
 {
 	set("short", HIR "五行洞" NOR);
+	set("outdoors", "shaolin");
 	set("long", HIR @LONG
 这是五行洞。进来顿觉一股热浪扑面而来，冲得你差点晕了
 过去。四周一片通红，地面上冒着丝丝白气，脚底剧烈的炙痛使

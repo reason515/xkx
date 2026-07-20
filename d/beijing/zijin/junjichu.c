@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "军机处");
+	set("outdoors", "beijing");
 	set("long", @LONG
 清雍正七年(1729)雍正为加强中央集权,和即时调兵遣将,特设军机房.
 乾隆即位后,改为总理处.三年命名军机处.

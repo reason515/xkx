@@ -3,7 +3,7 @@
 // by Xiang
 
 inherit ROOM;
-#include <ansi.h>;
+#include <ansi.h>
 int do_exercise(string);
 
 void create()

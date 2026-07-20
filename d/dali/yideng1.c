@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "无名山");
+	set("outdoors", "dali");
 	set("long", @LONG
 此处正是山岭的顶部，山峰穿云插天，山石滑溜，空山寂寂，只见一道白龙
 似的大瀑布(waterfall) 从对面双峰之间奔腾而下，声势甚是惊人，水声在山谷

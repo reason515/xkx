@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "醉仙楼");
+	set("outdoors", "city");
 	set("long", @LONG
 方圆数百里内提起醉仙楼可以说是无人不知，无人不晓。当年苏学士云游到
 此，对醉仙楼的花雕酒赞不绝口，欣然为其题匾，流下一段传遍海内的佳话，从

@@ -19,6 +19,7 @@ int do_plant(string arg);
 void create()
 {
 	set("short", HIW"演武厅"NOR);
+	set("outdoors", "bwdh");
 	set("long", (: long_desc :));
 
 

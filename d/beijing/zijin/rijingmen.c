@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "日精门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是连接后三殿和东六宫的一个偏门。
 LONG

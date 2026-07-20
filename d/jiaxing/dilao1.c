@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "地牢");
+        set("outdoors", "jiaxing");
         set("long", @LONG
 这里漆黑一团，唯一的一线光亮是从门上一个尺许见方的孔洞中
 射出来的。四壁青油油地发出闪光，原来四周墙壁均是钢铁所铸。

@@ -14,6 +14,7 @@ void create()
         local = localtime(time()*60);
 
 	set("short", HIM"松中草地"NOR);
+	set("outdoors", "wudang");
 	set("long", @LONG
 	眼前霍豁然开朗，密林中露出一片空地，中间一条溪水潺
 潺流过。溪边奇花异草，长得特别鲜艳。

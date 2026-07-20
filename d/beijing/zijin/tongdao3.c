@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "通道");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一条大青石铺成的宽敞通道,可供宫中车马通过,两侧是数
 丈高的围墙,令人感到庄严肃穆.

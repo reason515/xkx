@@ -1,7 +1,7 @@
 //Cracked by Roath
 // Ryu, 5/10/97
 #include <localtime.h>
-#include <ansi.h>;
+#include <ansi.h>
 inherit ROOM;
 
 void create()

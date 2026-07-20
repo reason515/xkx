@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "司马堂");
+	set("outdoors", "dali");
 	set("long", @LONG
 这间大堂宽敞明亮，两壁各有一行兵器架，刀枪剑戟皆全，书案之后更有宝
 剑横于架上，堂中虎皮熊皮铺地，一望可之乃武官公堂。此堂正是大理国司马范

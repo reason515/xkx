@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "一品堂大厅");
+	set("outdoors", "xixia");
 	set("long", @LONG
 大厅布置很简单，正北是两张太师椅围着一张八仙桌。房间的两侧
 各放有四张椅子，北墙上挂着－副中堂，墙角摆着一些小巧玲珑的陈设

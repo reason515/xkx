@@ -1,7 +1,7 @@
 //Cracked by Roath
 // Modified by xbc; add quests 06/21/97
 // Modified by xuy; fixed crashing bugs in quests 08/11/97
-#include <ansi.h>;
+#include <ansi.h>
 inherit NPC;
 inherit F_MASTER;
 

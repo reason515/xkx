@@ -1,5 +1,5 @@
 // rose.c
-#include <ansi.h>;
+#include <ansi.h>
 #include <armor.h>;
 inherit HEAD;
 

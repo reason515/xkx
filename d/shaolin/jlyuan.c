@@ -11,6 +11,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "戒律院");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 整个大殿门户紧闭，密不透风。即便是在白昼，也犹如黑
 夜一般，每隔几步的墙上，点燃着几枝牛油巨烛。下方摆着一

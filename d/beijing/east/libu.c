@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "吏部");
+	set("outdoors", "beijing");
 	set("long", @LONG
 吏部居六部之首，主管官吏甄别选拔，故而其中营私舞弊之
 风甚重，每天吏部门口都冠盖云集，不外是功臣大将为子孙谋个

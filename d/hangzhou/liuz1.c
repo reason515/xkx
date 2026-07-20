@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
    set("short", "刘庄");
+   set("outdoors", "hangzhou");
    set("long", @LONG
 庄园的大匾上是“刘庄”两个大字。大门(gate)紧闭，里面静悄
 悄的一点声音都没有。

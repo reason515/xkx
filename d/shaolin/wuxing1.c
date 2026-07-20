@@ -12,6 +12,7 @@ string* dirs = ({"east", "south", "west", "north"});
 void create()
 {
 	set("short", HIG "五行洞" NOR);
+	set("outdoors", "shaolin");
 	set("long", HIG @LONG
 这是五行洞。这里地面相对比较干燥些，四壁由宽厚的木板
 严严实实的地封了起来，叩上去发出沉闷的笃笃声，看来不是实

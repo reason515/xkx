@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小路");
+        set("outdoors", "baituo");
         set("long", @LONG
 通往蛇场内部的道路。
 LONG

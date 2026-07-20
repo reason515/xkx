@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "林中小路");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此处野草丛杂，道路难辨，四周被高大密集的松树林包围着。仔细听
 听，似乎有轰隆轰隆的响声从林中传来。

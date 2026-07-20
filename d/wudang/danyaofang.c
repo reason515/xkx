@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "丹药房" );
+	set("outdoors", "wudang");
 	set("long", @LONG
 这里是武当派的丹药房，只见室内一排排的架子井然有序，架子(shelf)
 上排列着一个个小白瓷瓶子。所有药材和丹药都送到这里腊封密存，屋内飘

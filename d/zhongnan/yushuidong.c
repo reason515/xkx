@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short","玉虚洞");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 这玉虚洞为全真教前辈闭关修行之处。据闻全真七子就是在此领悟出

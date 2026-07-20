@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "草棚");
+        set("outdoors", "village");
         set("long", @LONG
 这是一个简单的草棚，地上摆著一堆堆的货物，上山的游客可以在这买些上山
 用品。草棚的墙上贴着个牌子，是个价目表(sign)。

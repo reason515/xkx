@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "摔跤房");
+	set("outdoors", "beijing");
 	set("long", @LONG
 屋子里空空洞洞，墙壁边倚着几个牛皮制的人形，梁上垂下来几
 只大布袋，里面似乎装着米麦或是沙土。正中一张桌子，上面放了十

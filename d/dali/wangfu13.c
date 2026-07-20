@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "书房");
+	set("outdoors", "dali");
 	set("long", @LONG
 房中当地放著一张花梨大理石大案，案上堆著各种名人法帖，并十数方宝砚，
 各色笔筒，笔海内插的笔如树林一般；那一边设著斗大的一个汝窑花囊，插著满

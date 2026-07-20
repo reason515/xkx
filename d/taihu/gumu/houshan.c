@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "终南山－－后山");
+	set("outdoors", "taihu");
 	set("long", @LONG
 这里是终南山的后山。前方是一片茂密的树林，里面黑乎乎的。
 地上立着一块石碑（shibei)。  

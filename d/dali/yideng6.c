@@ -10,6 +10,7 @@ int do_pian(string);
 void create()
 {
 	set("short", "巨石下");
+	set("outdoors", "dali");
 	set("long", @LONG
 你呆呆地使出全力顶起巨石，生怕一松手砸死了自己，农夫冷冷地站在一旁
 袖手旁观，一点相助的意思也没有。     

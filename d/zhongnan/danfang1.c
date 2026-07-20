@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "丹房");
+        set("outdoors", "zhongnan");
         set("long", @LONG
 这里是一个丹房，是重阳宫各位真人炼丹的地方。东首一个大架子(shelf)，
 放着药材和无数小瓷瓶。地上有一只炼丹炉，空气中尽是药味。西首有一张椅子

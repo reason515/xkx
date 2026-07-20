@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "厨房");
+	set("outdoors", "taohua");
 	set("long", @LONG
 这里常年有几个哑仆在烹调食物，等候传唤。对待这些人不用太客气，
 命令(order)他们就可以了。

@@ -7,6 +7,7 @@ int do_save(string arg);
 void create()
 {
         set("short", "小厢房");
+        set("outdoors", "qilian");
         set("long", @LONG
     这是一个构造精巧，极为讲究的女性闺房。东首放置一张梳妆台，上面
 摆满了大家闺秀用的各种胭脂水粉，西边的衣架上挂满罗裙花布。一阵极为刺鼻

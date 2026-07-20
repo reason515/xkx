@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "翰林府门");
+	set("outdoors", "city");
 	set("long", @LONG
 一座富丽堂皇的大宅院出现在你眼前，两头高大的石狮子镇守在大门两侧，
 大门上的朱漆足足有三寸厚。门上一张匾，上书“翰林府”三个大字。寻常江湖

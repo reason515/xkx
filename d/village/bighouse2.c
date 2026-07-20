@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "内室");
+        set("outdoors", "village");
 	set("long", @LONG
 这里是一间寝室，屋子中间有一张大床，床上的被褥居然是绸缎的，在这样一
 个小村庄里能有如此的手工的确很令人吃惊。看来这个土财主对自己并不是十分刻

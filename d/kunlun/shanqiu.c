@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "小山丘");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 光秃秃的山丘，连飞鸟也难见一只。时有厚土旗下弟子路过。由于土
 质坚硬，倒没被雨水冲去多少。

@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "药品库");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是全寺僧侣领用药品的地方。房间里弭漫着股浓浓
 的药味。靠墙是一排排高及房顶的药柜，每个药柜都由上百

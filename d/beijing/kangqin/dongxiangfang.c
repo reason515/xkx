@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "东厢房");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一间很宽敞的房间。靠窗口有一张炕，上面铺着锦被。炕
 边有张桌子，上面放着一盏油灯。地面很干净，显然经常有人打扫。

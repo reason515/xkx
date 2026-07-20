@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIC"蓝天阁"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 一间以宝蓝色系为主的麻将室，在此间有种被天地拥抱的感觉。房间里有一
 张以蓝色硫璃石镶嵌成的桌子，铺着一天蓝色的戎布，上面写着东，南，西，北，

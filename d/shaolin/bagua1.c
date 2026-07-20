@@ -11,6 +11,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "八卦阵");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是便是八卦阵，四壁全由粗糙的片岩垒垛而成。巨石
 狰狞，缺口及合缝处犬牙交错，如洪荒怪兽，其势似欲择人

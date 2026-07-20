@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "接引堂");
+	set("outdoors", "xixia");
 	set("long", @LONG
 堂正中檀木香案，案上燃着几炷香，整间屋檀香袅袅。要加入一品
 堂的人在经过堂主测试并通过后就在此堂宣誓，从此成为一品堂正式一

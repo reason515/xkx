@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "兵器库");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 这里是襄阳城储精藏锐的兵器库。你一入其内，觉到处银光闪闪，让人眼
 花缭乱。钢刀、钢剑，钢棒、钢杖，长枪、长鞭，头盔、铁甲、铁背心，各色各

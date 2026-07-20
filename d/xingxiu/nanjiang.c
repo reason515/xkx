@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "南疆沙漠");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 这就是浩瀚的塔克拉马干大沙漠，一走进来，你仿佛迷失了方向。
 你感到口内十分焦渴，还是快些离开吧。

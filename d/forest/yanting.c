@@ -8,6 +8,7 @@ void create()
 {
     int i;
         set("short", "宴厅");
+        set("outdoors", "forest");
         set("long", @LONG
 这里是晋阳大侠萧半和家的宴厅。厅内高朋满座，白道上的侠士、黑道
 上的豪客、前辈名宿、少年新进……还有许多和萧半和本不认识、却是慕名

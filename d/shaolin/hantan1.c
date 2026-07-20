@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "万古寒潭");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是寒潭之中。四周水声哗哗，似乎有一股暗流在极力牵扯
 着你往下沉。透过潭水隐约可见潭周的岩壁，被数万年水流冲激

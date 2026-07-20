@@ -8,6 +8,7 @@ inherit ROOM;
 
 void create() {
 	 set("short", BLU"地下室"NOR);
+	 set("outdoors", "bwdh");
 	 set("long", @LONG
 这地下室光线暗淡，地上铺了很多冰块，血迹斑斑，空气中
 渗透着血腥气和腐尸味，使你受到异常的刺激，禁不住血脉忿张。

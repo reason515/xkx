@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short","石阶");
+        set("outdoors", "bwdh");
 
         set("long",@LONG
 这後山石阶蜿蜒於试剑山庄中，也不知通往何处。只见浓荫蔽天，越

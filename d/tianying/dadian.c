@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "大殿");
+        set("outdoors", "tianying");
         set("long", @LONG
 这是一座宏伟的大殿，平时天鹰教首领们就在这里发号施令。殿
 上竖着几根龙柱，两行椅子整齐的摆在两边。正对殿门的墙上挂着一

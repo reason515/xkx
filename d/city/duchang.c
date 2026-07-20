@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "赌场");
+	set("outdoors", "city");
 	set("long", @LONG
 这里是赌场的大堂，四周的房间里传出来吆五喝六的赌博声，北边是赌「牌
 九」的房间。不知为何，西边的气氛却文雅得多，十分安静，一条走廊通往内堂

@@ -2,7 +2,7 @@
 //By haowen  1/15/1999 
 
 inherit ITEM;
-#include <ansi.h>;
+#include <ansi.h>
 void create()
 {
         set_name("雪蚕丝", ({"xuecan si", "can si","cansi"}));

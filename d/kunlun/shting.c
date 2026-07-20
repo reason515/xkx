@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "光明圣火厅");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这是明教总舵的大厅--圣火厅。地上铺着深红的绒毯，正中为一青铜
 巨鼎。但见鼎中烈火熊熊，不时发出啪啪的爆响。一盏车轮大的水晶灯高

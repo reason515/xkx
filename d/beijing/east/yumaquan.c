@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "御马圈");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是当今天子钦点的御马圈，圈中所养之马均是千中挑、万
 中选的良驹，匹匹都是龙背鸟颈、骨挺筋健、嘶吼若雷、奔驰如

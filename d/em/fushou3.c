@@ -14,6 +14,7 @@ string* names = ({
 void create()
 {
         set("short", "福寿庵斋堂");
+        set("outdoors", "em");
 	set("long", @LONG
 这里便是峨嵋福寿庵的斋堂。福寿庵本不大，但由于经常接待其他庵的弟子，
 斋堂倒也不小。只见厅内摆满了长长的餐桌和长凳，几位小师太正来回忙碌着布置

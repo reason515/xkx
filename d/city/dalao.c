@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "监狱");
+	set("outdoors", "city");
 	set("long", @LONG
 这里是监狱，约莫两丈见方的一间大石室，墙壁和顶板都是大石
 所砌。墙角里放着一只粪桶，鼻中闻到的尽是臭气和霉气。西面墙上

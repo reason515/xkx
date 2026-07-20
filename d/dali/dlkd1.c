@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIC"客店"NOR);
+	set("outdoors", "dali");
 	set("long", @LONG
 这是喜州城里唯一的一家客栈，专门接待过往客商，生意非常兴隆。店小二
 里里外外忙得团团转。此间虽偏远，却不因势坑宰客人，住店一宿只要五两银子。

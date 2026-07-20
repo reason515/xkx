@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "庙内厢房");
+	set("outdoors", "dali");
 	set("long", @LONG
 这里是庙的东厢房，有小沙弥奉上香茶待客。庙宇看来虽小，里边却甚进深，
 一条青石铺的小径穿进后面的一座竹林，竹林绿荫森森，幽静无比，令人烦俗尽

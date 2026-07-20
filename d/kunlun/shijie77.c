@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石阶");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此处石阶连接着乾坤坊和大广场。向北望去，可隐约看到几座大殿。
 石阶虽不很长，但人来人往甚是热闹。由此往上可到大广场，东西各与军

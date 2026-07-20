@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "人字瀑");
+	set("outdoors", "huangshan");
     set("long", @LONG
 一条形同人字的白练悬挂在紫云和朱砂二峰之间，鸣声如雷，声
 震数里之外。隐隐中只见瀑床中间錾有云梯般的蹬道。

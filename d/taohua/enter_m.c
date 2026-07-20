@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石阵入口");
+	set("outdoors", "taohua");
 	set("long",@LONG
 这是一片空阔的砂石滩，南边有一个小小的港湾，北边似乎是
 一座乱石阵，但是一股薄雾常年笼罩着石阵，使人看不真切阵中究

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIY "二楼" NOR);
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 二楼上留有许多唐代诗人李白、杜甫、白居易、李商隐等在此游湖登楼，留
 的诗篇。宋庆历五年，滕子境守巴陵时重修，仲淹撰《岳阳楼记》，文情并茂

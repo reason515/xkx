@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 		  set("short", "东厢走廊");
+		  set("outdoors", "zhongnan");
 		  set("long", @LONG
 你走在一条走廊上，西边是广宁殿，东边有一座丹房，丹房有一扇门
 (men)，可是却紧闭着。

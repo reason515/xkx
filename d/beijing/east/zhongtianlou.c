@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "钟天徘楼");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一座高大的石砌徘楼，再往西走，就是北京城的钟楼
 和繁华的鼓楼大街；南面的东直门大街人来人往，熙熙攘攘，

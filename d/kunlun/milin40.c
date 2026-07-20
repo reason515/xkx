@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "密林");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 林深处，参天巨松结根盘骨，错干攀枝，偶有几线光亮渗进，更显万
 般豪姿雄态。不远处，时时传来声声巨木旗弟子们昂扬的号令，又使这古

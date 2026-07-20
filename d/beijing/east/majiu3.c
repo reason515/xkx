@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "马厩");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是京城跑马场边上的一间马厩，马厩中堆放著几堆草料，
 正中有一口泔槽，边上有一块沙地。此处是为即将上跑马场的

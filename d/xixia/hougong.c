@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "后宫");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这里是皇后的寝宫，富丽堂皇，周围悬着粉红色的绸纱。一走进来
 你的鼻端就飘来一缕似兰似麝的幽香，不由你觉得有点心猿意马起来。

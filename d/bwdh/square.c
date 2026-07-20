@@ -21,6 +21,7 @@ void create()
     local = localtime(time());
 
 	set("short", HIR"武林大会大广场"NOR);
+	set("outdoors", "bwdh");
 	set("long", (: long_desc :));
 	set("valid_startroom", 1);
 

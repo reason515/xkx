@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "洞口");
+        set("outdoors", "xueshan");
         set("long", @LONG
 这是一个小小的山洞，血刀老祖的藏身之地。由於此地
 比较隐秘，仇家很难寻到这来。洞底有一张供桌，上面供了

@@ -8,6 +8,7 @@ inherit ROOM;
 
 void create() {
     set("short", HIG"东偏厅"NOR);
+    set("outdoors", "bwdh");
     set("long", @LONG
 这里是比武场的东偏厅，空旷的大厅是一个很好的热身地方。
 LONG

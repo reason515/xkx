@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "走廊");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这是一条静悄悄的走廊，偶尔看见几名洪水旗教众匆忙地穿行此地。
 从这里向北便是洪水旗的后堂，东边隐有阵阵寒气逼来。

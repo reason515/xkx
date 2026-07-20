@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "菜市口");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一个相当热闹的十字路口，路口正中有一根高高的十字型
 木杆，上面还有斑斑血迹，大凡朝廷处斩犯人，弃尸于市，斩首示

@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", YEL"黄菊苑"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 此间花香满堂，一进到这里就觉得精神气爽。房间里内外开满了许多黄菊，
 一张淡黄色的大理石桌上铺着一块鹅戎布，上面写着东，南，西，北，桌上摆着

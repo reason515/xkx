@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "佛堂");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一间精致的佛堂。窗格雕花。正中一尊佛像，香案上烧着几柱香。
 LONG

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "侧厅");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 一入此厅，心中即感逸然。环目于前，厅壁并非太素，亦非太华。名
 人尺幅，自是不少，然浓淡得宜，错综有致。室间设大屏风，上多花鸟，

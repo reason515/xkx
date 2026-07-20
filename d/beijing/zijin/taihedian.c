@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "太和殿 ");
+	set("outdoors", "beijing");
 	set("long", @LONG
 俗称金銮殿，又称奉天殿，皇极殿，是皇帝举行典礼的大殿。殿
 高35米，面积2370多平方米。镂金砌玉，十分豪华。这里平时是不

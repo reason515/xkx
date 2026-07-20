@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "杨柳胡同");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是北京城里一条平常的小胡同，因为胡同口种有两棵杨柳树，
 因而得名为杨柳胡同。胡同里面有座大宅子，最近似乎有不少操外地

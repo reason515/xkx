@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "厢房");
+	set("outdoors", "dali");
 	set("long", @LONG
 这是内室厢房，四周布置一望便知是小姐的闺房。石桌石凳，颇有山野气息，
 房里乱挂了些书画，一望可知主人是没有什么修养的。窗外盛开着一些野山茶花，

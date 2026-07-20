@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "学馆");
+        set("outdoors", "shaolin");
         set("long", @LONG
 一间简朴的私塾，房间里摆着一些桌椅，墙上供着至圣先师孔夫
 子像。一张书案放在屋子的一头，案上摆着几本翻开了的〖三字经〗、

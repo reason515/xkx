@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "兵器房");
+        set("outdoors", "zhongnan");
         set("long", @LONG
 这里是重阳宫的兵器房，墙上各处挂了许多长剑，短剑，竹剑和拂尘。
 LONG

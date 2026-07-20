@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "精忠堂");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 正厅中东西各有两根楹柱，正墙上悬挂一个额匾，写着岳武穆所书的“还我
 河山”四个大字。岳飞镇守襄阳期间，常於此处讨议军情。这时屋坐着不少人

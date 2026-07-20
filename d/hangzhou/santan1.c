@@ -9,6 +9,7 @@ inherit ROOM;
 
 void create()
 {   set("short", "我心相印亭");
+	set("outdoors", "hangzhou");
     set("long", @LONG
 走进亭内往南一望，便可看见南湖面中的三个石塔。塔的中部中
 空，塔面有五个小圆洞。每逢皓月当空，游客们纷纷来到此处观赏那

@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "山庄前厅");
+        set("outdoors", "wanshou");
         set("long", @LONG
 进了山庄大门便是前厅，前厅正中央的墙壁上悬挂着巨幅水
 墨“老树腾猿”，画下厅正中摆着一把太师椅，上坐万寿山庄五

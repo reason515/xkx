@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "永安门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是北京城外城五大城门中南面的城门，这里的城墙略显破旧，不及内城
 光鲜，守门的官兵通常由骁骑营侍卫率领。城门边上是一张告示 (gaoshi)，

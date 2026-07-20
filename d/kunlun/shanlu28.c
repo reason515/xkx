@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "山路");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 青石路边开满山菊。黄黄一片，随风回动。对面时时走过几个明教弟
 子，有的怀里抱着几把刀剑。朝西边而去。

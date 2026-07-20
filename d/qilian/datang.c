@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "大堂");
+        set("outdoors", "qilian");
         set("long", @LONG
 你所在的是一个金壁辉煌的大厅，这是日月神教议事的场所。
 地上铺着红色地毯，墙壁上挂着一个大匾，上面写着三个金色的大

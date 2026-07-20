@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", " 华藏庵后殿");
+        set("outdoors", "emei");
 	set("long", @LONG
 这是峨嵋山华藏庵的后殿。是峨嵋派掌门人传教弟子功夫的地方。这里供
 有一尊普贤菩萨像。两旁靠墙放着几张太师椅，地上放着几个蒲团。掌门人正

@@ -4,7 +4,7 @@
 // ryu added effect_in_liquid
 
 inherit PILL;
-#include <ansi.h>;
+#include <ansi.h>
 int cure_ob(string);
 
 

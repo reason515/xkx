@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "山顶");
+	set("outdoors", "dali");
 	set("long", @LONG
 这是山峰的顶上，一大块平地，开垦成二十来亩山田，种着禾稻，一柄锄头
 抛在田边，半坡上斜出一块岩石(rock)，一头黄牛仰卧其上，四蹄乱蹬，却翻不

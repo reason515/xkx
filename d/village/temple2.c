@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小棚子");
+        set("outdoors", "village");
 	set("long", @LONG
 这是一个临时搭起来的小棚子。
 LONG

@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "潜龙堂");
+	set("outdoors", "shenlong");
         set("long", @LONG
 这是神龙教的潜龙堂，居中两张大竹椅，下面设了五张板凳，教主和五龙
 使常在此商量密事，这儿非教主允许是不可以进入此地的。

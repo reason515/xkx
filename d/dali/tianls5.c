@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
         set("short", "斗母宫");
+        set("outdoors", "dali");
         set("long", @LONG
 斗母宫占地宽大，殿周立有十二支柱，相征十二节气，木柱一丈来粗，
 柱上涂的是泛着朱色的大紫，大殿无梁。整座大殿金壁辉煌，四周佛像多为

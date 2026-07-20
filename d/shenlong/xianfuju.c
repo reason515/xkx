@@ -15,6 +15,7 @@ void init()
 void create()
 {
 	set("short", "仙福居");
+	set("outdoors", "shenlong");
         set("long", @LONG
 神龙教的仙福居，虽说是厢房，却也十分宽敞，陈设雅洁，桌上架上摆满
 了金玉古玩，壁上悬着字画，床上被褥华美，居然有点皇宫中的派头。你真想

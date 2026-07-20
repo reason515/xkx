@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "小厅");
+	set("outdoors", "dali");
 	set("long", @LONG
 一间雅致的小厅，桌上点着一对巨烛，东壁上四幅屏条，绘的是梅兰竹菊，
 可是顺序却挂成了兰竹梅菊，西壁上的春夏秋冬，则挂成了冬夏春秋。看来此间

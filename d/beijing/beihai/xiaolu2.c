@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "小路");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一条沿着湖的小路，路西边是一片松树林，上的白塔。松树林里不时可以
 看见一只只松鼠跳来跳去。东面隐隐可以看见一个亭子的一角。

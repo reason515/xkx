@@ -11,6 +11,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "暗道");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是一个阴暗潮湿的地道，四壁用粗糙的片岩垒垛而成，一
 颗颗水珠沿着墙壁滚下来，溅在地上。也许是因为长时间无人通

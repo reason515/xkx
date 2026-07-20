@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "文华殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
 是皇太子活动的东宫，这里常举行一些经筵，即按一定日期,皇
 帝和大臣们一起讲儒家经典,然后赐茶,赐宴.对面一片较矮的房子是

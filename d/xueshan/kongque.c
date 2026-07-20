@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "孔雀殿");
+        set("outdoors", "xueshan");
         set("long", @LONG
 大轮寺的大殿孔雀殿，殿正中供奉的是黄教的护教法王--不动明王，又叫
 常住金刚(statue)。周围尽是黄色围帐(curtain)。两侧立有二十一尊救渡佛

@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "都督府");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 这是泉州都督的府邸。泉州都督掌管泉州的海陆兵权，控制着西洋广大海
 域，管辖当时最强大的远洋水师，乃一等一重要的官职。

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "贡院");
+	set("outdoors", "beijing");
 	set("long", @LONG
 京城贡院是全国会试及顺天府乡试的考场，里面有几十排既
 矮又窄的房子，共九千多间，便是考棚，又名“号舍”。当时谚

@@ -22,6 +22,7 @@ void create()
         local = localtime(time());
 
   	set("short", HIC"客店"NOR);
+  	set("outdoors", "city");
         set("long", @LONG
 这是一家价钱低廉的客栈，生意非常兴隆。外地游客多选择这里落脚，你可
 以在这里打听到各地的风土人情。店小二里里外外忙得团团转，接待着南腔北调

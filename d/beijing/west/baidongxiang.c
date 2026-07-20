@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "东厢房");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是白家大宅的东厢房，里面打扫得纤尘不染，干净
 得出奇。靠墙边立着一个大沉香木架，上面错落有致的摆

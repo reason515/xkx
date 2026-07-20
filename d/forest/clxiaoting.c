@@ -12,6 +12,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小厅");
+        set("outdoors", "forest");
         set("long", @LONG
 这是帮主及总管商讨机密大事的所在，正中是一张太师椅，门上
 吊着半旧的红绸软帘。墙上附庸风雅地挂着几张山水字画，一望可知

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "巴扎");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 伊犁是帕米尔高原之东一大都会，这里的巴扎上，奇珍异宝，往
 往有之。牲畜果品，尤不可枚举。不仅有来自川、陕、江、浙的商队，

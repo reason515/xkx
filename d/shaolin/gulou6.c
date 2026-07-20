@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "鼓楼六层");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 沿窗洞吹进一阵阵凌厉的山风，寒意浸人。北望可见松林的
 尽头，少室山的顶峰处，有一片小小的平地，正中植着三棵巨松；

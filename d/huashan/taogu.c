@@ -10,6 +10,7 @@ int valid_leave(object, string);
 void create()
 {
     set("short", "桃谷");
+    set("outdoors", "huashan");
     set("long", @LONG
 小径尽头尽是一山谷，气候适中，四季如春。山谷内长满了一大
 片桃林，真是一处好所在。遗罕的是此处竟然喧闹之极，便如身处酒

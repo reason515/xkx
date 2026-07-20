@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "汤池");
+	set("outdoors", "huangshan");
     set("long", @LONG
 被誉为黄山“四绝”之一的温泉(又称汤池)，出自紫云峰峦的石
 壁之下，同迤逦十里的桃花峰隔溪相望。温泉泉边石壁题刻着“天下

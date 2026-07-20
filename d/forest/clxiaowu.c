@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小屋");
+        set("outdoors", "forest");
         set("long", @LONG
 这是帮众们酗酒赌钱的的小屋，正中的方桌上杯盘狼籍，有人醉
 倒在一旁，不醒人事。隔扇后面另有一张赌桌，几个帮众正在吆五喝

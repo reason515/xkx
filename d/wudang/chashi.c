@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "茶室");
+	set("outdoors", "wudang");
 	set("long", @LONG
 满屋的果香和茶香，沁人心脾。山西面的茶农们因感激武当弟子保护他
 们免受土匪的骚乱和官府的苛捐杂税，每年开春采茶季节，总要送来上好的

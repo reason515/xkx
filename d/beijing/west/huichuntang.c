@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "回春堂");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是京城一家老字号的药店，几只比人还高的药柜靠墙而立。几个伙计
 站在梯子上取放药材，一名伙计正在一旁切割碾细药材，打包放好。据说这

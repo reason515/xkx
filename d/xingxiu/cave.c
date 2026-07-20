@@ -10,6 +10,7 @@ int do_zuan(string);
 void create()
 {
         set("short", "山洞");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 这个山洞里伸手不见五指，只有出口处透进一丝光线。
 LONG

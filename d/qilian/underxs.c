@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "雪坑");
+        set("outdoors", "qilian");
         set("long", @LONG
 这是大雪山脚下的一个雪坑。丢满了各种杂物， 还有丐帮弟
 子收集的破铜烂铁等。坑边上有一个小洞。

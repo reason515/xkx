@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "第五层");
+	set("outdoors", "dali");
 	set("long", @LONG
 球状，无人像，四角挂有黄铜铸灵鹫。四只灵鹫，口角噙有一枚两头有孔的
 铜管，管内有金属簧片，鹫口、鹫颈、鹫腹皆是空心。每当劲风吹来，经鹫嘴内

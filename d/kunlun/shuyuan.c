@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "书院");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 室中布置得一尘不染，清洁非常。四壁陈挂几幅字画，岁月颇久，笔
 法依是不俗。窗前有一书案，上面笔墨纸砚，无一不全。案旁炉中香烟未

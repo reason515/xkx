@@ -2,7 +2,7 @@
 // Room: /d/xixia/tumenzi.c
 
 inherit ROOM;
-#include <ansi.h>;
+#include <ansi.h>
 void create()
 {
 	set("short", "土门子");

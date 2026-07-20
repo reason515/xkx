@@ -9,6 +9,7 @@ void reset();
 void create()
 {
     set("short", "走廊");
+    set("outdoors", "huashan");
     set("long", @LONG
 铺着木板的走廊贯穿东西两方面，南边是另一间偏厅。四周非常宁静，
 可闻吱吱鸟语和唧唧虫鸣，一片祥和。

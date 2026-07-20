@@ -16,6 +16,7 @@ int do_dig();
 void create()
 {
         set("short", "冰洞");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 进到冰洞里面，那洞顶上紧紧垂挂着冰锥(icicle)，长短不齐，
 粗细不一；洞底下冰树丛生，千姿万态。穿行洞内，好似进了光怪

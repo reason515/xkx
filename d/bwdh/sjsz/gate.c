@@ -18,6 +18,7 @@ void enter_sjsz();
 void create()
 {
 	set("short", HIR"试剑山庄大广场"NOR);
+	set("outdoors", "bwdh");
 	set("long", (: long_desc :));
 	set("invalid_startroom", 1);
 

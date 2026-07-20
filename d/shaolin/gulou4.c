@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "鼓楼四层");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 到这里楼梯大概只能容一人上下，墙身也略薄了些。视线
 越过窗棂，南边的练武场，罗汉堂，般若堂历历在目，不少僧

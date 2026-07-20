@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "御景亭");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是建在堆秀山上的御景亭,堆秀山东西有蹬道可上,是园中可
 以登临的最高点.登上此山原眺,西山在望;俯瞰,紫禁城尽收眼底，

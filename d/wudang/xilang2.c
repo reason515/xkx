@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "西厢走廊");
+	set("outdoors", "wudang");
 	set("long", @LONG
 你走在一条幽静的走廊上，北面是一座阁楼，往南是武当弟子的练功房
 所在，不时传出弟子们练功的声音。

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "斋宫");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是皇帝在祭天，祭地等大祀之前，来此斋戒的地方。
 LONG

@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "石阶");
+	set("outdoors", "huangshan");
     set("long", @LONG
 一条长长的石阶向下沿伸，据说有五千九百石级。你走在这长长
 的石路上，每下一层石级，就对清凉二字增加一层体会。环四周，犹如

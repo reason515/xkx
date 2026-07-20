@@ -59,6 +59,7 @@ string look_string();
 void  create  ()
 {
     set  ("short",  "棋室");
+    set("outdoors", "city");
     set  ("long",  @LONG
 这是一间布置简单却优雅的房间。房间中间摆这一张桃木桌子(table) ，上            
 面放着一张棋盘和两个石钵，石钵里分别装这黑、白的棋子，桌旁摆着几张红木

@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
         set("short", "竹林小道");
+        set("outdoors", "gaibang");
         set("long", @LONG
 这是一条竹林小道，两旁尽是遮天蔽日的茂密的竹林。扑鼻而来是一阵狗
 肉香味。有两个小叫化正在一块大石边这里烤肉。看来这里是丐帮弟子为扬州

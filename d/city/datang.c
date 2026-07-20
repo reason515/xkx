@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIC"醉仙楼大堂"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 这是便是新开的醉仙楼大堂，进来后让人不由自主的感觉眼前一亮。大堂内      
 的布置带有三分贵气，显然是招待贵宾和喜庆之用。只见墙上挂着一幅对联(dui

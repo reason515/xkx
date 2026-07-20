@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "和尚院一部");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是和尚院待客的地方，靠墙左右两侧摆着一溜太师椅。
 墙角一几，放着几个茶壶。有个茶壶壶身上题了“碧螺春”三

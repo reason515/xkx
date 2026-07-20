@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "闺房");
+	set("outdoors", "city");
 	set("long", @LONG
 这是凌小姐的闺房，一股幽香扑面而来。一张绣榻放在墙角，垂着细纱。
 凌小姐正对着一盆菊花在沉思。北面是座花园。

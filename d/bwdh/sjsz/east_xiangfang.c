@@ -13,6 +13,7 @@ void setup_weishi(object weishi,object ob);
 
 void create() {
 	 set("short", "东厢房");
+	 set("outdoors", "bwdh");
 	 set("long", @LONG
 这里是东厢房。比武较量的选手在这里组队准备入场。
 厢房里面放者几个兵器架(jia)，摆满了兵器。

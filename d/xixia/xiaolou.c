@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "小楼");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这是一幢三层楼的木制建筑。端的是金碧辉煌，气象万千。赫连铁树
 住在这里。底层是一排落地长窗和朱红色的圆柱。二楼有个小阳台，三楼

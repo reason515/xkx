@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
   set ("short", "石窟");
+  set("outdoors", "qilian");
   set ("long", @LONG
 这是最宽敞一间石窟，里面各种塑像、浮雕众多，其中多以真人为模，莫
 不栩栩如生。宁静温和的佛、丰满健美的菩萨、仪态威武的天王、壮健有力的

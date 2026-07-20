@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "王府马厩");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是王府的马厩。康亲王酷爱宝马，花了很多精力
 和金钱收罗了不少好马。地上铺了一层干草，靠墙的饲料

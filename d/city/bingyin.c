@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "兵营");
+	set("outdoors", "city");
 	set("long", @LONG
 这里是兵营，密密麻麻到处都是官兵，有的在武将的指挥下列队操练，有的
 独自在练功，有的坐着、躺着正在休息。南墙下坐着主帅，不动声色地寻视着四

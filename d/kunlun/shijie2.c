@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石阶");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这是一条长长的青石阶，两旁站着几个明教的护卫，每人的左袖上都
 绣有一血红的火焰。在石阶的尽头处，耸立着两个高十仗的箭楼。如有外

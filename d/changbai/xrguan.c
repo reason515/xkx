@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "香肉馆");
+	set("outdoors", "changbai");
 	set("long", @LONG
 这是一间很小的狗肉馆，屋内有一个很大的土炕，几乎占去了房间的一
 半。炕中是一个火灶，上架一口大铁锅，香喷喷的热气从锅中不断冒出。饭

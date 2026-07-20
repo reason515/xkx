@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
         set("short", HIC"诚意客栈"NOR);
+        set("outdoors", "beijing");
         set("long", @LONG
 这是京城中一家普通的客栈，由于靠近天桥，生意非常兴隆。外地游客
 多选择这里落脚，店小二里里外外忙得团团转，接待着南腔北调的客人。上

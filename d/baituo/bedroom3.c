@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "休息室");
+	set("outdoors", "baituo");
 	set("long", @LONG
 这是一间摆设简单的房间，白驼山庄中的家丁、婢女等下人都在
 这里休息。地上铺着十几张床铺，因为是自己睡觉的地方，所以家丁

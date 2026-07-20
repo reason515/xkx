@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "侠客岛挂名处");
+        set("outdoors", "xiakedao");
         set("long", @LONG
 这是一个大厅，厅的中央是一张大桌子，桌上摆着一个厚厚的本
 子。桌子後面，靠墙立着一排书架，架子上排满了和桌上差不多的本

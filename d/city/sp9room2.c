@@ -89,6 +89,7 @@ string get_hname(int *hand);
 void create()
 {
         set("short", "牌九室");
+        set("outdoors", "city");
         set("long", @LONG
 这里是推牌九的地方，屋子中间摆着一张大台子。台子旁边立着个
 小牌子 (paizi)。这里赌的是小牌九，每门两张牌，一翻一瞪眼。赌场

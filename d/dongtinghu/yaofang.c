@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "药房");
+	set("outdoors", "dongtinghu");
 	set("long", @LONG
 这里是济世堂配药炼药的地方，屋子正中放了一只炼药炉，一个
 小厮正不停的加药、鼓火、添水，炉中不停的冒出腾腾水雾，并散发

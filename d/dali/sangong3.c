@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "司徒堂");
+	set("outdoors", "dali");
 	set("long", @LONG
 一所清静的书堂，打扫得干干净净。司徒一般负责官吏选拔等文书工作，是
 以堂内文卷堆积。时有官员来此拜领印玺公文等物，前往所排遣的任地公干。

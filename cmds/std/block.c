@@ -2,7 +2,7 @@
 // guard.c
 // Ryu, 4/28/98
 
-#include <ansi.h>;
+#include <ansi.h>
 inherit F_CLEAN_UP;
 
 mapping default_dirs = ([

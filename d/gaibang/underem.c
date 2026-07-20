@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "井底密洞");
+        set("outdoors", "gaibang");
         set("long", @LONG
 这是峨嵋山脚下草棚后的井底密洞。里面破破烂烂的，丢满了各种杂物，
 还有丐帮弟子收集的破铜烂铁等。从这里通往丐帮的秘密通道。

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "后堂");
+	set("outdoors", "taihu");
 	set("long", @LONG
 只见堂上也是空荡荡的没甚麽陈设，只有东西两壁都挂著一幅画。
 西壁画(hua1)中是两个姑娘。东壁上悬挂著的画像(hua2)是一位道

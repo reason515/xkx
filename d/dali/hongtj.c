@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "塔基");
+	set("outdoors", "dali");
 	set("long", @LONG
 宏圣寺塔基座系用石板砌成，与千寻塔基为砖砌不同。基座西面有塔门，可
 入内攀登而上。

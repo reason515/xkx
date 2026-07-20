@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "弟子休息室");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 由於古墓派只收女弟子，墓中也只有此一间休息室。室中几张石床上

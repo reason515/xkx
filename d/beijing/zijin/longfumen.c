@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "隆福门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是连接后三宫和西六宫的一个门,东边就是交泰殿,西边是通往
 西六宫的通道。

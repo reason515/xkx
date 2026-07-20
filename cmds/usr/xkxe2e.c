@@ -244,8 +244,12 @@ int main(object me, string arg)
 	}
 
 	if (arg == "grantleave") {
+		object env;
 		me->set_temp("marks/离", 1);
 		tell_object(me, "（测试）岛主已准你离岛。\n");
+		env = environment(me);
+		if (objectp(env) && base_name(env) == "/d/xiakedao/shatan")
+			env->check_trigger();
 		return 1;
 	}
 

@@ -12,6 +12,7 @@ string* dirs = ({"east", "south", "west", "north"});
 void create()
 {
 	set("short", HIB "五行洞" NOR);
+	set("outdoors", "shaolin");
 	set("long", HIB @LONG
 这是五行洞。一进这里，你就陷在齐腰深的水里，脚底是厚
 厚的淤泥，一踩上去就松松地散开，还带出一大串气泡冒出水面。

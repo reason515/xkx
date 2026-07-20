@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "大雄宝殿");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是少林寺的大雄宝殿。正中供奉着如来三宝，左右各是
 文殊、普贤菩萨。一群青衣小和尚们正在佛像前的地上诵经。

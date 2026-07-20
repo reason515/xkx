@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "睡房");
+	set("outdoors", "dali");
 	set("long", @LONG
 进了房屋，雪洞一般，一色的玩器全无。案上只有一个土定瓶，瓶中供著数
 枝菊，并两部书，茶奁、茶器而已；床上只吊著青纱帐幔，衾褥也十分青素。上

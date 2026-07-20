@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "藏经阁二楼");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 千余年来少林寺执中原武林之牛耳，自达摩老祖以下，历代
 人材辈出。其中有不少高僧遗著留存，汇集至今，终成名震天下

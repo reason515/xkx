@@ -53,6 +53,7 @@ create_wine(string nmstr, string* idlist, string cup, string longstr)
 void create()
 {
         set("short", HIY"芙蓉宴厅"NOR);
+        set("outdoors", "city");
         set("long", @LONG
 进门绕过一道淡绿绸屏风，迎面墙上挂着一副『芙蓉出水』图，工笔彩绘，
 状极清雅，气质卓绝。厅内陈列奢华，正中央一张雕花楠木青漆嵌玉大圆桌，四

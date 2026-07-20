@@ -12,6 +12,7 @@ void out_of_pool(object, int);
 void create()
 {
 	set("short", HIC"池中"NOR);
+	set("outdoors", "emei");
 	set("long", "这是一个石砌的六角小池，传说普贤乘象至此，必先在此池沐浴其象，而\n"
 "后才升至金顶，故为「洗象池」。\n\n"
 "　　"HBBLU+HIC"池水清澈透亮\n"NOR

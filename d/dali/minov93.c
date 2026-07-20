@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "乌夷民居");
+	set("outdoors", "dali");
 	set("long", @LONG
 这是一所乌夷族的房屋。乌夷民居的建地和走向讲究依傍四面山势，一般以
 石为墙和基，以木为梁，结构大致和汉人房屋相仿，皆是平房，石砌围墙。这家

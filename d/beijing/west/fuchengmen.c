@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "阜成门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是北京城内城九大城门中朝西向的两个城门之一--阜成
 门。城墙建于明永乐年间，全部用砖包砌而成，城门洞也为砖

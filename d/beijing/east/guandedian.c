@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "观德殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是皇帝、皇后死后暂时停放棺材处。四周点着长明灯。
 冷风吹来，烛光摇动，四周黑影憧憧，你的背心上不禁起了

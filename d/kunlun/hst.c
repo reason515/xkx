@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "洪山亭");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 “耸耳静听山中趣，睁目细观云下情”。古松半绕，巨柏稍掩，云烟
 清漫，花香淡然。后依山脊，抬首望去，山、水、花、木在薄薄的雾帐下，

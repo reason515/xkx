@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short","走道");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 这阴森森的走道，也不知道是通到哪ㄦ的。墙上的一枝小蜡烛，正哔

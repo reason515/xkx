@@ -2,7 +2,7 @@
 // douzhuan-xingyi  斗转星移
 // arthurgu 1999.9
 
-#include <ansi.h>;
+#include <ansi.h>
 inherit FORCE;
 inherit SKILL;
 void interrupt_me(object who);

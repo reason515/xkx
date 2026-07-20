@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
         set("short", "幌天门");
+        set("outdoors", "dali");
         set("long", @LONG
 这里是天龙寺的前庭，向北是清都瑶台。青石道俩旁耸立了两颗齐天梧桐，
 绿叶幽幽，整个庭院清爽无比。碎石铺路，黄土奠基。院内没有五艳六色的花

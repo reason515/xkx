@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "後厅");
+        set("outdoors", "qilian");
         set("long", @LONG
 这是一间极有品味的小厅，四周的墙上挂满了名家字画，正中的
 墙壁上是唐伯虎的“朱雀图”，厅内摆了几张雕木做的桌椅，桌上放

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "西单");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是北京城里各大商号最密集的地方，京城里许多上百年的老
 字号都开在这里，而富商大贾，宗室大臣也大多喜欢在这里置办房

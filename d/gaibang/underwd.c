@@ -11,6 +11,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "土匪窝边");
+	set("outdoors", "gaibang");
 	set("long", @LONG
 这是武当山下土匪窝边上的小山洞。里面破破烂烂的，丢满了各种
 杂物，还有丐帮弟子收集的破铜烂铁等。从这里通往丐帮的秘密通道。

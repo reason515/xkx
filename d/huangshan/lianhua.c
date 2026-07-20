@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "莲花峰");
+	set("outdoors", "huangshan");
     set("long", @LONG
 置身峰顶，颇有“顶天立地”之感，遥望四方，千峰竞秀，万壑
 争流，美不胜收。从这里可东望天目，西瞻匡庐，北窥九华和长江。

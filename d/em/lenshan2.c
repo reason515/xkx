@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "冷杉林");
+	set("outdoors", "em");
 	set("long", @LONG
 这是一片遮天蔽日的冷杉林。数人也合抱不过来的冷杉树簇在一块，棵棵
 枝繁叶茂，象一蓬蓬巨伞般伸向天空，把阳光遮得丝毫也无。看地上厚厚的枯

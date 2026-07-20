@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "练功房" );
+	set("outdoors", "wudang");
 	set("long", @LONG
 这里是武当弟子的练功房。房内纸窗虚掩，窗外的阳光投射进来，只见
 并无一桌一椅，地上铺着草垫和蒲团。几个武当弟子正盘膝坐在蒲团上观看

@@ -15,6 +15,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "练功房");
+	set("outdoors", "taohua");
 	set("long", @LONG
 这是桃花岛弟子的练功房。屋子东半部散放着几个蒲团，供诸弟子打坐吐纳，调
 气养息，修练内功之用。西半部地上则绘着伏羲六十四卦的方位卦象，大概是修习奇

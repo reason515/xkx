@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "方丈楼");
+        set("outdoors", "shaolin");
         set("long", @LONG
 这里的地上整整齐齐的排放着数十个黄布蒲团，北首有一个
 红木讲坛，讲坛上放着个竹制的木鱼。东西边各放着一对美轮美

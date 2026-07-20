@@ -14,6 +14,7 @@ string look_gaoshi();
 void create()
 {
 	set("short", RED"衙门"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 这里是衙门大门，两扇朱木大门紧紧关闭着。“肃静”“回避”的牌子分放
 两头石狮子的旁边。前面有一个大鼓，显然是供小民鸣冤用的。几名衙役在门前

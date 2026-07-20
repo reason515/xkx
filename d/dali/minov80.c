@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "议事堂");
+	set("outdoors", "dali");
 	set("long", @LONG
 这间大竹楼的中层是普麽部的议事堂，村中长老逢要日便在此聚议族内大事，
 也在此接待外族贵客，或会晤大理国官府派来的使者。屋内以本族的图腾壁画、

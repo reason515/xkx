@@ -7,6 +7,7 @@ int do_dig();
 void create()
 {
         set("short", "丹凤洞");
+        set("outdoors", "qilian");
         set("long", @LONG
 一个空荡荡的大山洞，四壁很光滑。你看见洞脚边上好想有什麽东
 西在闪闪发光。

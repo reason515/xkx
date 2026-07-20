@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
         set("short", "厅堂");
+        set("outdoors", "beijing");
         set("long", @LONG
 这里是侍卫总管多隆大人办公之所。时常可以看见侍卫们
 进进出出来讨令。正中央红木桌上端坐着的就是多大人啦。

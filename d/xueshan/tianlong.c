@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "天龙殿");
+	set("outdoors", "xueshan");
 	set("long", @LONG
 殿中空无一物，只有北壁下一幅佛陀转法轮图(picture)，角落里点
 有几盏酥油灯，闪着诡异的黄光，殿东西壁间挂着一根铁链，将空间分割

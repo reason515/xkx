@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "船坞");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 这里是云集了全国最好的造船技师和工匠。一眼望去，满是已完工和即将
 完工的各种用途，各种大小的木船。坞内人们忙忙碌碌，一片繁忙景象。

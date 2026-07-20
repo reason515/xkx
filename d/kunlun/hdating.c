@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "洪水旗大厅");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此间不甚宏大，步入之中渐感一种阴寒之意。厅中站有两排明教弟子，
 每人左手衣袖上都锈有一红色火焰。厅中陈设并不豪华，但却有一种说不

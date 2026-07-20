@@ -2,7 +2,7 @@
 // referee.c
 
 inherit NPC;
-#include <ansi.h>;
+#include <ansi.h>
 
 int do_bihua(string);
 string ask_me();

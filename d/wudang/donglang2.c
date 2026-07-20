@@ -13,6 +13,7 @@ string look_men();
 void create()
 {
     set("short", "东厢走廊");
+    set("outdoors", "wudang");
     set("long", @LONG
 你走在一条幽静的走廊上，隐约可以听到东边传来呼吸声，似乎有人正
 在那里练功，北边有一扇门（men）， 好象是虚掩着。南边是间竹子扎就的

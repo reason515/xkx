@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "钟楼");
+	set("outdoors", "beijing");
 	set("long", @LONG
 北京城钟楼高九丈有余，完全砖石结构，建于元朝至元年
 间。钟楼上的大铜钟一到定更天，就会打两番一百零八下钟声，

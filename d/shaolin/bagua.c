@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "八卦阵阵心");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里就是洪荒古阵的中心。站在这里，才能看清楚四周
 的情形，只见周围暮蔼沉沉，云气弥漫，不见边际。一道道

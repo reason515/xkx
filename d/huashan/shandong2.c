@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "猴儿洞");
+        set("outdoors", "huashan");
         set("long", @LONG
 这是一个小山洞，洞里有个小泉眼，正泊泊地流着一股猴儿泉。奇怪
 的是洞里酒香四溢，似乎源自那股泉水。猴儿泉的旁边有个诩诩如生，满

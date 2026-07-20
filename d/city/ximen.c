@@ -2,7 +2,7 @@
 // Room: /city/ximen.c
 // YZC 1995/12/04 
 
-#include <ansi.h>;
+#include <ansi.h>
 inherit ROOM;
 
 string look_gaoshi();

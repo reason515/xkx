@@ -10,6 +10,7 @@ void reset();
 void create()
 {
     set("short", "走廊");
+    set("outdoors", "huashan");
     set("long", @LONG
 这里是西向走廊的尽头，南边的房间便女弟子的休息室。西边远望过
 去是一片片包裹在白云里的崇峻峭壁，隐约可见有条瀑布自峰顶一泻而下，

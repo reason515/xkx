@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "鸿翔绸缎庄");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 这就是天下闻名的丝绸销售中心，古色古香的店面，门上挂干飘着一面质
 地上好的绸面，绣着红色的「鸿翔绸缎」四个大字。中原来的上等丝绸在此加

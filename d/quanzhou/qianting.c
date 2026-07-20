@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "前厅");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 前厅是供前来投师的子弟们登记所用。摆设仍然不俗。东西两排各摆着两
 张红檀木的椅子和茶几，正中主人座位后更放有一面玉理石雕的屏风，刻着一

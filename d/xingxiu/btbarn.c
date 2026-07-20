@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "蛇舍");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 这是白驼山庄的蛇舍。屋里到处是毒蛇，墙上有一张「蛇经」(shejing)。
 LONG

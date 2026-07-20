@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "万古寒潭");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是寒潭之中。从这里已可感觉到深水下的巨大压力，彻骨
 冰凉的潭水在身体四周凝成一层薄薄的冰壳，四肢也已开始麻木，

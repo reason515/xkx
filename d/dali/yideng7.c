@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "缺口");
+	set("outdoors", "dali");
 	set("long", @LONG
 山路中间突然中断，前面的山中间裂开，出现了一个缺口(gap)。石壁直上
 直下，下面黑黝黝地深不见底，看来可能是地震造成的。山路在对面的山上继续

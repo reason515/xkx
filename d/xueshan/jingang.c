@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "金刚院");
+        set("outdoors", "xueshan");
         set("long", @LONG
 这里是习武的葛伦布们常来的地方，护寺的萨木活佛就在这里授艺。
 前方壁上有一钜形框，内刻梵文："十大自在相"，壁上还点缀得有山水、

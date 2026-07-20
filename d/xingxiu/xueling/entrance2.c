@@ -12,6 +12,7 @@ int valid_leave(object who, string dir);
 void create()
 {
   set("short", HIG"试剑亭"NOR);
+  set("outdoors", "xingxiu");
   set("long", @LONG
 这里便是进试剑山庄的英雄们选择趁手兵刃的地方了。两边
 架子 (jia) 上放满了各种刀剑棍棒，还有一些盔甲什么的。从此

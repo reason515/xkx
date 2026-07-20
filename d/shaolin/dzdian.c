@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "地藏殿");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是地藏殿。供奉地藏王菩萨。地藏王主宰阴间，手下自然有
 不少鬼兵鬼卒，罗列帐前。菩萨眉横煞气，手断阴阳。令人一见之

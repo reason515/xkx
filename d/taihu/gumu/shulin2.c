@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "树林");
+	set("outdoors", "taihu");
 	set("long", @LONG
 入林越深，鸟鸣越是动听，花香也越浓。只是那不
 知名的声音也越来越响。还是当心一点的好。

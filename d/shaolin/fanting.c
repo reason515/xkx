@@ -14,6 +14,7 @@ string* names = ({
 void create()
 {
 	set("short", "斋厅");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里便是少林全寺寺僧用斋的地方。斋厅极大，足可容纳上
 千人同时进餐。从东到西一排排摆满了长长的餐桌和长凳，几位

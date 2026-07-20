@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "荒山野林");
+        set("outdoors", "huashan");
 	set("long", @LONG
 这是华山后山的一片荒山野林，四周都是一株株高巨无比的大树。大
 树茂密的枝叶，互相交织着，是以阳光难以渗透，使人有不辨天日之感。

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "郭府大门");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 这里就是镇守襄阳的大侠郭靖的府邸，红柱碧瓦，规模宏大，
 古朴淡雅。蒙古大军攻城正急，郭府上下无不谨慎戒备。向南是一

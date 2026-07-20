@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "匪窝");
+	set("outdoors", "dali");
 	set("long", @LONG
 土匪山贼强盗等聚集的匪窝。
 LONG

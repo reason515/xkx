@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "永寿宫");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是明清两代后妃们居住的地方.
 LONG

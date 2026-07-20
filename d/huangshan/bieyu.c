@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "鳖鱼峰");
+	set("outdoors", "huangshan");
     set("long", @LONG
 鳖鱼峰因其形状像一张嘴遨游的鳖鱼而得名。山上还有一洞，洞
 里阴气阵阵，还是不要进去为妙。再往上就到天海了，往下是百步云

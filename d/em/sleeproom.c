@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "华藏庵休息室");
+        set("outdoors", "em");
 	set("long", @LONG
 这里是峨嵋华藏庵的休息室。窗帘拉下来，房里整整齐齐放了很多木床。
 有几个夜晚守庵的小师太正在睡觉。

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "藏水室");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此处乃明教洪水旗储藏毒水之地。室内寒气逼人。里面横摆着数百个
 装满毒水的大铁桶。此毒水非比一般，乃用天下致寒的碧水寒潭潭水配制

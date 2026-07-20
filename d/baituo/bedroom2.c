@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "武师睡房");
+	set("outdoors", "baituo");
 	set("long", @LONG
 这是白驼山庄武师们平日休息的睡房，窗外可以望见远方沙丘起伏，
 辽阔的大漠一望无际。房中摆设着木制的桌椅，一排盖着白布被的木床列

@@ -13,6 +13,7 @@ int do_look(string arg);
 void create()
 {
 	set("short", "民屋");
+	set("outdoors", "city");
 	set("long",
 "这是一个典型的普通老百姓住屋。和别的民屋一样，不大且又破旧的屋子里
 只摆放着一张旧桌子和几张老床，几个人正躺在床上睡觉，鼾声如雷，想必这些

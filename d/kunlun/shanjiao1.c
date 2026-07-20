@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "小山脚");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 遍地红花绿草，不远处是一松林。静心细听，似有哗哗水声，但又不
 真切。两只山雀飞过，给这幽静之处留下了一段清音。

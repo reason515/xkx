@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "账房");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这是一品堂帐房，陈设倒很有点象当铺，不过柜台没有那么高。靠墙
 是两排放帐簿的樟木柜，三个管账先生正劈里啪啦在打算盘忙着算账。边

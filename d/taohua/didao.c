@@ -16,6 +16,7 @@ string* dirs = ({
 
 void create() {
 	set("short", "地道");
+	set("outdoors", "taohua");
 	set("long", @LONG
 这是一条石砌的甬道，直通向黄药师夫人冯氏灵柩所在之处。甬道两侧每隔
 约莫五六步就有一盏盛满清油的绿玉灯静静燃烧。甬道中光线十分昏暗，但勉强

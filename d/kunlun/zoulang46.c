@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "走廊");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这是一条昏暗寂静的走廊，彩梁画栋，连顶棚也用彩漆绘满了各种飞
 天的图形。走廊西南两侧均与教众寝室相连。

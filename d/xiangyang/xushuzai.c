@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "徐庶宅");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 相传三国时徐庶曾因替人报仇，失手杀人，就擒後脱逃，更名“单福”流寓
 於此。这间大屋共前後两院三进。四周数树木苍苍，二条水渠贴墙基而过，显得

@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIC"酒馆二楼"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 这里是酒馆二楼，走到这楼下的杂吵之声渐渐消失。几张八仙桌上座满了        
 宾客。只见这里布置的甚为雅致，客人衣著光鲜，与方才楼下的情形大为不同

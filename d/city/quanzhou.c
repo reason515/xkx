@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "泉州港口");
+	set("outdoors", "city");
 	set("long", @LONG
 quanzhou
 需要更多的说明……

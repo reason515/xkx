@@ -9,6 +9,7 @@ int do_push(string);
 void create()
 {
 	set("short", "石室");
+	set("outdoors", "dali");
 	set("long", @LONG
 你现在所处之地是座圆型石室，光亮由左边透来，但朦朦胧胧地不似天光，走
 向光亮之处，忽见一只大虾在窗(window)外悠然游过。这房中放着一张石桌，桌前

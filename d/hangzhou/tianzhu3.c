@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
    set("short", "法净寺");
+   set("outdoors", "hangzhou");
    set("long", @LONG
 法镜寺依山而立，寺前小溪流水。进香的游客不时的进进出出。
 南上往上天竺。朝北是下山的路。

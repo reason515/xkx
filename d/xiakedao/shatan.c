@@ -5,6 +5,8 @@
 
 inherit __DIR__"no_pk_room";
 
+#define WEBD "/adm/daemons/webd"
+
 void check_trigger();
 void on_board();
 void arrive();
@@ -44,6 +46,7 @@ void init()
         me->set("xkd/set", 1);
         if ((int)me->query_temp("marks/离") > 0)
         {
+                remove_call_out("check_trigger");
                 call_out("check_trigger", 1);
         }
 }
@@ -56,14 +59,27 @@ void check_trigger()
 		  if( !(room = find_object(__DIR__"chuan")) )
 				room = load_object(__DIR__"chuan");
 		  if( room = find_object(__DIR__"chuan") ) {
+				/*
+				 * yell_trigger 卡住（中途断线/重启）时船永远不来。
+				 * 若沙滩与船上都无联通出口，视为空闲，清旗再召。
+				 */
+				if ((int)room->query("yell_trigger") != 0
+				 && !query("exits/enter")
+				 && !room->query("exits/out"))
+					room->delete("yell_trigger");
+
 				if((int)room->query("yell_trigger")==0 ) {
 					 room->set("yell_trigger", 1);
 					 set("exits/enter", __DIR__"chuan");
 					 room->set("exits/out", __FILE__);
 					 message("vision", "渔夫招了招手一条小船驶了过来\n", this_object());
 					 message("vision", "船慢慢地靠向了岸边。\n", room);
+					 /* Web 场景靠 room.update；不推送则看不到「进」上船 */
+					 WEBD->notify_room(this_object());
+					 WEBD->notify_room(room);
 					 remove_call_out("on_board");
-					 call_out("on_board", 15);
+					 /* Web 玩家需找出口按钮，略延长靠岸等待 */
+					 call_out("on_board", 40);
 				}
 				else
 					 message("vision", "渔夫抱歉地说道：船都出海了，你待会儿再来吧。\n",this_object() );
@@ -71,8 +87,13 @@ void check_trigger()
 		  else
 				message("vision", "ERROR: boat not found\n", this_object() );
 	 }
-	 else
+	 else {
 		  message("vision", "渔夫说道：船正等着你呢，上去吧。\n", this_object() );
+		  /* 有人再来找船：重置开船计时，避免刚看见「进」就被开走 */
+		  remove_call_out("on_board");
+		  call_out("on_board", 40);
+		  WEBD->notify_room(this_object());
+	 }
 }
 
 void on_board()
@@ -88,8 +109,10 @@ void on_board()
 	 {
 		  room->delete("exits/out");
 		  message("vision", "船身微微一动，离岸向海上驶去。\n", room );
+		  WEBD->notify_room(room);
 	 }
 	 delete("exits/enter");
+	 WEBD->notify_room(this_object());
 
 	 remove_call_out("arrive");
 	 call_out("arrive", 20);
@@ -102,6 +125,7 @@ void arrive()
 	 {
 		  room->set("exits/out", __DIR__"shatan3");
 		  message("vision", "船身微微一震，船靠岸了。\n",room );
+		  WEBD->notify_room(room);
 	 }
 	 remove_call_out("close_passage");
 	 call_out("close_passage", 20);
@@ -113,7 +137,8 @@ void close_passage()
     if( room = find_object(__DIR__"chuan") ) {
         room->delete("exits/out");
         message("vision","船慢慢地离岸，驶向海上。\n", room);
-        room->delete("yell_trigger"); 
+        room->delete("yell_trigger");
+        WEBD->notify_room(room);
     }
 }
 
@@ -143,5 +168,4 @@ int valid_leave(object me, string dir)
 	}
 		  return ::valid_leave(me, dir);
 }
-
 

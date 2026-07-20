@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "第一层");
+	set("outdoors", "dali");
 	set("long", @LONG
 雕四大天王像，高约四尺，批甲戴胄，手持斧钺，威严庄重。三人足踏鬼奴。
 一鬼奴肌肉暴起，右手挽蛇，蛇嘴正触鬼奴下腭；另俩鬼奴戴镣。一天神足下三

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "储藏室");
+	set("outdoors", "gaibang");
 	set("long", @LONG
 这里是丐帮的储藏室，你现在只能看见一个个锁着的箱子。
 LONG

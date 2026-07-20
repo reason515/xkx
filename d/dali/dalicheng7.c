@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石铺");
+	set("outdoors", "dali");
 	set("long", @LONG
 大理地段有一山石以其天然的花纹而闻名天下，那便是大名鼎鼎的大理石。
 用大理石中的水墨花石制作的画屏，其奇妙程度，使人叹为观止。唐宋时代，许

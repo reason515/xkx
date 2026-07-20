@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 { 
        set("short","金刚座");
+       set("outdoors", "xueshan");
        set("long", @LONG
 你踩在金刚座上，密集金刚的脸庞近在咫尺，对着你默默微笑。
 LONG

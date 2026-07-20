@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
         set("short", "静室");
+        set("outdoors", "hengshan");
         set("long", 
 "这是恒山弟子打坐，练功，修习之所，几个女弟子正坐在蒲
 团上闭目修行。\n"

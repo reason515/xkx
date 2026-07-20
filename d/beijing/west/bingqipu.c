@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "兵器铺");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一间京城里常见的兵器铺，当今天下太平，兵器铺
 的生意也清淡了不少，所以兵器铺也兼营些日常铁器，不过

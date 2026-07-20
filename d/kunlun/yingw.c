@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "鹰王殿");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此间是明教鹰王殿堂。地面的青瓷砖上铺着一席红毯，殿内桌椅错落
 摆放，很是考究。两旁置有兵器架，上摆十八种武器。对门墙壁上绘着一

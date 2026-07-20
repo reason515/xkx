@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "红殿");
+        set("outdoors", "xueshan");
         set("long", @LONG
 这里是大轮寺的红殿，殿内光线暗淡，壁上画像色暗。殿正中供
 着密集金刚。金刚三面，戴宝冠，主面三睛，耳饰大环，上身裸，下

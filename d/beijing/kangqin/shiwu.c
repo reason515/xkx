@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石屋");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一座孤零零的石屋，里面甚是阴暗。门口有几个
 侍卫在来回巡逻。

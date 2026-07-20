@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "小庙");
+	set("outdoors", "city");
 	set("long", @LONG
 小庙里到处都结了蜘蛛网，案台上落了一层厚厚的灰尘，台上供的观世音菩
 萨像也已经面目全非了，看来这里好久没人来了。只是东面门口的一张小桌显得

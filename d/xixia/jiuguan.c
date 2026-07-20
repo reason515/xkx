@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "酒馆");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这是一家小酒馆，紧挨着灵州西门，五开间的门面，规模颇大。来来往往的
 行人多到这里来打尖歇脚，叫上一盘阿訇宰杀的牛羊肉，喝上几口醇香的马奶酒，

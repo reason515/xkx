@@ -12,6 +12,7 @@ void setup_ob(object me,object victim);
 void create()
 {
 		  set("short","风洞");
+		  set("outdoors", "zhongnan");
 
 		  set("long",@LONG
 这个大洞又高又宽，由两大花岗岩夹峙而成。洞内清风习习，凉气飕飕，

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "和尚院三部");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是僧众们饮食起居的地方。靠墙一溜摆着几张木床，床
 上铺的是篾席。床头叠着床薄被，冬天想必很冷，僧侣们全靠扎

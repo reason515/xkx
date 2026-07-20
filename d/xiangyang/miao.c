@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "马王庙");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 马王庙重檐六角，一层施拱，檐角高翘。供奉的是楚王马殷，案台上香
 火缭绕。许多城民们为了祈求襄阳能为他们常保平安，都在此进香以尽心。

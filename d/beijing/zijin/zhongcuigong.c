@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
     set("short", "钟粹宫");
+    set("outdoors", "beijing");
 	set("long", @LONG
 东六宫之一,这是明清两代后妃们居住的地方.咸丰幼年时曾随
 母亲孝全成皇后在此宫殿,以后慈安太后也在这住过.

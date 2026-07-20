@@ -14,6 +14,7 @@ int look_an();
 void create()
 {
 	set("short", "三清殿");
+	set("outdoors", "wudang");
 	set("long", @LONG
 这里是紫霄宫的三清殿，是武当派会客的地点。供着元始天尊、太上道
 君和天上老君的神像。正中间是个敬香的大香案(an)，靠墙放着几张太师椅，

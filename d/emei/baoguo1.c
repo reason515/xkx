@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "大雄殿");
+        set("outdoors", "emei");
         set("long", @LONG
 这里是报国寺大雄殿。报国寺是峨嵋山最大寺院之一。大雄殿内供着金光
 灿灿的佛像，气宇轩昂。

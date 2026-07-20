@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "地道");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这是一条刚刚挖成的地道，看样子是往南延伸。
 LONG

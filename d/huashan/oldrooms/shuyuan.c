@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "华山书院");
+	set("outdoors", "huashan");
 	set("long", @LONG
 这里是华山书院，靠墙是一排书架，摆满了书籍。右侧有张书桌，桌
 上四宝俱备。书院经长有人打扫，十分干净整齐。

@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {   
    set("short", "净慈寺");
+   set("outdoors", "hangzhou");
    set("long", @LONG
 净慈寺有前，中，後三殿，以中间的大雄宝殿最为壮观。大雄宝殿，
 外观两层，黄色琉璃瓦屋顶，特别显的精美宏伟。寺廊的钟声在苍烟暮

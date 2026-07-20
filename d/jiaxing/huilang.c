@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "回廊");
+        set("outdoors", "jiaxing");
         set("long", @LONG
 回廊西面一个月洞门(door)，门额上写着「琴心」两字，以蓝色
 琉璃砌成，笔致苍劲，门下一条清幽的花径，花径鹅卵石上生满青苔。

@@ -12,6 +12,7 @@ string word_string();
 void create()
 {
 	set("short", "储藏室");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这是用来储藏精铁的房间。墙上面有一行小字(word)。
 LONG

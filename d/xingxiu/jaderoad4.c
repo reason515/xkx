@@ -9,6 +9,7 @@ string look_long();
 void create()
 {
 	set("short", "通道");
+	set("outdoors", "xingxiu");
 	set("long", (: look_long :));
 
 	set("exits", ([

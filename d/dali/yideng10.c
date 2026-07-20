@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "禅房");
+	set("outdoors", "dali");
 	set("long", @LONG
 这里是一间内室禅房，一般是打坐入定的地方。偶尔也用来接待佛门高僧，
 探讨佛理。

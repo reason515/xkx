@@ -9,6 +9,7 @@ int do_lift(string);
 void create()
 {
 	set("short", "瀑布下");
+	set("outdoors", "dali");
 	set("long", @LONG
 这里是瀑布水底，水流急冲直下，你双足使劲，以「千斤坠」的功夫牢牢站
 稳，恰似中流砥柱，崎立不动。你发现金娃娃已经藏到一块巨石(stone) 下面去

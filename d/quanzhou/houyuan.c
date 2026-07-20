@@ -9,6 +9,7 @@ int look_tai(string);
 void create()
 {
         set("short", "老宅后院");
+        set("outdoors", "quanzhou");
         set("long", @LONG
 这里是向阳老宅的后院。满地是发出朽烂霉气的落叶。院子的中央有一口
 井，井台(tai)上刻着些字。院子南面有一扇门，但已被坍塌的砖瓦挡住了。

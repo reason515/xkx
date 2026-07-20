@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "一线天");
+	set("outdoors", "huangshan");
     set("long", @LONG
 一座高入云端的陡壁挡住了路。在陡壁旁边，几乎贴着它又竖起
 一块摩天欲飞的岩石，和它齐肩并列，欲合未合，如想通过就只有钻

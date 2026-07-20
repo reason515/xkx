@@ -11,6 +11,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "监狱");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里黑沉沉的，即无一丝光亮，也无半分声息。黑暗中依稀
 可以看到身边似乎有几个人影，看到你转过头去，他们立刻屏住

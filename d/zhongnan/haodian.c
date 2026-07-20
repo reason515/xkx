@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
         set("short", HIB"重阳宫後殿"NOR);
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 	这重阳後殿布置的干净朴素，但也不失其庄严肃穆的气氛。弟子们

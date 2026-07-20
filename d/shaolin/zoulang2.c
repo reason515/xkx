@@ -11,6 +11,7 @@ string look_picture();
 void create()
 {
 	set("short", "走廊");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是禅房走廊。房顶一侧支在南面的高墙上，另一侧凌空
 架在几根细细的石柱上。彩梁画栋，连顶棚也用彩漆绘满了各种

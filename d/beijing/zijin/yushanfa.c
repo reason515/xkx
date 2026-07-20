@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
     set("short", "内膳房");
+    set("outdoors", "beijing");
 	set("long", @LONG
 皇帝进膳多在养心殿.乾清宫等处,内膳房设在养心殿前很方便.
 LONG

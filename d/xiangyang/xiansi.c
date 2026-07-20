@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "宪司堂");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 这即是提刑案察，掌管一路司法事项，督治奸盗，申理冤狱的宪司。公
 堂上一人正坐着专著批阅文稿，两旁衙司端持刑杖罗立，静候知府审事。东进

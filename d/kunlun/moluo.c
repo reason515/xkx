@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "摩罗门");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 一块高大的牌坊耸立于半山的开阔地上，牌坊正中挂一字匾，上书三
 个大字“摩罗门”，门旁立一尊五丈来高的摩尼金像。过了此门再向北走

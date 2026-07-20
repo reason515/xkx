@@ -11,6 +11,7 @@ inherit ROOM;
 
 void create()
 {       set("short", "玉泉书院");
+	set("outdoors", "hangzhou");
         set("long", @LONG
 书院正中有一匾“玉泉书院”。书院里坐着两位老者，他们正在
 吟诗作对。他们身旁的桌上铺着宣纸和笔墨。

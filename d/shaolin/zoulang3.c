@@ -11,6 +11,7 @@ string look_duizi();
 void create()
 {
 	set("short", "走廊");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是禅房走廊。房顶一侧支在南面的高墙上，另一侧则与
 北边和尚院的屋顶相连。彩梁画栋，连顶棚也用彩漆绘满了各种

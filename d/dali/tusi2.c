@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "门堂");
+	set("outdoors", "dali");
 	set("long", @LONG
 门堂以及其他一些附属建筑，如谷仓，厨房，坚狱，外有二米多高重修的围
 墙。主体建筑是规模最大的议事厅，三层大屋系三重蟾歇山顶干栏式建筑，长六

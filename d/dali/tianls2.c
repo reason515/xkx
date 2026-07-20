@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
         set("short", "瑞鹤门");
+        set("outdoors", "dali");
         set("long", @LONG
 这里是天龙寺的入口，迎面两根大汉白玉石柱，上面是巧手匠人所刻的
 龟鹤延年图纹。脚下一条青石大路，正是通向东首的幌天门。

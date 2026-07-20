@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "左安门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是北京城外城五大城门中朝南向的城门--左安门，这里
 的城墙相比显得略微破旧，守备也不如内城森严，但毕竟京畿

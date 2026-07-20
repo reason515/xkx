@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "回春堂");
+        set("outdoors", "beijing");
         set("long", @LONG
 这是京城老字号药铺，一股浓浓的药味让你几欲窒息，那是从药柜上的几百
 个小抽屉里散发出来的。一位大夫坐在八仙桌旁，据说他就是京城里有名的大夫

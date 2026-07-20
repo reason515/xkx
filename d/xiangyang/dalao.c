@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "牢狱");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 这里黑沉沉的，即无一丝光亮，也无半分声息。四壁摸上去冰凉，且极硬，
 似乎都是用粗糙的片岩垒垛而成，一颗颗水珠沿着墙壁滚下来，溅在地上。只有

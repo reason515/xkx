@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "天桥");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里已经是天桥中心地带，周围人潮如同潮水一般从四面八方涌
 来，你被人群一挤，不由自主的象前走去。四下里杂耍百艺，无所不

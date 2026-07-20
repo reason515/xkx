@@ -7,6 +7,7 @@ void create()
 {
     int i;
         set("short", "树林");
+        set("outdoors", "forest");
         set("long", @LONG
 树林里光线暗淡，只能听见头顶上传来一些鸟儿的啼鸣。偶而从
 茂密的叶间透过的一线光伴着落叶在飞舞。朽木腐烂的气味和身後传

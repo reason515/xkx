@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "宝源钱局");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是京城最大的一家钱庄，已有几百年的历史，是京城一家
 名符其实的老字号钱局子。在全国各地都有分店。它发行的银票

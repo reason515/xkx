@@ -12,6 +12,7 @@ string* dirs = ({"east", "south", "west", "north"});
 void create()
 {
 	set("short", HIW "五行洞" NOR);
+	set("outdoors", "shaolin");
 	set("long", HIW @LONG
 这是五行洞。地面是泥洼地，踩上去凹凸不平。四壁也都是
 土墙筑成，摸上去相当干燥，时而还会掉下一大块灰土来。从墙

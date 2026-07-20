@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "松林");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此处松林极为茂密，阳光被松枝遮住，甚是昏暗，看来已没有道路了。
 LONG

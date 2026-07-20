@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "天王殿");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是少林寺的中殿天王殿。殿内香烟燎绕，幔角叮咚。
 香火比前殿要旺盛的多。正前方供着个大肚子，似乎永远都笑

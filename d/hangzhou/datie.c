@@ -12,6 +12,7 @@ inherit ROOM;
 
 void create()
 {   set("short", "铁匠铺");
+	set("outdoors", "hangzhou");
     set("long", @LONG
 这是一家不小的打铁铺，店里摆了几座火炉，一位铁匠正在火炉
 旁满头大汗地打造东西。一位老者坐在边上。火炉边放着不少打好了

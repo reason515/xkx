@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "练功房");
+        set("outdoors", "shenlong");
         set("long", @LONG
 这里是神龙教秘密的练功房，地下整整齐齐放着几个蒲团，几位神龙教长老
 正盘膝坐在上面练功。四壁列着一些柜子，抽屉中放满了各类药酒。柜子上放着

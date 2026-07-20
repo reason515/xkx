@@ -111,10 +111,11 @@ void wakeup(object me,object where)
 	if (new_hp > (int)me->query("max_neili") ) new_hp = me->query("max_neili");
 	me->set("neili", new_hp);
 	
-	if (living(me)) return;
+	/* disable_player 会再次 enable_commands，living 恒为真；不能据此跳过醒来清理 */
+	if (!objectp(me)) return;
 
 	me->enable_player();
-        while( environment(me)->is_character() )
+        while( objectp(environment(me)) && environment(me)->is_character() )
         	me->move(environment(environment(me)));
 	me->apply_condition("sleep", 8 + random(5));
   
@@ -127,7 +128,8 @@ void wakeup(object me,object where)
 	//if (!where->query("sleep_room") && !where->query("hotel"))
 		//where->delete("no_fight");
      
-	where->add_temp("sleeping_person", -1);
+	if (objectp(where))
+		where->add_temp("sleeping_person", -1);
 	//me->delete("no_get");	
 	//me->delete("no_get_from");	
  

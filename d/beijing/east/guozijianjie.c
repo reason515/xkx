@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "国子监大街");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是国子监外的国子监大街，比起京城其它繁华热闹
 的大街来略显冷清了些，路上行人大多文质彬彬，不象一

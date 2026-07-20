@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", GRN"丽春院"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 你一走进来，一眼就看到大厅的墙上挂着一幅幅春宫图(tu)，一下子就明白
 了这是什么地方。厅内到处张灯结彩，香气扑鼻。几名打扮得妖里妖气的女人分

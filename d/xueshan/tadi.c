@@ -7,6 +7,7 @@ void create()
 {
 	int i;
         set("short", "塔底");
+        set("outdoors", "xueshan");
         set("long", @LONG
 这儿是舍利塔底。四壁都是粗糙的岩片，墙脚燃着一盏长明灯，
 照射出很微弱的光茫。四周灰尘厚积，蛛网密布。看来很少有人光

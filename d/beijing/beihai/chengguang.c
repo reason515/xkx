@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "承光殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是主殿承光殿，位于团城中央，是康熙时有元代仪天殿基础上改建的。
 殿之方体结构为方形，重檐歇山顶，四面出抱厦，亦为歇山顶。整个屋顶造型

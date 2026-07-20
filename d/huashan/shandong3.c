@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "山洞");
+        set("outdoors", "huashan");
         set("long", @LONG
 这是一个小山洞，洞里家具一应俱备。
 LONG

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "内厩");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里比外面的马厩要干净得多，饲料槽里的饲料也要
 精细得多。地上铺了厚厚的干草。旁边有扇门，但已经给锁

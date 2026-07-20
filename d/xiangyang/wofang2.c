@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "卧房");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 这间卧房是郭家大小姐郭芙的闺房，窗边一张梳妆，上点
 著一对红烛，照得房内暖洋洋地。床前罗纱帐子低垂，床上放置著

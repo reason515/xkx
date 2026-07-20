@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
   set ("short", "石窟");
+  set("outdoors", "qilian");
   set ("long", @LONG
 这是敦煌石窟中的一个洞窟，墙上是一幅幅作於五代时期的壁画，
 所画受西域画匠影响，都是淡彩托底，再以金、红、银等色勾画主体。

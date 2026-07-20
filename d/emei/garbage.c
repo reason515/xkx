@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "垃圾箱");
+        set("outdoors", "emei");
         set("long", @LONG
 峨嵋垃圾箱。
 LONG

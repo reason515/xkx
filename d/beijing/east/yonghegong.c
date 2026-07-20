@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "雍和宫");
+	set("outdoors", "beijing");
 	set("long", @LONG
 雍和宫是北京城里最大的喇嘛庙，是清廷管理全国喇嘛教
 事务的中心。雍和宫集汉、满、蒙、藏各族建筑艺术于一体，

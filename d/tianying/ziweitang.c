@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "紫微堂");
+        set("outdoors", "tianying");
         set("long", @LONG
 这里是紫微堂，地上铺着深红的绒毯。几名配剑武士整齐的站在
 两旁。天鹰教教主属下有内三堂，紫微堂乃三堂之第二堂，堂主是教

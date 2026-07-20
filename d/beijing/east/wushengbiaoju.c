@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "武胜镖局");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是京城最大的镖局--武胜镖局，自在京城开张以来已历
 三代，算是京城的老招牌、老字号，一向信誉卓著，从未失镖。

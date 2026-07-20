@@ -7,6 +7,7 @@ void kick();
 void create()
 {
 	set("short", "竹林小道");
+	set("outdoors", "gaibang");
 	set("long", @LONG
 这是一条竹林小道，笔直的朝东面延伸。两旁尽是遮天蔽日的茂密的竹林，
 南边隐隐有一座小破庙。

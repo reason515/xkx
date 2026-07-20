@@ -11,6 +11,7 @@ int do_strike(string);
 void create()
 {
         set("short", "甬道");
+        set("outdoors", "huashan");
 	set("long", @LONG
 甬道边伏着一具骷髅，骷髅身上的衣着已腐朽成为尘土，身旁放着两
 柄大斧。又见石壁上都是利斧砍过的一片片切痕，原来这条孔道竟是这骷

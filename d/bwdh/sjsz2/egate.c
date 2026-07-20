@@ -18,6 +18,7 @@ int do_open_men(string arg);
 void create()
 {
 	set("short", HIR"试剑山庄东门"NOR);
+	set("outdoors", "bwdh");
 	set("long", (: long_desc :));
 	set("invalid_startroom", 1);
 

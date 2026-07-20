@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "隆宗门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这儿是靠近皇帝住所养心殿和军机处的一道重要禁门。除奏事、
 待旨或被召见的官员准许通过外，王公大臣亦不得随便出入。

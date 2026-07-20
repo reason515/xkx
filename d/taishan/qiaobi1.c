@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "峭壁");
+        set("outdoors", "taishan");
         set("long", @LONG
 你攀在峭壁上稍作休息。抬头一望，估略尚有十余丈方能到达峭壁上
 的平台，心里不禁筹躇着应否继续往上爬。

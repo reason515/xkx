@@ -5,6 +5,7 @@ string look_poem();
 void create()
 {
   set ("short", "石窟");
+  set("outdoors", "qilian");
   set ("long", @LONG
 这是一个唐朝时凿的石窟，这里的飞天多以个体单独行动，有的脚踏祥
 云徐徐降落；有的双手抱头，从空中俯冲而下，势若流星；有的昂首挥臂，

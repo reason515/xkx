@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIY"秋菊斋"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 这是一间地方颇为宽大的厢房，室中一派豪华富贵气派，珠翠环绕，让人
 目不暇接。诸般器用均为寻常市面上所无，屋主之豪奢可见一斑。屋内香气扑

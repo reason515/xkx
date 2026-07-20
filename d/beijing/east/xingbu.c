@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "刑部");
+	set("outdoors", "beijing");
 	set("long", @LONG
 刑部于六部中专门持掌刑法罪案，与太常寺、都察院合称“
 三司”，此处肃杀之气极重，路人走到这里无不侧目而视，急行

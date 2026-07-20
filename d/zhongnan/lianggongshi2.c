@@ -8,6 +8,7 @@ int do_study(string);
 void create()
 {
         set("short","练功室");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 这石室和西边那石室是处处对称，ㄦ又处处相反，乃是北宽南窄，西圆东角,

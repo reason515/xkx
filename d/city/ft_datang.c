@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "大堂");
+        set("outdoors", "city");
         set("long", @LONG
 这里是斧头帮的议事厅，几只灯笼高高的挂着，厅上排了五张檀木椅子，似
 乎是给帮中职位较高的人物准备的。大堂侧面有一块红松木所制的方板，上面写

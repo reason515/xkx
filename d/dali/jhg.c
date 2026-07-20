@@ -10,6 +10,7 @@ int do_laugh();
 void create()
 {
 	set("short", "剑湖宫斗剑厅");
+	set("outdoors", "dali");
 	set("long", @LONG
 练武厅东坐着二人。上首是个四十左右的中年道姑，铁青着脸，嘴唇紧闭。下
 首是个五十余老者，右手捻着才须，神情甚是得意。两人的座位相距一丈有余，身

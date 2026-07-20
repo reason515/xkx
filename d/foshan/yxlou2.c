@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "英雄楼");
+        set("outdoors", "foshan");
         set("long", @LONG
 酒楼里桌椅洁净。座中客人衣饰豪奢，十九是富商大贾。
 这里可以俯瞰佛山镇全景。

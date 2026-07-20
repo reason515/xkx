@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
         set("short", HIY"驿站"NOR);
+        set("outdoors", "city");
         set("long", @LONG
 这里是一家驿站，专门负责传递江湖人士的来往信件。里面摆着几张大红木
 桌，供人写信之用。你如有什么信件需要送给你的亲朋好友，不妨交给这里的驿

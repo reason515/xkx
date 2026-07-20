@@ -7,6 +7,7 @@ inherit ROOM;
 
 void create()
 {   set("short", "大雄宝殿");
+	set("outdoors", "hangzhou");
     set("long", @LONG
 天王殿後是另一座高达三十几米的大殿。匾上写着“大雄宝殿”。
 殿前有两座八角九层石塔。往南又进了天王殿。

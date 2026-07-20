@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "山腹石室");
+	set("outdoors", "xingxiu");
 	set("long", @LONG
 这是白玉峰中的石室，只见四面石壁都是晶莹白玉，景色
 绮丽。地下放着几张桌椅，仍是坚牢完固，原来山洞密闭，不

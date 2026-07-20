@@ -52,6 +52,7 @@ create_wine(string nmstr, string* idlist, string cup, string longstr)
 void create()
 {
         set("short", HIG"玫瑰宴厅"NOR);
+        set("outdoors", "city");
         set("long", @LONG
 进门绕过一道淡黄绸屏风，迎面墙上挂着的一副『玫瑰含露』图鲜嫩欲滴，
 花瓣轻分，似有香气盈室。厅内陈列奢华，正中央一张雕花楠木青漆嵌玉大圆桌

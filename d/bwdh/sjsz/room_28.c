@@ -9,6 +9,7 @@ void open_basement();
 
 void create() {
     set("short", HIW"比武厅"NOR);
+    set("outdoors", "bwdh");
     set("long", @LONG
 比武厅花岗石地上血迹斑斑，到处是刀、剑的砍痕。
 有的地方还有脚印，显然是内功极深的人印上的。空气中

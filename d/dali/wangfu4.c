@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "大殿");
+	set("outdoors", "dali");
 	set("long", @LONG
 这是一座三重檐的圆形大殿，兰色琉璃瓦顶，全砖木结构，没有大梁长檩，
 全靠二十八根木柱和三十六根枋桷支撑。大殿中央四根“龙井柱”代表一年四季，

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "第二层");
+	set("outdoors", "dali");
 	set("long", @LONG
 为四神坐像，各有表情，衣褶隆起，筋节毕现，肌肉暴起，极富立体感。
 LONG);

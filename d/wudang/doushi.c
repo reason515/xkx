@@ -6,6 +6,7 @@ string long_desc();
 void create()
 {
         set("short", "室");
+        set("outdoors", "wudang");
 	set("long", (: long_desc :));
 
 	set("exits", ([

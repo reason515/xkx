@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "土窑馆");
+	set("outdoors", "changbai");
 	set("long", @LONG
 一迈进这间小房，一股脂粉混合着大蒜的味道扑鼻而来，差点把你呛了
 一个跟头。屋内点着很多蜡烛和灯笼，把四壁照得通红。很多穿着破烂的汉

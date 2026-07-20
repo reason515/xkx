@@ -9,6 +9,7 @@ int do_study(string arg);
 void create()
 {
         set("short", HIG"看台"NOR);
+        set("outdoors", "city");
         set("long",
 "这里是临时搭起的比武看台。四面层层叠叠的搭起了一排排长凳，中间一
 大块空地，立起了一座擂台。地下插了一面锦旗，白底红花，绣着“"+HIR"比武招亲"NOR+"”

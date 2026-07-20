@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "寿皇殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里陈列了皇家列祖列宗的画像。四周点着长明灯。
 LONG

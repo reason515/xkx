@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "光明顶");
+	set("outdoors", "huangshan");
     set("long", @LONG
 这里地势高旷，是看日出好地方。四周云雾缭绕，阳光斜射在
 云霓上形成一条彩虹，你背着太阳看那彩虹，只见白云间有你自己

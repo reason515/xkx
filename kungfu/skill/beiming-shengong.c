@@ -3,7 +3,7 @@
 // Acep, modified by xuy
 // Modified by Xuanyuan 8/2001
 
-#include <ansi.h>;
+#include <ansi.h>
 inherit FORCE;
 
 int valid_enable(string usage) { return usage == "force"; }

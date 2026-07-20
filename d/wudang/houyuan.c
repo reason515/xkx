@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "后院" );
+	set("outdoors", "wudang");
 	set("long", @LONG
 这里是后院，北面是三清殿，西南面是一个圆形的门洞，有一条小路通
 往后山。抬头可见东边天井大榕树的树冠。

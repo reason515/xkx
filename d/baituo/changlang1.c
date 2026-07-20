@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "长廊");
+	set("outdoors", "baituo");
 	set("long", @LONG
 一条白砖砌墙的长廊，一直往西边延伸过去。这里隐隐可以听到东
 边传来阵阵歌舞声，西边却是一片寂静。

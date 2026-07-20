@@ -12,6 +12,7 @@ string look_out();
 void create()
 {
 	set("short", "鼓楼七层");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里就是鼓楼之顶。直入眼帘的便是一只大鼓。大鼓鼓身通红，
 似由白杨木箍成。两头包以水牛皮，用一匝大铜钉钉在鼓身边缘。

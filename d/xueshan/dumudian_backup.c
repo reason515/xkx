@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "度母殿");
+        set("outdoors", "xueshan");
         set("long", @LONG
 这里是大轮寺的度母殿，正中五尊大座佛，均为高肉髻、外披
 袒右袈裟、结跏趺坐、执手印须弭坐各异。殿内对称排列四根大柱，

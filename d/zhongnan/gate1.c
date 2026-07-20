@@ -15,6 +15,7 @@ string look_gate();
 void create()
 {
 		  set("short", "接引殿");
+		  set("outdoors", "zhongnan");
         set("long", @LONG
 这里是重阳宫的前殿接引殿。殿内青砖铺地，两边各放一红木供桌，陈列香
 烛，以供叩拜。南面是一道三丈来高的朱红杉木包铜大门(door)。

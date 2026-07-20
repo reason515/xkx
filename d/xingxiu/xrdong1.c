@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "仙人洞");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 这个洞高七尺，里面光线暗淡，你看不清是否洞里有任何
 器物，只有洞口堆着半尺来高的山羊粪。

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "重阳练功室");
+	set("outdoors", "taihu");
 	set("long", @LONG
 这是王重阳钻研武学的所在，四面各有一间小石室，石室形状甚
 是奇特，前窄後宽，成为梯形，东边半圆，西边却作三角形状，室顶

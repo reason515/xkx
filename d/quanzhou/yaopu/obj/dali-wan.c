@@ -1,5 +1,5 @@
 //Cracked by Roath
-#include <ansi.h>;
+#include <ansi.h>
 inherit PILL;
 
 void setup()

@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "狮石");
+	set("outdoors", "huangshan");
     set("long", @LONG
 出了文殊院向左过狮石，可以看见玉屏峰下的天池。池水清碧，千
 山倒映，人称它是万山中的一方明镜。一阵微风吹过，池水涟漪，山影

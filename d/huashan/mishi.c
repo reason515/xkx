@@ -9,6 +9,7 @@ inherit F_SSERVER;
 void create()
 {
 	set("short", "密室");
+	set("outdoors", "huashan");
 	set("long", @LONG
 密室内的石墙(wall)上由大青石砌成，里头空空荡荡的甚麽也没有。
 周围放着几个数人才能合抱的大油缸，供应着灯火的燃料，把密室照得相

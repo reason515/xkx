@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
         set("short", "月老亭");
+        set("outdoors", "city");
         set("long",
 "
       "+HIG"≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌"NOR+"

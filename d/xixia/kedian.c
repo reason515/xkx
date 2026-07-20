@@ -14,6 +14,7 @@ string* Banned_id = ({
 void create()
 {
         set("short", HIC"车马店"NOR);
+        set("outdoors", "xixia");
         set("long", @LONG
 一家低档的车马客栈，建筑相当陈旧，很不起眼，不过由于价钱低廉，又是
 在北门的交通要道上，三教九流多选择这里落脚，生意也相当不错，你也可以在

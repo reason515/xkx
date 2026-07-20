@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "万年庵砖殿");
+        set("outdoors", "em");
 	set("long", @LONG
 这里是万年庵的拱顶无梁砖殿。砖殿四壁为正方形，顶为穹窿圆拱形，殿
 内有普贤菩萨骑六牙白象的铜铸像一尊。拱顶无梁砖殿四壁下方，有小龛二十

@@ -12,6 +12,7 @@ string look_zi();
 void  create  ()
 {
     set  ("short", "轩辕棋苑");
+    set("outdoors", "city");
     set  ("long",@LONG
 这里是新开张的轩辕棋苑，只见苑内布置简单却也十分优雅。不少文人雅士
 都喜欢来此对弈谈天。苑内还分有其他三间棋室，不喜欢被打扰的客人可以进去

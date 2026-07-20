@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石阶");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 半天然的石阶偶能看到釜凿的印记。两边植满了翠竹，密而有序，杂
 而不乱。有一条小蹊镶入西边的竹中，探首过去，似并不很长。晨光撒过，

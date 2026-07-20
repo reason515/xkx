@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", YEL"马厩"NOR);
+        set("outdoors", "dali");
         set("long", @LONG
 这是军营边上的马厩，常年供应新鲜草料。据说此地民风淳朴，客人只要带
 马来，马夫们就会把马牵到马厩好生照看，将它们喂饱饮足，再洗刷得干乾净净。

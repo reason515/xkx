@@ -14,6 +14,7 @@ inherit F_CLEAN_UP;
 void create()
 {
 	set("short", "集体拱猪房");
+	set("outdoors", "city");
 	set("long", @LONG
 	这是一间专门为集体拱猪而设计的拱猪房。房间里面灯火通明，仿佛永
 远准备着为拱猪狂们服务似的。房间的中心放着一张用百年老松树木材特制的拱

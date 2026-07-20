@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "鸣弘泉");
+	set("outdoors", "huangshan");
     set("long", @LONG
 泉水由高山石涧骤然而下，冲击着一块长三丈，高五尺，形如古
 琴的大石。大石在泉水的敲击下发出多种悦耳的声音。闭目静听，仿

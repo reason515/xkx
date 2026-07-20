@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "红本库");
+	set("outdoors", "beijing");
 	set("long",  @LONG
 这是给御前侍卫休息使用的。靠墙是几张大床，当侍卫们在宫中
 连续值班时，就来这里休息一下。

@@ -10,6 +10,7 @@ void reset();
 void create()
 {
     set("short", "走廊");
+    set("outdoors", "huashan");
     set("long", @LONG
 走廊东边木门后连着华山男弟子的休息室，西边门后是女弟子的休息
 室。南边是华山掌门的寝室，弟子皆不准进去。北边则是客厅。

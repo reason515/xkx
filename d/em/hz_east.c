@@ -11,6 +11,7 @@ void delete_served(object);
 void create()
 {
         set("short", "华藏庵侧殿");
+        set("outdoors", "em");
 	set("long", @LONG
 这里是金顶华藏庵东侧殿，是接待香客及来宾的地方。殿内摆着几张桌子，
 桌旁围放数把椅子。墙上悬着几幅字画，墙边一排书架，架上摆满经书。有几

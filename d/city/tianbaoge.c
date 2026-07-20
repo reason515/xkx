@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "天宝阁");
+        set("outdoors", "city");
         set("long", @LONG
 这里原是本城一家最大的书店，因该店孙老板经营不善而倒闭。在此之后扬
 州外的长乐帮曾经租下过这个店面，但不知为何又搬走了。最近一位书商将此店

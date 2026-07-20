@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "后堂");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 粉白的四壁上悬挂着几幅泼墨山水。西墙下一红木帐床。床与南窗之
 间的角落里置有一盆悬崖菊，虽不到花季，但在这山阴处，也已结满了骨

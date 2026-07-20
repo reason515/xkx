@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石室");
+	set("outdoors", "dali");
 	set("long", @LONG
 这里又是一间石室。房中有张石床，床前有一个小小摇篮，墙上悬了一把七铉
 琴，铉线均已断裂。床左有一石几，几上刻了十九道棋盘，布着二百余棋子，黑白

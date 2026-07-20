@@ -33,6 +33,7 @@ string* regions = ({
 void create()
 {
         set("short", "地牢");
+        set("outdoors", "qilian");
         set("long", @LONG
 一个空荡荡的牢房，四周徒有厚实的墙壁。由于深在地底的缘故，空气混浊
 得令人有点受不了。

@@ -11,6 +11,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "茶室");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是方丈待客的地方，靠墙左右两侧摆着一溜太师椅。北
 面墙上挂了一付对联。墙角一几，放着几个茶壶。有个茶壶壶身

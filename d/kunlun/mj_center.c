@@ -14,6 +14,7 @@ string show_data();
 void create()
 {
 	set("short", HIR"明教指挥中心"NOR);
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这里是明教指挥中心。四周摆满了各种各样的仪器。墙上面还有
 一行小字(word)。正面一个一百零八寸的大屏幕(screen)上显示着一

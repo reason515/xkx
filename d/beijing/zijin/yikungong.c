@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "翊坤宫");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是明清两代后妃们居住的地方.清代慈禧太后住储秀宫时,每
 逢重大节日都要在这里接受妃嫔们的朝拜.

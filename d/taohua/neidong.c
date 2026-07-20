@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "清音洞");
+	set("outdoors", "taohua");
 	set("long", @LONG
 这是清音洞内洞，潮湿异常，洞顶水珠颗颗坠下，滴在地面的小水洼中，
 叮咚做响。这里光线太暗，大概需要火折照明。

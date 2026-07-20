@@ -10,6 +10,7 @@ int do_press(string);
 void create()
 { 
        set("short","密道");
+       set("outdoors", "quanzhou");
        set("long", @LONG
 这是水井里的一个密道。周围都是些机关，只有出口很明显在哪里。湿漉
 漉的墙壁上有四块石板，分别刻着１、２、３、４。旁边还有一个铁板(tieban)

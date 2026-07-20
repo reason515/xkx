@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "西侧殿");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是西侧殿。房间四周悬挂着达摩祖师、观音大士的画
 像，以及一些寺内元老的字画。地下散乱地放着许多蒲团，木

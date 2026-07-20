@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 		  set("short","後堂");
+		  set("outdoors", "zhongnan");
 
 		  set("long",@LONG
 这里就是後堂了。只见堂上空空荡荡的没什麽陈设。几张椅子靠着墙

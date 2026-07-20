@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "灵蛇阁");
+        set("outdoors", "baituo");
         set("long", @LONG
 这是“西毒”欧阳锋的起居室，也是练功之地，空荡荡的房中弥漫
 着一股肃杀之气。床头木案上摆着一具铁筝，正对房门的石墙上绘了一

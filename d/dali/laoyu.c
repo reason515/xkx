@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "牢狱");
+	set("outdoors", "dali");
 	set("long", @LONG
 大理虽为蛮夷之地，然而百姓大多安守热业，少有犯事，因此牢狱里空空是
 也，只有几个牢头在角落里自斟自饮。墙角上散散地扔着几把钥匙。

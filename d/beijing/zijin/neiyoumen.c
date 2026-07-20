@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "内右门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是通往养心殿和西六宫的重要门户,由此往里是皇帝和后妃们
 居住的地方.

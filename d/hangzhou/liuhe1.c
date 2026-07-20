@@ -7,6 +7,7 @@ inherit ROOM;
 
 void create()
 {   set("short", "六和塔");
+	set("outdoors", "hangzhou");
     set("long", @LONG
 爬上月轮山，便来到了六和塔之前。六和塔亦名六合塔，“六和”
 之名来之佛家的六种规约，“六合”就是“天，地，四方”的意思。

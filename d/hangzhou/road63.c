@@ -9,6 +9,7 @@ inherit ROOM;
 
 void create()
 {   set("short", MAG"烟霞洞"NOR);
+	set("outdoors", "hangzhou");
     set("long", @LONG
 据说站在山头，清晨观看山村缭绕炊烟，傍晚仰望蓝天彩霞，景
 色优美，故称“烟霞”。洞口两旁有精美的“观音”和“大势至菩萨”

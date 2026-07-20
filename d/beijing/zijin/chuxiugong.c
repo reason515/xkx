@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "储秀宫");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里原来是顺治最宠爱的妃子董鄂妃居住的地方。董鄂妃生病死后，
 顺治也一直很忧郁，不久就驾崩了。现在无人居住。

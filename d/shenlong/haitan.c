@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "海滩");
+	set("outdoors", "shenlong");
         set("long", @LONG
 但见岸上树木苍翠，长长的海滩望不到尽头，尽是雪白的细沙，四处一片
 寂静，听不见一点声音，西面是大海，东面仿拂有一座山峰，两旁是望不到尽

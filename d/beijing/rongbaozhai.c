@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
     set("short", "荣宝斋");
+    set("outdoors", "beijing");
     set("long", @LONG
 这里是京城里最有名的字画店。店主人刘老板见多识广，收藏的字画也颇不
 少，除了当世的名家手笔，还时常有些古字画的珍品。这里也兼卖一些笔墨纸砚

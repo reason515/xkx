@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "后殿");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 后殿规模不大。两边都是水磨石壁，镂刻着十八罗汉的肖像
 及佛谒，正中有一口水井，水面净如明镜，纯若菩提，名曰佛心

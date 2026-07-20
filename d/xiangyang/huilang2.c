@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "回廊");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 白石栏杆围绕著回廊，栏外绿树成荫，隐约可见园中景致。回
 廊顺着屋宇向南延伸，通向一列客房。

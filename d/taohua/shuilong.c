@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "水龙轩");
+	set("outdoors", "taohua");
 	set("long", @LONG
 这里是桃花岛主黄药师日常起居活动的地方，轩内陈设十分简单。四壁挂着一些
 晋人字画，中间一副墨迹淋漓的条幅(tiaofu)，正是黄药师时常吟颂的《水龙吟》。

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "宰牲房");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是宰杀祭祀用的牲畜的地方。
 LONG

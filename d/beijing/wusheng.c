@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "武胜镖局");
+        set("outdoors", "beijing");
         set("long", @LONG
 这是京城里招牌最老的镖局，大门口左右各有一座石狮子，张牙舞爪，面目
 狰狞。门上有一赤红大匾，上书“武胜镖局”四个斗大的黑字，银钩铁划，刚劲

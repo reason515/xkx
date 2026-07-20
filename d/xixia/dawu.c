@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "林中大屋");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这是一幢原木制成的三层高大建筑，看上去已有些年月但仍坚固异常，底层
 是由数根巨木架空，一座木梯通向二楼，三楼的楼顶上挂着一面绣着一条青龙的

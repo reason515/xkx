@@ -9,6 +9,7 @@ void reset();
 void create()
 {
     set("short", "走廊");
+    set("outdoors", "huashan");
     set("long", @LONG
 走廊东西边连着练功房。南边是华山掌门及男女弟子的休息室，外人
 不方便进去。

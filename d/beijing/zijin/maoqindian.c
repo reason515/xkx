@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "懋勤殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
     这是内翰林官的值班处,御用图书,文具存在
 此处.康熙皇帝曾在此读书。

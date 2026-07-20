@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石洞");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这是沙漠中天然形成的一个石洞，洞中光线昏暗，但却十分干燥，
 地下铺者几堆稻草，似乎是供人睡卧之用，静心凝听，洞中仿佛有阵

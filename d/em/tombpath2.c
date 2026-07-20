@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小径");
+        set("outdoors", "em");
 	set("long", @LONG
 这是一条蜿蜒的山间小径，草木丛生，人迹罕见，只有些不知名的小虫
 在吱吱叽叽唱着。南边通往峨眉山后山，北边就是九十九道拐。这里山石嶙

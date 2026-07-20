@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "甬道");
+        set("outdoors", "forest");
         set("long", @LONG
 长长的甬道通向一个石室，旁边壁上每隔不远便有一盏油灯，头
 上是高高的拱顶，显得有些阴森可怖。几名帮众在这里把守，闲杂人等

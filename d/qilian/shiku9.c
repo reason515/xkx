@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
   set ("short", "石窟");
+  set("outdoors", "qilian");
   set ("long", @LONG
 这里是一处宋初所凿的洞窟，内中壁画是用典形中国写生手笔所绘的
 道教法绘天官像，用色清淡、着笔传神，人物造形丰满。侧壁上则是一幅

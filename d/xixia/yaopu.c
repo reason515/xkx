@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "药铺");
+        set("outdoors", "xixia");
         set("long", @LONG
 这是一家神秘的药铺，座落在西大街和南大街的交界处，普通的
 门面和招牌，街坊们都说这家药铺的药灵验的很。从药柜上的几百个

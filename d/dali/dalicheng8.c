@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "药铺");
+	set("outdoors", "dali");
 	set("long", @LONG
 这是一家神秘的药铺，座落在大和街和市中心的交界之处，普通的门面和招
 牌，街坊们都说这家药铺的药灵验的很。从药柜上的几百个小抽屉里散发出来的

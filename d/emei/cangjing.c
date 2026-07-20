@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "藏经阁");
+        set("outdoors", "emei");
 	set("long", @LONG
 小阁楼上便是峨嵋派的藏经阁了。这里都是密密麻麻，高及顶棚的书架。
 窗口下有一张大桌子，桌上放了几本佛经。有个小师太正在向静道师太借书。

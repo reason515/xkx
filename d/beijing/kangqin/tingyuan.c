@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "庭院");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是王府的前院，一道影壁将院子分成两半。东西方各有一
 间厢房，那是仆人们住的地方。

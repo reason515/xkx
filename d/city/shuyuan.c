@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", HIW"书院"NOR);
+        set("outdoors", "city");
         set("long", @LONG
 这里是书院的讲堂，窗明几净，一尘不染。一位庄重严肃的老者坐在太师椅
 上讲学，那就是当今大儒朱先生了。在他的两侧坐满了求学的学生。一张古意盎

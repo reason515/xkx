@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "山洞");
+        set("outdoors", "qilian");
         set("long", @LONG
 两旁的火把呼呼地燃烧着。突然你眼前的石壁上出现“日月神
 教”四个大字，洞外不时地传来阵阵的狼嚎。你脚下不小心碰到什

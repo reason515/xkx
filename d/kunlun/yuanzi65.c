@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "院子");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 院子中青石小道，遍满奇花异草，怪干希枝，暗香浮动，月影漫情，
 时闻虫草风律。虽无山水之丽，然居清闭阁，幽回尘绝，兰掬之属，蔚然

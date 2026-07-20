@@ -11,6 +11,7 @@ int vomit(object);
 void create()
 {
         set("short", "侍卫食堂");
+        set("outdoors", "beijing");
         set("long", @LONG
 这里是侍卫们吃饭的地方。低等侍卫们来来往往，边吃
 边聊天。偶尔也能看到一些侍卫营的大官。餐桌上放了好些

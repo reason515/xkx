@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "芍药亭");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 这是位在假山彼端的一座小亭子，亭上紫藤交错攀附，斜斜对著
 古拙的山石，四周除了芍药之外，还遍植了桂花、玉兰、蜡梅等花木

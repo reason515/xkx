@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "松林");
+	set("outdoors", "wudang");
 	set("long", @LONG
 	这是松林深处，暗无天日，朦胧中只感觉到左右前后到处
 都是树影。地上有一两个死人骷髅，发着绿荧荧的磷光。你惊骇之

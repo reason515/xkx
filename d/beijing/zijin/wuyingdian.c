@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "武英殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
 是皇帝斋戒及召见大臣的地方，后殿的群房是宫廷画家们作画的
 场所。后来这里成为修书处,为皇家刻印了大批书籍,称为殿版.

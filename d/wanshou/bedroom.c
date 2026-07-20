@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "卧室");
+        set("outdoors", "wanshou");
         set("long", @LONG
 这是万兽山庄弟子休息的地方，窗上挂着厚重的窗帘，屋内的
 光线昏暗，屋内依次摆着若干卧榻，几个同门正在榻上休息。

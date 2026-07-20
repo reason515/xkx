@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "辑芳亭");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是五峰亭中的一座，四周景色秀丽，恬静宜人。亭子里有
 一张石桌，几张石凳，供游人休息。

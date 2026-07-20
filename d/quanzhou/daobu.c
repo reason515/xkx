@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
     set("short", "刀刃部");
+    set("outdoors", "quanzhou");
     set("long", @LONG
 这是武馆的刀刃部，由龙铨负责。四周都是木片木人，可供练习。
 LONG

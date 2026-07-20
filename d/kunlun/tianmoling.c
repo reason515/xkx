@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "天摩岭");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这里又是一座雄伟的高山。西来的强风终年不断，所以此山西侧甚是
 贫瘠，乱石嶙峋中间只有稀稀落落的矮灌木和杂草。东侧倒是郁郁葱葱，

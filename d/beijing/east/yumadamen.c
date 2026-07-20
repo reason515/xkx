@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "御马圈大门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是紫禁城外御马圈的大门，平常是不开的，只有皇帝驾
 临才会大开。平常采办马匹，草料的人都是从偏门进出，寻常

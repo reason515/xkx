@@ -4,6 +4,7 @@ string look_note();
 
 void create() {
     set("short", "秘密交流室");
+    set("outdoors", "wizard");
     set("long", @LONG
 这里是供玩家与巫师秘密交流的地方。玩家可以在这里向巫师报告ＢＵＧ，
 提供建议，进行广泛的讨论。南面的墙上贴着告示（note）。

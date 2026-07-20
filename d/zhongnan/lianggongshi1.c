@@ -15,6 +15,7 @@ int do_study(string);
 void create()
 {
         set("short","练功室");
+        set("outdoors", "zhongnan");
         set("long",@LONG
     这石室形状甚是奇特，北窄南宽，成为梯形，东边半圆，西边却作  
 三角形状,室顶石壁(shibi)上刻满了诸般花纹符号，均是以利器刻成，

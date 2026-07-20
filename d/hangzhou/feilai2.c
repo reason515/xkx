@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "射旭洞");
+	set("outdoors", "hangzhou");
     set("long", @LONG
 洞後侧穹顶上的石罅间可仰见一束天光，故又名“一线天”。东
 南边是下山的路。

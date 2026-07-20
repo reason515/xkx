@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "般若九堂");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是一间极为简陋的禅房。环视四周，除了几幅佛竭外，室
 内空荡荡地别无他物。地上整齐的摆放着几个破烂且发黑的黄布

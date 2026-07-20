@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "赌场");
+	set("outdoors", "city");
 	set("long", @LONG
         ≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌≌
             ≌≌                                ≌≌

@@ -11,6 +11,7 @@ void create()
 {
 	
 	set("short", "乱石堆");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此处乱石交错，再走下去恐怕会迷路。四周也没什么花草树木，一些
 奇形怪状的大石头乱堆在旁。

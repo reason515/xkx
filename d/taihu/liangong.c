@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "练功房");
+	set("outdoors", "taihu");
 	set("long", @LONG
 这里是归云庄陆少庄主的练功房。由与陆少庄主乃少林旁支
 仙霞派出身，所以房中布置尽是为习练外门硬功之用，竖立着不

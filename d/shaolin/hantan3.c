@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "万古寒潭");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是寒潭之中。冰与水混合在一起，使整个潭水在此处变得
 跟稀粥一样，身周的冰壳已凝成一个大块，除了双眼尚能透过冰

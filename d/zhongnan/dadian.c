@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 		  set("short", HIR"重阳宫长春殿"NOR);
+		  set("outdoors", "zhongnan");
 
 		  set("long",@LONG
 这里就是全真教位於终南山的总部重阳宫大殿。只见这重阳宫大殿背

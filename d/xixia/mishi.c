@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "密室");
+        set("outdoors", "xixia");
         set("long", @LONG
 这是一品堂的密室，平时只有堂主一个人可以进来。密室不大却陈
 设豪华，地上铺着猩红的新疆纯羊毛手织地毯，四个角落里点着牛油巨

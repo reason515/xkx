@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "聚金阁");
+	set("outdoors", "city");
 	set("long", @LONG
 你一来到这里只觉得到处都是亮光闪闪，宽敞的大厅里南边摆放着一些拿来
 展示的珠宝首饰。北边的柜台(guitai)上则放着要卖的金银珠宝。但是这里看起

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "酆都城门");
+	set("outdoors", "death");
 	set("long", @LONG
 你现在来到一座黑色城楼之前，城楼上刻著三个大字：酆都城。往
 南不远处有一座桥，桥上鬼影幢幢，但是却听不到半点声音，往北走进

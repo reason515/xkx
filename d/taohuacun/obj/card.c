@@ -1,5 +1,5 @@
 // paper.c
-#include <ansi.h>;
+#include <ansi.h>
 inherit ITEM;
 void create()
 {

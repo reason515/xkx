@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short","女厢房");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 这ㄦ是女厢房。虽然全真教的女弟子不多，但在清净散人孙不二的

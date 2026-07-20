@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "牢房");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一间牢房。铁门极厚，门上的小窗装着鸭子儿粗细
 的铁条，显然是怕犯人冲出来。

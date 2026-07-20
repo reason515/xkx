@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short",HIC "迷宫" NOR);
+        set("outdoors", "kunlun");
         set("long", HIW @LONG
 这是一个迷宫。
 LONG NOR

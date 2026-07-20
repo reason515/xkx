@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "春来茶馆");
+	set("outdoors", "city");
 	set("long", @LONG
 你一走进来，就闻到一股茶香沁入心脾，精神为之一爽。几张八仙桌一字排
 开，坐满了客人，或高声谈笑，或交头接耳。你要想打听江湖掌故和谣言，这里

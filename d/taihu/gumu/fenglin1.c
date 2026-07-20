@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "树林");
+	set("outdoors", "taihu");
 	set("long", @LONG
 眼前的景象令你大吃一斤，但见铺天盖地都是蜜蜂，个头比
 寻常蜜蜂足足大出一倍，而且晶莹透明，宛偌玉石。更令你惊讶

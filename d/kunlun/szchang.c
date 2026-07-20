@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "铸造场");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 在场子南侧有一座高炉，炉口火孔径不到一尺。一个锐金旗旗下弟子，
 身旁放着十余件兵器，目不转睛地望着炉火，每见炉火变色，便将已有些

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "花厅");
+	set("outdoors", "taihu");
 	set("long", @LONG
 这是一间四方型的厅亭，没有牌匾，正面两方木柱，柱上挂了
 幅缺了半阙的『诗词』(poem)。厅内摆设了几张桌椅。一个丫环正

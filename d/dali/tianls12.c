@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
         set("short", "斋房");
+        set("outdoors", "dali");
         set("long", @LONG
 这里是寺内用餐和方丈宴请贵客的地方。这里曾有几回土蕃黄教
 的国师、天竺神僧，和少林长老拜访讲经，方丈就在此为他们揭尘。

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "厨房");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 这是白驼山庄的厨房，里面有一个大灶和一口水缸，白驼山庄的
 弟子们可以在这儿喝水(drink)。几个婢女在忙着做饭。

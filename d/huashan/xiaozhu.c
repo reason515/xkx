@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
     set("short", "华山小筑");
+    set("outdoors", "huashan");
     set("long", @LONG
 华山小筑是华山两位长老的避世居所。摆设简单，却清雅自然。小筑
 外有个小池塘，几只鹤有的在池塘边飞舞，有的站在池塘边歇息。两位长

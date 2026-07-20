@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "密道");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 密道中乌漆妈黑，伸手不见五指，但只觉越走越低，湿气也越来越重

@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "男厢房");
+        set("outdoors", "zhongnan");
         set("long", @LONG
 这ㄦ是男厢房，打埽的极是干净。虽然布置简单，却也给人一种温暖
 的感觉。房中几张木床和一张桌子，几个弟子正在蒙头大睡。往西是演武

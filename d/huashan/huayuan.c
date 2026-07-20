@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "花园");
+	set("outdoors", "huashan");
 	set("long", @LONG
 这是一个园子，庭院清幽，异种花卉甚是不少。百花争放，山石古拙，
 杨柳垂清，苍松翠竹，景致煞是宜人。清澈的溪流旁耸立着一座小亭子，

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "沙漠绿洲");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 在沙漠的尽头出现了一个绿洲。灌木丛中有一眼坎儿井。井台上有一个木杯
 专供口渴的行人喝水。井边是一块瓜地。

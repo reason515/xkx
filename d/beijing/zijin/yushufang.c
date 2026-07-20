@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "御书房");
+	set("outdoors", "beijing");
 	set("long", @LONG
 供皇帝大典前静心之处,屋内被值日太监搽抹得一尘不染，光可
 鉴人。窗前，横陈着一张檀木紫桌，桌上齐齐地堆有一叠书，书旁一

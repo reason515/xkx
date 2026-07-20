@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "养心殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
 皇帝多在这里居住和进行日常活动。正厅设有宝座，御案。宝座
 后面有一排书架，藏有历代皇帝有关治国的经验，教训的著述。一些

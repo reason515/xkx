@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "山路");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 几只蜜蜂在匆匆得忙碌着，给这小小的山路增添了几分生机。清晨的
 阳光撒来，草上的水珠散射出绚丽的生命。偶有一只野兔蹿过，在草上留

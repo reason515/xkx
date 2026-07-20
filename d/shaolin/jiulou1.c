@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "迎宾楼");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 南阳城的迎宾楼是当地极有名的大酒楼。由于靠近汉江，故食客
 们常有机会品尝远近闻名的汉江鲤鱼。迎宾楼的厨艺为南阳一绝，烧

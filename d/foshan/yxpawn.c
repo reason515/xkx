@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "英雄典当");
+        set("outdoors", "foshan");
         set("long", @LONG
 当铺里一张高高的柜台，柜台后面坐着当铺的朝奉。这家
 当铺是凤老爷所开，十多年来从没人来闹过事，朝奉也就很放

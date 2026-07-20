@@ -11,6 +11,7 @@ string* Banned_id = ({
 void create()
 {
 	set("short", HIC"天外天客店"NOR);
+	set("outdoors", "hangzhou");
 	set("long", @LONG
 这是杭州最有名的客店，里面雕梁画壁，装饰有如宫殿，你可以在这里
 打听到各地的风土人情。店小二里里外外忙得团团转，接待着南腔北调的客

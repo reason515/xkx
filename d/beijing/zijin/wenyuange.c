@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "文渊阁");
+	set("outdoors", "beijing");
 	set("long", @LONG
 是专为收藏乾隆年间编纂的共79000多卷的《四库全书》而修建的,
 LONG

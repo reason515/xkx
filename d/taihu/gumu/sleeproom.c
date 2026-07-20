@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "休息室");
+	set("outdoors", "taihu");
 	set("long", @LONG
 你但见房中空空洞洞，一块本长条青石作床(shichuang)，床上铺
 了张草席，一幅白布当作薄被。室东的一根铁钉上系住了一根绳索，

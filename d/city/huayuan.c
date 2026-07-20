@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "花园");
+	set("outdoors", "city");
 	set("long", @LONG
 这里是翰林府的花园。院子里种了各色名贵的菊花。黄菊有都胜、
 金芍药、报君知。白菊有月下白、一团雪、貂蝉拜月。紫菊有双飞燕、

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "书室");
+        set("outdoors", "jiaxing");
         set("long", @LONG
 室中一张桌子上放着文房四宝，墙上挂着一幅临摹颜真卿的「裴
 将军帖」(tie)。床脚摆着一张床(bed)。

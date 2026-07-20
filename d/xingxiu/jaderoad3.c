@@ -14,6 +14,7 @@ string look_skeleton();
 void create()
 {
 	set("short", "白玉通道");
+	set("outdoors", "xingxiu");
 	set("long", (: look_long :));
 
 	set("exits", ([

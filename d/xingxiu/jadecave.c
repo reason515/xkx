@@ -9,6 +9,7 @@ string look_stone();
 void create()
 {
 	set("short", "白玉峰山壁");
+	set("outdoors", "xingxiu");
 	set("long", @LONG
 这是白玉峰壁上的山洞，向内下去到地有十七八丈高，峰内
 地面远比外面的为低。洞旁有许多凹凸不平的山岩(stone)。

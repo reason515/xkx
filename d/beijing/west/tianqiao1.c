@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "天桥");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是北京城最繁华热闹的地方，龙蛇混杂，三教九流无所不包；
 这在这里跑江湖卖解的，说书唱曲的，百货小吃，无所不有，不过这

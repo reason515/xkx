@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "羊肉馆");
+        set("outdoors", "qilian");
         set("long", @LONG
 这是兰州城内最大的羊肉馆，卖的全是从城外草原上拉来的
 刚宰杀的活羊，又鲜又嫩。南来北往的客商，到此地打尖，无不

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "五佛寺");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这里是一个被废弃的破庙，周围全是沙丘，破庙的寺门已经倒塌，地
 上有块半埋在沙里的匾，从剥落的金字上你依稀可以辨别出“五佛寺”三

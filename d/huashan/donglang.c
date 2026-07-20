@@ -11,6 +11,7 @@ int valid_leave(object, string);
 void create()
 {
     set("short", "东廊");
+    set("outdoors", "huashan");
     set("long", @LONG
 东边是华山派的藏书室，专供华山弟子读书写字。存有一些剑谱和经
 书。西面连着花园，北边是个偏厅。

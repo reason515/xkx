@@ -8,6 +8,7 @@ string look_note();
 
 void create() {
     set("short", "试剑山庄凌霄阁");
+    set("outdoors", "bwdh");
     set("long", @LONG
 这里是试剑山庄的主人居住的地方。从这里也可以俯瞰
 整个试剑山庄。墙上挂着一幅字(note)，很引人注意。不过

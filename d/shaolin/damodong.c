@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "达摩洞");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是达摩古洞。五百年前南天竺僧人菩提达摩来到少林寺，见
 此风水宝地，就住下来广罗弟子，传授禅宗，开创少林寺佛教禅宗千

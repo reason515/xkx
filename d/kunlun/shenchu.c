@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "密林深处");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 阳光经过枝叶的过滤，落地时已变得十分虚弱。林深处传来种种怪音，
 如若不是脚下还有一条小路，谁知这并不欢迎外界来客的树林深处，竟还

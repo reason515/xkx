@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "朝阳门城楼");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是朝阳门城门上的望楼，一队队壮健的守城军丁盔甲鲜
 明，手持大刀长矛，强弓利箭，警惕的注视着城下过望行人；

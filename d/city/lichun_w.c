@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIG"夏荷居"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 这是一间地方颇为宽大的厢房，梁上悬了几盏荷花灯，红莲白藕，荷
 叶田田，视之凉意顿生。灯上裹以白纱，上有文人墨客的咏莲之作(poem)，

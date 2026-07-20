@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "小船");
+	set("outdoors", "dali");
 	set("long", @LONG
 你坐在一条小船里，扳动铁桨用力划着，正在瀑布前的湍急水流中逆水而上。
 LONG);

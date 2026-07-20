@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "清凉台");
+	set("outdoors", "huangshan");
     set("long", @LONG
 清凉台原名法台，是後山观云海和日出的最佳处，是黄山九台之
 首。台突出在三面临空的一座危岩上。台下是峰云绝妙的後海。黎明，

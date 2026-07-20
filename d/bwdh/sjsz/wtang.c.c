@@ -14,6 +14,7 @@ int do_plant(string arg);
 void create()
 {
 	set("short", HIR"赤火龙坛"NOR);
+	set("outdoors", "bwdh");
 	set("long", (: long_desc :));
 
 	set("exits", ([

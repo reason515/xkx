@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "侍卫营大门");
+        set("outdoors", "beijing");
         set("long", @LONG
 这里是京城侍卫们的地盘。大门虽然不如王公大臣府第的豪华
 阔绰，可也是毫不含糊的。侍卫们平日鱼肉乡里，京城百姓走到这儿

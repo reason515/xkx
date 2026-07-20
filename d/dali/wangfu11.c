@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "厢房");
+	set("outdoors", "dali");
 	set("long", @LONG
 只见这间房四面皆是雕空玲珑木板，或「流云百蝠」，或「岁寒三友」，或
 山水人物，或翎毛花卉，或集锦，或博古，或万万福寿，各种花样，皆名手雕镂，

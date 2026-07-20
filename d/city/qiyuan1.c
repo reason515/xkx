@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIW"象棋棋苑"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 这里是侠客行象棋棋苑，是一间摆设整齐的房间，大门面对的墙
 壁上挂着一副正楷书写的条幅(tiaofu)。西、南、北边的月洞门通往

@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
         set("short", "牟尼堂");
+        set("outdoors", "dali");
         set("long", @LONG
 这是一间狭室，禅房内古璞归真，日常用具不多，不过有见识的人可以看出，
 东西虽不见奢侈，却也都不是易得之物。禅房里面四散着坐了六个老僧。

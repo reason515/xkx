@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
         set("short", "钓鱼台岛");
+        set("outdoors", "forest");
         set("long", @LONG
 这里就是钓鱼（台）岛。岛很小，四周都是大海。岛上有一座
 灯塔(dengta)，塔下还画着太阳旗。

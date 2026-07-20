@@ -3,7 +3,7 @@
 // Shan: 96/06/22
 
 inherit ROOM;
-#include <ansi.h>;
+#include <ansi.h>
 void create()
 {
         set("short", "小路");

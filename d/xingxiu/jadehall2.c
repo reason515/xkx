@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "殿堂");
+	set("outdoors", "xingxiu");
 	set("long", @LONG
 大殿後是一座较小的殿堂，殿中情景却比大殿上尤为可怖，
 数十具骸骨一堆堆相互纠结，骸骨大都直立如生时，有的手中握

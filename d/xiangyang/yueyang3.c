@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIW "三楼" NOR);
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 登楼南望岘山群峰竟秀，岗峦起伏；北瞰汉水缭绕烟云，碧波萦带。风景极
 佳，为江南名楼之一，历有“洞庭天下水，岳阳天下楼”的盛誉。三楼壁上有“

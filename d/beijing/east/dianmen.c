@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "地安门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 地安门是皇城的后门，与皇城正面的天安门遥遥相对，虽
 不如天安门气势恢宏，但红墙高耸，黄色琉璃瓦闪闪发光，富

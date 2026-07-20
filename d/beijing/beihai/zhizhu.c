@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "智珠殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一座古色古香的大殿，是为供奉文殊佛像之所。殿前有一座大香炉，
 香炉内烟雾缭绕，可见香火很盛。殿北有见春亭，亭北有琼岛春荫石幢，幢首、

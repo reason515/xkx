@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "假山小池");
+	set("outdoors", "huashan");
 	set("long", @LONG
 这是另一个小园子，里头有个小池塘。四周布有假山，增添林园美景。
 下雨时雨水落入溪塘中，清脆的水珠声有如玉珠落盘般悦耳。水气朦胧中

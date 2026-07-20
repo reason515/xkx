@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "太和居");
+	set("outdoors", "dali");
 	set("long", @LONG
 这是大理城内最大的酒楼，楼下卖些大理的小吃，过往行人常常买来作路菜。
 楼上是雅座。

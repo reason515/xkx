@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "飞来石");
+	set("outdoors", "huangshan");
     set("long", @LONG
 沿着山径，绕过西面的四座小山峰和三条幽谷，便来到仙桃峰，
 峰上有一块大石，上尖下圆，形貌似桃。因为此石孤立在山峰之上，

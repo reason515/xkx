@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "九龙瀑");
+	set("outdoors", "huangshan");
     set("long", @LONG
 流泉自香炉和罗汉两峰间倾泻而下，喷珠飞玉，犹如九龙腾空而
 将。瀑九迭，每迭一潭，亦称九龙潭。前人有诗赞美“飞泉不让匡庐

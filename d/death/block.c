@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
 	set("short","死刑室");
+	set("outdoors", "death");
 	set("long","在这里只有死路一条...\n");
 	set("valid_startroom",1);
 	set("cost", 0);

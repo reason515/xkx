@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "柴房");
+        set("outdoors", "forest");
         set("long", @LONG
 一间简单的柴房，普通的帮众可以在这里干点杂活。劈好的木柴
 凌乱地堆在墙角，旁边是砍柴刀（chaidao）和笤帚（tiaozhou）。门

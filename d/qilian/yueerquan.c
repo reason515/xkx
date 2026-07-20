@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "月儿泉");
+        set("outdoors", "qilian");
         set("long", @LONG
 出乎你的意料之外，在沙漠中竟然有泉水。一泓清澈的泉水形成一个月牙
 的形状，因而得名月儿泉。南面是一片峭壁(cliff)，东南边传来嗡嗡的声响。

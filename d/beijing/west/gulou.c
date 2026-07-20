@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "鼓楼");
+	set("outdoors", "beijing");
 	set("long", @LONG
 京城鼓楼每到定更天时分便会开始打鼓，叫做“交更”，
 平民百姓听见鼓楼鼓声，便知道时刻了。鼓楼西面就是出名

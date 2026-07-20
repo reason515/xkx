@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "第三层");
+	set("outdoors", "dali");
 	set("long", @LONG
 雕绕绫坐像四座，坐像间之四面各雕佛及菩萨一组。识者谓北面多臂观音，
 南面为地藏菩萨。合神佛面目和蔼，雕刻精细，造形优美。

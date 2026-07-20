@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "杂货铺");
+	set("outdoors", "quanzhou");
 	set("long", @LONG
 这里是一家专卖女人用的东西的小铺子。
 LONG

@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "清净寺");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 这是一座依照叙利亚大马士革伊斯兰礼拜堂而建的教堂，全部用青色和白
 色的花岗石建造。高大的穹形顶的尖拱大门使人们站在门内，大有「天作穹庐

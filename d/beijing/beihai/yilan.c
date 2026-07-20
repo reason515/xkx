@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "漪澜堂");
+	set("outdoors", "beijing");
 	set("long", @LONG
 涟漪堂与北岸五龙亭隔水相望，其上层两侧之廊折下，形成一独特形式
 之建筑。北坡石岩陡削，石洞、亭阁错迭，洞室相通，极尽机巧，有酣古堂、

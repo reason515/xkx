@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "黑店");
+        set("outdoors", "death");
         set("long", @LONG
 屋里相当冷清, 外面的浓雾还不时地从半开著的门缝飘进来,
 地面上散著一些破旧的物品, 不过光从外表已经无法分辨出那是些

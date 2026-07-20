@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "钟楼三层");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 塔身往上似乎越来越窄，楼梯也渐为挤仄。扶手上不少朽
 坏处续接了新木，漆色也是新旧不同。从窗孔往外望，往北可

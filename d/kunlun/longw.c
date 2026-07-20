@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "龙王殿");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此间是明教龙王殿。此殿虽乃后设，但比鹰狮蝠三殿均为豪华。殿中
 桌椅均乃红木所制，上有精细雕刻图案。摆设整齐。殿上红烛交相辉映，

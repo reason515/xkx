@@ -7,6 +7,7 @@ void create()
 {
     int i;
         set("short", "闺房");
+        set("outdoors", "forest");
         set("long", @LONG
 这里是萧家小姐的闺房，现在是她和新姑爷的洞房了。
 LONG

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "山梁");
+        set("outdoors", "dali");
         set("long", @LONG
 山路就到了尽头，前面是条宽约尺许的石梁，横架在两座山峰之间，云雾笼
 罩，望不见尽处。石梁凹凸不平，又加终年在云雾之中，石上溜滑异常。前面不

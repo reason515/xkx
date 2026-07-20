@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "神威门");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 一座高大的牌坊耸立在你面前，牌坊上书三个鎏金大字“神威门”，
 教人一见便觉气势不凡。此处居于光明顶的北麓，北上便是明教厚土旗的

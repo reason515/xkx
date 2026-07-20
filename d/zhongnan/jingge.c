@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 		  set("short",HIM"藏经阁"NOR);
+		  set("outdoors", "zhongnan");
 
 		  set("long",@LONG
 这ㄦ是重阳宫外不远的藏经阁，不少教内的书典便是存放在此。只见

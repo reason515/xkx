@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "百花园");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里种满了名花异草，尤以月季为盛。一花未谢，一花
 又开。

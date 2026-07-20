@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "通道");
+	set("outdoors", "xingxiu");
 	set("long", @LONG
 一处狭小的通道，转弯处有一扇小门。
 LONG

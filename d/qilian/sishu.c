@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "学馆");
+        set("outdoors", "qilian");
         set("long", @LONG
 一间简陋的私塾，四壁皆空，屋子中摆满了学生从自己家里抬来的方
 桌、长凳。一张书案放在屋子的一头，案上摆着几本翻开了的〖三字经〗、

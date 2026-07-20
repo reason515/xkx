@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "定安府");
+	set("outdoors", "dali");
 	set("long", @LONG
 这是大理的司法机关，接管的主要是一些民族之间的纠纷和误解，因此府里
 有汉族，白族，摆夷族，哈尼族，壮族官员各一名，以示公正。另外，府里还雇

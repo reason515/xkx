@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "山洞石室");
+	set("outdoors", "huashan");
 	set("long", @LONG
 这山洞石室里头黑漆漆的，甚么也看不到，不知有何古怪。    
 LONG

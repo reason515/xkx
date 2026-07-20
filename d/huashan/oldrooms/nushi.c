@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "女弟子休息室");
+        set("outdoors", "huashan");
         set("long", @LONG
 这是华山女弟子的休息室。窗明几净，摆设简单。靠墙设有几张木床，
 近门处放着一张桌子。左首有个梳妆台。东边连着走廊，北边则是练功房。

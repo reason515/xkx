@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "擂台大门");
+        set("outdoors", "quanzhou");
         set("long", @LONG
 前面就是比武擂台了。为了办好近期的武林大会，「扬威武馆」特在
 擂台外临时搭了一个大门。门上一块大木匾，上书「武林大会」四字，气

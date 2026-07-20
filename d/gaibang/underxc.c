@@ -11,6 +11,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "谷场槐树边");
+	set("outdoors", "gaibang");
 	set("long", @LONG
 这是谷场槐树边的谷堆，四周都是大谷堆。四周丢满了各种
 杂物，还有丐帮弟子收集的破铜烂铁等。从这里通往丐帮的秘密

@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小路");
+        set("outdoors", "dali");
         set("long", @LONG
 过海洋般的茶树林，可以远远地望见一排苍绿的松柏，参天而
 立。走近些，一股清爽之意扑面而至，树阴挡炎，轻风挲挲。再走近

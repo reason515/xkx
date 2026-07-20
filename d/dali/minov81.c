@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "祭祀屋");
+	set("outdoors", "dali");
 	set("long", @LONG
 此间乃竹楼顶层，是一间宽敞的大屋，正中一座祭台上十二白石围成一圈，
 当中立有一面竹牌，上绘本族的蛇神图画；圈内另有几面稍小的竹牌，上书族内

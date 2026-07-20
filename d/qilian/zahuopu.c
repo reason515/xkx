@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "杂货铺");
+	set("outdoors", "qilian");
 	set("long", @LONG
 这是一家小小的杂货铺，大箱小箱堆满了一地，都是一些日常用品。
 摊上立着一块招牌(zhaopai)。

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", HIY"钱庄"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 这是一家老字号的钱庄，已有几百年的历史，在全国各地都有分店。它发行
 的银票信誉非常好，通行全国。墙上新贴着一张布告(bugao)。

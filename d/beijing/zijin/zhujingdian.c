@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "主敬殿");
+	set("outdoors", "beijing");
 	set("long",  @LONG
 这是御前侍卫总管休息练功的地方。在墙脚是一桶铁沙子，另一
 侧竖着一个铁柱子，不知是干什麽用的。靠里面有一把椅子，椅子旁边

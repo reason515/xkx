@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "福寿庵休息室");
+        set("outdoors", "em");
         set("long", @LONG
 这是福寿庵接待峨嵋女侠们的休息室，峨嵋女弟子回山之前通常在此借宿
 一宿，好备足体力上山。房内摆有一张长桌，靠墙设有几张木床。

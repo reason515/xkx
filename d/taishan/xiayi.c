@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "侠义厅");
+	set("outdoors", "taishan");
 	set("long", @LONG
 这里是封禅台左边的侠义厅，武林盟赏善使者平时不下山时，
 通常都是在这里办理武林公案。上首正中放着把太师椅，赏善使者

@@ -8,6 +8,7 @@ inherit ROOM;
 
 void create() {
 	 set("short", HIG"草地"NOR);
+	 set("outdoors", "bwdh");
 	 set("long", @LONG
 这里是一大片空旷的草地。在明媚的阳光照耀下，空气中洋溢着平和的气氛。
 LONG

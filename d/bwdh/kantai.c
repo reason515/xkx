@@ -23,6 +23,7 @@ void full_all(object me);
 void create()
 {
 	set("short", "看台");
+	set("outdoors", "bwdh");
 	set("long", (: long_desc :));
 	set("valid_startroom", 1);
 

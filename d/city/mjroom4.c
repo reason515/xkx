@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", GRN"绿竹馆"NOR);
+	set("outdoors", "city");
 	set("long", @LONG
 一间以绿竹布置成的麻将室，是个休闲的好地方。房间里有一张绿竹编制的
 桌子，铺着一块绿戎布，上面写着东，南，西，北，桌上摆着一副麻将，四周各

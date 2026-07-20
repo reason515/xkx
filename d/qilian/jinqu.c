@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "空房间");
+        set("outdoors", "qilian");
         set("long", @LONG
 一个空荡荡的房间，有一块留言牌。
 LONG

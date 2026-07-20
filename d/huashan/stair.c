@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石阶");
+	set("outdoors", "huashan");
 	set("long", @LONG
 石阶蜿然向下伸延，尽头可见扇紧壁着的石门。两侧石壁上挂着点燃
 的火把，把通道照得十分明亮。

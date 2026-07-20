@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "丹陛桥");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这条大道高出周围平地数尺，如同一座桥将北面的祈年殿和
 南面的圜丘连接在一起。

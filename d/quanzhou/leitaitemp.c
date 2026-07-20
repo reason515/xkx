@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
         set("short", "比武擂台");
+        set("outdoors", "quanzhou");
         set("long", @LONG
 这是一座坚实壮观的擂台。擂台高约丈余，面积大约有三丈方圆，全由碗
 口粗的木头搭成。台后的墙上书着一个笔力劲秀，气势磅礴的大字—「武」。

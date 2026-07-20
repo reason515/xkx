@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "山道");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 山间土道并无石阶，山雨过后，因此地土硬，也非十分泥泞。两边树
 木不多，野花草却是遍地。清风吹来，满山的蒲英一朵一朵地浮了起来，

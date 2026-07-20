@@ -8,6 +8,7 @@ inherit ROOM;
 
 void create() {
 	 set("short", HIB"地下室"NOR);
+	 set("outdoors", "bwdh");
 	 set("long", @LONG
 这地下室光线暗淡，花岗石地上血迹斑斑，到处是刀、
 剑的砍痕。有的地方还有脚印，显然是内功极深的人印上

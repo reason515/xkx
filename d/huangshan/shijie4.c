@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "石阶");
+	set("outdoors", "huangshan");
     set("long", @LONG
 山谷越下越深，光线越来越暗，山高蔽日，林幽苔滑。四面的松
 树渐渐少，取而代之的是各种其他的树木。每株树上都挂着密密的苔

@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "峰顶");
+	set("outdoors", "shenlong");
         set("long", @LONG
 这是神龙岛的最高峰，但是却很是宽敞。站在峰顶，极目远眺，但见四周
 均是蔚蓝的天空、茫茫的大海。你突然觉得自己是多么的渺小，犹如沧海之一

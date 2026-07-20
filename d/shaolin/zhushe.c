@@ -20,6 +20,7 @@ string look_stone();
 void create()
 {
 	set("short", "猪舍");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是间破烂的农家猪舍。圈里养着几头瘦猪，泔槽已经干涸了，
 草料也开始发霉腐烂。由于好多天没人清理牲口的粪便，满屋子弥

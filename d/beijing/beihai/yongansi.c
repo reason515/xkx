@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "永安寺");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是永安寺，历史已经很悠久了。由永安寺北上就可以到达白塔。永安寺南是
 一座石桥，名永安石桥，是连接白塔山和团城的通道。

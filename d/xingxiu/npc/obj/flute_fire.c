@@ -2,7 +2,7 @@
 // Ryu, 12/5/96
 
 inherit ITEM;
-#include <ansi.h>;
+#include <ansi.h>
 
 void init();
 void wear(int);

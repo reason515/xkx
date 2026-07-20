@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "偏殿");
+	set("outdoors", "xixia");
 	set("long", @LONG
 这里是后宫边上的偏殿，虽然不大却很整齐，有几把椅子和一
 张桌子，是侍女们休息的地方。

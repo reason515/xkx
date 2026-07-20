@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "后殿走廊" );
+	set("outdoors", "wudang");
 	set("long", @LONG
 这里是三清殿后的走廊，来往行人逐渐稀少。来往游人一般走到这里都
 会止步。走廊东西两头可同往丹药房等地，南面便是后院。

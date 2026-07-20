@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "小径");
+	set("outdoors", "beijing");
 	set("long", @LONG
 你正走在一条石板路上，路旁古树参天，花草丛中蝴蝶纷飞，
 不时还可以看到几只小兽从旁边跑过。向南走就进紫禁城了。

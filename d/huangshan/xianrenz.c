@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "仙人指路");
+	set("outdoors", "huangshan");
     set("long", @LONG
 走在山路上，只见两旁奇峰怪石，举目皆是；白云青松，争奇斗
 幻。其中一块怪石，形如喜鹊，旁有青松可登，称为“喜鹊登梅”。

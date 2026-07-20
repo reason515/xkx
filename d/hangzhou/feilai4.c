@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "清林洞");
+	set("outdoors", "hangzhou");
     set("long", @LONG
 又叫老虎洞。只见靠右雕有弭陀，观音，大势至三尊小佛。洞口
 东侧壁上还刻着一组“庐舍那佛会”浮雕，它上刻花头龛，中间坐着

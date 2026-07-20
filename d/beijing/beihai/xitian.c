@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "西天梵境");
+	set("outdoors", "beijing");
 	set("long", @LONG
 清朝时建的宗教建筑，主要是喇嘛教庙的样式。附近还有小西天、阐福寺、
 大西天、极乐世界等。由这里向南就是去琼华岛的渡口。

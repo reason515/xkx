@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "十字路口");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一个极其热闹的十字路口，路上行人熙来攘往，周围有不少
 小贩，兜售各种零碎百货。东面可以看到天坛祈年殿的殿顶，西面是

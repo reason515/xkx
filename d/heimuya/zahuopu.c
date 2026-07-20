@@ -11,6 +11,7 @@ inherit ROOM;
 void create()
 {
         set("short", "杂货铺");
+        set("outdoors", "heimuya");
         set("long", @LONG
 这里是家卖杂货的小铺子，里面摆满了各种式样的
 货物，琳琅满目。墙上挂有一个陈旧的木牌(mupai)。

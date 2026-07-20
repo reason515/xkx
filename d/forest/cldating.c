@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "大厅");
+        set("outdoors", "forest");
         set("long", @LONG
 大厅中一股肃杀威严之气。厅堂极为宽大，能容下数十人之众。
 只见四周桌上点着明晃晃的巨烛，正中空着一张虎皮交椅。不时有帮

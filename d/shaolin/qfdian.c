@@ -11,6 +11,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "千佛殿");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是千佛殿。大殿入口是朱红格扇，七宝玲珑。内里供奉的西
 天诸佛，计有八菩萨，四金刚，五百阿罗，三千揭谛，十一大曜，

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "高昌迷宫");
+	set("outdoors", "xingxiu");
 	set("long", @LONG
 走在黑漆漆的甬道里，你不禁有些发抖。不知道什麽时候
 才能走到头。

@@ -5,6 +5,7 @@ inherit ROOM;
 void create ()
 {
   set ("short", "石窟");
+  set("outdoors", "qilian");
   set ("long", @LONG
 这一窟的浮雕和彩塑。人物面象丰满、鼻梁高隆直通额季、眉长
 眼鼓、肩宽胸平。佛象所穿大红僧衣，有薄纱透体的感觉，俗称"曹衣

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "龙门镖局");
+        set("outdoors", "hangzhou");
         set("long", @LONG
 这里是浙江一带最大最有名的镖局“龙门镖局”。总镖头乃江湖上人称
 “多臂熊”的都大锦，龙门镖局自他开设二十年来，从来没出过半点岔子。

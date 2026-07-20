@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "大厅");
+	set("outdoors", "baituo");
 	set("long", @LONG
 这里是白驼山庄的大厅，器具陈设颇为考究，数名白衣女子手持红
 纱宫灯站在两旁，厅中一队白衣舞女奏乐起舞，姿态妖娆，以娱视听。

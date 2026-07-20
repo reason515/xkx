@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "长廊");
+        set("outdoors", "xueshan");
         set("long", @LONG
 一条略显阴暗的长廊，长廊一侧是一溜排开的转经轮，另一侧
 顺序点着一排酥油灯。昏黄的灯光在影子里摇弋，发出温暖的香气，

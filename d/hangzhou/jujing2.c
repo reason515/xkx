@@ -8,6 +8,7 @@ inherit ROOM;
 
 void create()
 {   set("short", HIM"聚景园"NOR);
+	set("outdoors", "hangzhou");
     set("long", @LONG
 漫步园中，只见湖傍遍置垂柳。柳树丛中，种了不少碧桃。东风
 送暖之时，这里“杨柳千条拂面丝，绿烟金穗不胜吹”。诗人刘禹锡

@@ -12,6 +12,7 @@ string look_out();
 void create()
 {
 	set("short", "钟楼七层");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里就是钟楼之顶。直入眼帘的便是那口大钟和一根悬挂空
 中的巨杵。细看大钟，整整有两丈来高，直径也有丈许。钟身似

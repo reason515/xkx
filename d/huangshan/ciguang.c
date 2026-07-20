@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "慈光阁");
+	set("outdoors", "huangshan");
     set("long", @LONG
 走过听涛亭，绿荫深处露出一幢古刹，那就是慈光阁。阁四周群
 山环抱，茂林修竹掩映，环境十分幽静。

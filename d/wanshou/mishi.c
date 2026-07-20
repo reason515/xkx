@@ -10,6 +10,7 @@ void create()
 {
 
         set("short", "密室");
+        set("outdoors", "wanshou");
         set("long", @LONG
 这是山庄三庄主金甲狮王史叔刚养伤的地方，屋内布置简单，
 西侧靠窗的地方放着一张床，是史叔刚调养休息的地方，房间一角

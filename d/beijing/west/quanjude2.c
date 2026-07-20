@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "雅座");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是全聚德烤鸭店二楼雅座，在这里的客人多是达官贵人或是
 有钱有闲的八旗公子哥儿，气氛也和楼下一片喧哗大不一样。客人们

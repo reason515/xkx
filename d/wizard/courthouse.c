@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "法院");
+	set("outdoors", "wizard");
 	set("long", @LONG
 这里是侠客行的巫师审问机器人的法院，你一定是被人检举或是
 行为太像机器人，才会来到这里，如果你答不出审判官的三个问题，会

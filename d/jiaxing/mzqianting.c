@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "梅庄前厅");
+        set("outdoors", "jiaxing");
         set("long", @LONG
 厅外的天井中种着一棵老梅，枝干如铁，极是苍劲。大厅正中悬挂
 一幅中堂(zhongtang)。南面大门(door)外是一片梅林。

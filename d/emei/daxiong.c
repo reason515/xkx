@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "华藏庵大雄宝殿");
+        set("outdoors", "emei");
 	set("long", @LONG
 这是峨嵋山华藏庵的大雄宝殿。正中供奉着普贤菩萨。一群青衣小师太正
 在地上诵经。后面有道小门通往后殿。

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "火器库");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此处十分昏暗，但异常干燥。再往里走，隐约可见后面整齐的罗放着
 一些木桶，鼻中亦闻到一股硝磺的臭气。

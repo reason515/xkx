@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "药房");
+	set("outdoors", "taohua");
 	set("long", @LONG
 这里是黄药师储藏平日炼制药材的地方，桃花岛弟子也经常到这里来取用
 一些自己合用的药物。散发出阵阵沁人心肺花香的就是桃花岛名闻天下的九花

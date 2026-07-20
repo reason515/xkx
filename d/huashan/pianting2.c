@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "偏厅");
+        set("outdoors", "huashan");
         set("long", @LONG
 这是华山内院的偏厅。厅里摆设简单，只有一张桌子和几张椅子，墙
 上挂着几幅图画。厅子的东西边各为练功房，是华山弟子静坐练功的地方。

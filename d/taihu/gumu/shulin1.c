@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "树林");
+	set("outdoors", "taihu");
 	set("long", @LONG
 你来到了终南山后山的这片树林。光线有点儿暗，
 但还看得见。动听的鸟鸣，扑鼻的花香，让你几乎

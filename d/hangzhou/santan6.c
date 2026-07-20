@@ -7,6 +7,7 @@ inherit ROOM;
 
 void create()
 {   set("short", "碑亭");
+	set("outdoors", "hangzhou");
     set("long", @LONG
 走在九曲石桥上，只见曲桥边睡莲竞绽，傍叠石鸢尾摇曳。曲桥
 中是一座小亭。

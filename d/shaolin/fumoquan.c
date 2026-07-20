@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "金刚伏魔圈");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 三棵大松树的树干上各挖了个可容身一人的大洞，有个洞口
 露出黑色僧袍一角，似乎住得有人。中央是一片大草坪，中心处

@@ -9,6 +9,7 @@ int do_study(string);
 void create()
 {
 	set("short", "地下室");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这里是佛塔底下的地下密室。密室虽小，却也五脏俱全，
 石桌石椅，石几石床，连室内放的几件器皿，也都是石制的。

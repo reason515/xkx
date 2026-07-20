@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "全聚德");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是北京城鼎鼎大名的全聚德烤鸭店，但凡外地人来北京莫不要
 到这著名的全聚德烤鸭店来尝个鲜儿，就算老北京提起全聚德也是翘

@@ -13,6 +13,7 @@ int do_left();
 void create()
 {
         set("short", "甬道");
+        set("outdoors", "huashan");
 	set("long", @LONG
 这是一条黑漆漆的甬道，甚么也看不到，不知通往何处，有何危险。	
 LONG

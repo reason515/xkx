@@ -2,12 +2,13 @@
 //Kane
 //Ryu 4/19/98
 
-#include <ansi.h>;
+#include <ansi.h>
 inherit ROOM;
 
 void create()
 {
 	set("short", "大厅");
+	set("outdoors", "taihu");
 	set("long", @LONG
 这是归云庄的正厅，由于修建年代久远，看起来已颇为陈旧，
 但打扫得十分干净，光线也较为充足，完全没有陈年旧宅的阴晦之

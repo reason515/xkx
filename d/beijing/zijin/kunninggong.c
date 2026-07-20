@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "坤宁宫");
+	set("outdoors", "beijing");
 	set("long", @LONG
     这里是皇后住的正宫，它的正门开在偏东一间，后三宫后面
 向北开有坤宁门。出坤宁门就是御花园了。

@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "侍卫营武器库");
+        set("outdoors", "beijing");
         set("long", @LONG
 这里是京城侍卫营的武器库，侍卫们常常来此领取武器。
 LONG

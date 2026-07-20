@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "树林");
+	set("outdoors", "taihu");
 	set("long", @LONG
 玉蜂越来越密，有些甚至绕着你的头盘旋起来，不过并未展开攻
 击。看来没有主人的命令，它们是不会轻易攻击人的。前方隐约可见

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "第四层");
+	set("outdoors", "dali");
 	set("long", @LONG
 雕有八坐佛，四隅略大，其中东、南两佛面目驳落，容不可辨。坐佛莲花座
 皆有梵文佛经。经文尾处刻有“慈济和尚--大理人”字样。

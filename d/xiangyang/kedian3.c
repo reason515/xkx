@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "客房");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 这是一间客房，摆设甚是简单，墙边摆了一张床铺。窗户似乎
 有些不牢靠，风声一起，便嘎嘎作响。

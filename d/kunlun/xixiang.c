@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "西厢房");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 置身所在竟似是一间大户人家小姐的闺房。靠窗边的是一张梳妆台，
 台上红烛高烧，照耀得房中花团锦簇，堂皇富丽，颇不输于帝王之家。另

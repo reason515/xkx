@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "客店二楼");
+        set("outdoors", "heimuya");
         set("long", @LONG
 这是一间很大的客房，陈设十分简陋。靠墙放了十
 几张小木床，不少客人正和衣而卧，满屋子都是呼呼的

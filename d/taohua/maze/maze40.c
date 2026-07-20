@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "石阵");
+	set("outdoors", "taohua");
 	set("long", @LONG
 这是一座由约莫两人多高的大石块构成的乱石阵，规模似乎不大，
 但抬眼望去，四周尽是重重叠叠的嶙峋怪石，完全看不出有路通向石阵

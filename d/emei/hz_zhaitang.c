@@ -17,6 +17,7 @@ string* names = ({
 void create()
 {
         set("short", "华藏庵斋堂");
+        set("outdoors", "emei");
 	set("long", @LONG
 这里便是峨嵋华藏庵的斋堂。斋堂里摆满了长长的餐桌和长凳，几位小
 师太正来回忙碌着布置素斋。桌上摆了几盆豆腐，花生，青菜以及素鸭等美

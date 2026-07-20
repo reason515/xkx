@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "诚肃殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是诚肃殿。向北走是景仁宫，向南是斋宫。
 LONG

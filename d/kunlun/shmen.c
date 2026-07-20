@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "圣火门");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 一条青石铺成的大路笔直的通到一座血红高墙下，路两边整齐的排列
 着两排巨松。松前摆置着数尊青石怪兽(guaishou)，更添威武。血墙正中

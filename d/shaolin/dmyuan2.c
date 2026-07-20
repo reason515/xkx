@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "达摩院二楼");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 这是一座古朴的殿堂。西首的墙上挂满了各类武功图谱，不
 少白须白眉的老僧们正端坐在图谱画轴之前，似乎在苦苦思索。

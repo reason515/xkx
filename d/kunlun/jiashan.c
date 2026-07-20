@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "假山");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 穿过长廊，奇峰绝嶂累累乎墙外，人置其中，若处大山之麓，而截溪
 断谷，私此数石者。穿深覆冈，因形布置，土石相间，颇得真趣。背阴处

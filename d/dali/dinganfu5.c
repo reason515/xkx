@@ -8,6 +8,7 @@ int serve();
 void create()
 {
 	set("short", "伙房");
+	set("outdoors", "dali");
 	set("long", @LONG
 这里是官宅的伙房，专为住在这里的官员们提供伙食(serve)。一群身着军
 服的官员正围着桌子就餐，品尝大理特产的菜肴。官员们在这里可以不受限制地

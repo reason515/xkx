@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "悦心殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是永安寺西之悦心殿，殿内为五开间、西山灰瓦顶，是清帝引见、
 理事之所。殿内非常安静，只依稀可闻有僧人扫着落叶的声音。殿前有宽

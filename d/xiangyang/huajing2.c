@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "花径");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 你走在一条铺设著鹅卵石的小径上，两旁花树繁盛，可闻花香
 流动，叠荫重重，四下一片静谧，东边是一列青瓦厢房，南面有间

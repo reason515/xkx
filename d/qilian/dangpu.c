@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "铁面当铺");
+	set("outdoors", "qilian");
 	set("long", @LONG
 这是家远近闻名的当铺，三开间的门面，一块写着『铁面当铺』四
 个金字的黑匾，足足七尺高的紫檀木的柜台被磨得光可照人，柜台后面

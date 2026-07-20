@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "九曲廊");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 自廊中望去，此处覆坚土为台，聚奇石为山，环斗水为池。岸上绿柳
 成阴，花繁朵絮，蝉鸣鹤啼。再看水中，荷碧莲红，虾游鱼戏。于中体会

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "小山路");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 路边渐渐荒秃，花草越来越淡。前面望去，一堆堆乱石，杂错无章，
 人际全无。道路也坎坷难行。

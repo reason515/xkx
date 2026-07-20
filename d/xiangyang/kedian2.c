@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "客店二楼");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 这就是襄樊客店二楼的走廊，偶尔有些旅客提心吊胆地走过，
 也有几个人似乎没把城外的战事放在心上，神色轻得多。

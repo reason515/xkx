@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "石道");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 这是星宿海边有人用石头铺成的一条小道，周围弥漫着沼泽的瘴气和一
 种说不出来的香味。路边有个石洞。

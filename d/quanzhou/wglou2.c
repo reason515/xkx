@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "万国烟雨楼");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 楼上酒桌满布，宾客不绝。推窗远眺，湖光荡漾，水雾空朦，美不胜收，
 也因此吸引了来自全国各地的客商，游客来此休憩及品尝妙手厨师的手艺。号

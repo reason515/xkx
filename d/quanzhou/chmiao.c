@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
         set("short", "城隍庙");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 这是一间年代久远的小庙，里面供放着观音菩萨和土地爷，是泉州乡间求
 卜问卦的场所，据说这里的签卦特灵。旁边有扇小门。

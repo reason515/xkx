@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "地道入口");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这里是厚土旗挖的地道入口，一座小土堆的后面，是一个黑漆漆的洞
 穴通往地下。

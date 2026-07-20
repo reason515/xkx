@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "厨房");
+	set("outdoors", "huashan");
 	set("long", @LONG
 厨房四周摆有几张桌子和椅子，几个女弟子正忙着烧饭煮菜。饭菜的
 香气，另人垂涎欲滴，还是赶快找个位子坐下吃饭喝茶(serve)吧。

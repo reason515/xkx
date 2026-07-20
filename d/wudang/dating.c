@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "大厅" );
+	set("outdoors", "wudang");
 	set("long", @LONG
 穿过滴水檐来到大厅上，只见眼前豁然一片开阔。大厅地上铺着青石砖
 片，十几张桃木椅左右排开。厅内布局虽简雅朴素，却丝毫不失庄严之风。

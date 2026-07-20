@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "酒室");
+        set("outdoors", "jiaxing");
         set("long", @LONG
 室中琳琅满目，到处都是酒坛、酒瓶、酒葫芦、酒杯，一阵酒香
 扑鼻而来。床脚摆着一张床(bed)。

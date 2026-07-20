@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "高升茶馆");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一间普通的京城茶馆，经常茶客满坐，热闹非凡，茶博士
 在茶客中穿来穿去，不时和熟客闲聊几句。茶馆正中有一座台子，

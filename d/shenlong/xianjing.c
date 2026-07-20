@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "陷阱");
+	set("outdoors", "shenlong");
 	set("long", @LONG
 突然，四周的墙壁冒出许多锋利的钢板，向你扎了过来。完了。。。
 LONG

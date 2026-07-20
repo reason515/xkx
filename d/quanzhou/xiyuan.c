@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "戏院");
+	set("outdoors", "quanzhou");
 	set("long", @LONG
 这里是南方戏曲中心，四面八方的戏迷每天都涌入此地一睹为快。戏院里
 戏种繁多，曲目精彩。计有南音，梨园戏，提线木偶，高甲戏等饮誉四方的珍

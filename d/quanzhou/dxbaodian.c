@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "大雄宝殿");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 石庭尽头，便是大雄宝殿。相传建殿之日，有紫云飘绕盖地，故又称「紫
 云大殿」。殿上斗拱间雕着二十四尊美丽的「飞天」(fairies)， 雁行整齐，

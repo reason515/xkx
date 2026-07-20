@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "山洞");
+        set("outdoors", "qilian");
         set("long", @LONG
 你四周的光线顿时暗淡起来。面前是一个石壁，石壁上两柄火
 把呼呼地燃烧着。

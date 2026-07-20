@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "走廊");
+        set("outdoors", "xueshan");
         set("long", @LONG
 你走在一条走廊上，从东边飘来一股酥油的香味，北边是一座楼阁。
 LONG

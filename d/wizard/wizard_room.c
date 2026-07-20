@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "巫师休息室");
+	set("outdoors", "wizard");
 	set("long", @LONG
 这里就是游戏中巫师们休息的所在。屋子布置的清雅别致，四周墙壁上悬挂
 着名家字画，几把紫檀木椅放在窗边，在这里四处眺望可以看到游戏中的场景。

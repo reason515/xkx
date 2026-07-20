@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "匾后");
+	set("outdoors", "huashan");
 	set("long", @LONG
 匾后地方狭小，令人难以旋身。黑漆漆的甚么也看不见。
 LONG

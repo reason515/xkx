@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "阅古楼");
+	set("outdoors", "beijing");
 	set("long", @LONG
 阅古楼平面为一马蹄形，有廊二十五楹，左右围抱。内有蟠龙升天式楼梯。
 壁砌三希堂法帖(tie)石刻。山坡上点缀假山、庭阁，高下曲折有致，如亩鉴室、

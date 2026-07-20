@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "男寝室");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 四周并无什么陈设，只有七八张松木大床，两、三个明教弟子正在休
 息。每张松木床边都有一只大木箱，里面装有弟子们更换的衣裤。屋子中

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "北门");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 这是襄阳城的北门。有一队官兵正在仔细的盘察出入的百姓，也许是怕金国
 奸细混入城内的关系吧。从这里再往西北走就到汉水南岸了。

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "厢房");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是康亲王请来的武师们住的地方。房间里摆设不
 多，但很齐全。这里经常有仆人来打扫，窗明几亮。

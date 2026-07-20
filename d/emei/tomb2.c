@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "墓室");
+	set("outdoors", "emei");
 	set("long", @LONG
 这里是郭襄墓下的墓室。墓室不大，正面是一具白玉石棺，旁边放着一盏
 长明灯。石棺一尘不染，看来经常有人进来打扫。

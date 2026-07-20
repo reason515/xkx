@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "荒山旷地");
+        set("outdoors", "huashan");
 	set("long", @LONG
 这是华山后山的一片荒山旷地，四周都是一株株高巨无比的大树。
 左侧是一面石壁，有个山洞。

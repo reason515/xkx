@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "练功房");
+	set("outdoors", "huashan");
 	set("long", @LONG
 练功房是供华山弟子修练内功，或研读武学书籍之处。房内并无特别
 摆设，以免弟子行功时分心，耽误了进度。南边是男弟子休息室，北边有

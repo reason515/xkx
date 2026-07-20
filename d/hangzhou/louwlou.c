@@ -11,6 +11,7 @@ inherit ROOM;
 
 void create()
 {   set("short", HIR"楼外楼"NOR);
+	set("outdoors", "hangzhou");
     set("long", @LONG
 提起“楼外楼”方圆百里无人不知。这里各式名菜是杭州一绝。
 来游湖的人们都一定会来这里尝尝。整个大堂闹哄哄的挤满了各式人

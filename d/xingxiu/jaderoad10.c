@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "密道");
+	set("outdoors", "xingxiu");
 	set("long", @LONG
 密道至此已是尽头，前方似乎有一线光亮。
 LONG

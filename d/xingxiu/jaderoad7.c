@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "密道");
+	set("outdoors", "xingxiu");
 	set("long", @LONG
 一条向下曲折盘旋的通道。
 LONG

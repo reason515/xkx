@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "破祠堂");
+        set("outdoors", "heimuya");
         set("long", @LONG
 这是一个很破旧的祠堂，到处都布满了蜘蛛网，案
 台上也积了一层极厚的灰尘，看来这祠堂已经荒废很久

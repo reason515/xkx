@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "西便门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是北京城外城女墙朝西向的偏门，此处城墙比起外城其
 他处的城墙要低矮一些，守军也较少，盘查也不如其他外城门

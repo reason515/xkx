@@ -8,6 +8,7 @@ int do_serve();
 void create()
 {
         set("short","厨房");
+        set("outdoors", "zhongnan");
 
         set("long",@LONG
 这里位於山间僻静处。两三个伙工正忙着准备食物，没时间理你。只

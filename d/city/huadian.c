@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", HIM"鲜花店"NOR);
+        set("outdoors", "city");
                 set("long", @LONG
 这里是新近开张的一家鲜花店，店内百花齐放，清香满室。花儿虽非名种，
 却也朵朵娇艳欲滴。她们是期待、是问候、是默默的祝福、是深深的思念……

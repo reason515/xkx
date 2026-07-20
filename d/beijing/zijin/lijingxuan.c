@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "丽景轩");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一间华丽别致的房间。但是不经常有人来，只有几个太监在
 打扫卫生。

@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "膳房");
+        set("outdoors", "xiangyang");
         set("long", @LONG
 这是膳房，几个丫鬟正来来回回地端送菜肴。西边一张木桌上满是大小盘碟，
 各盛餐点，来客可以在此用餐(serve) ，吃些家常菜。

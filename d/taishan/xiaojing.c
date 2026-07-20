@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小径");
+        set("outdoors", "taishan");
         set("long", @LONG
 一条里许长的小径，远处有座峭壁，风景甚佳。
 LONG

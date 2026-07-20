@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "排云亭");
+	set("outdoors", "huangshan");
     set("long", @LONG
 西海边上有一石亭，叫排云亭。亭前有铁锁石栏，游客都会来此
 观赏日落和深山幽谷的奇景。

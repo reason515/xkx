@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
   	set("short", HIY"大殿"NOR);
+  	set("outdoors", "xueshan");
     set("long", @LONG
 大殿内光线昏暗，烟雾缭绕，隐约可见华丽的柱子上，横梁上，
 佛像上都积了厚厚一层酥油。许多喇嘛和信徒们对着大大小小的佛像

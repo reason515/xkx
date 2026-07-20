@@ -9,6 +9,7 @@ string look_men();
 void create()
 {
 	set("short", "西厢走廊" );
+	set("outdoors", "wudang");
 	set("long", @LONG
 你走在一条幽静的走廊上。东边是后殿，南面有一扇虚掩的门（men），
 里面便是武当女弟子的休息室。走过这里可隐约闻到一股由北边丹药房飘来

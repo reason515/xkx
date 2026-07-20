@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "神火峰");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此峰高耸入云，遍地坚石，承赤色。云布其下，聚而成海。云日交潜
 之时，天亦染红，与此峰相互生晖。人置峰顶，如身陷火海。远处看去更

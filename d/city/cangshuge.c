@@ -27,6 +27,7 @@ private mapping jybooks = ([
 void create()
 {
 	set("short", "白鹿藏书阁");
+	set("outdoors", "city");
 	set("long", @LONG
 这是一个非常宽畅的楼阁，一排又一排的书架(shujia)上整整齐齐地摆满了
 书，令人目不暇给。樟木香味夹着墨香扑鼻而来，这里就是白鹿书院的藏书阁，

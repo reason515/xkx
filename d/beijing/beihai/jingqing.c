@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "静清斋");
+	set("outdoors", "beijing");
 	set("long", @LONG
 北岸之镜清斋（后改名为静心斋）为一精美之园中园，是清太子来游时之
 居所，入门为荷池，池北为堂，堂后临山池，左右皆峰峦岩洞，往昔有飞瀑流

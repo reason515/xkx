@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "大厅");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 这里是郭府的大厅，宽敞宏伟，摆设典雅，两座铜鼎分置左右
 ，极富古风。厅上一面紫檀木雕屏，刻工精细，的是精品。南边一

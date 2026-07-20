@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 { 
        set("short","向阳老宅房梁");
+       set("outdoors", "quanzhou");
        set("long", @LONG
 你现在在密室的房梁上四下观瞧，周围都是些烂木头破砖瓦。突然你瞟见
 犄角旮旯处有一件袈裟。

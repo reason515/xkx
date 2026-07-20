@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小土屋");
+        set("outdoors", "em");
 	set("long", @LONG
 这是一间小土屋，看样子是一户农家的房子。屋里简单地摆着些家具，墙
 角里堆着些农具。炕上坐着一个老婆婆和一个小孩，见有人冲进来，都神色紧

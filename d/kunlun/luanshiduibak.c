@@ -9,6 +9,7 @@ void create()
 {
 	
 	set("short", "乱石堆");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这是一间什麽也没有的空房间。
 LONG

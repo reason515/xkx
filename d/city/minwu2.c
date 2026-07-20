@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "民屋");
+	set("outdoors", "city");
 	set("long", @LONG
 这是一个尚有一点钱的老百姓家，与别的民屋不同的是这间房屋较为宽敞，
 家里的家具也较新，屋里的一位妇人看见你来了笑眯眯地向你迎来。西边是一条

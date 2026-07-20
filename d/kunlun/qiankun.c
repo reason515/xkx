@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "乾坤坊");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此处立一不大不小的石做牌坊，上刻一匾，书篆体“乾坤”二字。东
 边可见一座大殿，向西是一条昏暗的走廊，过了此坊再往北上就到了明教

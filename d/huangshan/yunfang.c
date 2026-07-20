@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "云舫");
+	set("outdoors", "huangshan");
     set("long", @LONG
 沿着石头大仙所指的草径，不一会二你来到这别具天地的云舫。
 这里林木葱茏，环境幽雅，终年碧水长流，四季花开不断。四周奇峰

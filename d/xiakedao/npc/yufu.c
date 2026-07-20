@@ -69,13 +69,20 @@ void init()
 
 void greeting(object me)
 {	object room;
+	if (!objectp(me) || environment(me) != environment()) return;
 	if ((int)me->query_temp("marks/离") == 1)
 	{	
 		command("say 恭喜，恭喜。你可以回中原了。");
+		room = environment();
+		if (objectp(room))
+			room->check_trigger();
 	}
 	else if ((int)me->query_temp("marks/离") == 2)
 	{	
 		command("whisper " + me->query("id") + " 快上船吧。别被别人看到了。(enter)");
+		room = environment();
+		if (objectp(room))
+			room->check_trigger();
 	}
 	else
 	{	if (me->query_temp(this_object()->query("id")) == 0 )
@@ -93,9 +100,13 @@ void greeting(object me)
 }
 int ask_leave()
 {	object me = this_player();
+	object room;
 	if ((int)me->query_temp("marks/离"))
 	{	
 		command("say 恭喜，恭喜。你可以回中原了。");
+		room = environment();
+		if (objectp(room))
+			room->check_trigger();
 	}
 	else
 	{	command("shake " + me->query("id"));

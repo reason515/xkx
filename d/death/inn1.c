@@ -8,6 +8,7 @@ int do_stuff(object ob);
 void create()
 {
         set("short", "小店");
+        set("outdoors", "death");
         set("long", @LONG
 你一进来就发现屋里异常的温暖, 墙角壁炉里微弱的火光将你
 的影子投射在对面的墙上. 几个人影(shadows)围在炉旁不知在讨

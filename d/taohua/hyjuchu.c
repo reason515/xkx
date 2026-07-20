@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "黄药师居处");
+	set("outdoors", "taohua");
 	set("long", @LONG
 这是桃花岛主黄药师的卧室，一张竹榻靠在屋东北角，窗前一几，几上一张瑶
 琴，一本琴谱。瑶琴颜色黯旧，琴尾已完全烧焦，琴谱里夹着一张纸，可以看见一

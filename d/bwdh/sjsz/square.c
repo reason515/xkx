@@ -11,6 +11,7 @@ string long_desc();
 
 void create() {
 	 set("short", HIC"试剑山庄"NOR);
+	 set("outdoors", "bwdh");
 	 set("long", (: long_desc :));
 	 set("exits", ([
 		  "south" : __DIR__"kantai_s",

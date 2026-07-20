@@ -11,6 +11,7 @@ void create()
 {
         set("name", "广场");
         set("short", "广场");
+        set("outdoors", "zhongnan");
         set("long", "这里是一个宽阔的广场，青石铺成的地板被全真道士打扫的干干\n净净，广场正中立着一座石碑(bei )。上面密密麻麻地刻着小字。石\n碑旁边坐着一个木头人，五心向天，形象逼真，怀中抱着一柄拂尘。\n\n");
 
         set("item_desc", ([

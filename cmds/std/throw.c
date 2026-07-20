@@ -2,7 +2,7 @@
 // throwing.c
 // Ryu
 
-#include <ansi.h>;
+#include <ansi.h>
 inherit F_CLEAN_UP;
 inherit F_COMMAND;
 inherit F_DBASE;

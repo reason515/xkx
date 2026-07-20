@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "藏经阁一楼");
+	set("outdoors", "shaolin");
 	set("long", @LONG
 不愧为中原佛法的总源，少林寺此处藏经之富，天下罕有其
 匹。这里都是密密麻麻，高及顶棚的书架，书架间仅有容身一人

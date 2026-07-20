@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
         set("short", HIM"三清殿"NOR);
+        set("outdoors", "zhongnan");
         set("long", @LONG
 这里是重阳宫的三清殿，是全真教会客的地点。供着元始天尊、太上道
 君和太上老君的神像。正中间是个敬香的大香案，靠墙放着几张太师椅，地

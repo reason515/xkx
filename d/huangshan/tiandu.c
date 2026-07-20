@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "天都峰顶");
+	set("outdoors", "huangshan");
     set("long", @LONG
 天都峰传说是天上的都会，它是黄山三大主峰中最险峻的奇峰。
 峰顶有一石刻“登峰造极”。从峰顶极目远眺，云山相接，江河一线；

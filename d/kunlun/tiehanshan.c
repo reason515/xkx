@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "铁汉山");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这是光明顶西侧的一个小山峰，此处山势低平，但因地处高位，冻土
 广布，草木稀疏，人迹罕至。北边一条羊肠小路通往山下，向南隐约可见

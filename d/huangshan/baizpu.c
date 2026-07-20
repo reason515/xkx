@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "百丈瀑");
+	set("outdoors", "huangshan");
     set("long", @LONG
 一条白练挂在清潭和紫云二峰之间，攀岩千尺飞泻而下，故得名
 “百丈瀑”。枯水季节涓涓细流，如轻纱缥缈，又称百丈泉。百丈泉

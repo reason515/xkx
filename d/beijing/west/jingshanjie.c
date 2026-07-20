@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "景山街");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是一条位于鼓楼西南面的背街，十分僻静冷落，路上几乎见不
 到什麽行人，东北面鼓楼大街喧哗声不时传到这里来。街东边有一间

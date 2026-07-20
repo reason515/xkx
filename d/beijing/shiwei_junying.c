@@ -5,6 +5,7 @@ inherit ROOM;
 void create()
 {
         set("short", "营房");
+        set("outdoors", "beijing");
         set("long", @LONG
 这里是侍卫们饮食起居的地方。有的侍卫在睡觉。你
 想睡就赶紧吧。

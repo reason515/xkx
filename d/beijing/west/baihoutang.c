@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "后堂");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是白家大宅的后堂，地上散落着一些未烧尽的纸钱，四周散
 放着一些挽联，一阵冷风从门口吹进来，不由得使人寒毛直竖。几

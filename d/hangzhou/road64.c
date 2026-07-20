@@ -9,6 +9,7 @@ inherit ROOM;
 
 void create()
 {   set("short", HIC"水乐洞"NOR);
+	set("outdoors", "hangzhou");
     set("long", @LONG
 水乐洞有两个洞口，洞的左口有股山泉从石缝中涌出。泉水声如
 金石，和谐悦耳。旁有“天然琴声”，“听无弦琴”等石刻字句。洞

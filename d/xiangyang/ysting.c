@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "议事厅");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 厅上见居中一张太师椅，上铺虎皮，一人正悠闲地倚於椅上，两旁各有
 小妾正为他槌胸揉背。虎皮椅旁有两座大理石屏风，都有五六丈高，石上山水

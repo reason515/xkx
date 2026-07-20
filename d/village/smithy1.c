@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "铁匠铺");
+        set("outdoors", "village");
         set("long", @LONG
 这是一间甚是简陋的铁匠铺，门口挂着一块大牌子(paizi)，入门正中是个大铁
 砧，满地煤渣碎铁，墙上挂着几张犁头，屋子的角落里堆着几把破锄头、镰刀，靠

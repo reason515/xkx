@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "云谷");
+	set("outdoors", "huangshan");
     set("long", @LONG
 这是钵孟峰和罗汉峰之间的一条峡谷。站在谷地中央，环顾四周，
 面面受奇。远可欣赏云回雾绕的巍巍群峰，近可领略迸珠溅玉的碧

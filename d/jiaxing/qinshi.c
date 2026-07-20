@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "琴室");
+        set("outdoors", "jiaxing");
         set("long", @LONG
 房中一阵檀香，一床(bed)一几，陈设简单，床上挂了纱帐，甚
 是陈旧，已呈黄色。几上放着一张瑶琴。东面是一个月洞门(door)，

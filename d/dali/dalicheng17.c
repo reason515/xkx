@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "摆夷字馆");
+	set("outdoors", "dali");
 	set("long", @LONG
 摆夷文字有悠久的历史。撒尼叙事长诗『阿诗玛』，武定石刻『风诏碑』，
 禄劝石刻『镌字崖』都是著名的摆夷文献。摆夷文一般是由左向右竖行书写，用

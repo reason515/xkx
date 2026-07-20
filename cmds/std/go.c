@@ -4,7 +4,7 @@
 //changed by wzfeng 99/12/2
 //changed by maco for play 1/18/2000 
 
-#include <ansi.h>;
+#include <ansi.h>
 inherit F_CLEAN_UP;
 
 mapping default_dirs = ([

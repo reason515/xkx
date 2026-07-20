@@ -18,6 +18,7 @@ string* names = ({
 void create()
 {
         set("short", "储物间");
+        set("outdoors", "em");
 	set("long", @LONG
 这里便是峨嵋华藏庵的储物间，四周都是架子。一个架上放满了各样兵
 器，有长剑，拂尘，长鞭等，琳琅满目。另一个架上放了各种防具。还有一

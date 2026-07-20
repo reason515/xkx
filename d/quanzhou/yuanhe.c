@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "源和堂");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 这是远近闻名的蜜饯制作铺，各色水果经过他们的加工后风味独特，甜而
 不腻，咸而不过，酸而不涩，又可以长期保存，远销海内外。

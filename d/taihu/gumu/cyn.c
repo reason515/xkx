@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "重阳练功室");
+	set("outdoors", "taihu");
 	set("long", @LONG
 这是石室甚是狭窄，正是当年王重阳练习掌法的地方。
 

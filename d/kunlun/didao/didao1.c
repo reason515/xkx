@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "地道");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这里是厚土旗挖的地道，里面黑漆漆的，只有几柄火把插在墙上。
 LONG

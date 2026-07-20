@@ -9,6 +9,7 @@ inherit ROOM;
 void create()
 {
         set("short", "伙房");
+        set("outdoors", "shenlong");
         set("long", @LONG
 这里是神龙教的伙房，房子的一边是个灶炉，旁边有一个老头在往灶内添
 柴，锅内不知煮着什么东西，不过香味已经让你馋得按捺不注了。

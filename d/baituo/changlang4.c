@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "长廊");
+	set("outdoors", "baituo");
 	set("long", @LONG
 一条白砖砌墙的长廊，北边的拱门通往大厅，西边一道木门，後
 头是白驼山庄众武师所住的房间。西南边另有一扇小门，那是家丁、

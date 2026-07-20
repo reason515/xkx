@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "厢房");
+	set("outdoors", "dali");
 	set("long", @LONG
 这是大理国女子官员的卧室，武将及以下级别的官员可在此休息睡觉，几张
 张收拾得干干净净的床铺沿墙摆了一圈。

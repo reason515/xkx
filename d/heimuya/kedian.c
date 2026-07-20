@@ -14,6 +14,7 @@ string* Banned_id = ({
 void create()
 {
         set("short", HIC"平定客店"NOR);
+        set("outdoors", "heimuya");
         set("long", @LONG
 这是平定州的一间小客店，店前挑出一个白布招子，
 写着“平定客店”四个大字。店小二里里外外团团忙着

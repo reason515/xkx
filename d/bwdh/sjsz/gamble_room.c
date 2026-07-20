@@ -11,6 +11,7 @@ string look_paizi();
 
 void create() {
     set("short", "赌场");
+    set("outdoors", "bwdh");
     set("long", (: long_desc :) );
     set("exits", ([
         "west"  : __DIR__"square",

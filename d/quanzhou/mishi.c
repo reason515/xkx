@@ -11,6 +11,7 @@ int valid_leave();
 void create()
 { 
        set("short","密室");
+       set("outdoors", "quanzhou");
        set("long", @LONG
 这是一间黑黢黢的小房间，墙上的砖头已经掉渣子了，房梁也已经朽烂不
 堪。墙脚处有一个铁箱子，上面积满了尘土。墙上有一幅画像。

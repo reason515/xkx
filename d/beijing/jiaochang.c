@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "校场");
+        set("outdoors", "beijing");
         set("long", @LONG
 这里是侍卫们练功的地方，广场四周有不少侍卫们在扎马，
 站桩，侍卫教头在中间巡视，不时的指点他们。两边厢房是侍卫

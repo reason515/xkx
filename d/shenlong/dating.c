@@ -10,6 +10,7 @@ string look_jia();
 void create()
 {
 	set("short", "大厅");
+	set("outdoors", "shenlong");
 	set("long", @LONG
 你来到了一个大厅之中，这厅硕大无朋，足可容得下千人之众，一群群少
 男少女分五色站好，每个队列之前都站着一个头目。大厅四周有很多出口。

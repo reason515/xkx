@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "厨房");
+        set("outdoors", "shaolin");
         set("long", @LONG
 炊烟缭绕，蒸汽腾腾，香味扑鼻而来。靠墙是一排数丈长的
 灶台，支着十来口大锅，最大的一口饭锅上方竟有人从梁上悬空

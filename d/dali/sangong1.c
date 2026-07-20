@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "司空堂");
+	set("outdoors", "dali");
 	set("long", @LONG
 这是一间端正堂皇的公堂，是大理国司空巴天石平常办理公务的司所。司空
 管辖内政事务，如税务、道路桥梁修建等。所司紧要，政务繁忙，文案上高高堆

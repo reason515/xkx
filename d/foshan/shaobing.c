@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "烧饼油条铺");
+        set("outdoors", "foshan");
         set("long", @LONG
 这家烧饼油条铺是新开张的。铺面不大，正中央摆了一个大炸
 锅和一个烤炉。

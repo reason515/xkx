@@ -13,6 +13,7 @@ void setup_ob(object me,object victim);
 void create()
 {
 		  set("short","冰洞");
+		  set("outdoors", "zhongnan");
 
 		  set("long",@LONG
 这个大洞又高又宽，洞壁是天然花岗岩的，洞内寒气逼人，地上结着厚厚的坚冰。
@@ -102,7 +103,8 @@ private int blow_result(object victim)
 	return 1;
 }
 
-void setup_ob(object me,object victim)
+
+void setup_ob(object me,object victim)
 {
 	object *inv;
 	mapping skill_status;

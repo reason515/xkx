@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "府衙前厅");
+	set("outdoors", "dali");
 	set("long", @LONG
 这里是大理国机要府衙的前厅，乃大理官员商议国政军务之所，厅堂并不很
 大，装饰朴素，厅门有御林军将士把手。除了东面出口，堂内另三面各有一门，

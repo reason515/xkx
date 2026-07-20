@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "万国烟雨楼");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 「人道不思归，烟雨伴君眠」，傍湖而建，情趣盎然的万国烟雨楼名虽酒
 楼，实是远近闻名的一景。楼分两层，一进大门，即可见园林中亭台楼榭，假

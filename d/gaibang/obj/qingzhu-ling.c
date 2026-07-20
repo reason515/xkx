@@ -1,7 +1,7 @@
 //Cracked by Roath
 // qingzhu-ling.c 青竹令
 
-#include <ansi.h>;
+#include <ansi.h>
 
 inherit ITEM;
 

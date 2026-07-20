@@ -12,6 +12,7 @@ int do_strike(string);
 void create()
 {
    set("short", "山洞");
+   set("outdoors", "huashan");
    set("long", @LONG
 山洞内有块光溜溜的大石，不知道曾有多少华山派的前辈在此思过面
 壁，以致这块大石竟被坐得滑溜。石壁(wall)左侧刻着「风清扬」三个大

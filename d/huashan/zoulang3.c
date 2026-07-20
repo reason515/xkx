@@ -10,6 +10,7 @@ void reset();
 void create()
 {
     set("short", "走廊");
+    set("outdoors", "huashan");
     set("long", @LONG
 这里是走廊的尽头，南边连着的房间便是男弟子的休息室。东边却是
 一片险峻的悬崖。放眼望去，犹如置身云海之间，另人胸怀大畅。

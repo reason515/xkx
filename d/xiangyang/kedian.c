@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "[1;36m襄樊客店[2;37;0m");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 由于蒙古大军兵临襄阳城下，因此投宿客栈的客人也减少了许多，惟恐受到
 波及。生意不好，又有战乱的威胁，店小二也一副愁眉苦脸的模样。店有几个

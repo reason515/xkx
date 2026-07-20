@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "石阶");
+	set("outdoors", "huangshan");
     set("long", @LONG
 又走了一会儿，四周怪石嶙立。你边走边看，那一块好像“老虎
 驮羊”，那一块又好像“关公挡曹”，这一块是“三尊大佛”，还有

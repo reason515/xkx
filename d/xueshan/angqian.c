@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "昂欠一楼");
+        set("outdoors", "xueshan");
         set("long", @LONG
 这里是各代活佛的居所，正中是嘉木活佛的宝座，殿内悬挂着别致精
 巧的宫灯及各种色彩艳丽的唐卡，显得庄严豪华。楼上是法王的寝宫，寻常

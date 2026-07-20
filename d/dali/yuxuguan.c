@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "玉虚观");
+	set("outdoors", "dali");
 	set("long", @LONG
 玉虚观内十分清检，正中供着张果老、吕洞宾、何香姑等八仙的塑像，香火
 缭绕，供桌上摆着些蟠桃。正中放了几个蒲团。旁边一个小间里摆着桌椅，是玉

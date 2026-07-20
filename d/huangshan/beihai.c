@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "北海");
+	set("outdoors", "huangshan");
     set("long", @LONG
 游黄山北海是必来的。这里附近是观日出和日落的好地方。这里
 有一客店，让游客可过宿，清晨观日出。北边是清凉台，西边可到排

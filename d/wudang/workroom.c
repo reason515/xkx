@@ -9,6 +9,7 @@ string look_dashi();
 void create()
 {
         set("short", HIW "水云间" NOR);
+        set("outdoors", "wudang");
         set("long", @LONG
 这里是无量山後的深谷，东南西北尽是悬崖峭壁。仰望高崖，白雾封谷
 。左边山崖上一条大瀑布如玉龙悬空，滚滚而下，倾入一座清澈异常的大湖

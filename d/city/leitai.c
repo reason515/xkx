@@ -16,6 +16,7 @@ int do_study(string arg);
 void create()
 {
 	set("short", HIG"招亲擂台"NOR);
+	set("outdoors", "city");
 	set("long", "这里是个方形的擂台，正中地面上立着一面大旗，上书『"+HIR"比武招亲"NOR+"』四个大字。
 正前方竖着一排兵器架(jia)，台下围满了看热闹的人。\n"
 	);

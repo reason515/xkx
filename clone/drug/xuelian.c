@@ -2,7 +2,7 @@
 // medicine: xuelian.c
 // Jay 3/18/96
 // Ryu, 12/5/96
-#include <ansi.h>;
+#include <ansi.h>
 inherit ITEM;
 
 void setup()

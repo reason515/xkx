@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "将军府");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 这是靖海侯府的书房，里面除了书籍之外，更多的还是各种兵刃。
 LONG

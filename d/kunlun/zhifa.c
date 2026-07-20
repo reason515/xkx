@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "执法处");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此处乃明教执法之处。入口处摆有龙、狮、虎、豹、狗五尊青铜雕像。
 明教教规极严，凡有违教规者必受重罚。大厅左侧旗架上插着光明圣火旗，

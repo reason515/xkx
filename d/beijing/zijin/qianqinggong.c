@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "乾清宫");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是皇帝的寝宫，皇后在此居住，其他妃嫔可以按照皇帝的召唤
 进御，后来皇帝也有时在此召见臣工，临朝听政，引见庶僚，接见外

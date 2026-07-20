@@ -11,6 +11,7 @@ int do_strike();
 void create()
 {
         set("short", "甬道");
+        set("outdoors", "huashan");
 	set("long", @LONG
 这是甬道后方。两三丈远处，地势豁然空阔，出现一个洞穴，便如是
 座石室。

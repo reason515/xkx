@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "传心殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是文渊阁的偏殿，里面空无一物，地上落满了灰尘，靠墙处有几个大书架，
 不知道是放的什么书．这里看起来好久没有人打扫了。

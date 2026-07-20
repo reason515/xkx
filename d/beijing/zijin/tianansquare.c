@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "天安门广场");
+	set("outdoors", "beijing");
 	set("long", @LONG
 天安门广场被五米多高的宫墙围绕，形成一个封闭的丁字型广场。
 广场中建有南北走向联檐通脊朝房一百四十间，名为千步廊；东有六部

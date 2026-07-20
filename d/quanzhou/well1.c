@@ -10,6 +10,7 @@ int do_zuan(string);
 void create()
 {
         set("short", "井底");
+        set("outdoors", "quanzhou");
         set("long", @LONG
 这是在一口枯井的井底。光线极暗，什么也看不清。
 LONG

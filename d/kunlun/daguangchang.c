@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "大广场");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 此处乃明教大广场，二里方圆的空旷平地，下铺青砖，上盖蓝天，山
 风吹过，顿生满腔豪气。广场中央，青石砌成一方大平台，二十来丈的旗

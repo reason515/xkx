@@ -8,6 +8,7 @@ void create()
 
 {
         set("short", "柔丝索中");
+        set("outdoors", "xingxiu");
         set("long", @LONG
 你觉得似乎有千丝万缕缠绕着你，动弹不得。但似乎可以尝试挣扎(break)一下。
 LONG

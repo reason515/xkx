@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "交泰殿");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这是皇后在元旦，千秋（皇后生日)等节日里受朝贺的地方。殿
 里还陈设有古代计时用的铜壶滴漏和大自鸣钟，都有五米多高。这里

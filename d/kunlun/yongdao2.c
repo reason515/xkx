@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "甬道");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 这是一条又深又长的甬道。每隔三丈处，便点着一个火把，将甬道照
 得亮如白昼。两边的墙壁上刻着些不知名的图案，似鬼似魔，似神似兽。

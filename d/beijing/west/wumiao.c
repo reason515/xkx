@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "武庙");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是岳王庙的正殿，内有岳忠武王像，塑像全身披挂，面不朝
 南而朝东。上方悬挂岳飞手书“还我河山”的横匾。殿两侧壁上嵌着

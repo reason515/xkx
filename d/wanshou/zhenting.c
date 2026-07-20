@@ -10,6 +10,7 @@ inherit ROOM;
 void create()
 {
         set("short", "山庄正厅");
+        set("outdoors", "wanshou");
         set("long", @LONG
 眼前便是万兽山庄正厅，大厅中央是一张厚重的八仙桌，周
 遭摆着五把太师椅子，显然是山庄五位庄主的议事之所。大厅一

@@ -6,6 +6,7 @@
 inherit ROOM;
 void create()
 {   set("short", "阎王壁");
+	set("outdoors", "huangshan");
     set("long", @LONG
 这一段山路奇险无比，故得此名。爬阎王壁的游客面对着这险坡
 都不禁有点儿心惊。爬上阎王壁就可到莲花峰了。往东上是玉屏峰。

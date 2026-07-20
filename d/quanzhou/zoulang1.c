@@ -10,6 +10,7 @@ int valid_leave();
 void create()
 {
     set("short", "走廊");
+    set("outdoors", "quanzhou");
     set("long", @LONG
 走廊两旁都有矮墙，将后院间隔起来。北边是「刀刃部」，可在那里学刀
 法。南院是「棒杖部」，可学棒法和杖法。

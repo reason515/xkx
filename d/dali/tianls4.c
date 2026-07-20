@@ -4,6 +4,7 @@ inherit ROOM;
 void create()
 {
         set("short", "清都瑶台");
+        set("outdoors", "dali");
         set("long", @LONG
 这里是全寺僧侣居集开法事的场所，四周都是大尊的汉玉佛雕。居中一个
 法坛，四下里零零散散摆了总有四，五十个菩团。处身其中总有一种莫可言状

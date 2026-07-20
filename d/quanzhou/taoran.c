@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "淘然茶居");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 这是专供品尝和销售茶叶的店铺，店里清香四溢进门就有心旷神怡之感。
 墙上有一价目表(sign)。

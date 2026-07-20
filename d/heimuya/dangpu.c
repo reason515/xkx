@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
         set("short", "当铺");
+        set("outdoors", "heimuya");
         set("long", @LONG
 这是镇上的一家当铺，柜台上摆着一个牌子(paizi)，
 柜台后面分别陈列着各式武器(weapon)、护具穿戴(armor)、

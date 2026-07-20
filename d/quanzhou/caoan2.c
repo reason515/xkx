@@ -8,6 +8,7 @@ inherit ROOM;
 void create()
 {
         set("short", "草庵");
+        set("outdoors", "quanzhou");
 	set("long", @LONG
 寺内有著名的摩尼石像。它面庞圆阔，眉弯隆起，散发披肩，身着宽袍僧
 衣，双手掌心向上置于膝上，神态庄严，别具风采。庵前约四米处，巨石鹘立，

@@ -7,6 +7,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "山泉");
+	set("outdoors", "kunlun");
 	set("long", @LONG
 一串串珍珠像醉了似的，跌跌倒倒的从那看不到的地缝中不情愿地挤
 了出来，转眼又消逝在水面。周围的青松绿柳，嫩草娇花仿佛吸呐了它们

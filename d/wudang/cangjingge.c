@@ -24,6 +24,7 @@ string* books = ({
 void create()
 {
 	set("short", "藏经阁");
+	set("outdoors", "wudang");
 	set("long", @LONG
 你走上了阁楼，抬头看见正前方中央挂这一块木匾（bian）。靠墙是一
 排书架，摆满了道教的典籍。中央有一个长方形的大桌子，上面也堆满了书

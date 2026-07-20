@@ -8,6 +8,7 @@ inherit ROOM;
 
 void create() {
 	 set("short", HIG"小道"NOR);
+	 set("outdoors", "bwdh");
 	 set("long", @LONG
 这里是一条林中小道，寂静得让人害怕。
 LONG

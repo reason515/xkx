@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "客房");
+	set("outdoors", "xiangyang");
 	set("long", @LONG
 郭府时常有宾客来访，是以访客的卧房也洒扫得甚是整洁，床
 铺铺盖均是一尘不染，窗外可以见到花园中花影摇曳。

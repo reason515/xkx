@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
         set("short", "小房间");
+        set("outdoors", "village");
         set("long", @LONG
 这是铁匠的住宅，屋子里十分简单，靠墙有一张木床，墙角摆着个小桌子，桌
 上胡乱的摆着几个酒杯、茶碗，桌上靠墙放着一把长剑(sword)。西边有个小门，门

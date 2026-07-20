@@ -10,6 +10,7 @@ int do_break(string);
 void create()
 {
     set("short", "向阳老宅");
+    set("outdoors", "quanzhou");
     set("long", @LONG
 这里是福威镖局总镖头林震南在福建的旧居。室内的家具横七竖八地倒在
 地上。房间的一角结着一张蜘蛛网，屋里到处是尘土，显然是已经很久没有人

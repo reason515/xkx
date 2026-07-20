@@ -6,6 +6,7 @@ inherit ROOM;
 void create()
 {
 	set("short", "兵部衙门");
+	set("outdoors", "beijing");
 	set("long", @LONG
 这里是当今朝廷的兵部衙门。左右两边是肃立的官兵，正前方
 是一个很大的厅堂。兵部尚书高高地坐在上手太师椅上查阅通文， 
