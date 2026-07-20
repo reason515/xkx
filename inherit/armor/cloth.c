@@ -5,6 +5,7 @@
 
 inherit EQUIP;
 
+	set("value", 1);
 void setup()
 {
         if( clonep(this_object()) ) return;
@@ -36,6 +37,7 @@ int do_tear(string str)
         add("teared_count", 1);
         ob = new("/clone/misc/bandage");
         ob->set_name("从" + name() + "撕下的布条", ({ "cloth piece", "piece", "cloth" }) );
+        set("long", "这是一个从。");
         if( !ob->move(this_player()) )
                 ob->move(environment(this_player()));
         return 1;

@@ -24,6 +24,7 @@ void init()
 void create()
 {
 	set_name("野兽", ({"ye shou", "shou"}));
+	set("gender", "无性");
 	set("race", "野兽");
 	set("age", 100);
 	set_weight(150000);

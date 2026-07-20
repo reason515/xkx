@@ -8,6 +8,7 @@
 inherit ITEM;
 inherit F_SAVE;
 
+	set("value", 1);
 void setup()
 {
 	string loc;

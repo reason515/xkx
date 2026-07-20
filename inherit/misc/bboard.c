@@ -11,6 +11,7 @@ inherit F_SAVE;
 void tune_channels();
 void open_channels();
 
+	set("value", 1);
 void setup()
 {
 	string loc;

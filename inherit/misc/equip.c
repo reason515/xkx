@@ -5,6 +5,7 @@
 inherit ITEM;
 inherit F_EQUIP;
 
+	set("value", 1);
 void setup()
 {
 	if( !query("armor_prop/dodge") && (weight() >= 3000) )

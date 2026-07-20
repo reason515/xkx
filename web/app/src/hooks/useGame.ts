@@ -68,6 +68,9 @@ import type {
 } from "../lib/types";
 import { GameSocket } from "../lib/ws";
 
+/** 进游戏后静默拉场景的间隔（毫秒）。 */
+const SCENE_POLL_MS = 4000;
+
 const initialState = (): GameState => ({
   connected: false,
   inGame: false,
@@ -129,6 +132,8 @@ export function useGame(opts?: UseGameOptions) {
   const roomRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** 战斗文案时节流补 hp，兜底尚未推送的 player.vitals。 */
   const combatHpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** 场景定时刷新：兜住 LPC 改出口/物品却未 notify_room 的情况。 */
+  const scenePollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [state, setState] = useState<GameState>(initialState);
   const [toast, setToast] = useState("");
   // setToast 身份稳定，scheduler 只建一次即可
@@ -317,20 +322,21 @@ export function useGame(opts?: UseGameOptions) {
     }, 450);
   }, []);
 
-  /** 出口/门/甬道等就地变化后，补 look 以拿到最新 room.update。 */
+  /**
+   * 出口/门/甬道等就地变化后，静默拉结构化场景（webclient→room.update）。
+   * 不用 look：避免描写刷进见闻，也避免 long 关键词再次触发刷新。
+   */
   const roomRefreshCooldownUntil = useRef(0);
   const scheduleRoomRefresh = useCallback(() => {
     const now = Date.now();
-    // 防 look 描写含「已被拉开」时反复触发刷新刷屏
     if (now < roomRefreshCooldownUntil.current) return;
     if (roomRefreshTimer.current) clearTimeout(roomRefreshTimer.current);
     roomRefreshTimer.current = setTimeout(() => {
       roomRefreshTimer.current = null;
       roomRefreshCooldownUntil.current = Date.now() + 4000;
-      // 已有 structured room.update（如 notify_room）则不必再 look，
-      // 否则 long 里的「屏风已被拉开」会进见闻并可能再触发刷新。
+      // 刚收到 room.update 则跳过，减少重复推送
       if (roomFromEvent.current) return;
-      socket.current.cmd("look");
+      socket.current.cmd("webclient");
     }, 380);
   }, []);
 
@@ -1073,6 +1079,33 @@ export function useGame(opts?: UseGameOptions) {
       delete w.__xkxCmd;
     };
   }, [cmd]);
+
+  /*
+   * 进游戏后定时静默刷新场景：LPC 里动态改 exits/物品却漏掉 notify_room 时，
+   * Web 出口/人物/物品仍能在数秒内跟上（如召船、开门、刷怪）。
+   * 用 webclient 而非 look，避免见闻刷屏与指令洪水。
+   */
+  useEffect(() => {
+    if (!state.inGame || !state.connected) {
+      if (scenePollTimer.current) {
+        clearInterval(scenePollTimer.current);
+        scenePollTimer.current = null;
+      }
+      return;
+    }
+    const poll = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden")
+        return;
+      socket.current.cmd("webclient");
+    };
+    scenePollTimer.current = setInterval(poll, SCENE_POLL_MS);
+    return () => {
+      if (scenePollTimer.current) {
+        clearInterval(scenePollTimer.current);
+        scenePollTimer.current = null;
+      }
+    };
+  }, [state.inGame, state.connected]);
 
   const confirmGo = useCallback(
     (dir: string) => {

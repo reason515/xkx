@@ -14,6 +14,7 @@ varargs void init_throwing(int damage, int flag)
 	set("flag", flag);
 }
 
+	set("value", 1);
 void setup()
 {
 	// ::setup();

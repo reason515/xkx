@@ -260,24 +260,34 @@ async function leaveIslandAfterPermit(page: import("@playwright/test").Page) {
   let boarded = false;
   for (let i = 0; i < 6 && !boarded; i++) {
     if (await hasExit(page, "进")) {
-      await goByExitLabel(page, "进");
+      // 直接 enter：比点出口+确认更稳，避免开船瞬间 DOM 刷新导致点击失败
+      await sendSilentCmd(page, "enter");
+      await expect
+        .poll(
+          async () =>
+            ((await page.locator(".room-title").textContent()) || "").trim(),
+          { timeout: 15_000 }
+        )
+        .toMatch(/小船/);
       boarded = true;
       break;
     }
-    // 北走再回沙滩，重新触发 init/check_trigger
-    if (await hasExit(page, "北")) {
+    // 北走再回沙滩，或向渔夫打听离岛，重新触发 check_trigger
+    if (i % 2 === 1) {
+      await askNpcViaEntitySheet(page, /渔夫/, "离岛");
+    } else if (await hasExit(page, "北")) {
       await goByExitLabel(page, "北");
       if (await hasExit(page, "南")) await goByExitLabel(page, "南");
     }
     await sendSilentCmd(page, "look");
-    await page.waitForTimeout(5_000);
+    await page.waitForTimeout(3_000);
     await openSceneTab(page);
   }
   expect(boarded).toBe(true);
 
   await waitForLogPattern(page, /船靠岸了|船身微微一震/, 60_000);
   await expect.poll(async () => hasExit(page, "出"), { timeout: 30_000 }).toBe(true);
-  await goByExitLabel(page, "出");
+  await sendSilentCmd(page, "out");
 
   await openSceneTab(page);
   await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 20_000 });
@@ -1848,7 +1858,7 @@ test.describe.serial("game smoke", () => {
   });
 
   test("经验超过250后石壁领悟精神不足会直接去睡觉", async ({ page }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -1866,18 +1876,24 @@ test.describe.serial("game smoke", () => {
     await expect(page.getByTestId("grind-banner")).toBeVisible({
       timeout: 15_000,
     });
+    await expect(page.getByTestId("grind-banner")).toContainText(
+      /休息室睡觉|前往休息室/,
+      { timeout: 30_000 }
+    );
+    await expect(page.getByTestId("grind-banner")).not.toContainText(/腊八粥|野果/);
+
+    /* 须真正到达休息室并入睡（不能只匹配状态里的「前往休息室」） */
+    await expect(page.locator(".room-title")).toHaveText(/休息室/, {
+      timeout: 90_000,
+    });
+    await waitForLogPattern(page, /往床上一躺|进入了梦乡|一觉醒来|精力充沛/, 90_000);
     await expect
       .poll(
-        async () => {
-          const room = ((await page.locator(".room-title").textContent()) || "").trim();
-          const status =
-            ((await page.getByTestId("grind-banner").textContent()) || "").trim();
-          return `${room}\n${status}`;
-        },
-        { timeout: 60_000 }
+        async () =>
+          ((await page.getByTestId("grind-banner").textContent()) || "").trim(),
+        { timeout: 90_000 }
       )
-      .toMatch(/休息室|睡觉/);
-    await expect(page.getByTestId("grind-banner")).not.toContainText(/腊八粥|野果/);
+      .toMatch(/睡觉恢复|睡觉中|睡醒返回|前往石室|石壁领悟/);
 
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
@@ -2175,7 +2191,15 @@ test.describe.serial("game smoke", () => {
     expect(blob).not.toMatch(/恭喜，恭喜。你可以回中原了/);
 
     await openSceneTab(page);
-    expect(await hasExit(page, "进")).toBe(false);
+    /*
+     * 「进」是房间级出口：他人召船时无许可者也能看见，但不能上船。
+     * 有船则尝试 enter 应被拦；无船则保持在沙滩即可。
+     */
+    if (await hasExit(page, "进")) {
+      await sendSilentCmd(page, "enter");
+      await waitForLogPattern(page, /没有岛主同意|不可离岛/, 10_000);
+    }
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/);
   });
 
   test("获许可后可乘船离开侠客岛", async ({ page }) => {
@@ -2187,7 +2211,13 @@ test.describe.serial("game smoke", () => {
     expect(await hasExit(page, "进")).toBe(false);
 
     await sendSilentCmd(page, "xkxe2e grantleave");
-    await waitForLogPattern(page, /已准你离岛|你可以回中原了/, 15_000);
+    await waitForLogPattern(page, /已准你离岛|你可以回中原了|小船驶了过来|船正等着你/, 15_000);
+
+    /* grantleave 在沙滩会立刻召船并推送 room.update，「进」应直接出现 */
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 10_000 });
+    await expect
+      .poll(async () => hasExit(page, "进"), { timeout: 15_000 })
+      .toBe(true);
 
     await leaveIslandAfterPermit(page);
   });
