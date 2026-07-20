@@ -19,6 +19,7 @@ LONG
   "southdown" : __DIR__"migonglu",
 ]));
 	set("outdoors", "xiangyang");
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

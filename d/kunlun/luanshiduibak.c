@@ -17,6 +17,7 @@ LONG
 
 
 	set("no_clean_up", 0);
+	set("cost", 1);
 	setup();
 	set_randomroom();
 	

@@ -19,6 +19,7 @@ LONG
   "northwest" : __DIR__"xiaolu",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

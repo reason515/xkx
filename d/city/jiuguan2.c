@@ -70,6 +70,7 @@ LONG
      香雪酒(Xiangxue jiu)	：三两白银\n\n",
 
 	]));
+	set("cost", 1);
 	setup();
 
 }

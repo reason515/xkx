@@ -23,6 +23,7 @@ LONG
 	set("item_desc",([
 		"drum"		:	(: look_drum :),
 	]));
+	set("cost", 1);
 	setup();
 }
 

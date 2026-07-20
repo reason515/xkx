@@ -19,6 +19,7 @@ LONG
 		"east" : __DIR__"shufang",
         ]));
 
+        set("cost", 1);
         setup();
 	replace_program(ROOM);
 }

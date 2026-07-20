@@ -28,6 +28,7 @@ LONG
 
         set("outdoors", "emei");
 
+        set("cost", 1);
         setup();
         replace_program(ROOM);
 }

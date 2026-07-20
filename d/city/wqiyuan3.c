@@ -81,6 +81,7 @@ LONG);
         "north" : "/d/city/weiqi_qiyuan",
     ]));
 
+    set("cost", 1);
     setup();
 }
 

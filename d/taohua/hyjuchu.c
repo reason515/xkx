@@ -20,6 +20,7 @@ LONG
 	 set("exits", ([
                 "east" : __DIR__"changlang2",
         ]));
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

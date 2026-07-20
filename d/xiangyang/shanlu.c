@@ -20,6 +20,7 @@ LONG
   "northeast" : __DIR__"wotieniu",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

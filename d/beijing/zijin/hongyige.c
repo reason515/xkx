@@ -15,6 +15,7 @@ LONG
         "southeast" : __DIR__"youyimen",
 	]));
 	
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

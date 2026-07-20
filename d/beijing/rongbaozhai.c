@@ -22,5 +22,6 @@ LONG
 	__DIR__"npc/liulaoban":1,
     ]));
 
+    set("cost", 1);
     setup();
 }

@@ -71,6 +71,7 @@ LONG
 			]));
 	}
 
+	set("cost", 1);
 	setup();
 
 	"/clone/board/kedian_b"->foo();

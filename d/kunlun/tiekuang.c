@@ -25,6 +25,7 @@ LONG NOR
 
          set("invalid_startroom", 1);
 		 set("wa_times",15);
+		set("cost", 1);
 		setup();
 
 }

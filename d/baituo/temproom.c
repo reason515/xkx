@@ -12,5 +12,6 @@ void create()
 通往蛇场内部的道路。
 LONG
         );
+        set("cost", 1);
         setup();
 }

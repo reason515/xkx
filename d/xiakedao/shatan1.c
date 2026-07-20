@@ -27,6 +27,7 @@ LONG
     	else
 	{	set("objects", ([__DIR__"npc/zhang3.c" : 1, ]));
 	}
+	set("cost", 1);
 	setup();
 }
 

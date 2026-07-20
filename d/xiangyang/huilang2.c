@@ -19,6 +19,7 @@ LONG
   "south" : __DIR__"kefang",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

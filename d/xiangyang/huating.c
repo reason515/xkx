@@ -19,6 +19,7 @@ LONG
   "south" : __DIR__"lvying",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

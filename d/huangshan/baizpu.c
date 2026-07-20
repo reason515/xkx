@@ -18,6 +18,7 @@ LONG);
 	"northeast" : __DIR__"shanlu1",
 		 ])
 	 );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

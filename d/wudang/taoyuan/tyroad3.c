@@ -19,6 +19,7 @@ LONG
 		"west" : __DIR__"tyroad2",
 		"eastdown" : __DIR__"tyroad4",
 	]));
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

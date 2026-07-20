@@ -38,6 +38,7 @@ TEXT]));
         set("outdoors", "xiangyang");
         set("resource/water",1);
 
+	set("cost", 1);
 	setup();
         replace_program(ROOM);
 }

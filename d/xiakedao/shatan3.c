@@ -19,6 +19,7 @@ LONG
        ]));
        set("no_fight", "1");
        set("outdoors", "xiakedao");
+       set("cost", 1);
        setup();
 }
 

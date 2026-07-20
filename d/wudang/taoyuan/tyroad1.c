@@ -19,6 +19,7 @@ LONG
 		"westup" : __DIR__"guangchang",
 		"east" : __DIR__"tyroad2",
 	]));
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

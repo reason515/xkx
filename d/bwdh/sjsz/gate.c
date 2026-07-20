@@ -34,6 +34,7 @@ void create()
                 __DIR__"npc/seller" : 1,
         ]));
 
+	set("cost", 1);
 	setup();
 }
 

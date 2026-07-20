@@ -21,6 +21,7 @@ void create() {
     ]));
     set("valid_startroom", 1);
 
+    set("cost", 1);
     setup();
 }
 

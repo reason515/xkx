@@ -21,6 +21,7 @@ LONG
   "east" : __DIR__"dayuan",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

@@ -38,6 +38,7 @@ LONG
 		"south":0,
 	]));
 
+	set("cost", 1);
 	setup();
 }
 

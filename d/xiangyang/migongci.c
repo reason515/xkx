@@ -20,6 +20,7 @@ LONG
   "enter" : __DIR__"jieting",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

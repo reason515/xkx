@@ -41,6 +41,7 @@ LONG);
     "north"  : "/d/city/xidajie1",
     ]));
 
+    set("cost", 1);
     setup();
 }
 

@@ -23,6 +23,7 @@ LONG
 		__DIR__"npc/tieshu" : 1,
 		__DIR__"npc/ypshi" : 2,
 	]));
+	set("cost", 1);
 	setup();
 }
 int valid_leave(object me, string dir)

@@ -16,6 +16,7 @@ LONG
         set("exits", ([
 		"south" : __DIR__"tianls7.c",
 		]));
+    set("cost", 1);
     setup();
 }
 

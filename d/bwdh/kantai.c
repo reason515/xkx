@@ -39,6 +39,7 @@ void create()
 		__DIR__"npc/xiaolongnu":1,
 	]));
 
+	set("cost", 1);
 	setup();
 }
 

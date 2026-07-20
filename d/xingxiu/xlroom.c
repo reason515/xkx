@@ -14,6 +14,7 @@ void create()
         set("resource/grass", 1);
         set("no_clean_up", 0);
         set("outdoors", "xingxiuhai");
+        set("long", "这里是一处绿洲。");
 
         set("cost", 3);
         setup();

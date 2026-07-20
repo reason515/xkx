@@ -17,6 +17,7 @@ LONG
   "east" : __DIR__"xiaohuayuan",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

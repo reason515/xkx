@@ -18,6 +18,7 @@ LONG
   "down" : __DIR__"kedian",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

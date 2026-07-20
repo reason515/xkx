@@ -15,6 +15,7 @@ LONG
         "westdown" : __DIR__"guang1",
 	]));
 	
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

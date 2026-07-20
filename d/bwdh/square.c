@@ -65,6 +65,7 @@ void create()
 			]));
 	}
 
+	set("cost", 1);
 	setup();
 }
 

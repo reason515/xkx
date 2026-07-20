@@ -17,6 +17,7 @@ LONG );
 		"west" : __DIR__"zoulang7",
         ]));
 
+        set("cost", 1);
         setup();
         replace_program(ROOM);
 }

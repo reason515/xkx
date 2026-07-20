@@ -20,6 +20,7 @@ void create()
 
 	set("xixiang", 1);
 	set("resource/water", 1);
+        set("cost", 1);
         setup();
 }
 

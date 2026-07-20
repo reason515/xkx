@@ -25,6 +25,7 @@ LONG);
 	"north" : __DIR__"baibu",
 		 ])
 	 );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

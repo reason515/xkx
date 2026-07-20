@@ -17,6 +17,7 @@ LONG);
 	"eastup" : __DIR__"niubi",
 		 ])
 	 );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

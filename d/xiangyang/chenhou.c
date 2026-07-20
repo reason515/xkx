@@ -19,6 +19,7 @@ LONG
 	set("outdoors", "xiangyang");
 	set("no_clean_up", 0);
 	create_door("east", "小门", "west", DOOR_CLOSED);
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

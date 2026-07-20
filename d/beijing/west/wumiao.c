@@ -20,6 +20,7 @@ LONG
 	set("no_clean_up", 0);
 	set("no_fight", 1);
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

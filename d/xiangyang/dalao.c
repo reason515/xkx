@@ -20,6 +20,7 @@ LONG
 ]));
 
 	create_door("north", "铁门", "south", DOOR_CLOSED);
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

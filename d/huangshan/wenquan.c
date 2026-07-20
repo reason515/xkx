@@ -19,6 +19,7 @@ LONG);
 	"northeast" : __DIR__"baizpu",
 		 ])
 	 );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

@@ -16,6 +16,7 @@ LONG );
 	set("exits", ([
 		"south"     : __DIR__"taohua4",
 	]));
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

@@ -17,6 +17,7 @@ LONG
   "southeast" : __DIR__"qilidian",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

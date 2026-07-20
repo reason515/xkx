@@ -39,6 +39,7 @@ LONG
 		"east" : __DIR__"majiu",
         ]));
 	set("outdoors", "quanzhou");
+        set("cost", 1);
         setup();
 //      "/clone/board/kedian_b"->foo();
 //      "/clone/board/jiangpai_b"->foo();

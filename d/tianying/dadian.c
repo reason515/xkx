@@ -26,6 +26,7 @@ LONG );
 		"duilian" : HIC "\n日月光照  天鹰展翅\n" NOR + HIC 				"圣焰熊熊  普惠世人\n" NOR,
 	]));
 
+        set("cost", 1);
         setup();
         replace_program(ROOM);
 }

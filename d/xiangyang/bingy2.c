@@ -20,6 +20,7 @@ LONG
   "south" : __DIR__"lianwuc",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

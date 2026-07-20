@@ -18,6 +18,7 @@ LONG
 
         set("no_fight", 1);
         set("ricewater", 30);
+        set("cost", 1);
         setup();
 }
 

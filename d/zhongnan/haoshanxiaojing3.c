@@ -20,6 +20,7 @@ LONG);
 			  );
 	  set("outdoors", "zhongnan");
 
+	  set("cost", 1);
 	  setup();
 }
 

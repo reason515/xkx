@@ -31,6 +31,7 @@ LONG
     ]));
 
     set("outdoors", "xiangyang");
+    set("cost", 1);
     setup();
 }
 

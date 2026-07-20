@@ -40,6 +40,7 @@ LONG
                 "west" : __DIR__"majiu",
         ]));
 
+        set("cost", 1);
         setup();
 //      "/clone/board/kedian_b"->foo();
 //      "/clone/board/jiangpai_b"->foo();

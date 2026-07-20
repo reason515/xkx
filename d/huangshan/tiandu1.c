@@ -18,6 +18,7 @@ LONG);
 	"up" : __DIR__"jiyubei",
 		 ])
 	 );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

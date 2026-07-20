@@ -39,6 +39,7 @@ LONG
 		"up" : __DIR__"kedian2",
         ]));
 
+        set("cost", 1);
         setup();
 
 }

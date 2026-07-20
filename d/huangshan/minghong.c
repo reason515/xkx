@@ -18,6 +18,7 @@ LONG);
 	"east" : __DIR__"renzipu",
 		 ])
 	 );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

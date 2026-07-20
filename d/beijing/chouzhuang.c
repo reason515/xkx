@@ -21,5 +21,6 @@ LONG
 	__DIR__"npc/zhangshi":1,
     ]));
 
+    set("cost", 1);
     setup();
 }

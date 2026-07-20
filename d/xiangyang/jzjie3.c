@@ -21,6 +21,7 @@ LONG
   "south" : __DIR__"jzjie2",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

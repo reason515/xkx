@@ -25,6 +25,7 @@ LONG
 
         set("no_fight", 1);
 
+	set("cost", 1);
 	setup();
 
 }

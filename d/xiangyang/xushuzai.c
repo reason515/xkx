@@ -22,6 +22,7 @@ LONG
 		"xiang" : "抬头看时，见那塑像葛巾布袍，皂绦乌履，相貌甚是清癯。\n",
 		"bei" : "大碑上刻着“汉徐庶故”五字。\n",
 	]));
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

@@ -19,6 +19,7 @@ LONG
   "west" : __DIR__"huilang1",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

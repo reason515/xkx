@@ -33,6 +33,7 @@ LONG
     set("outdoors", "shaolin");
 
 	set("outdoors", "xiangyang");
+	set("cost", 1);
 	setup();
 }
 

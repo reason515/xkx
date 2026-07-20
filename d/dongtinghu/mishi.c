@@ -17,6 +17,7 @@ LONG
     set("objects", ([
          __DIR__"obj/yaolu" : 1,
 ]));
+	set("cost", 1);
 	setup();
 }
 

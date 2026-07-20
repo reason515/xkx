@@ -25,6 +25,7 @@ LONG
 	set("exits", ([
 		"out" : __DIR__"tzfeng",
 		]));
+	set("cost", 1);
 	setup();
 }
 

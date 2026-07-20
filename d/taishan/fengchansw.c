@@ -21,6 +21,7 @@ LONG
 	]));
 
 	set("outdoors", "taishan");
+	set("cost", 1);
 	setup();
 
 	replace_program(ROOM);

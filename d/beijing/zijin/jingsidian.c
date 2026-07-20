@@ -16,6 +16,7 @@ LONG
 		"south" : __DIR__"wuyingdian",
 	]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

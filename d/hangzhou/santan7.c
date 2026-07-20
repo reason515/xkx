@@ -18,6 +18,7 @@ LONG);
 	"southeast" : __DIR__"santan1",
                  ])
        );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

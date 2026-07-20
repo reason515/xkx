@@ -20,6 +20,7 @@ LONG
   "southeast" : __DIR__"beimen",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

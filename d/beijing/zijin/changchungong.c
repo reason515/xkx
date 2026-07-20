@@ -19,6 +19,7 @@ LONG
   "east" : __DIR__"yikungong",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

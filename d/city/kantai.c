@@ -32,6 +32,7 @@ void create()
                 __DIR__"npc/mu":1,
         ]));
 
+        set("cost", 1);
         setup();
         "/clone/board/broker_b"->foo();
         //      replace_program(ROOM);

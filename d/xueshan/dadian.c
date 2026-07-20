@@ -28,6 +28,7 @@ LONG
                 __DIR__"npc/zhirilama" : 1,
     ]));
 
+    set("cost", 1);
     setup();
   
 }

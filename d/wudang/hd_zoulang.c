@@ -25,6 +25,7 @@ LONG
 		"/kungfu/class/wudang/xi.c" : 1,
 	]));
 		
+	set("cost", 1);
 	setup();
 
 }

@@ -19,6 +19,7 @@ LONG
 	set("objects", ([
 		__DIR__"npc/gongnu" : 2,
 	]));
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

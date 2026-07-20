@@ -22,6 +22,7 @@ LONG
 	]));
 	set("outdoors", "xixia");
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

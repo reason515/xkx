@@ -20,6 +20,7 @@ LONG
   "west" : __DIR__"chenhou",
 ]));
 	create_door("west", "小门", "east", DOOR_CLOSED);
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

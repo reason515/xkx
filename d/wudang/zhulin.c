@@ -20,6 +20,7 @@ LONG
 		"north" : __DIR__"xiaolu2",
 	]));
 	
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

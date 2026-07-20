@@ -20,6 +20,7 @@ LONG
   "out" : __DIR__"guofu",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

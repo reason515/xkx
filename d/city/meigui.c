@@ -79,6 +79,7 @@ TEXT
         ]) );
 //        create_door("out", "红木镂花门", "enter", DOOR_CLOSED);
         set("no_clean_up", 0);
+        set("cost", 1);
         setup();
         set("no_user", 1);
 }

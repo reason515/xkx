@@ -20,6 +20,7 @@ LONG );
 
         set("outdoors", "tianying" );
 
+        set("cost", 1);
         setup();
         replace_program(ROOM);
 }

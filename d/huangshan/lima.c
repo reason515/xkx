@@ -18,6 +18,7 @@ LONG);
 	"northup" : __DIR__"banshan",
 		 ])
 	 );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

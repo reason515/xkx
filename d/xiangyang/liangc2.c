@@ -18,6 +18,7 @@ LONG
   "north" : __DIR__"jicang",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

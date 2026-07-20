@@ -23,6 +23,7 @@ LONG
         set("no_clean_up", 0);
         set("outdoors", "xixia");
 
+        set("cost", 1);
         setup();
 }
 int valid_leave(object me, string dir)

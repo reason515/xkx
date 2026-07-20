@@ -19,6 +19,7 @@ LONG);
 	"southwest" : __DIR__"tianhai",
 		 ])
 	 );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

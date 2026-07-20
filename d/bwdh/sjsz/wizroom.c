@@ -32,6 +32,7 @@ LONG
     set("item_desc", ([
         "note" : (: look_note :),
     ]));
+    set("cost", 1);
     setup();
 }
 

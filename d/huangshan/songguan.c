@@ -17,6 +17,7 @@ LONG);
 	"up" : __DIR__"shijie5",
 		 ])
 	 );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

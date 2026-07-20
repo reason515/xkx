@@ -21,6 +21,7 @@ LONG
   "west" : __DIR__"shanlu2",
 ]));
 
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

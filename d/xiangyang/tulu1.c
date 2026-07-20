@@ -18,6 +18,7 @@ LONG
   "west" : __DIR__"tulu3",
 ]));
 	set("outdoors", "xiangyang");
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

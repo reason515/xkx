@@ -21,6 +21,7 @@ LONG );
                 "south" : __DIR__"yamen",
         ]));
 
+        set("cost", 1);
         setup();
         replace_program(ROOM);
 }

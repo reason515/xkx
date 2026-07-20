@@ -27,6 +27,7 @@ LONG
         "feng" : (:look_feng:),
     ]));
 
+	set("cost", 1);
 	setup();
 }
 

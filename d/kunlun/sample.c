@@ -19,6 +19,7 @@ LONG NOR
 ]));
 */
 set("no_clean_up", 1);
+        set("cost", 1);
         setup();
 
 }

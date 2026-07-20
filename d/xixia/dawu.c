@@ -20,6 +20,7 @@ LONG
 		__DIR__"npc/eshen" : 1,
 		__DIR__"npc/ye" : 1,
 	]));
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

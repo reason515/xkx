@@ -42,6 +42,7 @@ LONG
 	
 	]));
 	
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

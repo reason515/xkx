@@ -21,6 +21,7 @@ LONG
          __DIR__"npc/wang" : 1,
 ]));
 	set("no_clean_up", 0);
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);	
 }

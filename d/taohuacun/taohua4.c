@@ -20,6 +20,7 @@ LONG );
 		"southdown" : __DIR__"taohua3",
 		"north"     : __DIR__"taohua5",
 	]));
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

@@ -19,6 +19,7 @@ void create()
 	set("item_desc",([
             "lu" : ( :look_lu:),
         ]));
+        set("cost", 1);
         setup();
 
         burnt = 0;

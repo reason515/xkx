@@ -17,6 +17,7 @@ LONG);
 	"north" : __DIR__"jushi",
 		 ])
 	 );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

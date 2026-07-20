@@ -22,6 +22,7 @@ LONG
 	
 	set("outdoors", "xixia");
 
+	set("cost", 1);
 	setup();
 }
 int valid_leave(object me, string dir)

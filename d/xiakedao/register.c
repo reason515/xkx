@@ -23,6 +23,7 @@ LONG);
         ]));
         set("invalid_startroom", 1);
         set("no_fight", "1");
+        set("cost", 1);
         setup();
 //      load_object("/daemon/board/wizard");
 //      replace_program(ROOM);

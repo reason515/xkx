@@ -28,6 +28,7 @@ LONG
 				__DIR__"obj/danlu" : 1,
 					 ]));
 
+		 set("cost", 1);
 		 setup();
 }
 

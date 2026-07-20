@@ -20,6 +20,7 @@ LONG
 		__DIR__"npc/ypshi" : 3,
 		__DIR__"npc/yun" : 1,
 	]));
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }

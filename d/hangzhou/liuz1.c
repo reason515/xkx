@@ -32,6 +32,7 @@ LONG
                 "/d/city/npc/guanjia" : 1,
                 "/d/city/npc/jiading" : 2,
 	]));
+   set("cost", 1);
    setup();
 }
 void init()

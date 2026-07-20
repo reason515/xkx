@@ -29,6 +29,7 @@ LONG
 	set("objects", ([
 		"/d/city/npc/wang_lifa" : 1
 	]));
+	set("cost", 1);
 	setup();
 
 }

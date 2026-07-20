@@ -24,6 +24,7 @@ LONG
 	set("jingtie", 0);
 	set("no_clean_up", 0);
 
+	set("cost", 1);
 	setup();
 }
 

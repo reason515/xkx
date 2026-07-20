@@ -20,6 +20,7 @@ LONG);
 	"east" : __DIR__"xianrenz",
 		 ])
 	 );
+    set("cost", 1);
     setup();
     replace_program(ROOM);
 }

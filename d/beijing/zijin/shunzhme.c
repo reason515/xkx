@@ -17,6 +17,7 @@ void create()
         "north" : __DIR__"shenwume",
         "south" : __DIR__"yuhuayua",
 	]));
+	set("cost", 1);
 	setup();
 	replace_program(ROOM);
 }
