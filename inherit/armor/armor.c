@@ -5,7 +5,6 @@
 
 inherit EQUIP;
 
-	set("value", 1);
 void setup()
 {
 	if( clonep(this_object()) ) return;
