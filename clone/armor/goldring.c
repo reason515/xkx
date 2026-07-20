@@ -9,6 +9,7 @@ inherit FINGER;
 void create()
 {
 	set_name(HIY"金戒指"NOR, ({ "golden ring", "ring" }));
+	set("long", "这是一个物品。");
 	set("weight", 400);
 	if (clonep())
 		set_default_object(__FILE__);

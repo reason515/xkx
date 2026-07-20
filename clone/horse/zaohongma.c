@@ -8,6 +8,7 @@ int return_home(object home);
 void create()
 {
 	set_name("枣红马", ({ "zaohong ma", "ma", "horse" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 8);
 	set("long", "这是一匹体型偏小， 四蹄修长， 颈长尾短， 善于短途冲刺，

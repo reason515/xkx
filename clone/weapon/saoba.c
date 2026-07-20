@@ -10,6 +10,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "根");
+                set("value", 1);
                 set("long", "这是一根黑黝黝的铁扫把，约百来斤，如手极为沉重。\n");
                 set("material", "iron");
                 set("wield_msg", "$N抽出一根$n握在手中。\n");

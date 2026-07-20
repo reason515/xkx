@@ -9,6 +9,7 @@ int cure_ob(string);
 void create()
 {
    set_name(RED"天王护心丹"NOR, ({"huxin dan", "tianwang dan", "dan"}));
+   set("long", "这是一颗物品。");
    if (clonep())
       set_default_object(__FILE__);
    else {

@@ -8,6 +8,7 @@ int condition_check();
 void create()
 {
 	set_name("白骆驼", ({ "camel", "luo tuo", "luotuo" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 10);
 	set("long", "这是一匹产於西域，全身雪白的骆驼。\n");

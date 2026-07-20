@@ -12,6 +12,7 @@ void create()
        set_default_object(__FILE__);
     else {
         set("unit", "件");
+        set("value", 1);
 		set("long", "一件西藏葛鲁派喇嘛日常穿的黄色袈裟。\n");
         set("material", "cloth");
         set("armor_prop/armor", 2);

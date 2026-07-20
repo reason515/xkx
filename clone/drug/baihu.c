@@ -9,6 +9,7 @@ int cure_ob(string);
 void create()
 {
    set_name(HIW"白虎夺命丸"NOR, ({"baihu wan", "duoming wan", "wan"}));
+   set("long", "这是一颗物品。");
    if (clonep())
       set_default_object(__FILE__);
    else {

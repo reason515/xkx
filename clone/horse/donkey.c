@@ -8,6 +8,7 @@ int return_home(object home);
 void create()
 {
 	set_name("小毛驴", ({ "donkey", "xiao maolu", "lu" }) );
+	set("gender", "无性");
         set("race", "家畜");
 	set("age", 4);
 	set("long", "这是一匹小毛驴，看来已经很健壮。\n");

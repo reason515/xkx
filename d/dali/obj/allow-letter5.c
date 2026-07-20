@@ -10,6 +10,7 @@ void create()
 	else
 	{
 		set("unit", "幅");
+		set("value", 1);
 		set("long","这是一幅由当今圣上签发的信印，凭此可自由向善阐侯挑战。\n");
 		set("no_get", "这样东西不能离开你。\n");
 		set("material", "paper");

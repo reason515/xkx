@@ -6,6 +6,7 @@ int cure_ob(string);
 void create()
 {
    set_name("养精丹", ({"yangjing dan", "dan"}));
+   set("long", "这是一粒养精丹。");
    if (clonep())
       set_default_object(__FILE__);
    else {

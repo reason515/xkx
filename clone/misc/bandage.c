@@ -7,11 +7,13 @@ inherit F_EQUIP;
 void create()
 {
 	set_name("布条", ({ "cloth piece", "cloth", "piece" }) );
+	set("long", "这是一条布条。");
 	set_weight(200);
 	if( clonep() )
 		set_default_object(__FILE__);
 	else {
 		set("unit", "条");
+		set("value", 1);
 		set("material", "cloth");
 		set("armor_type", "bandage");
 		set("armor_prop/armor",1);

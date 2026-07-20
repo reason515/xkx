@@ -7,6 +7,7 @@ int return_home(object home);
 void create()
 {
 	set_name("伊犁马", ({ "yili ma", "ma", "horse" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 10);
 	set("long", "这是一匹良种伊犁马，骑上它可驰骋八百里。\n");

@@ -8,6 +8,7 @@ inherit ITEM;
 void create()
 {
         set_name(HIG "腊八粥" NOR, ({"laba zhou", "zhou"}));
+        set("long", "这是一碗物品。");
         set_weight(90);
         if (clonep())
                 set_default_object(__FILE__);

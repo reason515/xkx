@@ -14,6 +14,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "个");
+                set("value", 1);
                 set("long", "这似乎是一个由人皮制成的面具。\n");
                 set("no_drop", "这样东西不能离开你。\n");
                 set("no_sell", 1);

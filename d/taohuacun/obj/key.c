@@ -9,6 +9,7 @@ void create()
 		"这是一把桃花村私人住宅的钥匙。
 可以用来开门(unlock)和关门(lock)。\n");
 	set("unit", "把");
+	set("value", 1);
 	set("weight", 10);
 	set("no_put",1);
 	set("no_get",1);

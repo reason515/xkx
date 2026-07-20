@@ -14,6 +14,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "块");
+                set("value", 1);
                 set("long", HIR"一块腥红如血的丹丸。\n"NOR);
                 set("material", "stone");
         }

@@ -6,6 +6,7 @@ inherit NPC_TRAINEE;
 void create()
 {
 	set_name("狮子", ({ "lion", "shi zi", "shi" }) );
+	set("gender", "无性");
         set("race", "野兽");
         set("age", 25);
 	set("long", "一黄毛长鬃的雄狮，爪牙锐利，神情威武。\n");

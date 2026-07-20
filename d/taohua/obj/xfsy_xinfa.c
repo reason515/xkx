@@ -9,6 +9,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "张");
+                set("value", 1);
                 set("long",
 "一张薄纸，上面密密麻麻写满了蝇头小楷。\n");
                 set("material", "paper");

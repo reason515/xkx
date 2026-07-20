@@ -11,6 +11,7 @@ void create()
                 set("money_id", "jinsha");
                 set("long", "这是一粒亮闪闪的金沙。\n");
                 set("unit", "粒");
+                set("value", 1);
                 set("base_value", 1500+random(10));
                 set("base_unit", "粒");
                 set("base_weight", 20);

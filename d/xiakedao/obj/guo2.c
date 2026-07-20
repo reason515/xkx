@@ -9,6 +9,7 @@ inherit F_FOOD;
 void create()
 {
         set_name(RED "野果" NOR, ({"ye guo", "guo"}));
+        set("long", "这是一枚物品。");
         set_weight(90);
         if (clonep())
                 set_default_object(__FILE__);

@@ -12,6 +12,7 @@ void create()
                 set("money_id", "yuanbao");
                 set("long", "一锭沉掂掂的金元宝。\n");
                 set("unit", "些");
+                set("value", 1);
                 set("base_value", 100000);
                 set("base_unit", "锭");
                 set("base_weight", 3000);

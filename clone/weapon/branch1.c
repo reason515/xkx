@@ -15,6 +15,7 @@ void create()
     else {
       set("long", "这是一根小树枝。\n");
 	set("unit","根");
+	set("value", 1);
 	set("wield_msg","$N抽出一根小树枝握在手中。\n");
 	set("material", "wood");
     }

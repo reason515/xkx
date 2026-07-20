@@ -14,6 +14,7 @@ void init()
 void create()
 {
         set_name("八埋茶刹罗经", ({ "shu", "book"}));
+        set("long", "这是一本八埋茶刹罗经。");
         set_weight(600);
         if( clonep() )
                 set_default_object(__FILE__);

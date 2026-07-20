@@ -10,6 +10,7 @@ void create()
 	else {
 		set("long","这是一支木令牌，上书一个「施」字。\n");
 		set("unit", "支");
+		set("value", 1);
 		set("material", "wood");
 	}
 	setup();

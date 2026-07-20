@@ -16,6 +16,7 @@ void create()
 		set("money_id", "coin");
 		set("long", "这是流通中单位最小的货币，约要一百文铜钱才值得一两白银。\n");
 		set("unit", "些");
+		set("value", 1);
 		set("base_value", 1);
 		set("base_unit", "文");
 		set("wield_msg","$N掏出一枚铜钱扣在手心。\n");

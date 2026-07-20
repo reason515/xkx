@@ -9,6 +9,7 @@ inherit BOOTS;
 void create()
 {
 	set_name( MAG"绣花小鞋"NOR, ({ "flower shoes", "shoes"}) );
+	set("long", "这是一双物品。");
 	set_weight(900);
 	if( clonep() )
 		set_default_object(__FILE__);

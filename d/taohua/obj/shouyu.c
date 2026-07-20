@@ -10,6 +10,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "封");
+                set("value", 1);
                 set("long","\n
 =================================
 |				|

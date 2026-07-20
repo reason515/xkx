@@ -60,6 +60,7 @@ void create()
 		set_default_object(__FILE__);
 	else {
 		set("unit", "个");
+		set("value", 1);
 		set("material", "silk");
 		set("no_get",1);
 		set("no_drop","锦囊是随身物品，你不能随便丢下它");

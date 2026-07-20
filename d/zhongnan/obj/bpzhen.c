@@ -11,6 +11,7 @@ void create()
       set_default_object(__FILE__);
    else {
       set("unit", "把");
+      set("value", 1);
       set("base_unit", "枚");
       set("skill", "throwing");
       set("long", HIW"这就是江湖上赤炼仙子李莫愁的独门暗器，一望而知喂有剧毒。\n" NOR);

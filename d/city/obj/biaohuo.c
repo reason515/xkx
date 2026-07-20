@@ -10,6 +10,7 @@ void create()
 	set("long",
 		"这是一份红镖，包装地非常仔细，不知装着什么东西。\n");
 	set("unit", "份");
+	set("value", 1);
 	set("weight", 20);
 }
 

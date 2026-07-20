@@ -14,6 +14,7 @@ void create()
         else {
 		set("long","如果你看到这行信息，说明系统小有问题，请quit再重进一遍，抱歉。\n");
                 set("unit", "张");
+                set("value", 1);
                 set("material", "steal");
         }
         setup();

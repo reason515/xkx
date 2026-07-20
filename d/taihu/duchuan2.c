@@ -26,6 +26,7 @@ LONG
 		set_default_object(__FILE__);
 	else {
 		set("unit", "艘");
+		set("value", 1);
 		set("water_name", "湖");
 		set("invalid_startroom",1);
 		set("outdoors", "shaolin");

@@ -8,6 +8,7 @@ int condition_check();
 void create()
 {
 	set_name("骝马", ({ "liu ma", "ma", "horse" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 8);
 	set("long", "这是一匹黑鬃黑尾的红马， 善蹬山， 耐久力好， 多为陕西山区运输用。\n");

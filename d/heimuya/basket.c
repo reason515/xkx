@@ -19,6 +19,7 @@ void create()
 这是一只大竹篓，足可装得十来石米。旁边挂着一个小铜锣。
 LONG);
 	set("no_clean_up",0);
+	set("value", 1);
 	setup();
 	replace_program(ROOM);
 }

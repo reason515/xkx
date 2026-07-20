@@ -28,6 +28,7 @@ LONG
      set("no_fight", 1);
      set("no_dazuo", 1);
      set("no_get",1);
+     set("value", 1);
      setup();
 }
 

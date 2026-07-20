@@ -6,6 +6,7 @@ int cure_ob(string);
 void create()
 {
    set_name("清心散", ({"qingxin san", "san"}));
+   set("long", "这是一包清心散。");
    if (clonep())
       set_default_object(__FILE__);
    else {

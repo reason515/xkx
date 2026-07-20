@@ -12,6 +12,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "个");
+                set("value", 1);
                 set("long",
 			"封皮上写着八个字：“得我盒者，开启此柬”。\n");
                 set("material", "paper");

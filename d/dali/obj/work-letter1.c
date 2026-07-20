@@ -14,6 +14,7 @@ void create()
 	else
 	{
 		set("unit", "本");
+		set("value", 1);
 		set("long", (: long_desc :));
 //		set("long","这是一本段陉用来记录大理臣子功绩的册子，用以呈报圣上。\n");
 		set("no_get", "这样东西不能离开你。\n");

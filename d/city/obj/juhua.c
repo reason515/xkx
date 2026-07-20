@@ -12,6 +12,7 @@ void create()
 	else {
 		set("long","一朵平平常常的野菊花，香味淡淡的。\n");
 		set("unit", "朵");
+		set("value", 1);
 		set("material", "wood");
 	}
 	setup();

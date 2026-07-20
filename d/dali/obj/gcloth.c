@@ -9,11 +9,13 @@ inherit CLOTH;
 void create()
 {
         set_name( GRN "淡绿稠衫" NOR , ({ "cloth" }) );
+        set("long", "这是一件物品。");
         set_weight(2000);
         if( clonep() )
                 set_default_object(__FILE__);
         else {
                 set("unit", "件");
+                set("value", 1);
                 set("material", "cloth");
                 set("armor_prop/armor", 1);
         }

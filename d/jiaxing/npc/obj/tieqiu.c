@@ -10,6 +10,7 @@ void create()
 	else {
 		set("long","虽然它和普通的铁球别无二致，可你总觉得里面有些蹊跷。\n");
 		set("unit", "只");
+		set("value", 1);
 		set("material", "iron");
 	}
 	setup();

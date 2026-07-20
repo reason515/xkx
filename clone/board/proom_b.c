@@ -57,6 +57,7 @@ void create() {
 	set("capacity", 1000);
 	set("no_get", 1);
 	move("/d/wizard/proom");
+	set("value", 1);
 	setup();
 	restore();
 }

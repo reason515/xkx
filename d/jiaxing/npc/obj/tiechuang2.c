@@ -24,6 +24,7 @@ void create()
 LONG
 );
                 set("unit", "张");
+                set("value", 1);
                 set("material", "steal");
         } 
 	setup();

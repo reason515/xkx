@@ -11,5 +11,6 @@ void create()
 		  set("long",
 					 "这是一把铜制的钥匙，打造的非常精致。\n");
 		  set("unit", "把");
+		  set("value", 1);
 		  set("weight", 10);
 }

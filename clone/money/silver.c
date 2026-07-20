@@ -14,6 +14,7 @@ void create()
 		set("money_id", "silver");
 		set("long", "白花花的银子，人见人爱的银子。\n");
 		set("unit", "些");
+		set("value", 1);
 		set("base_value", 100);
 		set("base_unit", "两");
 		set("base_weight", 37);

@@ -8,6 +8,7 @@ inherit HANDS;
 void create()
 {
 	set_name( "铁手掌", ({ "iron hand", "hand" }) );
+	set("long", "这是一块铁手掌。");
 	set_weight(2000);
 	if( clonep() )
 		set_default_object(__FILE__);

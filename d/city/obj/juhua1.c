@@ -12,6 +12,7 @@ void create()
 	else {
 		set("long","一盆淡绿的菊花，叫做“春水碧波”。\n");
 		set("unit", "盆");
+		set("value", 1);
 		set("material", "wood");
 	}
 	setup();

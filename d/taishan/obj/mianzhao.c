@@ -14,6 +14,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "个");
+                set("value", 1);
 		set("long", "这是个黑布头套，能把整个脑袋套起来，只露出两个眼睛。\n");
                 set("material", "cloth");
                 set("armor_prop/armor", 1);

@@ -7,7 +7,9 @@ inherit ITEM;
 void create()
 {
   set_name ("假象", ({ "Fake_Image" }));
+  set("long", "这是一个假象。");
   set("env/invisibility", 10);
+  set("value", 1);
   setup();
 }
 

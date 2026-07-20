@@ -13,6 +13,7 @@ void create()
         else {
                 set("long", "一件有魔力的衣服，闻起来还有一股淡香，穿上去感觉很飘缈。\n");
                 set("unit", "件");
+                set("value", 1);
                 set("material", "cloth");
                 set("armor_prop/armor", 1);
                 set("armor_prop/personality", 3);

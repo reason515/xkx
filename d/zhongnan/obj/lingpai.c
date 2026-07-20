@@ -12,6 +12,7 @@ void create()
 		  set("long",
 					 "这是一把铜制的，打造的非常精致。\n");
 		  set("unit", "把");
+		  set("value", 1);
 		  set("weight", 10);
 
 		  set("no_get",   "匹夫无罪，怀璧其罪，你还是算了吧。\n");

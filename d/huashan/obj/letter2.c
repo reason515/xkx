@@ -12,6 +12,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "个");
+                set("value", 1);
                 set("long",
 			"封皮上写着：“启盒之法”。\n");
                 set("material", "paper");

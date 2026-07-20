@@ -20,6 +20,7 @@ void create()
 	set("long", "一位精明能干的摄影师。\n");
 	set_weight(100);
 	set("unit", "位");
+	set("value", 1);
 
 	set("max_jingli",10000);
 	set("max_jing",10000);

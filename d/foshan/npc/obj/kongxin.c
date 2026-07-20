@@ -13,6 +13,7 @@ void create()
         else {
                 set("long", "一棵绿油油的空心菜。\n");
                 set("unit", "棵");
+                set("value", 1);
                 set("food_remaining", 3);
                 set("food_supply",20 );
         }

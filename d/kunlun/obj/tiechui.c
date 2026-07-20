@@ -12,6 +12,7 @@ void create()
                 set("long", "这是一把大铁锤，是用来打铁的工具。\n"
 );
                 set("unit", "把");
+                set("value", 1);
 		set("no_get", 1);
 		set("no_drop", 1);
 

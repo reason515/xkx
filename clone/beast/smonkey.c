@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
         set_name("小猴子", ({ "monkey", "hou", "houzi" }) );
+        set("gender", "无性");
         set("race", "野兽");
         set("age", 2+random(3));
         set("long", "一只机灵的小猴子，眼巴巴的看着你，大概想讨些吃的。\n");

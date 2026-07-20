@@ -6,6 +6,7 @@ inherit F_FOOD;
 void create()
 {
 	set_name(MAG"龙井虾仁"NOR, ({"shrimp"}));
+	set("long", "这是一只物品。");
 	set_weight(200);
 	if (clonep())
 		set_default_object(__FILE__);

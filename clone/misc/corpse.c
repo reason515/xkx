@@ -11,6 +11,7 @@ void create()
 	set_name("无名尸体", ({ "corpse" }) );
 	set("long", "这是一具无名尸体。\n");
 	set("unit", "具" );
+	set("value", 1);
 	decayed = 0;
 	if( clonep(this_object()) ) call_out("decay", 1, 0);
 }

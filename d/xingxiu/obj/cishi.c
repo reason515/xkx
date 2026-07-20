@@ -15,6 +15,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "块");
+                set("value", 1);
                 set("long", "这是一块不起眼的石头，似乎可以吸起微细的金属物事。\n"NOR);
                 set("material", "stone");
         }

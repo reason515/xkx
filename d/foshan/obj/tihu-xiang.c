@@ -15,6 +15,7 @@ void create() {
     else {
         set("long", "一朵小白花，花香浓郁。\n");
         set("unit", "朵");
+        set("value", 1);
         set("material", "wood");
     }
     setup();

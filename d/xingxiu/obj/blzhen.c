@@ -11,6 +11,7 @@ void create()
       set_default_object(__FILE__);
    else {
       set("unit", "把");
+      set("value", 1);
       set("base_unit", "枚");
       set("skill", "feixing-shu");
       set("long", HIG"一枚发出绿油油光茫的细针，一望而知喂有剧毒。\n" NOR);

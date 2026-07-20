@@ -14,6 +14,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "副");                                
+                set("value", 1);
                 set("material", "wood");                             
                 set("long", "这是一副用枯萎的葫芦填充以细沙制成的流星锤。\n");
 		set("wield_msg", "$N从地上捧起一些沙子，把沙子灌入$n中，握在手里。\n");

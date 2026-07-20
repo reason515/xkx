@@ -27,6 +27,7 @@ void create()
     else {
        set("long", longs[i]);
 	set("unit","块");
+	set("value", 1);
 	set("wield_msg","$N搬起一块石头准备战斗。\n");
 	set("material", "stone");
     }

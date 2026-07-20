@@ -14,6 +14,7 @@ void create()
 精铁打造而成。后边还连着一个铁箱。\n"
 );
                 set("unit", "把");
+                set("value", 1);
 		set("bullet", 5);
 //		set("no_get", 1);
 //		set("no_drop", 1);

@@ -7,6 +7,7 @@ inherit ITEM;
 void create()
 {
 	set_name("人头", ({"head", "rentou", "tou"}));
+	set("long", "这是一颗人头。");
 	set_weight(200);
 	if (clonep())
 		set_default_object(__FILE__);

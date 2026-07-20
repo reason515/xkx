@@ -9,6 +9,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "封");
+                set("value", 1);
                 
 set("long","这是一封段正淳写给黄眉大师的信。\n");
                 set("no_get", "这样东西不能离开你。\n");

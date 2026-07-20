@@ -19,6 +19,7 @@ void create()
         else {
                 set("long", "一只有大又笨的铁箱子，有些生锈了。\n");
                 set("unit", "只");
+                set("value", 1);
                 set("material", "steal");
         }
         setup();

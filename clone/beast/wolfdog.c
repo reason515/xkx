@@ -6,6 +6,7 @@ inherit NPC;
 void create()
 {
 	set_name("大狼狗", ({ "wolf dog", "dog" }) );
+	set("gender", "无性");
 	set("race", "野兽");
 	set("age", 4);
 	set("long", "一只昂首挺胸，吐着长舌头的大狼狗。像是财主家里养的宠物。\n");

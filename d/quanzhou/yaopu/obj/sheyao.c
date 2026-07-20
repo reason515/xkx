@@ -6,6 +6,7 @@ int cure_ob(string);
 void create()
 {
    set_name("蛇药", ({"she yao", "yao"}));
+   set("long", "这是一包蛇药。");
    if (clonep())
       set_default_object(__FILE__);
    else {

@@ -10,6 +10,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "张");
+                set("value", 1);
                 set("long",
 "天长地久，人生几时？先后无觉，从尔有期。\n");
                 set("material", "paper");

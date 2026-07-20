@@ -9,6 +9,7 @@ inherit CLOTH;
 void create()
 {
         set_name("羊皮", ({ "yang pi", "pi", "lamb skin" }) );
+        set("long", "这是一块羊皮。");
         set_weight(3000);
         if( clonep() )
                 set_default_object(__FILE__);

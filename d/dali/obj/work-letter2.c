@@ -12,6 +12,7 @@ void create()
 	else
 	{
 		set("unit", "份");
+		set("value", 1);
 		set("long",HIB"一本善阐侯向皇上呈报事情的奏折。\n"NOR);
 		set("no_get", "这样东西不能离开你。\n");
 		set("material", "paper");

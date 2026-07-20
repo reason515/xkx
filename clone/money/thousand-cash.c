@@ -14,6 +14,7 @@ if(clonep())
 		set("money_id", "thousand-cash");
 		set("long", "一张面额值一千两银子的银票。\n");
 		set("unit", "叠");
+		set("value", 1);
 		set("base_value", 100000);
 		set("base_unit", "张");
 		set("base_weight", 3);

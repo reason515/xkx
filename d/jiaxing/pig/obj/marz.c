@@ -13,6 +13,7 @@ void create()
         else {
                 set("long", "火星人可以作为地球人的食品。\n");
                 set("unit", "只");
+                set("value", 1);
                 set("food_remaining", 19);
                 set("food_supply",1 );
         }

@@ -18,6 +18,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "粒");
+                set("value", 1);
                 set("long", "这是一粒助长内力的灵药，吃了之后有要飞翔的欲望，像个少爷似的。\n");
         }
         setup();

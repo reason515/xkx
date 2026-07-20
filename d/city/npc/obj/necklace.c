@@ -8,6 +8,7 @@ inherit NECK;
 void create()
 {
 	set_name("金项链", ({ "golden necklace", "necklace", "lace" }));
+	set("long", "这是一串金项链。");
         set_color("$HIY$");
 	set("weight", 500);
 	if (clonep())

@@ -10,6 +10,7 @@ void create()
 		set_default_object(__FILE__);
 	else {
 		set("unit", "封");
+		set("value", 1);
 		set("long","这是一封由高候爷签发的公文，凭此可向定安府申请升级。\n");
 		set("no_get", "这样东西不能离开那儿。\n");
 		set("material", "paper");

@@ -7,6 +7,7 @@ int condition_check();
 void create()
 {
 	set_name("大青马", ({ "daqing ma", "ma", "horse" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 15);
 	set("long", "这是一匹青色的大马，生得龙颈狮鬃，四蹄飞青，确是匹好马。\n");

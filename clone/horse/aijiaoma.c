@@ -9,6 +9,7 @@ int return_home(object home);
 void create()
 {
 	set_name("矮脚马", ({ "aijiao ma", "ma", "horse" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 10);
 	set("long", "这是一匹良种矮脚马，很耐长途。\n");

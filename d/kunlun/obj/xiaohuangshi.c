@@ -11,6 +11,7 @@ void create()
         else {
                 set("long", "这是一块硝磺石，是制作火枪和火药的必须品。\n");
                 set("unit", "块");
+                set("value", 1);
 //				set("no_drop",1);
 
         }

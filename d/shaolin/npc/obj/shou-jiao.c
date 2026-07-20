@@ -12,6 +12,7 @@ void create()
 	else {
 		set("long", "这就是碧水金睛兽的兽角，相传用其制成的水珠功能水，且寒毒不侵。\n");
 		set("unit", "支");
+		set("value", 1);
 		set("material", "leather");
 	}
 	setup();

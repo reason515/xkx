@@ -20,6 +20,7 @@ void create()
 		"discard <信件编号>        丢弃一封信件。\n"
 	);
 	set("unit", "个");
+	set("value", 1);
 	set("no_drop", 1);
 	set("no_insert", 1);
 

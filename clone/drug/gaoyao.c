@@ -7,6 +7,7 @@ inherit F_EQUIP;
 void create()
 {
 	set_name("狗皮膏药", ({ "goupi gaoyao", "gaoyao" }) );
+	set("long", "这是一张狗皮膏药。");
 	set_weight(200);
 	if( clonep() )
 		set_default_object(__FILE__);

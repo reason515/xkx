@@ -9,6 +9,7 @@ inherit CLOTH;
 void create()
 {
 	set_name( WHT"铁背心"NOR, ({ "tie beixin", "beixin" }) );
+	set("long", "这是一件物品。");
 	set_weight(3000);
 	if( clonep() )
 		set_default_object(__FILE__);

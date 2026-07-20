@@ -10,6 +10,7 @@ inherit ITEM;
 void create()
 {
         set_name("帮印", ({ "bangyin" }) );
+        set("long", "这是一个帮印。");
         set("weight", 30);
         if (clonep())
                 set_default_object(__FILE__);

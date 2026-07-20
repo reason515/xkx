@@ -10,6 +10,7 @@ void create()
 	else {
 		set("long","一块黑兮兮的铁片，一面写着“玄铁之令，有求必应”，另一面写着“摩天崖谢烟客”。\n");
 		set("unit", "块");
+		set("value", 1);
 		set("no_steal", 1);
 		set("material", "gold");
 	}

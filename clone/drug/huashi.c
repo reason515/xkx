@@ -13,6 +13,7 @@ void create()
 		set("long",
 			"这是一包江湖中人闻而色变的化尸粉，发出荧荧的黄光。\n" );
 		set("unit", "包");
+		set("value", 1);
 		set("base_value", 1000);
 		set("base_unit", "份");
 		set("base_weight", 30);

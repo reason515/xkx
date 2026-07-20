@@ -6,6 +6,7 @@ int throw_ob(object me, object victim);
 void create()
 {
    set_name(HIW"无形散"NOR, ({"wuxing san", "san", "wuxing"}));
+   set("long", "这是一包物品。");
    if (clonep())
       set_default_object(__FILE__);
    else {

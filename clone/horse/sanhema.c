@@ -8,6 +8,7 @@ int return_home(object home);
 void create()
 {
 	set_name("三河马", ({ "sanhe ma", "ma", "horse" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 10);
 	set("long", "这马产於蒙古三河地区， 多为拉车载货用途。\n");

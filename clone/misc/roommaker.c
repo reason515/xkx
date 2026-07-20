@@ -17,6 +17,7 @@ void create()
 	set_name("房间编辑器" + RMK_VERSION, ({ "roommaker", "maker" }) );
 	set_weight(100);
 	set("unit", "个" );
+	set("value", 1);
 	set("long", @LONG
 这是一个用来「快速」制造房间的工具，帮助时间不多或有严重  lag 的巫师
 利用线上输入制造简单的房间，不过如果你想提高自己区域房间的品质，最好

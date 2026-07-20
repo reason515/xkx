@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
 	set_name("毒蜂", ({ "dufeng", "feng" }) );
+	set("gender", "无性");
 	set("race", "昆虫");
 	set("subrace", "飞虫");
 	set("age", 5);

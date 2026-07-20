@@ -13,6 +13,7 @@ void create()
 		set_default_object(__FILE__);
 	else {
 		set("unit", "双");
+		set("value", 1);
 		set("long", 
 "这是一双青布女履。\n");
 		set("material", "cloth");

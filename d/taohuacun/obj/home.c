@@ -39,6 +39,7 @@ LONG
      set("no_dazuo", 1);
      set("no_fight", 1);
      seteuid(getuid());
+     set("value", 1);
      setup();
 
 }

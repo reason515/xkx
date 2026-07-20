@@ -101,6 +101,7 @@ object get_new_book ()
 	 book=new("/d/city/obj/newbook2");
      book->set("new_book",books[i]);
 	 book->set_name(books[i]["title"], ({"book"}));
+	 set("long", "这是一个物品。");
 	 book->set("time_stamp",books[i]["publish_time"]);
 	 book->set("book_number",i);
 	 book->set("value",books[i]["current_price"]);

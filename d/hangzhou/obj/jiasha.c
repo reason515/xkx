@@ -15,6 +15,7 @@ void create()
         else {
                 set("long", "一件崭新的大红袈裟，精工制作而成。\n");
                 set("unit", "件");
+                set("value", 1);
                 set("material", "cloth");
                 set("armor_prop/armor", 10);
 		  }

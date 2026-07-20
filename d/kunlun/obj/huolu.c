@@ -19,6 +19,7 @@ void create()
         else {
                 set("long", "这是座大火炉，里面雄火燃烧，可以用来炼铁。\n");
                 set("unit", "座");
+                set("value", 1);
 		set("no_get", 1);
         }
 }

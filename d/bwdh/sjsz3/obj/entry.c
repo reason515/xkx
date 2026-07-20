@@ -10,6 +10,7 @@ void create() {
         set_default_object(__FILE__);
     else {
         set("unit", "个");
+        set("value", 1);
         set("long", "小组记录\n");
         set("no_get",1);
         set("no_clean_up", 1);

@@ -15,6 +15,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "块");
+                set("value", 1);
                 set("long", "这是一块明门正派声讨邪教的令牌。\n"NOR);
                 set("material", "stone");
         }

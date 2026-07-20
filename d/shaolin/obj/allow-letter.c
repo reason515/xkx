@@ -11,6 +11,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "封");
+                set("value", 1);
                 set("long","这是一封由方丈签发的手谕，凭此可自由进入藏经阁二楼研习上乘武功。\n");
 		set("no_drop", "这样东西不能离开你。\n");
                 set("material", "paper");

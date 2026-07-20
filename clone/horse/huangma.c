@@ -8,6 +8,7 @@ int return_home(object home);
 void create()
 {
 	set_name("黄膘马", ({ "huangbiao ma", "ma", "horse" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 10);
 	set("long", "这是一匹黄色的高头大马，生得全身黄色，无一根杂毛。\n");

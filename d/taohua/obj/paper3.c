@@ -10,6 +10,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "束");
+                set("value", 1);
                 set("long",
 "今有物不知其数，三三数之剩二，五五数之剩三，七七数之剩二，问物几何？\n");
                 set("material", "paper");

@@ -14,6 +14,7 @@ void create()
 		set("money_id", "ten-cash");
 		set("long", "一张面额值十两银子的银票。\n");
 		set("unit", "叠");
+		set("value", 1);
 		set("base_value", 1000);
 		set("base_unit", "张");
 		set("base_weight", 3);

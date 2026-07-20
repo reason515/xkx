@@ -11,6 +11,7 @@ void create()
       set_default_object(__FILE__);
    else {
       set("unit", "把");
+      set("value", 1);
       set("base_unit", "枚");
       set("skill", "throwing");
       set("long", "一枚细如毛发的金针，六成黄金，四成精钢，以玉蜂尾刺上毒液喂

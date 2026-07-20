@@ -10,6 +10,7 @@ inherit CLOTH;
 void create()
 {
         set_name(HIC"铁甲"NOR, ({ "armor" }) );
+        set("long", "这是一件物品。");
         set_weight(20000);
         if( clonep() )
                 set_default_object(__FILE__);

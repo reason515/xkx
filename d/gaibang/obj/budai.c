@@ -65,6 +65,7 @@ void create()
 		set_default_object(__FILE__);
 	else {
 		set("unit", "个");
+		set("value", 1);
 		set("base_unit", "个");
 		set("base_weight", 500);
 

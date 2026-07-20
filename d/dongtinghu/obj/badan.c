@@ -10,6 +10,7 @@ void init();
 void create()
 {
 	set_name(RED "续命八丹" NOR, ({"xuming badan", "badan", "dan"}));
+	set("long", "这是一粒物品。");
 	set_weight(20);
 	if (clonep())
 		set_default_object(__FILE__);

@@ -9,6 +9,7 @@ int do_drink(string);
 void create()
 {
         set_name("老猴子", ({ "monkey", "hou", "houzi" }) );
+        set("gender", "无性");
         set("race", "野兽");
         set("age", 200 + random(50));
         set("long", "一只老态龙钟的老猴子，虽然动作迟缓，但丝毫不减狡诈的性子。\n");

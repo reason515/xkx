@@ -12,6 +12,7 @@ void create()
 	else {
 		set("long", "一株盛开的茶花，几朵不同色的大花开放在一枝，看来定然十分名贵不是凡品。\n");
 		set("unit", "株");
+		set("value", 1);
         set("material", "wood");
 	}
 }

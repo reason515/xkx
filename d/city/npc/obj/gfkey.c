@@ -9,6 +9,7 @@ void create()
 	set("long",
 		"这是一把很普通的钥匙。\n");
 	set("unit", "把");
+	set("value", 1);
 	set("weight", 10);
 }
 

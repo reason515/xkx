@@ -6,6 +6,7 @@ inherit NPC_TRAINEE;
 void create()
 {
 	set_name("母狼", ({ "mu lang","lang", "wolf" }) );
+	set("gender", "无性");
 	set("race", "野兽");
 	set("age", 15);
 	set("long", "这是一头灰色的母狼，正用红色的眼睛盯着你，不时发出令人胆战的嗥声！\n");

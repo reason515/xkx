@@ -10,6 +10,7 @@ void create()
 	set_name("活鱼", ({ "fish", "yu" }) );
 	set("long", "这是一条活蹦乱跳的大活鱼。这鱼好象有点怪，头上长了个小角。\n");
 	set("unit", "条" );
+	set("value", 1);
 	set("speical", 1);
 	decayed = 0;
 	if( clonep(this_object()) ) call_out("decay", 120, 1);

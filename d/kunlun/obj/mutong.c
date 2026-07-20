@@ -13,6 +13,7 @@ void create()
 	else {
 		set("long", "一个用来装水的木桶。\n");
 		set("unit", "个");
+		set("value", 1);
 		set("amount", 0);
 		set("no_drop",1);
 	}

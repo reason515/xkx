@@ -7,11 +7,13 @@ inherit ITEM;
 void create()
 {
         set_name("密函", ({"mihan", "letter", "han"}));
+        set("long", "这是一封密函。");
         set_weight(100);
         if( clonep() )
                 set_default_object(__FILE__);
         else {
                 set("unit", "封");
+                set("value", 1);
                 set("material", "paper");
         }
 }

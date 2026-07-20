@@ -14,6 +14,7 @@ void create()
        set_default_object(__FILE__);
     else {
         set("unit", "件");
+        set("value", 1);
 		set("long", "一件普普通通的灰布道袍。\n");
         set("material", "cloth");
         set("armor_prop/armor", 2);

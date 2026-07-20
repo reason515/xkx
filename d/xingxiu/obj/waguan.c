@@ -17,6 +17,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "只");
+                set("value", 1);
                 set("long", "一只质地精细的瓦罐，不知道有什么用途。\n");
   		set("no_drop", 1);
         	set("no_get", 1);

@@ -13,6 +13,7 @@ void create()
 	else {
 		set("long", "一颗水灵灵的葡萄。\n");
 		set("unit", "颗");
+		set("value", 1);
 		set("food_remaining", 1);
 		set("food_supplay", 5);
 	}

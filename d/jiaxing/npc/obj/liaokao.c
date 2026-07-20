@@ -11,6 +11,7 @@ void create()
 		set("long",
 		"这是一副精钢制成的镣铐，牢牢地箍在你的手腕和脚踝上。\n");
 		set("unit", "副");
+		set("value", 1);
 		set("no_drop", "你还没打开它呢。\n");
                 set("no_get", "这样东西不能离开那儿。\n");
 	}

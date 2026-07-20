@@ -7,6 +7,7 @@ int condition_check();
 void create()
 {
 	set_name("黑马", ({ "hei ma", "ma", "horse" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 10);
 	set("long", "这是一匹黑色的马，只在额角处有一大块白斑，看来是匹好马。\n");

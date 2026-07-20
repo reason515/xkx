@@ -11,6 +11,7 @@ void create()
         else {
                 set("long", "一粒成熟的红枣。\n");
                 set("unit", "粒");
+                set("value", 1);
                 set("food_remaining", 1);
                 set("food_supply",20 );
         }

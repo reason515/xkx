@@ -11,6 +11,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "封");
+                set("value", 1);
                 set("long", "这是一封玄慈方丈写给龙门镖局都总镖头的推荐信。\n");
                 set("no_drop", "这样东西不能离开你。\n");
                 set("material", "paper");

@@ -10,5 +10,6 @@ void create()
         set("long",
 	    "此乃铁剑门“掌门之宝”，见铁剑如见祖师，掌执铁剑的就是本门掌门人。\n");
 	set("unit", "柄");
+	set("value", 1);
         set("weight", 30);
 }

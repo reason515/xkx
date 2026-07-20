@@ -10,6 +10,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "柄");
+                set("value", 1);
                 set("long", "这是一柄清澈的精钢剑，很平。\n");
                 set("material", "steel");
                 set("wield_msg", "$N伸出左手拇指、食指、中指三根手指，握住了剑尖，右手一松，$n突然弹起，剑柄在前，不住幌动，$N说道：“进招吧！”。\n");

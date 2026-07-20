@@ -16,6 +16,7 @@ void create()
         else {
                 set("long", "这是一棵密林里常见的松树。\n");
                 set("unit", "棵");
+                set("value", 1);
 		set("no_get", 1);
 		set("tree_str", 100);
 

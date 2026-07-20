@@ -15,6 +15,7 @@ void create()
         else {
 		set("long", "这是一件黑光油亮的夜行水靠，穿上后能有效的躲避攻击。\n");
                 set("unit", "件");
+                set("value", 1);
                 set("material", "cloth");
                 set("armor_prop/armor", 5);
         }

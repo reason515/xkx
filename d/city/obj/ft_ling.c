@@ -10,6 +10,7 @@ void create()
 		set_default_object(__FILE__);
 	else {
 		set("unit", "枚");
+		set("value", 1);
                 set("long", 
 	"这枚斧头令乃是斧头帮主用来接纳 (jiena) 或者开除 (kaichu) 帮众的信物．\n"
 	 	   );

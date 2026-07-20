@@ -13,6 +13,7 @@ void create()
 		set_default_object(__FILE__);
         else {
 		set("unit", "面");
+		set("value", 1);
 		set("long","这是一面青竹削制的令牌，正面青光发亮，烧蚀着「丐帮」两个大字。\n");
 		set("material", "bamboo");
         }

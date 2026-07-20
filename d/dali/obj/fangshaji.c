@@ -12,6 +12,7 @@ void create()
 		set_default_object(__FILE__);
 	else {
 		set("unit", "台");
+		set("value", 1);
 		set("material", "wood");
 		set("no_get", 1);
 	}

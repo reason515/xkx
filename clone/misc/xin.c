@@ -187,6 +187,7 @@ void create()
         else {
                 set("long", "一封已经写好的信，你可用读(read letter)来看它的内容。\n");
                 set("unit", "封");
+                set("value", 1);
                 
 		        set("can_read_letter",1);
 

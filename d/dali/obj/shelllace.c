@@ -7,6 +7,7 @@ inherit HEAD;
 void create()
 {
         set_name(HIY"贝壳项链"NOR, ({ "shell lace", "lace" }));
+        set("long", "这是一串物品。");
         set("weight", 400);
         if (clonep())
                 set_default_object(__FILE__);

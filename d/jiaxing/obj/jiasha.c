@@ -20,6 +20,7 @@ void create()
         else {
                 set("long", "一件旧得已经看不出颜色的袈裟，上面有好多窟窿。\n");
                 set("unit", "件");
+                set("value", 1);
                 set("material", "cloth");
                 set("no_get", "这样东西不能离开那儿。\n");
 

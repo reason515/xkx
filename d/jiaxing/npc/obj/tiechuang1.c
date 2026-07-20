@@ -12,6 +12,7 @@ void create()
         else {
 		set("long","一张硬梆梆的铁床。\n");
                 set("unit", "张");
+                set("value", 1);
                 set("material", "steal");
         } 
 	setup();

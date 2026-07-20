@@ -13,6 +13,7 @@ void create()
 		set("long",
 			"这是极普通的蒙汗药\n" );
 		set("unit", "些");
+		set("value", 1);
 		set("base_value", 1000);
 		set("base_unit", "包");
 		set("base_weight", 30);

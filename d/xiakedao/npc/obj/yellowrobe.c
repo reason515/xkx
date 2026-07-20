@@ -16,6 +16,7 @@ void create()
     	else 
 	{
         	set("unit", "件");
+        	set("value", 1);
 		set("long", "这是件质地轻软的黄色长袍。\n");
         	set("material", "cloth");
         	set("armor_prop/armor", 1);

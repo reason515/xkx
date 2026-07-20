@@ -6,6 +6,7 @@ int throw_ob(object me, object victim);
 void create()
 {
    set_name(BLU"逍遥三笑散"NOR, ({"sanxiao san", "san", "sanxiao", "zhuihun"}));
+   set("long", "这是一包物品。");
    if (clonep())
       set_default_object(__FILE__);
    else {

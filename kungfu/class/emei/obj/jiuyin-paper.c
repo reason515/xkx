@@ -20,6 +20,7 @@ void create()
 		set_default_object(__FILE__);
 	else {
 		set("unit", "束");
+		set("value", 1);
 		set("long", "一束薄如蝉翼的绢片，密密麻麻的写满了小字。\n");
 		set("material", "silk");
 	}

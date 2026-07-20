@@ -9,6 +9,7 @@ int condition_check();
 void create()
 {
 	set_name("川马", ({ "chuan ma", "ma", "horse" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 10);
 	set("long", "这是一匹体型矮小， 善蹬山， 耐长途跋涉的四川马。\n");

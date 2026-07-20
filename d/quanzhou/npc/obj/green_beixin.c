@@ -9,6 +9,7 @@ inherit CLOTH;
 void create()
 {
         set_name( "青缎掐牙背心", ({ "qing beixin", "beixin" }) );
+        set("long", "这是一件青缎掐牙背心。");
 	set_color(GRN);
         set_weight(500);
         if( clonep() )

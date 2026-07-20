@@ -7,6 +7,7 @@ int return_home(object home);
 void create()
 {
 	set_name("贡马", ({ "gong ma", "ma", "horse" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 10);
 	set("long", "这是一匹贡马，多由大宛所进， 高大神骏， 通体雪白，

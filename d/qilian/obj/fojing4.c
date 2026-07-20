@@ -14,6 +14,7 @@ void init()
 void create()
 {
         set_name("龙象般若经", ({ "jing", "book"}));
+        set("long", "这是一本龙象般若经。");
         set_weight(600);
         if( clonep() )
                 set_default_object(__FILE__);

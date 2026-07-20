@@ -10,6 +10,7 @@ void create()
 		set_default_object(__FILE__);
 	else {
 		set("unit", "枚");
+		set("value", 1);
                 set("long", "这是似铁非铁，似木非木的令牌便是玄劫教教主的信物玄木令。\n"
 			    "见玄木令如见教主，玄木令所到之处，任何玄劫教弟子都不能违\n"
 			    "背持令者的命令！\n");

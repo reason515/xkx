@@ -7,6 +7,7 @@ inherit CLOTH;
 void create()
 {
         set_name(YEL"虎皮"NOR, ({ "hu pi", "pi" }) );
+        set("long", "这是一块物品。");
         set_weight(8000);
         if( clonep() )
                 set_default_object(__FILE__);

@@ -11,6 +11,7 @@ void create()
         else {
                 set("long", "这是一块黑黝黝的乌金矿石，是炼制兵器的好材料。\n");
                 set("unit", "块");
+                set("value", 1);
 //				set("no_drop",1);
 
         }

@@ -61,6 +61,7 @@ void create()
                 set_default_object(__FILE__);
         else {
                 set("unit", "面");
+                set("value", 1);
 		set("base_unit", "面");
                 set("base_weight", 50);
                 set("long",

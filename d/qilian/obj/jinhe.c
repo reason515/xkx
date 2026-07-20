@@ -12,6 +12,7 @@ void create()
 		set_default_object(__FILE__);
 	else {
 		set("unit", "只");
+		set("value", 1);
                 set("long", "这是一只三寸见方的小盒子, 外面用锦缎包裹,\n"
 		    "用它可以装载(zhua)毒物, 以备练习(xiulian)千蛛万毒手。\n");
                 set("material", "iron");

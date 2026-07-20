@@ -7,6 +7,7 @@ int return_home(object home);
 void create()
 {
 	set_name("骆驼", ({ "camel", "luo tuo", "luotuo" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 10);
 	set("long", "这是一匹高大健壮的骆驼。它那大似蒲团的的软蹄，可以在流沙中安然行走；\n"

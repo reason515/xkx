@@ -6,6 +6,7 @@ inherit ITEM;
 void create()
 {
 	set_name(HIY"金元宝"NOR, ({ "jin yuanbao", "jin", "yuanbao" }));
+	set("long", "这是一个物品。");
 	set("weight", 9000);
 	if (clonep())
 		set_default_object(__FILE__);

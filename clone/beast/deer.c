@@ -5,6 +5,7 @@ inherit NPC;
 void create()
 {
 	set_name("梅花鹿", ({ "deer" }) );
+	set("gender", "无性");
 	set("race", "家畜");
 	set("age", 5);
 	set("long", "一只漂亮的梅花鹿。\n");
