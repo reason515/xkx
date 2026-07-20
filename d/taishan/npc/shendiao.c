@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
         set_name("神雕", ({ "shen diao", "diao" }) );
+        set("gender", "无性");
         set("race", "飞禽");
 	set("subrace","走禽");
         set("age", 60);

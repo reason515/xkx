@@ -6,6 +6,7 @@ inherit NPC_TRAINEE;
 void create()
 {
 	set_name("白马", ({ "bai ma", "ma", "horse" }) );
+	set("gender", "无性");
 	set("race", "家畜");
 	set("age", 10);
 	set("long", "这是一匹白色的大宛马，生得龙颈狮鬃，四蹄飞青，确是匹罕见的千里马。\n");

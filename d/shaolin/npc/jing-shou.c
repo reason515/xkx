@@ -8,6 +8,7 @@ inherit NPC_TRAINEE;
 void create()
 {
 	set_name("碧水金睛兽", ({ "jinjing shou", "shou", "beast" }) );
+	set("gender", "无性");
 	set_weight(6000000);
 	set("race", "野兽");
 	set("age", 1000);

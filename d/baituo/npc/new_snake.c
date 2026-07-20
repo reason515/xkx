@@ -9,6 +9,7 @@ inherit NPC;
 void create()
 {
 	set_name("小蛇", ({ "snake" }) );
+	set("gender", "无性");
 	set("long", "由白驼山庄培养出来的新生小蛇，到底会是什麽蛇，经过code才知道。\n");
 	set("race", "蛇类");
 	set("unit", "条");

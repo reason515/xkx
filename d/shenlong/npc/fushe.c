@@ -9,6 +9,7 @@ int snake_attspeed(object);
 void create()
 {
 	set_name("腹蛇", ({ "snake", "fushe" }) );
+	set("gender", "无性");
 	set("race", "蛇类");
 	set("age", 10);
 	set("long", "一条身形粗壮的腹蛇，奇毒无比。\n");

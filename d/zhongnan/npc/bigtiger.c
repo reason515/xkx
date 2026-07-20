@@ -10,6 +10,7 @@ inherit NPC;
 void create()
 {
 		  set_name("山老虎", ({ "shan laohu", "laohu" ,"tiger"}) );
+		  set("gender", "无性");
 		  set("race", "野兽");
 		  set("age", 1);
 		  set("long", "一只又高又大的山老虎，它正气势汹汹地瞪着眼睛看着你。\n");

@@ -10,6 +10,7 @@ inherit NPC;
 void create()
 {
 	set_name("小海龟", ({ "small haigui", "haigui", "gui"}));
+	set("gender", "无性");
         set("race", "野兽");
         set("age", 20);
 	set("long", "这是只小海龟，挺可爱的样子。\n");

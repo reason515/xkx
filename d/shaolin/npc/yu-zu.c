@@ -8,6 +8,7 @@ void close_door(object);
 void create()
 {
 	set_name("狱卒", ({ "yu zu", "zu" }) );
+	set("gender", "无性");
 	set("long",
 		"这是一个长相十分凶恶的狱卒，满脸横肉，眼神里带着股杀气。\n");
 	set("attitude", "peaceful");

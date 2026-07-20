@@ -10,6 +10,7 @@ inherit NPC;
 void create()
 {
 		  set_name("大狗熊", ({ "da gouxiong", "gouxiong" ,"bear"}) );
+		  set("gender", "无性");
 		  set("race", "野兽");
 		  set("age", 1);
 		  set("long", "一只又高又大的大狗熊，它正气势汹汹地瞪着眼睛看着你。\n");

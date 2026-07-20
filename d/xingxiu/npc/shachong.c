@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
         set_name("沙虫", ({ "sha chong", "chong", "bug" }) );
+        set("gender", "无性");
         set("race", "昆虫");
         set("subrace", "爬虫");
         set("age", 3);

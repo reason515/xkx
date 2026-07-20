@@ -4,6 +4,7 @@ inherit NPC_TRAINEE;
 void create()
 {
     set_name("小毛驴", ({"donkey", "maolu", "lu"}));
+    set("gender", "无性");
     set("race", "家畜");
     set("age", 10);
     set("auto_follow",1);

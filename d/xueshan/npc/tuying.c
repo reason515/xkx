@@ -5,6 +5,7 @@ inherit NPC_TRAINEE;
 void create()
 {
         set_name("秃鹰", ({ "eagle", "ying", "tuying" }) );
+        set("gender", "无性");
         set("race", "飞禽");
         set("age", 15);
         set("long", "一只生活在高原上，黑色的秃鹰，一身乱蓬蓬的羽毛，凶悍丑陋。\n");

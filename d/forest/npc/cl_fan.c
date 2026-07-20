@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
         set_name("范一飞", ({ "fan yifei", "fan" }));
+        set("gender", "无性");
         set("title", "鹤笔门掌门人");
         set("long",
 "他是一个矮瘦的老者，一张黑脸。\n"

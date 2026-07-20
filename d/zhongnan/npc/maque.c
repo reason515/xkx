@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
         set_name("麻雀", ({ "ma que", "que", "bird" }) );
+        set("gender", "无性");
         set("race", "飞禽");
         set("age", 3);
         set("long", "一只叽叽喳喳，飞来飞去的小麻雀。\n");

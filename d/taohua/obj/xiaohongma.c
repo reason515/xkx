@@ -9,6 +9,7 @@ int return_home(object home);
 void create()
 {
 	set_name(HIR"小红马"NOR, ({ "xiaohong ma", "ma", "horse" }) );
+	set("gender", "无性");
         set("race", "家畜");
         set("age", 10);
 	set("long", 

@@ -9,6 +9,7 @@ int snake_attspeed(object);
 void create()
 {
         set_name("毒蛇", ({ "snake", "she" }) );
+        set("gender", "无性");
         set("race", "蛇类");
         set("age", 4 + random(10));
         set("long", "一只有着三角形脑袋的蛇，尾巴沙沙做响。\n");

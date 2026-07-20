@@ -10,6 +10,7 @@ inherit NPC;
 void create()
 {
 	set_name("海龟", ({ "haigui", "gui"}));
+	set("gender", "无性");
         set("race", "野兽");
         set("age", 100+random(100));
 	set("long", "这是只很老的海龟，龟壳又厚又大。\n");

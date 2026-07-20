@@ -19,6 +19,7 @@ string *death_msg = ({
 void create()
 {
 	set_name("白无常", ({ "white gargoyle", "gargoyle" }) );
+	set("gender", "无性");
 	set("long",
 		"白无常伸著长长的舌头瞪著你，死白的脸上看不出任何喜怒哀乐。\n");
 	set("attitude", "peaceful");

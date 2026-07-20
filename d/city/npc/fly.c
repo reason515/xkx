@@ -6,6 +6,7 @@ inherit NPC;
 void create()
 {
 	set_name("苍蝇", ({"fly"}) );
+	set("gender", "无性");
 	set("race", "昆虫");
 	set("subrace", "飞虫");
 	set("age", 2);

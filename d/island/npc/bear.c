@@ -6,6 +6,7 @@ inherit NPC_TRAINEE;
 void create()
 {
 	set_name("白熊", ({ "bai xiong", "xiong", "bear" }) );
+	set("gender", "无性");
 	set("race", "野兽");
 	set("age", 25);
 	set("long", "这头大白熊，毛长身巨，竟和大牯牛相似，张牙舞爪，狰狞可怖！\n");

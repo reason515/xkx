@@ -6,6 +6,7 @@ inherit NPC;
 void create()
 {
         set_name("狐狸", ({ "fox" }) );
+        set("gender", "无性");
         set("race", "野兽");
         set("age", 5);
         set("long", "一只身体硕大的狗熊，它正瞪着眼睛看着你。\n");

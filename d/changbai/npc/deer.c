@@ -6,6 +6,7 @@ inherit NPC;
 void create()
 {
 	set_name("梅花鹿", ({ "meihua lu", "lu", "deer" }) );
+	set("gender", "无性");
 	set("race", "家畜");
 	set("age", 5);
 	set("long","一只温顺的梅花鹿，睁着圆圆的眼珠望着你，显得十分好奇。\n");

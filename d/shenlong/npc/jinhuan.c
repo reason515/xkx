@@ -9,6 +9,7 @@ int snake_attspeed(object);
 void create()
 {
         set_name("金环蛇", ({ "snake", "jinhuan she","she","jinhuan" }) );
+        set("gender", "无性");
         set("race", "蛇类");
         set("age", 8);
         set("long", "一条全身闪着金光，绕着一圈圈圆环的毒蛇。\n");

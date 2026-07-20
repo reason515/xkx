@@ -7,6 +7,7 @@ inherit NPC_TRAINEE;
 void create()
 {
         set_name("竹叶青", ({ "zhuye qing", "snake" }) );
+        set("gender", "无性");
         set("race", "蛇类");
         set("age", 4);
         set("long", "一只身体碧绿的蛇，显得特别细小。\n");

@@ -42,6 +42,7 @@ void set_kind(int poison)
 	{
 	case 0:
 		set_name("毒蛇", ({ "snake", "she" }) );
+		set("gender", "无性");
 		set("long", "一只有着三角形脑袋的蛇，尾巴沙沙做响。\n");
 		set("combat_exp", 1000);
 		break;

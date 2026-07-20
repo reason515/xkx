@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
         set_name("蝙蝠", ({ "bianfu", "bat" }) );
+        set("gender", "无性");
         set("race", "野兽");
         set("age", 3);
         set("long", "黑暗中隐约见到一只黑色的蝙蝠。\n");

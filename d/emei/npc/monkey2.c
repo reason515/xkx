@@ -9,6 +9,7 @@ void create()
         seteuid(getuid());
 
         set_name("猴子", ({ "monkey", "hou", "houzi" }) );
+        set("gender", "无性");
         set("race", "野兽");
         set("age", 8);
         set("long", "一只机灵的猴子，眼巴巴的看着你，大概想讨些吃的。\n");

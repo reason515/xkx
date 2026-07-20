@@ -6,6 +6,7 @@ inherit NPC_TRAINEE;
 void create()
 {
 	set_name("野狗", ({ "dog" }) );
+	set("gender", "无性");
 	set("race", "野兽");
 	set("age", 3);
 	set("long", "一只浑身脏兮兮的野狗。\n");

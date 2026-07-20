@@ -19,6 +19,7 @@ string *walkrooms = ({
 void create()
 {
         set_name("黑熊", ({ "hei xiong", "xiong" }) );
+        set("gender", "无性");
         set("race", "野兽");
         set("age", 25);
         set("long", "一只身体硕大的狗熊，它正瞪着眼睛看着你。\n");

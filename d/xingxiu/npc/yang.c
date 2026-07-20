@@ -6,6 +6,7 @@ inherit NPC;
 void create()
 {
 	set_name("绵羊", ({ "mian yang", "yang", "sheep" }) );
+	set("gender", "无性");
 	set("race", "野兽");
 	set("age", 6);
 	set("long", "一头温顺的小绵羊。\n");

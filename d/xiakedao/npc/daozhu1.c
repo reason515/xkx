@@ -11,6 +11,7 @@ int ask_leave();
 void create()
 {
         set_name("龙岛主", ({ "long daozhu", "long", "daozhu"}));
+        set("gender", "无性");
         set("long", "他鬓眉全白，脸色红润，有如孩童。\n");
         set("
 gender", "男性");

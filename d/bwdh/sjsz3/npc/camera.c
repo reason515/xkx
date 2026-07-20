@@ -16,6 +16,7 @@ void create()
 {
 	object me = this_player();
 	set_name("摄影师", ({ "sheying shi", "camera" }) );
+	set("gender", "无性");
 	set("long", "一位精明能干的摄影师。\n");
 	set_weight(100);
 	set("unit", "位");

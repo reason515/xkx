@@ -12,6 +12,7 @@ void create()
 {
 	int poison = 10;
 	set_name("两头蛇", ({ "liangtou she", "she", "snake" }) );
+	set("gender", "无性");
 	set("race", "蛇类");
 	set("age", 100);
 	set("long", "这条蛇花纹斑斓，颈子两边分岔，竟然有两个头，极是狰狞。\n据说看到两头蛇的人，一定会死。\n");

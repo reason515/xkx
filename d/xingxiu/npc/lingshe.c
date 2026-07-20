@@ -8,6 +8,7 @@ inherit NPC_TRAINEE;
 void create()
 {
         set_name("灵蛇", ({ "ling she", "she", "snake" }) );
+        set("gender", "无性");
 	set_color("$HIW$");
         set("race", "蛇类");
         set("age", 4);

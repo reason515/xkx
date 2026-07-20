@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
         set_name("蟒蛇", ({ "python", "she" }) );
+        set("gender", "无性");
 	set_weight(1000000);
         set("race", "蛇类");
         set("age", 110);

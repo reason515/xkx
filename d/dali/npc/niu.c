@@ -6,6 +6,7 @@ inherit NPC;
 void create()
 {
 	set_name("水牛", ({ "shui niu", "niu", "cow" }) );
+	set("gender", "无性");
 	set("race", "家畜");
 	set("age", 10);
 	set("long", "一头南方山区常见的水牛，是耕作的主力，也用来拉车载物。由于水草茂盛，长得十分肥壮。\n");

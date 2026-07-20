@@ -9,6 +9,7 @@ void create()
         switch( random(6) ){
         	case 0:
         	set_name(RED"星宿毒蛛"NOR, ({ "du zhu", "spider", "zhu" }) );
+        	set("gender", "无性");
         	set("long", "一只形如拇指大小，颜色呈暗红色的蜘蛛，似乎体含剧毒。\n");
         	break;
         	case 1:

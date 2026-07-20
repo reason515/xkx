@@ -17,6 +17,7 @@ string *death_msg = ({
 void create()
 {
 	set_name("狱卒", ({ "yu zu", "zu" }) );
+	set("gender", "无性");
 	set("long",
 		"狱卒伸著长长的舌头瞪著你，黝黑的脸上看不出任何喜怒哀乐。\n");
 	set("attitude", "peaceful");

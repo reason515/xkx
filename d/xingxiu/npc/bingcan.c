@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
         set_name("冰蚕", ({ "bing can"}) );
+        set("gender", "无性");
 	set_color("$HIW$");
         set("race", "昆虫");
         set("subrace", "爬虫");

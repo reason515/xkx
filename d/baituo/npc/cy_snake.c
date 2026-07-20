@@ -12,6 +12,7 @@ void create()
 {
 	int poison = 10;
 	set_name("赤炎", ({ "chi yan", "she", "snake" }) );
+	set("gender", "无性");
 	set_color("$HIR$");
 	set("long", "这是一条遍体通红的毒蛇，长仅数寸，细小如指。\n宋朝时於陕西请泉初次发现，剧毒无比，听说若是被其咬到，七步必亡。\n");
 	set("race", "蛇类");

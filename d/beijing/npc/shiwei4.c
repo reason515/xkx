@@ -10,6 +10,7 @@ void set_shiwei_status(int);
 void create()
 {
 	set_name("四等侍卫", ({
+	set("gender", "无性");
 		"sideng shiwei",
 		"shiwei",
 		"wei",

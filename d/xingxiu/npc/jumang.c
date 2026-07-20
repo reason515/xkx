@@ -27,6 +27,7 @@ void init()
 void create()
 {
         set_name("巨蟒", ({"ju mang", "mang"}));
+        set("gender", "无性");
         set("race", "蛇类");
         set("age", 100);
 	set_weight(150000);

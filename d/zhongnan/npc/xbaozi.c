@@ -10,6 +10,7 @@ inherit NPC;
 void create()
 {
 		  set_name("小豹子", ({ "xiao baozi", "baozi" }) );
+		  set("gender", "无性");
 		  set("race", "野兽");
 		  set("age", 25);
 		  set("long", "一只身体不大可是很结实的小豹子，它正瞪着眼睛看着你。\n");

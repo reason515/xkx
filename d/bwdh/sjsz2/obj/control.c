@@ -163,6 +163,7 @@ int do_back_stuff(string id);
 
 void create() {
 	 set_name("群英会大主持", ({ "da zhuchi","zhuchi","host" }));
+	 set("gender", "无性");
 	 set("unit", "座");
 	 set("long", "他就是天下英雄报名参加群英会团体比武大赛的总主持人。
 他手持一个牌子，上书：

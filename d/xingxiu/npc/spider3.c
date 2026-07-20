@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
         set_name("彩雪蛛", ({ "caixue zhu", "spider", "zhizhu" }) );
+        set("gender", "无性");
 	set_color("$HIW$");
         set("race", "昆虫");
         set("subrace", "爬虫");

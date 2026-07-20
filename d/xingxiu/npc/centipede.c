@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
         set_name("蜈蚣", ({ "wu gong", "centipede" }) );
+        set("gender", "无性");
 	set_color("$RED$");
         set("race", "昆虫");
         set("subrace", "爬虫");

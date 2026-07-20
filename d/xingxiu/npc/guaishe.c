@@ -47,6 +47,7 @@ void create()
 	int max,max1;
 
 		set_name("怪蛇", ({ "guai she", "she", "snake" }) );
+		set("gender", "无性");
 		set_color("$HIW$");
 		set("race", "蛇类");
 		set("unit", "条");

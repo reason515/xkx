@@ -6,6 +6,7 @@ inherit NPC_TRAINEE;
 void create()
 {
 	set_name("老虎", ({ "lao hu", "hu", "tiger" }) );
+	set("gender", "无性");
 	set("race", "野兽");
 	set("age", 25);
 	set("long", "这是一头吊睛白额，气势汹汹的大虎，正恶狠狠地盯着你，好象随时随地都会扑上来择人而噬！\n");

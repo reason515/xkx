@@ -83,6 +83,7 @@ mapping P4Data = ([
 void create()
 {
 	set_name("麻将主持",({"zhuchi"}));
+	set("gender", "无性");
         set("long",
             "如果你对麻将的玩法还不熟悉的话，可以问麻将(mj)、玩法(play)与规则(rule)。\n");
         set_weight(1);

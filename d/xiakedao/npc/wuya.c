@@ -6,6 +6,7 @@ inherit NPC;
 void create()
 {
         set_name("乌鸦", ({ "wuya", "bird" }) );
+        set("gender", "无性");
         set("race", "飞禽");
         set("age", 4);
         set("long", "一只黑乎乎的乌鸦。\n");

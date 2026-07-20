@@ -10,6 +10,7 @@ void create()
 {
 	int poison = 8;
 	set_name("菩斯曲蛇", ({ "pusiqu she", "snake", "she", "pusiqu" }) );
+	set("gender", "无性");
 	set_color("$HIY$");
 	set("race", "蛇类");
 	set("age", 100);

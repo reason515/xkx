@@ -21,6 +21,7 @@ string *walkrooms = ({
 void create()
 {
         set_name("东北虎", ({ "dongbei hu", "hu" }) );
+        set("gender", "无性");
         set("race", "野兽");
         set("age", 30);
         set("long", "一只凶猛的东北虎。乃是丛林之中的兽中之王。\n");

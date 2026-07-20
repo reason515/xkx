@@ -19,6 +19,7 @@ void create()
 	{
 	case 0:
 		set_name("巨蟒", ({ "ju mang", "she", "mang", "python" }) );
+		set("gender", "无性");
 		set("long", "一条碗口粗细的三角头巨蟒，有两丈多长。\n");
 		set("chat_msg_combat", ({
 			(: auto_perform_chan :),

@@ -7,6 +7,7 @@ inherit NPC;
 void create()
 {
         set_name("蝮蛇", ({ "snake", "she" }) );
+        set("gender", "无性");
         set("race", "蛇类");
         set("age", 4);
         set("long", "这是一只南方丛林里出没的蛇，习性与一般的蛇大为不同。\n");

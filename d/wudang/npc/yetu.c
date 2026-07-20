@@ -6,6 +6,7 @@ inherit NPC;
 void create()
 {
 	set_name("野兔", ({ "ye tu", "ye", "hare" }) );
+	set("gender", "无性");
 	set("race", "家畜");
 	set("age", 5);
 	set("long", "一只好可爱的小野兔。\n");
