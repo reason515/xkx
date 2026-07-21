@@ -8,6 +8,7 @@ inherit F_DBASE;
 #define YZ_PREFIX "/d/city/yangzhou_grind"
 #define YZ_REST "/d/city/minwu1"
 #define YZ_NPC_PREFIX "/d/city/npc/"
+#define CITY_PREFIX "/d/city/"
 
 void create()
 {
@@ -80,6 +81,32 @@ string *whitelist()
 	});
 }
 
+/* 扬州城内的稳定主干道；任意城市房间可先接入这些节点再寻路。 */
+string *city_whitelist()
+{
+	return ({
+		CITY_PREFIX + "guangchang",
+		CITY_PREFIX + "beidajie1", CITY_PREFIX + "beidajie2",
+		CITY_PREFIX + "nandajie1", CITY_PREFIX + "nandajie2", CITY_PREFIX + "nandajie3",
+		CITY_PREFIX + "dongdajie1", CITY_PREFIX + "dongdajie2", CITY_PREFIX + "dongdajie3",
+		CITY_PREFIX + "xidajie1", CITY_PREFIX + "xidajie2", CITY_PREFIX + "xidajie3",
+		CITY_PREFIX + "dongnanjie", CITY_PREFIX + "xiangnanjie", YZ_REST,
+		CITY_PREFIX + "beimen", CITY_PREFIX + "nanmen",
+		CITY_PREFIX + "dongmen", CITY_PREFIX + "ximen",
+		CITY_PREFIX + "beijiao1", CITY_PREFIX + "beijiao2", CITY_PREFIX + "beijiao3", CITY_PREFIX + "beijiao4",
+		CITY_PREFIX + "nanjiao1", CITY_PREFIX + "nanjiao2", CITY_PREFIX + "nanjiao3", CITY_PREFIX + "nanjiao4",
+		CITY_PREFIX + "dongjiao1", CITY_PREFIX + "dongjiao2", CITY_PREFIX + "dongjiao3", CITY_PREFIX + "dongjiao4",
+		CITY_PREFIX + "xijiao1", CITY_PREFIX + "xijiao2", CITY_PREFIX + "xijiao3", CITY_PREFIX + "xijiao4",
+		YZ_PREFIX + "1", YZ_PREFIX + "2", YZ_PREFIX + "3", YZ_PREFIX + "4",
+		YZ_PREFIX + "5", YZ_PREFIX + "6", YZ_PREFIX + "7", YZ_PREFIX + "8",
+	});
+}
+
+int is_city_room_path(string path)
+{
+	return stringp(path) && strsrch(path, CITY_PREFIX) == 0;
+}
+
 /* 石壁领悟：技能 id → 默认石室 */
 string study_wall_room(string skill)
 {
@@ -115,7 +142,7 @@ int is_yangzhou_grind(object env)
 
 	if (!objectp(env)) return 0;
 	file = base_name(env);
-	return strsrch(file, "/d/city/") == 0;
+	return is_city_room_path(file);
 }
 
 int is_grind_area(object env)
@@ -228,12 +255,11 @@ object find_grind_target(object env, string target_key)
 int in_whitelist(string path)
 {
 	if (member_array(path, whitelist()) != -1) return 1;
-	/* 扬州城内用实际 exits 动态 BFS，不越过 /d/city/ 边界。 */
-	return stringp(path) && strsrch(path, "/d/city/") == 0;
+	return member_array(path, city_whitelist()) != -1;
 }
 
 /* 邻接：({ dest_path, action }) action 为 "go east" 或 "jump fall" */
-mixed *neighbors(string path)
+mixed *neighbors(string path, int allow_city_start)
 {
 	object room, dest;
 	mapping exits;
@@ -242,7 +268,9 @@ mixed *neighbors(string path)
 	mixed *out;
 
 	out = ({});
-	if (!in_whitelist(path)) return out;
+	/* 起点可为扬州任意房间；之后只沿稳定主干道，避免探路加载无关房间。 */
+	if (!in_whitelist(path) && !(allow_city_start && is_city_room_path(path)))
+		return out;
 
 	room = find_object(path);
 	/* catch：房间 reset 刷怪时若某物件编译失败，勿让错误冒泡掐断挂机寻路 */
@@ -314,7 +342,8 @@ string *find_path(string from, string to)
 	if (!stringp(from) || !stringp(to) || from == "" || to == "")
 		return 0;
 	if (from == to) return ({});
-	if (!in_whitelist(from) || !in_whitelist(to)) return 0;
+	if ((!in_whitelist(from) && !is_city_room_path(from)) || !in_whitelist(to))
+		return 0;
 
 	queue = ({ from });
 	seen = ({ from });
@@ -324,7 +353,7 @@ string *find_path(string from, string to)
 
 	while (head < sizeof(queue)) {
 		cur = queue[head++];
-		nbs = neighbors(cur);
+		nbs = neighbors(cur, cur == from && is_city_room_path(from));
 		for (i = 0; i < sizeof(nbs); i++) {
 			pair = nbs[i];
 			nxt = pair[0];
