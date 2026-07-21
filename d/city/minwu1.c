@@ -19,11 +19,15 @@ void create()
 只摆放着一张旧桌子和几张老床，几个人正躺在床上睡觉，鼾声如雷，想必这些
 壮汉们是累倒了。你发觉右边小床上躺着一个好像还没满月的婴儿正笑眯眯地看
 着你，许久也不哭。你像一个小偷似的在房间里走来走去，发现西墙脚放着一个
-大"+YEL"米缸"NOR+"(gang)。\n"
+大"+YEL"米缸"NOR+"(gang)。北墙有一道半掩的后门，通往城南荒野。\n"
 	);
 
+	/* 免费歇脚处：供城南练级路往返休整，不收住宿费。 */
+	set("sleep_room", 1);
+	set("no_fight", 1);
 	set("exits", ([
 		"south" : __DIR__"xiangnanjie",
+		"north" : __DIR__"yangzhou_grind1",
 	]));
 
 	set("objects", ([

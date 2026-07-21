@@ -15,7 +15,7 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | studyrecoverprep | haidaowo | dadong | yingbin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | givemoney | givesellitem | givesellrabbit | grantskills | grantforce\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | yanzhougrind | studyrecoverprep | haidaowo | dadong | yingbin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | givemoney | givesellitem | givesellrabbit | grantskills | grantforce\n");
 
 	if (arg == "dadong") {
 		ob = load_object("/d/xiakedao/dadong");
@@ -191,6 +191,18 @@ int main(object me, string arg)
 		return 1;
 	}
 
+	if (arg == "yanzhougrind") {
+		ob = load_object("/d/city/minwu1");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载扬州民屋。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到扬州城南练级路的免费歇脚民屋。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		WEBD->send_vitals(me);
+		return 1;
+	}
+
 	if (arg == "givesellitem") {
 		ob = new("/clone/weapon/changjian");
 		if (!objectp(ob))
@@ -333,7 +345,7 @@ int main(object me, string arg)
 int help(object me)
 {
 	write(@HELP
-指令格式：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | grindprep | haidaowo | dadong | yongdao2 | bingqi | shanding | shanxia
+指令格式：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | grindprep | yanzhougrind | haidaowo | dadong | yongdao2 | bingqi | shanding | shanxia
 
 仅在服务器开启 e2e 开关（/adm/etc/xkd_e2e）时可用，供自动化测试：
   grantleave  — 模拟岛主放行
@@ -355,6 +367,7 @@ int help(object me)
   lowqi       — 将气血降至约 15%（挂机低血撤回回归）
   lowjingli   — 将精力降至可走动阈值以下（挂机赶路调息回归）
   grindprep   — 传送到小海龟刷怪沙滩（shatans2）
+  yanzhougrind — 传送到扬州城南练级路入口民屋（免费休整）
   studyrecoverprep — 经验 251 且精神不足，供石壁领悟睡觉恢复回归
   yongdao2    — 传送到迎宾馆西侧甬道（洞/钻场景解析回归）
   bingqi      — 传送到兵器房（取用器械回归）

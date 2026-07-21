@@ -5,6 +5,9 @@
 inherit F_DBASE;
 
 #define PREFIX "/d/xiakedao/"
+#define YZ_PREFIX "/d/city/yangzhou_grind"
+#define YZ_REST "/d/city/minwu1"
+#define YZ_NPC_PREFIX "/d/city/npc/"
 
 void create()
 {
@@ -65,6 +68,15 @@ string *whitelist()
 		PREFIX + "xkx3",
 		PREFIX + "xkx5",
 		PREFIX + "xkx9",
+		YZ_REST,
+		YZ_PREFIX + "1",
+		YZ_PREFIX + "2",
+		YZ_PREFIX + "3",
+		YZ_PREFIX + "4",
+		YZ_PREFIX + "5",
+		YZ_PREFIX + "6",
+		YZ_PREFIX + "7",
+		YZ_PREFIX + "8",
 	});
 }
 
@@ -96,6 +108,29 @@ int is_xiakedao(object env)
 	return strsrch(file, PREFIX) == 0;
 }
 
+/* 扬州城南练级路：民屋免费歇脚处与八段固定刷怪点。 */
+int is_yangzhou_grind(object env)
+{
+	string file;
+
+	if (!objectp(env)) return 0;
+	file = base_name(env);
+	return file == YZ_REST || strsrch(file, YZ_PREFIX) == 0;
+}
+
+int is_grind_area(object env)
+{
+	return is_xiakedao(env) || is_yangzhou_grind(env);
+}
+
+int is_yangzhou_target(string target_key)
+{
+	return member_array(target_key, ({
+		"yz_crow", "yz_monkey", "yz_goat", "yz_dog",
+		"yz_boar", "yz_wolf", "yz_bandit", "yz_bandit_leader",
+	})) != -1;
+}
+
 string room_path(object env)
 {
 	if (!objectp(env)) return "";
@@ -119,6 +154,14 @@ string *spawn_rooms(string target_key)
 	 || target_key == "haidao_s"
 	 || target_key == "haidao_o")
 		return ({ PREFIX + "haidaowo1" });
+	if (target_key == "yz_crow") return ({ YZ_PREFIX + "1" });
+	if (target_key == "yz_monkey") return ({ YZ_PREFIX + "2" });
+	if (target_key == "yz_goat") return ({ YZ_PREFIX + "3" });
+	if (target_key == "yz_dog") return ({ YZ_PREFIX + "4" });
+	if (target_key == "yz_boar") return ({ YZ_PREFIX + "5" });
+	if (target_key == "yz_wolf") return ({ YZ_PREFIX + "6" });
+	if (target_key == "yz_bandit") return ({ YZ_PREFIX + "7" });
+	if (target_key == "yz_bandit_leader") return ({ YZ_PREFIX + "8" });
 	return ({});
 }
 
@@ -141,6 +184,8 @@ int grind_target_match(object ob, string target_key)
 
 	if (!objectp(ob)) return 0;
 	file = base_name(ob);
+	if (is_yangzhou_target(target_key))
+		return file == YZ_NPC_PREFIX + target_key;
 	if (target_key == "monkey")
 		return strsrch(file, "/monkey") >= 0 || ob->id("monkey");
 	if (target_key == "haigui_s")

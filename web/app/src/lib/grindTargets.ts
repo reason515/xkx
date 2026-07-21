@@ -16,6 +16,18 @@ export const GRIND_TARGETS: GrindTarget[] = [
   { id: "haidao_o", label: "老海盗", hint: "最强 · 野林进海盗窝" },
 ];
 
+/** 扬州城南练级路：民屋后门起，低血自动回免费民屋休整。 */
+export const YANGZHOU_GRIND_TARGETS: GrindTarget[] = [
+  { id: "yz_crow", label: "乌鸦", hint: "300 · 城南小径" },
+  { id: "yz_monkey", label: "野猴", hint: "500 · 荒草坡" },
+  { id: "yz_goat", label: "野羊", hint: "750 · 野羊坡" },
+  { id: "yz_dog", label: "野狗", hint: "1000 · 枯藤径" },
+  { id: "yz_boar", label: "野猪", hint: "1500 · 泥潭边" },
+  { id: "yz_wolf", label: "野狼", hint: "2000 · 狼嚎谷" },
+  { id: "yz_bandit", label: "山贼喽啰", hint: "2500 · 断桥" },
+  { id: "yz_bandit_leader", label: "山贼头目", hint: "3000 · 寨口" },
+];
+
 /** 侠客岛石壁领悟武功（与 d/xiakedao/xkx.h flag 1–4 一致） */
 export type StudySkill = {
   id: string;

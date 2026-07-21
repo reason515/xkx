@@ -1804,6 +1804,53 @@ test.describe.serial("game smoke", () => {
     });
   });
 
+  test("扬州城南练级路按强度列目标，并可自动前往野羊", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+    await sendSilentCmd(page, "xkxe2e yanzhougrind");
+    await expect(page.locator(".room-title")).toHaveText(/民屋/, {
+      timeout: 15_000,
+    });
+
+    await pickTopMenuItem(page, "挂机");
+    await expect(page.getByRole("heading", { name: "挂机" })).toBeVisible();
+    await expect(page.getByRole("tab", { name: "石壁领悟" })).toHaveCount(0);
+    const grindNames = await page.locator(".grind-target-name").allTextContents();
+    expect(grindNames.map((t) => t.trim())).toEqual([
+      "乌鸦",
+      "野猴",
+      "野羊",
+      "野狗",
+      "野猪",
+      "野狼",
+      "山贼喽啰",
+      "山贼头目",
+    ]);
+    await page.locator(".grind-target").filter({ hasText: /野羊/ }).click();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+    await expect(page.getByTestId("grind-banner")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByTestId("grind-banner")).toContainText(
+      /前往野羊|开战|交手|挂机/
+    );
+    await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
+    await expect(page.getByTestId("grind-banner")).toBeHidden({ timeout: 10_000 });
+  });
+
+  test("扬州民屋可免费睡觉休整", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+    await sendSilentCmd(page, "xkxe2e yanzhougrind");
+    await openSceneTab(page);
+    await expect(page.locator(".chip.action").filter({ hasText: "睡觉" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await clickActionAndWaitLog(page, "睡觉", /开始睡觉|进入了梦乡/);
+  });
+
   test("落点沙滩被拦指令会提示跟随而非静默无响应", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });

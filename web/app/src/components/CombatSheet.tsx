@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { GRIND_TARGETS, STUDY_SKILLS } from "../lib/grindTargets";
+import {
+  GRIND_TARGETS,
+  STUDY_SKILLS,
+  YANGZHOU_GRIND_TARGETS,
+} from "../lib/grindTargets";
 
 type GrindTab = "fight" | "study";
 
@@ -11,7 +15,8 @@ interface Props {
   /** 战斗/busy 中停手（不依赖挂机） */
   onHalt?: () => void;
   assistActive: boolean;
-  /** 侠客岛场景才可挂机 */
+  /** 当前可用的挂机区域；石壁领悟仅侠客岛支持。 */
+  grindArea?: "xiakedao" | "yangzhou";
   showGrind?: boolean;
   assistStatus?: string;
 }
@@ -23,11 +28,14 @@ export function CombatSheet({
   onStopAssist,
   onHalt,
   assistActive,
+  grindArea,
   showGrind = false,
   assistStatus = "",
 }: Props) {
+  const targets = grindArea === "yangzhou" ? YANGZHOU_GRIND_TARGETS : GRIND_TARGETS;
+  const canStudy = grindArea === "xiakedao";
   const [tab, setTab] = useState<GrindTab>("fight");
-  const [grindTarget, setGrindTarget] = useState("haigui_s");
+  const [grindTarget, setGrindTarget] = useState(() => targets[0].id);
   const [grindLowHp, setGrindLowHp] = useState(30);
   const [studySkill, setStudySkill] = useState("taixuan-gong");
   const grinding = assistActive && /挂机/.test(assistStatus || "");
@@ -46,7 +54,7 @@ export function CombatSheet({
         </div>
         <div className="sheet-scroll">
           {!showGrind ? (
-            <p className="doc-status">挂机练级仅在侠客岛可用。</p>
+            <p className="doc-status">请前往侠客岛，或扬州民屋后门的城南练级路。</p>
           ) : grinding ? (
             <>
               <p className="combat-assist-label">挂机进行中</p>
@@ -68,32 +76,36 @@ export function CombatSheet({
               >
                 {studying
                   ? "自动前往石室领悟；精神不足时先取腊八粥，没有则上山摘野果。"
-                  : "自动寻怪交手；气血过低会撤回休整，恢复后再回场。"}
+                  : grindArea === "yangzhou"
+                    ? "自动寻怪交手；气血过低会回民屋免费休整，恢复后再回场。"
+                    : "自动寻怪交手；气血过低会撤回休整，恢复后再回场。"}
               </p>
             </>
           ) : (
             <>
-              <div className="grind-tab-row" role="tablist" aria-label="挂机类型">
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === "fight"}
-                  className={`grind-tab${tab === "fight" ? " on" : ""}`}
-                  onClick={() => setTab("fight")}
-                >
-                  打怪
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={tab === "study"}
-                  className={`grind-tab${tab === "study" ? " on" : ""}`}
-                  onClick={() => setTab("study")}
-                >
-                  石壁领悟
-                </button>
-              </div>
-              {tab === "fight" ? (
+              {canStudy && (
+                <div className="grind-tab-row" role="tablist" aria-label="挂机类型">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === "fight"}
+                    className={`grind-tab${tab === "fight" ? " on" : ""}`}
+                    onClick={() => setTab("fight")}
+                  >
+                    打怪
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === "study"}
+                    className={`grind-tab${tab === "study" ? " on" : ""}`}
+                    onClick={() => setTab("study")}
+                  >
+                    石壁领悟
+                  </button>
+                </div>
+              )}
+              {tab === "fight" || !canStudy ? (
                 <>
                   <p className="combat-assist-label">选择对手</p>
                   <p
@@ -103,10 +115,12 @@ export function CombatSheet({
                       marginBottom: 12,
                     }}
                   >
-                    按由弱到强排列；开始后自动寻路前往刷怪点。
+                    {grindArea === "yangzhou"
+                      ? "按由弱到强排列；低血时会回民屋免费休整。"
+                      : "按由弱到强排列；开始后自动寻路前往刷怪点。"}
                   </p>
                   <div className="grind-target-list">
-                    {GRIND_TARGETS.map((t) => (
+                    {targets.map((t) => (
                       <button
                         key={t.id}
                         type="button"

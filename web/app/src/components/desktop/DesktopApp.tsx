@@ -164,7 +164,21 @@ function DesktopShell({
           onClose={g.closeSheet}
           assistActive={state.assistActive}
           assistStatus={state.assistStatus}
-          showGrind={(state.room.area || "").toLowerCase() === "xiakedao"}
+          grindArea={
+            (state.room.area || "").toLowerCase() === "xiakedao"
+              ? "xiakedao"
+              : (state.room.area || "").toLowerCase() === "city" &&
+                    (state.room.path === "minwu1" ||
+                      /^yangzhou_grind[1-8]$/.test(state.room.path || ""))
+                ? "yangzhou"
+                : undefined
+          }
+          showGrind={
+            (state.room.area || "").toLowerCase() === "xiakedao" ||
+            ((state.room.area || "").toLowerCase() === "city" &&
+              (state.room.path === "minwu1" ||
+                /^yangzhou_grind[1-8]$/.test(state.room.path || "")))
+          }
           onStartGrind={(grindTarget, pct) => {
             g.startAssist({
               mode: "grind",

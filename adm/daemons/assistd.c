@@ -29,7 +29,7 @@ mapping sessions;
 void grind_tick(string id);
 void do_grind_tick(string id);
 void study_tick(string id);
-string grind_recover_dest(object me);
+string grind_recover_dest(object me, string target_key);
 void grind_set_path(mapping cfg, object me, string dest);
 void grind_set_spawn_path(mapping cfg, object me, string target_key);
 int grind_follow_path(object me, mapping cfg);
@@ -77,13 +77,13 @@ void grind_begin_retreat(object me, mapping cfg)
 		cfg["home"] = PATHD->room_path(environment(me));
 	cfg["phase"] = "retreat";
 	cfg["path"] = ({});
-	dest = grind_recover_dest(me);
+	dest = grind_recover_dest(me, cfg["target_key"]);
 	grind_set_path(cfg, me, dest);
 	if (arrayp(cfg["path"]) && sizeof(cfg["path"]))
 		grind_follow_path(me, cfg);
 	else {
 		/* 勿随机 flee：容易跑出挂机白名单，随后「无法前往刷怪点」 */
-		WEBD->send_assist_status(me, 1, "挂机中 · 撤回受阻，请手动走到大山洞或休息室");
+		WEBD->send_assist_status(me, 1, "挂机中 · 撤回受阻，请手动走到免费民屋或休息室");
 		return;
 	}
 	WEBD->send_assist_status(me, 1, "挂机中 · 撤回休整");
@@ -620,8 +620,11 @@ int start_combat(object me, int low_hp, string action)
 	return 1;
 }
 
-string grind_recover_dest(object me)
+string grind_recover_dest(object me, string target_key)
 {
+	/* 扬州城南练级路统一回民屋免费歇脚。 */
+	if (PATHD->is_yangzhou_target(target_key))
+		return "/d/city/minwu1";
 	if (!objectp(me)) return "/d/xiakedao/dadong";
 	/* 经验超过 250 后粥和野果均不可用，直接去休息室睡觉。 */
 	if ((int)me->query("combat_exp") > FRUIT_MAX_EXP)
@@ -706,6 +709,14 @@ string grind_target_label(string target_key)
 	if (target_key == "haidao_w") return "受伤海盗";
 	if (target_key == "haidao_s") return "小海盗";
 	if (target_key == "haidao_o") return "老海盗";
+	if (target_key == "yz_crow") return "乌鸦";
+	if (target_key == "yz_monkey") return "野猴";
+	if (target_key == "yz_goat") return "野羊";
+	if (target_key == "yz_dog") return "野狗";
+	if (target_key == "yz_boar") return "野猪";
+	if (target_key == "yz_wolf") return "野狼";
+	if (target_key == "yz_bandit") return "山贼喽啰";
+	if (target_key == "yz_bandit_leader") return "山贼头目";
 	return "目标";
 }
 
@@ -717,7 +728,7 @@ string grind_unreachable_spawn_msg(object me, string target_key)
 		return "无法前往刷怪点";
 	here = PATHD->room_path(environment(me));
 	if (!PATHD->in_whitelist(here))
-		return "无法前往刷怪点 · 请先走到甬道、大山洞、迎宾馆或沙滩再挂机";
+		return "无法前往刷怪点 · 请先走到侠客岛路线或扬州民屋后门再挂机";
 	return "无法前往" + grind_target_label(target_key) + "的刷怪点";
 }
 
@@ -938,7 +949,7 @@ void do_grind_tick(string id)
 	object me, env, target, dadong, foe;
 	object *enemies;
 	mapping cfg, my;
-	string phase, target_key, home, dest;
+	string phase, target_key, home, dest, sleep_dest, rest_label;
 	int pct, max_qi, max_jing, eff_pct, ei, keep_fight;
 	string *path;
 
@@ -973,12 +984,15 @@ void do_grind_tick(string id)
 	}
 
 	env = environment(me);
-	if (!objectp(env) || !PATHD->is_xiakedao(env)) {
-		stop_assist(me, "已离开侠客岛，练级停止");
+	if (!objectp(env) || !PATHD->is_grind_area(env)) {
+		stop_assist(me, "已离开挂机区域，练级停止");
 		return;
 	}
 
 	target_key = cfg["target_key"];
+	sleep_dest = PATHD->is_yangzhou_target(target_key)
+		? "/d/city/minwu1" : "/d/xiakedao/xiuxi";
+	rest_label = PATHD->is_yangzhou_target(target_key) ? "免费民屋" : "休息室";
 	my = me->query_entire_dbase();
 	max_qi = my["max_qi"];
 	max_jing = my["max_jing"];
@@ -1189,9 +1203,9 @@ void do_grind_tick(string id)
 			call_out("grind_tick", 1, id);
 			return;
 		}
-		dest = grind_recover_dest(me);
+		dest = grind_recover_dest(me, target_key);
 		if (PATHD->room_path(env) == dest) {
-			if (dest == "/d/xiakedao/xiuxi") {
+			if (dest == sleep_dest) {
 				cfg["phase"] = "recover_sleep";
 				cfg["slept"] = 0;
 			} else
@@ -1274,14 +1288,14 @@ void do_grind_tick(string id)
 			stop_assist(me, "外伤过重，粥已不可用，请先疗伤");
 			return;
 		}
-		if (PATHD->room_path(env) != "/d/xiakedao/xiuxi") {
-			if (!arrayp(cfg["path"]) || cfg["path_dest"] != "/d/xiakedao/xiuxi")
-				grind_set_path(cfg, me, "/d/xiakedao/xiuxi");
+		if (PATHD->room_path(env) != sleep_dest) {
+			if (!arrayp(cfg["path"]) || cfg["path_dest"] != sleep_dest)
+				grind_set_path(cfg, me, sleep_dest);
 			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
-				stop_assist(me, "无法前往休息室");
+				stop_assist(me, "无法前往" + rest_label);
 				return;
 			}
-			WEBD->send_assist_status(me, 1, "挂机中 · 前往休息室");
+			WEBD->send_assist_status(me, 1, "挂机中 · 前往" + rest_label);
 			if (grind_step_or_rest(me, cfg) == -1) {
 				sessions[id] = cfg;
 				WEBD->send_assist_status(me, 1, "挂机中 · 精力不足，正在调息");
@@ -1313,7 +1327,7 @@ void do_grind_tick(string id)
 		}
 		if (assist_is_sleeping(me)) {
 			cfg["slept"] = 1;
-			WEBD->send_assist_status(me, 1, "挂机中 · 休息室睡觉中");
+			WEBD->send_assist_status(me, 1, "挂机中 · " + rest_label + "睡觉中");
 			sessions[id] = cfg;
 			WEBD->notify_vitals(me);
 			call_out("grind_tick", 4, id);
@@ -1327,7 +1341,7 @@ void do_grind_tick(string id)
 		me->force_me("sleep");
 		if (assist_is_sleeping(me))
 			cfg["slept"] = 1;
-		WEBD->send_assist_status(me, 1, "挂机中 · 休息室睡觉恢复");
+		WEBD->send_assist_status(me, 1, "挂机中 · " + rest_label + "睡觉恢复");
 		sessions[id] = cfg;
 		WEBD->notify_vitals(me);
 		call_out("grind_tick", 4, id);
@@ -1386,13 +1400,15 @@ int start_grind(object me, string target_key, int low_hp)
 
 	if (!objectp(me)) return 0;
 	env = environment(me);
-	if (!objectp(env) || !PATHD->is_xiakedao(env)) {
-		WEBD->send_assist_status(me, 0, "仅可在侠客岛挂机");
+	if (!objectp(env) || !PATHD->is_grind_area(env)) {
+		WEBD->send_assist_status(me, 0, "仅可在侠客岛或扬州城南练级路挂机");
 		return 0;
 	}
 	if (member_array(target_key, ({
 		"monkey", "haigui_s", "haigui", "maque", "wuya",
-		"haidao_w", "haidao_s", "haidao_o"
+		"haidao_w", "haidao_s", "haidao_o",
+		"yz_crow", "yz_monkey", "yz_goat", "yz_dog",
+		"yz_boar", "yz_wolf", "yz_bandit", "yz_bandit_leader"
 	})) == -1) {
 		WEBD->send_assist_status(me, 0, "暂不支持该练级目标");
 		return 0;
