@@ -1512,7 +1512,7 @@ test.describe.serial("game smoke", () => {
       .toMatch(/这里就是侠客岛|打听有关『侠客岛』/);
   });
 
-  test("人物面板分组展示通用互动并可点选打听话题", async ({ page }) => {
+  test("人物面板展示核心互动，并从江湖手段打听话题", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -1534,14 +1534,14 @@ test.describe.serial("game smoke", () => {
     ).toHaveCount(0);
 
     await page.locator(".chip.npc").filter({ hasText: /渔夫/ }).click();
-    await expect(page.getByRole("heading", { name: "常用" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "往来" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "常用" })).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "往来" })).toHaveCount(0);
+    await expect(page.getByText("江湖手段", { exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "查看", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "打听", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "请教", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "跟随", exact: true })).toBeVisible();
     await expect(page.getByRole("button", { name: "给予", exact: true })).toBeVisible();
-    await expect(page.getByText("交手", { exact: true })).toBeVisible();
     // 渔夫没有 family，不应误导为可拜师
     await expect(page.getByRole("button", { name: "拜师", exact: true })).toHaveCount(0);
     await page.getByRole("button", { name: "打听", exact: true }).click();
