@@ -263,12 +263,15 @@ mixed *neighbors(string path)
 				dest_path = exits[dir];
 				if (strsrch(dest_path, ".c") > 0)
 					dest_path = replace_string(dest_path, ".c", "");
-				if (objectp(dest = find_object(dest_path)))
-					dest_path = base_name(dest);
-				else {
-					catch(dest = load_object(dest_path));
-					if (objectp(dest))
+				/* 扬州动态 BFS 只需出口路径；勿为探路加载无关房间。 */
+				if (strsrch(path, "/d/city/") != 0) {
+					if (objectp(dest = find_object(dest_path)))
 						dest_path = base_name(dest);
+					else {
+						catch(dest = load_object(dest_path));
+						if (objectp(dest))
+							dest_path = base_name(dest);
+					}
 				}
 			}
 			/* 野林 east/west 自环：走了等于没走，勿纳入寻路 */
