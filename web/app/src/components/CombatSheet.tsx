@@ -54,7 +54,7 @@ export function CombatSheet({
         </div>
         <div className="sheet-scroll">
           {!showGrind ? (
-            <p className="doc-status">请前往侠客岛，或扬州民屋后门的城南练级路。</p>
+            <p className="doc-status">请前往侠客岛，或扬州城内任意地点。</p>
           ) : grinding ? (
             <>
               <p className="combat-assist-label">挂机进行中</p>

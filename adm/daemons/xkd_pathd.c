@@ -14,7 +14,7 @@ void create()
 	seteuid(getuid());
 }
 
-/* 挂机可通行房间（沙滩刷怪 ↔ 瀑布 ↔ 甬道 ↔ 大洞/休息室 ↔ 海盗窝 ↔ 石壁 ↔ 石室）。 */
+/* 挂机可通行房间：侠客岛白名单，以及扬州 /d/city/ 内的正常房间。 */
 string *whitelist()
 {
 	return ({
@@ -108,14 +108,14 @@ int is_xiakedao(object env)
 	return strsrch(file, PREFIX) == 0;
 }
 
-/* 扬州城南练级路：民屋免费歇脚处与八段固定刷怪点。 */
+/* 扬州城内任意正常房间均可启动，寻路仅在 /d/city/ 内进行。 */
 int is_yangzhou_grind(object env)
 {
 	string file;
 
 	if (!objectp(env)) return 0;
 	file = base_name(env);
-	return file == YZ_REST || strsrch(file, YZ_PREFIX) == 0;
+	return strsrch(file, "/d/city/") == 0;
 }
 
 int is_grind_area(object env)
@@ -227,7 +227,9 @@ object find_grind_target(object env, string target_key)
 
 int in_whitelist(string path)
 {
-	return member_array(path, whitelist()) != -1;
+	if (member_array(path, whitelist()) != -1) return 1;
+	/* 扬州城内用实际 exits 动态 BFS，不越过 /d/city/ 边界。 */
+	return stringp(path) && strsrch(path, "/d/city/") == 0;
 }
 
 /* 邻接：({ dest_path, action }) action 为 "go east" 或 "jump fall" */
@@ -236,6 +238,7 @@ mixed *neighbors(string path)
 	object room, dest;
 	mapping exits;
 	string *dirs, dir, dest_path;
+	int door_st;
 	mixed *out;
 
 	out = ({});
@@ -250,6 +253,9 @@ mixed *neighbors(string path)
 	if (mapp(exits = room->query("exits"))) {
 		dirs = keys(exits);
 		foreach (dir in dirs) {
+			/* 锁门不能自动绕过；勿把它作为 BFS 的捷径。 */
+			door_st = (int)room->query_door(dir, "status");
+			if (door_st & DOOR_LOCKED) continue;
 			if (!stringp(exits[dir]) && !objectp(exits[dir])) continue;
 			if (objectp(exits[dir]))
 				dest_path = base_name(exits[dir]);

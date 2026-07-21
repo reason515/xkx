@@ -1804,12 +1804,12 @@ test.describe.serial("game smoke", () => {
     });
   });
 
-  test("扬州城南练级路按强度列目标，并可自动前往野羊", async ({ page }) => {
+  test("扬州城内任意地点可启动城南挂机并自动前往野羊", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
-    await sendSilentCmd(page, "xkxe2e yanzhougrind");
-    await expect(page.locator(".room-title")).toHaveText(/民屋/, {
+    await sendSilentCmd(page, "xkxe2e dangpu");
+    await expect(page.locator(".room-title")).toHaveText(/当铺/, {
       timeout: 15_000,
     });
 

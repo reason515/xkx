@@ -465,18 +465,13 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           grindArea={
             (state.room.area || "").toLowerCase() === "xiakedao"
               ? "xiakedao"
-              : (state.room.area || "").toLowerCase() === "city" &&
-                    (state.room.path === "minwu1" ||
-                      /^yangzhou_grind[1-8]$/.test(state.room.path || ""))
+              : (state.room.area || "").toLowerCase() === "city"
                 ? "yangzhou"
                 : undefined
           }
-          showGrind={
-            (state.room.area || "").toLowerCase() === "xiakedao" ||
-            ((state.room.area || "").toLowerCase() === "city" &&
-              (state.room.path === "minwu1" ||
-                /^yangzhou_grind[1-8]$/.test(state.room.path || "")))
-          }
+          showGrind={["xiakedao", "city"].includes(
+            (state.room.area || "").toLowerCase()
+          )}
           onStartGrind={(grindTarget, pct) => {
             g.startAssist({
               mode: "grind",
