@@ -895,9 +895,31 @@ export type VendorGood = {
   command: string;
 };
 
+export type DealerCategory = {
+  id: "weapon" | "armor" | "drug" | "book" | "misc";
+  label: string;
+  command: string;
+};
+
+const DEALER_CATEGORIES: DealerCategory[] = [
+  { id: "weapon", label: "兵器", command: "list weapon" },
+  { id: "armor", label: "护具", command: "list armor" },
+  { id: "drug", label: "药物", command: "list drug" },
+  { id: "book", label: "书籍", command: "list book" },
+  { id: "misc", label: "杂物", command: "list misc" },
+];
+
 /** Strip common MudOS/FluffOS ANSI color codes from list lines. */
 function stripMudAnsi(s: string): string {
   return s.replace(/\x1b\[[0-9;]*m/g, "");
+}
+
+/** Parse the category prompt used by pawn shops without fixed vendor goods. */
+export function parseDealerCategories(text: string): DealerCategory[] {
+  const words = new Set(
+    (text.toLowerCase().match(/\b(?:weapon|armor|drug|book|misc)\b/g) || [])
+  );
+  return DEALER_CATEGORIES.filter((category) => words.has(category.id));
 }
 
 /**

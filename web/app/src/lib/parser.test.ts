@@ -33,6 +33,7 @@ import {
   parseExits,
   parseHp,
   formatVitalMeter,
+  parseDealerCategories,
   parseVendorGoods,
   vitalCap,
   parseInventory,
@@ -1438,6 +1439,18 @@ describe("parseHp", () => {
     expect(formatVitalMeter(80, 100, 100)).toBe("80/100");
     expect(formatVitalMeter(80, 100)).toBe("80/100");
     expect(formatVitalMeter(undefined, undefined)).toBe("—/—");
+  });
+
+  it("parses pawn shop categories from a dealer list prompt", () => {
+    expect(
+      parseDealerCategories("你想看哪一柜？（armor、weapon、drug、book or misc）")
+    ).toEqual([
+      { id: "weapon", label: "兵器", command: "list weapon" },
+      { id: "armor", label: "护具", command: "list armor" },
+      { id: "drug", label: "药物", command: "list drug" },
+      { id: "book", label: "书籍", command: "list book" },
+      { id: "misc", label: "杂物", command: "list misc" },
+    ]);
   });
 
   it("parseVendorGoods extracts buy commands from dealer list", () => {

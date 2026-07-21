@@ -221,7 +221,8 @@ void send_room(object me, object env)
 				json_escape(ob->name() || ""),
 				(!userp(ob) && mapp(ob->query("family"))) ? 1 : 0,
 				(arrayp(ob->query("vendor_goods"))
-				 || mapp(ob->query("vendor_goods"))) ? 1 : 0,
+				 || mapp(ob->query("vendor_goods"))
+				 || ob->query("web/can_trade")) ? 1 : 0,
 				ob->query("web/can_sell") ? 1 : 0,
 				(!userp(ob)) ? 1 : 0,
 				(function_exists("is_corpse", ob) && ob->is_corpse()) ? 1 : 0,

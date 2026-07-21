@@ -5,6 +5,7 @@ import {
   groundItemActions,
   mudCommandTarget,
   parseBoardReadActions,
+  parseDealerCategories,
   parseVendorGoods,
 } from "../lib/parser";
 import type { AssistConfig, InvItem, SuggestedAction } from "../lib/types";
@@ -112,6 +113,7 @@ export function EntitySheet({
     ? buildAskTopicActions(id, name, askHints, docText, [], commandId)
     : [];
   const vendorGoods = trading ? parseVendorGoods(docText) : [];
+  const dealerCategories = trading ? parseDealerCategories(docText) : [];
   const learnTopics = learning
     ? buildLearnTopicActions(
         id,
@@ -415,6 +417,23 @@ export function EntitySheet({
                     ))}
                   </div>
                 </>
+              ) : dealerCategories.length ? (
+                <>
+                  <p className="entity-mode-hint">选择要查看的货品类别：</p>
+                  <div className="help-topics entity-item-list">
+                    {dealerCategories.map((category) => (
+                      <button
+                        key={category.id}
+                        type="button"
+                        className="help-topic"
+                        data-testid={`dealer-category-${category.id}`}
+                        onClick={() => onDocAction?.(category.command)}
+                      >
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
               ) : (
                 <pre className="doc-body">
                   {docText || "对方目前没有列出货品。"}
@@ -474,7 +493,7 @@ export function EntitySheet({
                   <button type="button" onClick={() => runNpcAction(`follow ${askTarget}`)}>跟随</button>
                   <button type="button" onClick={() => setGiving(true)}>给予</button>
                   {!!canApprentice && (<button type="button" className="entity-action-jade" onClick={() => runNpcAction(`apprentice ${askTarget}`)}>拜师</button>)}
-                  {!!canTrade && (<button type="button" data-testid="entity-trade" onClick={() => { setTrading(true); onDocAction?.("list"); }}>货品</button>)}
+                  {!!canTrade && (<button type="button" data-testid="entity-trade" onClick={() => { setTrading(true); onDocAction?.("list"); }}>购买</button>)}
                   {!!canSell && (<button type="button" data-testid="entity-sell" onClick={() => setSelling(true)}>卖出</button>)}
                   {!!canLead && (<button type="button" onClick={() => runNpcAction(`lead ${askTarget}`)}>带领</button>)}
                 </div>

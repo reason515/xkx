@@ -34,7 +34,7 @@ describe("EntitySheet NPC actions", () => {
   it("only shows apprentice and trade when server capabilities allow them", () => {
     const ordinary = renderToStaticMarkup(<EntitySheet {...baseProps} />);
     expect(ordinary).not.toContain("拜师");
-    expect(ordinary).not.toContain("货品");
+    expect(ordinary).not.toContain("购买");
     expect(ordinary).not.toContain("卖出");
 
     const capable = renderToStaticMarkup(
@@ -46,7 +46,7 @@ describe("EntitySheet NPC actions", () => {
       />
     );
     expect(capable).toContain("拜师");
-    expect(capable).toContain("货品");
+    expect(capable).toContain("购买");
     expect(capable).toContain("卖出");
   });
 
