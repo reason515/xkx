@@ -17,6 +17,7 @@ void create()
         set("long",
                 "镇上最有钱的财主，姓白，外号叫做白剥皮，又开当铺，又开米行。\n");
         set("no_get_from", 1);
+        set("web/can_sell", 1);
 
         set("dex", 80);
         set("str", 80);

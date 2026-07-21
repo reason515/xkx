@@ -43,6 +43,8 @@ export interface Entity {
   canApprentice?: boolean | number;
   /** NPC exposes vendor goods through F_DEALER. */
   canTrade?: boolean | number;
+  /** NPC accepts items sold through the `sell` command. */
+  canSell?: boolean | number;
   /** NPC: can steal from this character. */
   canSteal?: boolean | number;
   /** NPC: is a lootable corpse. */

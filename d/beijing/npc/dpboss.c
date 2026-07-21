@@ -18,6 +18,7 @@ void create()
 	set("long",
 		"一个肥胖汉子。\n");
 	set("no_get_from", 1);
+	set("web/can_sell", 1);
 
 	set_skill("unarmed", 60);
 	set_skill("dodge", 60);

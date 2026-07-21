@@ -35,16 +35,19 @@ describe("EntitySheet NPC actions", () => {
     const ordinary = renderToStaticMarkup(<EntitySheet {...baseProps} />);
     expect(ordinary).not.toContain("拜师");
     expect(ordinary).not.toContain("货品");
+    expect(ordinary).not.toContain("卖出");
 
     const capable = renderToStaticMarkup(
       <EntitySheet
         {...baseProps}
         canApprentice={1}
         canTrade={1}
+        canSell={1}
       />
     );
     expect(capable).toContain("拜师");
     expect(capable).toContain("货品");
+    expect(capable).toContain("卖出");
   });
 
   it("keeps learn assist opt-in behind the skill selection", () => {

@@ -19,6 +19,7 @@ interface Props {
   scenery?: boolean;
   canApprentice?: boolean | number;
   canTrade?: boolean | number;
+  canSell?: boolean | number;
   canSteal?: boolean | number;
   isCorpse?: boolean | number;
   canLoot?: boolean | number;
@@ -66,6 +67,7 @@ export function EntitySheet({
   scenery,
   canApprentice = false,
   canTrade = false,
+  canSell = false,
   canSteal = false,
   isCorpse = false,
   canLoot = false,
@@ -92,6 +94,7 @@ export function EntitySheet({
   const [asking, setAsking] = useState(false);
   const [learning, setLearning] = useState(false);
   const [giving, setGiving] = useState(false);
+  const [selling, setSelling] = useState(false);
   const [trading, setTrading] = useState(false);
   const [learnAction, setLearnAction] = useState<SuggestedAction | null>(null);
   const [learnStop, setLearnStop] = useState<"count" | "potential">("count");
@@ -175,6 +178,8 @@ export function EntitySheet({
 
   const leaveGivingMode = () => setGiving(false);
 
+  const leaveSellingMode = () => setSelling(false);
+
   const leaveTradingMode = () => {
     setTrading(false);
     onClearDoc?.();
@@ -191,7 +196,9 @@ export function EntitySheet({
                 ? `向「${name}」请教`
                 : giving
                   ? `给予「${name}」`
-                  : trading
+                  : selling
+                    ? `向「${name}」卖出`
+                    : trading
                     ? `查看「${name}」的货品`
                     : reading
                       ? "留言"
@@ -351,6 +358,33 @@ export function EntitySheet({
                 <p className="doc-status">行囊里没有可给予的物品。</p>
               )}
             </>
+          ) : selling ? (
+            <>
+              <button type="button" className="doc-back" onClick={leaveSellingMode}>
+                ← 返回
+              </button>
+              <p className="entity-mode-hint">选择要卖出的物品：</p>
+              {giveItems.length ? (
+                <div className="help-topics entity-item-list">
+                  {giveItems.map((item) => (
+                    <button
+                      key={`${item.id}-${item.name}`}
+                      type="button"
+                      className="help-topic"
+                      onClick={() =>
+                        runNpcAction(
+                          `sell ${mudCommandTarget(item.id, item.name)}`
+                        )
+                      }
+                    >
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="doc-status">行囊里没有可卖出的物品。</p>
+              )}
+            </>
           ) : trading ? (
             <>
               <button type="button" className="doc-back" onClick={leaveTradingMode}>
@@ -441,6 +475,7 @@ export function EntitySheet({
                   <button type="button" onClick={() => setGiving(true)}>给予</button>
                   {!!canApprentice && (<button type="button" className="entity-action-jade" onClick={() => runNpcAction(`apprentice ${askTarget}`)}>拜师</button>)}
                   {!!canTrade && (<button type="button" data-testid="entity-trade" onClick={() => { setTrading(true); onDocAction?.("list"); }}>货品</button>)}
+                  {!!canSell && (<button type="button" data-testid="entity-sell" onClick={() => setSelling(true)}>卖出</button>)}
                   {!!canLead && (<button type="button" onClick={() => runNpcAction(`lead ${askTarget}`)}>带领</button>)}
                 </div>
               </section>

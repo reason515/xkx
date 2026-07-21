@@ -1152,6 +1152,33 @@ test.describe.serial("game smoke", () => {
       .toMatch(/酒袋/);
   });
 
+  test("扬州当铺可从人物面板选择物品卖出", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await sendSilentCmd(page, "xkxe2e dangpu");
+    await expect(page.locator(".room-title")).toHaveText(/当铺/, {
+      timeout: 20_000,
+    });
+    await sendSilentCmd(page, "xkxe2e givesellitem");
+    await sendSilentCmd(page, "inventory");
+
+    await page.locator(".hero-btn").click();
+    await page.getByRole("button", { name: "行囊" }).click();
+    await expect(page.locator(".panel.on")).toContainText("长剑", {
+      timeout: 15_000,
+    });
+    await page.locator(".sheet .close").click();
+
+    await page.locator(".chip.npc").filter({ hasText: /唐楠/ }).click();
+    await expect(page.getByTestId("entity-sell")).toBeVisible({ timeout: 10_000 });
+    await page.getByTestId("entity-sell").click();
+    await page.getByRole("button", { name: "长剑", exact: true }).click();
+
+    await waitForLogPattern(page, /卖掉了.*长剑/, 15_000);
+  });
+
   test("档案遇险撤退可设置并显示当前值", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, {

@@ -498,6 +498,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           scenery={g.selectedEntity.scenery}
           canApprentice={g.selectedEntity.canApprentice}
           canTrade={g.selectedEntity.canTrade}
+          canSell={g.selectedEntity.canSell}
           canSteal={g.selectedEntity.canSteal}
           isCorpse={g.selectedEntity.isCorpse}
           canLoot={g.selectedEntity.canLoot}

@@ -15,7 +15,7 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | studyrecoverprep | haidaowo | dadong | yingbin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | givemoney | grantskills | grantforce\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | studyrecoverprep | haidaowo | dadong | yingbin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | givemoney | givesellitem | grantskills | grantforce\n");
 
 	if (arg == "dadong") {
 		ob = load_object("/d/xiakedao/dadong");
@@ -180,6 +180,26 @@ int main(object me, string arg)
 		return 1;
 	}
 
+	if (arg == "dangpu") {
+		ob = load_object("/d/city/dangpu");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载扬州当铺。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到扬州当铺。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
+	if (arg == "givesellitem") {
+		ob = new("/clone/weapon/changjian");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法发放出售物品。\n");
+		ob->move(me);
+		tell_object(me, "（测试）你得到一柄长剑，可在当铺出售。\n");
+		return 1;
+	}
+
 	if (arg == "givemoney") {
 		ob = new("/clone/money/silver");
 		if (!objectp(ob))
@@ -319,7 +339,9 @@ int help(object me)
   wound       — 降低气的受伤上限（eff_qi < max_qi）并推送 vitals
   tovoid      — 传送到 VOID（最後乐园）并污染 startroom，供落点救援回归
   zuixianlou  — 传送到扬州醉仙楼（店小二商店）
+  dangpu      — 传送到扬州当铺（出售物品回归）
   givemoney   — 发放二十两白银供购买回归
+  givesellitem — 发放一柄长剑供当铺出售回归
   lowqi       — 将气血降至约 15%（挂机低血撤回回归）
   lowjingli   — 将精力降至可走动阈值以下（挂机赶路调息回归）
   grindprep   — 传送到小海龟刷怪沙滩（shatans2）

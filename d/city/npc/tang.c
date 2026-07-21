@@ -18,6 +18,7 @@ void create()
 	set("long",
 		"据说唐楠是四川唐家的后代。\n");
 	set("no_get_from", 1);
+	set("web/can_sell", 1);
 
 	set("dex", 80);
 	set("str", 80);
