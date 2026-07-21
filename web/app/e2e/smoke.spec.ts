@@ -1832,9 +1832,16 @@ test.describe.serial("game smoke", () => {
     await expect(page.getByTestId("grind-banner")).toBeVisible({
       timeout: 15_000,
     });
-    await expect(page.getByTestId("grind-banner")).toContainText(
-      /前往野羊|开战|交手|挂机/
-    );
+    await expect
+      .poll(
+        async () =>
+          ((await page.getByTestId("grind-banner").textContent()) || "").trim(),
+        { timeout: 20_000 }
+      )
+      .toMatch(/开战|交手/);
+    await sendSilentCmd(page, "xkxe2e lowqi");
+    await expect(page.getByTestId("grind-banner")).toContainText(/撤回休整|前往免费民屋/);
+    await expect(page.locator(".room-title")).toHaveText(/民屋/, { timeout: 20_000 });
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
     await expect(page.getByTestId("grind-banner")).toBeHidden({ timeout: 10_000 });
   });
