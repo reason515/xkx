@@ -1834,6 +1834,7 @@ describe("parseInventory", () => {
   it("uses full multi-word food id or pancake commandId (not bare bing)", () => {
     expect(invCommandTarget("jian bing", "煎饼")).toBe("jian bing");
     expect(invCommandTarget("jian bing", "煎饼", "pancake")).toBe("pancake");
+    expect(invCommandTarget("tu rou", "兔肉")).toBe("tu rou");
     expect(
       groundItemActions("jian bing", "煎饼", false, "pancake").map((a) => a.command)
     ).toEqual(["look pancake", "get pancake", "eat pancake"]);

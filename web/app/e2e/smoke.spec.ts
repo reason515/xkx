@@ -1190,6 +1190,18 @@ test.describe.serial("game smoke", () => {
     await page.getByTestId("buy-changjian").click();
 
     await waitForLogPattern(page, /买下了.*长剑/, 15_000);
+    await page.locator(".sheet .close").click();
+    await sendSilentCmd(page, "xkxe2e givesellrabbit");
+    await sendSilentCmd(page, "inventory");
+
+    await page.locator(".chip.npc").filter({ hasText: /唐楠/ }).click();
+    await page.getByTestId("entity-sell").click();
+    await expect(page.getByRole("button", { name: "兔肉", exact: true })).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.getByRole("button", { name: "兔肉", exact: true }).click();
+    // 当铺按既有规则不收食物；此处确认多词 ID 未被截成无效的 rou。
+    await waitForLogPattern(page, /剩菜剩饭/, 15_000);
   });
 
   test("档案遇险撤退可设置并显示当前值", async ({ page }) => {

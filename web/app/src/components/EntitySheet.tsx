@@ -3,6 +3,7 @@ import {
   buildAskTopicActions,
   buildLearnTopicActions,
   groundItemActions,
+  invCommandTarget,
   mudCommandTarget,
   parseBoardReadActions,
   parseDealerCategories,
@@ -348,7 +349,7 @@ export function EntitySheet({
                       className="help-topic"
                       onClick={() =>
                         runNpcAction(
-                          `give ${askTarget} ${mudCommandTarget(item.id, item.name)}`
+                          `give ${askTarget} ${invCommandTarget(item.id, item.name)}`
                         )
                       }
                     >
@@ -375,7 +376,7 @@ export function EntitySheet({
                       className="help-topic"
                       onClick={() =>
                         runNpcAction(
-                          `sell ${mudCommandTarget(item.id, item.name)}`
+                          `sell ${invCommandTarget(item.id, item.name)}`
                         )
                       }
                     >

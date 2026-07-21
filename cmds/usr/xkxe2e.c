@@ -15,7 +15,7 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | studyrecoverprep | haidaowo | dadong | yingbin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | givemoney | givesellitem | grantskills | grantforce\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | studyrecoverprep | haidaowo | dadong | yingbin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | givemoney | givesellitem | givesellrabbit | grantskills | grantforce\n");
 
 	if (arg == "dadong") {
 		ob = load_object("/d/xiakedao/dadong");
@@ -200,6 +200,15 @@ int main(object me, string arg)
 		return 1;
 	}
 
+	if (arg == "givesellrabbit") {
+		ob = new("/clone/beast/turou");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法发放兔肉。\n");
+		ob->move(me);
+		tell_object(me, "（测试）你得到一块兔肉，供当铺物品识别回归。\n");
+		return 1;
+	}
+
 	if (arg == "givemoney") {
 		ob = new("/clone/money/silver");
 		if (!objectp(ob))
@@ -342,6 +351,7 @@ int help(object me)
   dangpu      — 传送到扬州当铺（出售物品回归）
   givemoney   — 发放二十两白银供购买回归
   givesellitem — 发放一柄长剑供当铺出售回归
+  givesellrabbit — 发放一块兔肉供多词物品 ID 回归
   lowqi       — 将气血降至约 15%（挂机低血撤回回归）
   lowjingli   — 将精力降至可走动阈值以下（挂机赶路调息回归）
   grindprep   — 传送到小海龟刷怪沙滩（shatans2）
