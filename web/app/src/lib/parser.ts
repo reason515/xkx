@@ -1,6 +1,7 @@
 import type {
   EnabledSkill,
   ExitInfo,
+  InvAction,
   InvEquipKind,
   InvItem,
   RoomState,
@@ -2340,6 +2341,16 @@ export function bagItemActions(
     acts.push({ label: "吃", command: `eat ${target}` });
   }
   if (kind === "drink") acts.push({ label: "喝", command: `drink ${target}` });
+
+  // Custom heuristically-detected actions (du/read/open/ride)
+  const custom = it.actions || classifyInvActions(it.id, it.name, it.type);
+  for (const a of custom) {
+    // Avoid duplicates
+    if (!acts.some((x) => x.command === a.command)) {
+      acts.push({ label: a.label, command: a.command });
+    }
+  }
+
   // 椰子需石块砸开（za yezi），不能直接吃
   if (
     (/^yezi$|^ye$/i.test(it.id) || /椰子/.test(it.name)) &&
@@ -2447,7 +2458,54 @@ function invItem(
     equipped: !!opts.equipped,
     embedded: !!opts.embedded,
     equipKind: classifyInvEquip(id, name, type),
+    actions: classifyInvActions(id, name, type),
   };
+}
+
+/**
+ * Heuristic classification of available actions for an inventory item.
+ * Based on item id/name/type patterns observed across the mudlib.
+ */
+export function classifyInvActions(id: string, name: string, type: string): InvAction[] {
+  const blob = `${id} ${name} ${type}`.toLowerCase();
+  const actions: InvAction[] = [];
+
+  // Books / scrolls / letters — can be read or studied.
+  // Do not treat generic tokens such as 令/牌 as readable: many are quest
+  // tokens (for example 赏善令、罚恶令) with no `read` command handler.
+  if (/book|纸|信|经|谱|册|卷|页|图|笺|简|帖|签|簿/i.test(name + id + type)) {
+    actions.push({ label: "阅读", command: `read ${id}`, kind: "read" });
+  }
+  if (/经|谱|秘|典|法|功|决|诀|图|解|录|要|术/i.test(name) || /book|paper|shu|jing/i.test(blob)) {
+    actions.push({ label: "研读", command: `du ${id}`, kind: "read" });
+  }
+
+  // Openable containers
+  if (/盒|箱|包|袋|囊|篓|匣|瓮|罐|瓶|壶|钵/i.test(name) || /box|bag|sack|bottle|jar/i.test(blob)) {
+    actions.push({ label: "打开", command: `open ${id}`, kind: "open" });
+  }
+
+  // Drinkable liquids (already handled by equipKind drink, add explicit)
+  if (/酒|茶|水|汤|汁|露|浆/i.test(name)) {
+    actions.push({ label: "喝", command: `drink ${id}`, kind: "drink" });
+  }
+
+  // Edible food (already handled by equipKind food, add explicit)
+  if (/肉|鱼|鸡|鸭|果|桃|梨|粥|饭|饼|面|饺|菜|豆|瓜|粽|酥|糕/i.test(name)) {
+    actions.push({ label: "吃", command: `eat ${id}`, kind: "eat" });
+  }
+
+  // Rideable
+  if (/马|驴|骆驼|车|船|舟/i.test(name) || /horse|donkey|camel/i.test(blob)) {
+    actions.push({ label: "骑乘", command: `ride ${id}`, kind: "ride" });
+  }
+
+  // Poison / drug — use/discard with care
+  if (/毒|蛊|药|丹|丸|散|膏|粉/i.test(name) && actions.length === 0) {
+    actions.push({ label: "使用", command: `use ${id}`, kind: "use" });
+  }
+
+  return actions;
 }
 
 /**

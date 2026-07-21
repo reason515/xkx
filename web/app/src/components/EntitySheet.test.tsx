@@ -11,23 +11,23 @@ const baseProps = {
 };
 
 describe("EntitySheet NPC actions", () => {
-  it("groups common, social and combat actions with clear labels", () => {
+  it("shows core actions and groups risky actions under 江湖手段", () => {
     const html = renderToStaticMarkup(<EntitySheet {...baseProps} />);
     for (const text of [
-      "常用",
       "查看",
       "打听",
       "请教",
-      "往来",
       "跟随",
       "给予",
-      "交手",
+      "江湖手段",
       "切磋",
       "攻击",
       "停手",
     ]) {
       expect(html).toContain(text);
     }
+    expect(html).not.toContain("常用");
+    expect(html).not.toContain("往来");
     expect(html).not.toContain(">打<");
   });
 

@@ -167,6 +167,14 @@ export interface InvItem {
   embedded?: boolean;
   /** Heuristic for wear / wield / eat / drink */
   equipKind?: InvEquipKind;
+  /** Custom actions available when carrying this item */
+  actions?: InvAction[];
+}
+
+export interface InvAction {
+  label: string;
+  command: string;
+  kind?: "use" | "read" | "eat" | "drink" | "open" | "ride" | "danger" | "other";
 }
 
 export interface AssistConfig {

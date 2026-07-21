@@ -1720,6 +1720,21 @@ describe("parseInventory", () => {
     expect(bagItemActions(items[2])).toEqual([]);
   });
 
+  it("does not offer reading for non-readable quest tokens", () => {
+    const [reward, punishment] = parseInventory(`  赏善令(shangshan ling)
+  罚恶令(fae ling)`);
+    expect(reward.actions).not.toContainEqual({
+      label: "阅读",
+      command: "read shangshan ling",
+      kind: "read",
+    });
+    expect(punishment.actions).not.toContainEqual({
+      label: "阅读",
+      command: "read fae ling",
+      kind: "read",
+    });
+  });
+
   it("classifies wear vs wield by id and name", () => {
     expect(classifyInvEquip("cloth", "布衣")).toBe("armor");
     expect(classifyInvEquip("gangdao", "钢刀")).toBe("weapon");
