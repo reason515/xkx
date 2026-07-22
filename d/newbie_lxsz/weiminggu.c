@@ -274,8 +274,8 @@ void is_full()
 		me = all_inv[i];
 		if(userp(me) && check_questindex(me,"使用look river或者l river命令，根据提示先让自己喝饱吃足。地上的野果也可以捡起来充饥。(get ye guo;eat ye guo)") == 1)
 		{
-			// 吃过（food > 1）即满足条件
-			if (me->query("food") > 1)
+			// 吃到 30% 满腹即可（约 2-3 个野果），不需要撑到 80%
+			if (me->query("food") >= me->max_food_capacity() * 30 / 100)
 			{
 				set_nextquest(me, "使用look river或者l river命令，根据提示先让自己喝饱吃足。地上的野果也可以捡起来充饥。(get ye guo;eat ye guo)", "终于吃饱喝足了，你现在可以去周围探索下，看看有没有能直接出去的出口。", 20, 100);
 			}
