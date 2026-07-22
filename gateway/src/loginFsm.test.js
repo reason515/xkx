@@ -55,7 +55,7 @@ describe("LoginFsm", () => {
     assert.equal(fsm.state, LoginState.CONFIRM_PASSWORD);
   });
 
-  it("accepts gift, email, and gender", () => {
+  it("accepts gender directly after confirm_password (no gift/email)", () => {
     const fsm = new LoginFsm({
       id: "newbie",
       password: "secret1",
@@ -63,14 +63,22 @@ describe("LoginFsm", () => {
       gender: "女",
     });
     fsm.state = LoginState.CONFIRM_PASSWORD;
-    assert.equal(fsm.onOutput("您接受这一组天赋吗？"), "y\n");
-    assert.equal(fsm.state, LoginState.GIFT);
-    assert.equal(fsm.onOutput("您的电子邮件地址："), "newbie@xkx.local\n");
-    assert.equal(fsm.state, LoginState.EMAIL);
     assert.equal(
       fsm.onOutput("您要扮演男性(m)的角色或女性(f)的角色？"),
       "f\n"
     );
+    assert.equal(fsm.state, LoginState.GENDER);
+  });
+
+  it("compatible old flow: accepts gift, email, and gender", () => {
+    const fsm = new LoginFsm({
+      id: "newbie",
+      password: "secret1",
+      name: "张三",
+      gender: "女",
+    });
+    fsm.state = LoginState.CONFIRM_PASSWORD;
+    assert.equal(fsm.onOutput("您接受这一组天赋吗？"), "f\n");
     assert.equal(fsm.state, LoginState.GENDER);
   });
 

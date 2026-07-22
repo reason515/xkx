@@ -1,6 +1,6 @@
 /** Automate mud login prompts for web clients.
  *  Sequence matches adm/daemons/logind.c:
- *  register: BIG5 → id → confirm create → 中文名 → password ×2 → gift → email → gender
+ *  register: BIG5 → id → confirm create → 中文名 → password ×2 → gender
  *  login:    BIG5 → id → password → (optional replace) → in-game
  */
 
@@ -12,8 +12,6 @@ export const LoginState = {
   NAME: "name",
   PASSWORD: "password",
   CONFIRM_PASSWORD: "confirm_password",
-  GIFT: "gift",
-  EMAIL: "email",
   GENDER: "gender",
   CONFIRM_RELOGIN: "confirm_relogin",
   IN_GAME: "in_game",
@@ -26,8 +24,6 @@ const NAME_PROMPT = /中文名字/;
 const LOGIN_PASS_PROMPT = /请输入密码/;
 const NEW_PASS_PROMPT = /请设定您的密码|请重设您的密码|重新设定一次密码/;
 const CONFIRM_PASS_PROMPT = /请再输入一次您的密码/;
-const GIFT_PROMPT = /接受这一组天赋|同意这一组天赋/;
-const EMAIL_PROMPT = /电子邮件地址/;
 const GENDER_PROMPT = /男性\(m\).*女性\(f\)|只能选择男性\(m\)或女性\(f\)/;
 const RELOGIN_PROMPT = /赶出去，取而代之/;
 // enter_world writes「目前权限」before MOTD/look; reconnect uses「重新连线」
@@ -123,22 +119,18 @@ export class LoginFsm {
     }
 
     if (
+      this.state === LoginState.CONFIRM_PASSWORD &&
+      GENDER_PROMPT.test(tail)
+    ) {
+      this.state = LoginState.GENDER;
+      return genderReply(this.credentials.gender);
+    }
+
+    // 兼容旧流程：有天赋确认时自动接受
+    if (
       (this.state === LoginState.CONFIRM_PASSWORD ||
         this.state === LoginState.PASSWORD) &&
-      GIFT_PROMPT.test(tail)
-    ) {
-      this.state = LoginState.GIFT;
-      return "y\n";
-    }
-
-    if (this.state === LoginState.GIFT && EMAIL_PROMPT.test(tail)) {
-      this.state = LoginState.EMAIL;
-      return `${this.email()}\n`;
-    }
-
-    if (
-      (this.state === LoginState.EMAIL || this.state === LoginState.GIFT) &&
-      GENDER_PROMPT.test(tail)
+      /接受这一组天赋|同意这一组天赋/.test(tail)
     ) {
       this.state = LoginState.GENDER;
       return genderReply(this.credentials.gender);

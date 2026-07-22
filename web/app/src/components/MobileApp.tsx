@@ -11,6 +11,8 @@ import { GrindBanner } from "./GrindBanner";
 import { EntitySheet } from "./EntitySheet";
 import { SpeechSheet } from "./SpeechSheet";
 import { GuideTip } from "./GuideTip";
+import { QuestPanel } from "./QuestPanel";
+import { AttributeSheet } from "./AttributeSheet";
 import { inferredShutDoorActions, sceneActionChips, vitalCap } from "../lib/parser";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ExitInfo, LogEntry } from "../lib/types";
@@ -308,6 +310,13 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                 <GuideTip text={g.guideTip.text} onDismiss={g.dismissGuideTip} />
               )}
 
+              {state.newbieQuestIndex && state.newbieQuestIndex > 0 && (
+                <div className="ctx-block">
+                  <h2>新手目标</h2>
+                  <QuestPanel questIndex={state.newbieQuestIndex} />
+                </div>
+              )}
+
               <section className="context">
                 <div className="ctx-block">
                   <div className="ctx-head">
@@ -438,10 +447,14 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
       )}
       {state.sheet === "help" && (
         <HelpSheet
-          docText={state.docText}
-          docLoading={state.docLoading}
+          currentStage={
+            state.newbieQuestIndex && state.newbieQuestIndex > 0
+              ? "newbie_village"
+              : state.attrSelectData
+                ? "graduate"
+                : "yangzhou"
+          }
           onClose={g.closeSheet}
-          onPickTopic={g.onHelpTopic}
           onBackToTopics={g.onBackToHelpTopics}
           onCmd={(command) => g.cmd(command)}
         />
@@ -573,6 +586,17 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             </div>
           </div>
         </div>
+      )}
+      {state.sheet === "attribute" && state.attrSelectData && (
+        <AttributeSheet
+          budget={state.attrSelectData.budget}
+          min={state.attrSelectData.min}
+          max={state.attrSelectData.max}
+          initial={state.attrSelectData.initial}
+          onConfirm={(str, intel, con, dex) =>
+            g.confirmAttribute(str, intel, con, dex)
+          }
+        />
       )}
     </div>
   );

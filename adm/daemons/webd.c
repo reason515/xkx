@@ -8,6 +8,8 @@
 inherit F_DBASE;
 
 void send_room(object me, object env);
+void send_attribute_select(object me);
+void send_quest_status(object me);
 
 /* 房间结构变化（出口/描写）后，通知房内所有 Web 客户端刷新场景。 */
 void notify_room(object env)
@@ -313,6 +315,30 @@ void send_combat_event(object me, string text)
 	emit_raw(me, sprintf(
 		"{\"v\":1,\"type\":\"combat.event\",\"text\":\"%s\"}",
 		json_escape(text || "")
+	));
+}
+
+/* 毕业属性选择：推送可分配点数、范围和当前值。 */
+void send_attribute_select(object me)
+{
+	if (!objectp(me) || !userp(me)) return;
+	emit_raw(me, "{\"v\":1,\"type\":\"newbie.attribute_select\",\"budget\":80,\"min\":10,\"max\":30,\"initial\":{\"str\":20,\"int\":20,\"con\":20,\"dex\":20}}");
+}
+
+/* 新手村任务状态推送 */
+void send_quest_status(object me)
+{
+	int index;
+	
+	if (!objectp(me) || !userp(me)) return;
+	if (!me->query_temp("web_client")) return;
+	
+	index = me->query("newbie_village/quest_index");
+	if (index < 1) return;
+	
+	emit_raw(me, sprintf(
+		"{\"v\":1,\"type\":\"newbie.quest_status\",\"index\":%d}",
+		index
 	));
 }
 

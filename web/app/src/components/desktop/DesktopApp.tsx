@@ -140,10 +140,7 @@ function DesktopShell({
       )}
       {state.sheet === "help" && (
         <HelpSheet
-          docText={state.docText}
-          docLoading={state.docLoading}
           onClose={g.closeSheet}
-          onPickTopic={g.onHelpTopic}
           onBackToTopics={g.onBackToHelpTopics}
           onCmd={(command) => g.cmd(command)}
         />

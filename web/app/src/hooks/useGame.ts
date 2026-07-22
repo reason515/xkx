@@ -94,6 +94,8 @@ const initialState = (): GameState => ({
   trainLog: [],
   assistActive: false,
   assistStatus: "",
+  attrSelectData: undefined,
+  newbieQuestIndex: undefined,
   sheet: null,
   docText: "",
   docLoading: false,
@@ -462,6 +464,42 @@ export function useGame(opts?: UseGameOptions) {
       }
       if (msg.type === "event" && msg.event) {
         const ev = msg.event as MudEvent;
+
+        // 毕业属性选择
+        if (ev.type === "newbie.attribute_select") {
+          const ad = ev as Record<string, unknown>;
+          setState((s) => ({
+            ...s,
+            attrSelectData: {
+              budget: (ad.budget as number) || 80,
+              min: (ad.min as number) || 10,
+              max: (ad.max as number) || 30,
+              initial: (ad.initial as {
+                str: number;
+                int: number;
+                con: number;
+                dex: number;
+              }) || { str: 20, int: 20, con: 20, dex: 20 },
+            },
+            sheet: "attribute",
+          }));
+          return;
+        }
+
+        // 毕业属性确认
+        if (ev.type === "newbie.attribute_confirmed") {
+          setState((s) => ({ ...s, attrSelectData: undefined, sheet: null }));
+          return;
+        }
+
+        // 新手村任务进度
+        if (ev.type === "newbie.quest_status") {
+          const qs = ev as Record<string, unknown>;
+          const idx = Number(qs.index) || 0;
+          setState((s) => ({ ...s, newbieQuestIndex: idx }));
+          return;
+        }
+
         // look 方向预览邻房时勿把邻房当成当前场景（旧 LPC 仍可能误发）
         if (
           ev.type === "room.update" &&
@@ -1149,6 +1187,13 @@ export function useGame(opts?: UseGameOptions) {
     cmd("halt");
   }, [cmd]);
 
+  const confirmAttribute = useCallback(
+    (str: number, int: number, con: number, dex: number) => {
+      cmd(`newbieattr str ${str} int ${int} con ${con} dex ${dex}`);
+    },
+    [cmd]
+  );
+
   return {
     state,
     toast,
@@ -1176,6 +1221,7 @@ export function useGame(opts?: UseGameOptions) {
     startAssist,
     stopAssist,
     halt,
+    confirmAttribute,
     showToast,
     refreshCharacter,
     setWimpy,

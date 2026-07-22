@@ -215,6 +215,7 @@ export type SheetKind =
   | "speech"
   | "entity"
   | "exit"
+  | "attribute"
   | null;
 
 /** Where long-form MUD text (help / board / exit look) is being captured. */
@@ -250,6 +251,15 @@ export interface GameState {
   trainLog: string[];
   assistActive: boolean;
   assistStatus: string;
+  /** 毕业属性选择事件数据 */
+  attrSelectData?: {
+    budget: number;
+    min: number;
+    max: number;
+    initial: { str: number; int: number; con: number; dex: number };
+  };
+  /** 新手村任务进度索引（1-based） */
+  newbieQuestIndex?: number;
   sheet: SheetKind;
   /** Captured long text for 帮助 / 告示牌面板（不进见闻）。 */
   docText: string;
