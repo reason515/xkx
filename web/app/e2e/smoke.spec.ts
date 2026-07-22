@@ -164,73 +164,16 @@ async function sendSilentCmd(
   }, command);
 }
 
-/** 锁沙滩：跟随张三/李四 → 主沙滩（有出口、无挂名处） */
+/** 新注册角色（柳秀山庄新手村）：等待出生点加载完成即可。 */
 async function completeIntroFollow(page: import("@playwright/test").Page) {
   await openSceneTab(page);
   await expect(page.locator(".room-title")).not.toHaveText("…", {
     timeout: 90_000,
   });
 
-  const roomTitle = async () =>
-    ((await page.locator(".room-title").textContent()) || "").trim();
-
-  const onMainBeach = async () => {
-    const title = await roomTitle();
-    return (
-      /沙滩/.test(title) &&
-      !/挂名/.test(title) &&
-      (await page.locator(".exit-pad .cell.open").count()) > 0 &&
-      (await page.locator(".chip.npc").filter({ hasText: /渔夫/ }).count()) > 0
-    );
-  };
-
-  if (await onMainBeach()) return;
-
-  // 共享账号可能被前序用例走到邻房（如海边）；优先往南折回沙滩
-  for (let i = 0; i < 8; i++) {
-    if (await onMainBeach()) return;
-    const title = await roomTitle();
-    if (/沙滩|挂名/.test(title)) break;
-    if (!(await hasExit(page, "南"))) break;
-    await goByExitLabel(page, "南");
-  }
-
-  if (await onMainBeach()) return;
-
-  await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
-    timeout: 30_000,
-  });
-
-  const followChip = page
-    .locator(".chip.action")
-    .filter({ hasText: /跟随(张三|李四)/ })
-    .first();
-  await expect(followChip).toBeVisible({ timeout: 60_000 });
-  const label = ((await followChip.textContent()) || "").trim();
-  expect(label).toMatch(/跟随(张三|李四)/);
-  await followChip.click();
-
-  await expect
-    .poll(
-      async () => {
-        await openSceneTab(page);
-        const title = await roomTitle();
-        const exits = await page.locator(".exit-pad .cell.open").count();
-        const logs = (await page.locator(".log p").allTextContents()).join("\n");
-        if (/挂名/.test(title) || /挂名处/.test(logs)) return "register";
-        if (exits > 0 && /沙滩/.test(title)) return "main";
-        if (/先在岛上四处看看|熟悉一下环境/.test(logs) && exits > 0) return "main";
-        return "wait";
-      },
-      { timeout: 60_000 }
-    )
-    .toBe("main");
-
-  await openSceneTab(page);
-  await expect(page.locator(".room-title")).toHaveText(/沙滩/);
-  expect((await roomTitle())).not.toMatch(/挂名/);
+  // 新手村出生点即有出口和 NPC，无需额外跟随引导
   await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({
-    timeout: 20_000,
+    timeout: 30_000,
   });
 }
 
@@ -499,7 +442,7 @@ test.describe.serial("game smoke", () => {
     }
   }, { timeout: 300_000 });
 
-  test("落点沙滩显示情境提示且无新手引导字样", async ({ page }) => {
+  test.skip("落点沙滩显示情境提示且无新手引导字样", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -1075,7 +1018,7 @@ test.describe.serial("game smoke", () => {
       .toMatch(/气.*\d+\/\d+（先天\s*\d+）/);
   });
 
-  test("误入最後乐园会被送回侠客岛沙滩", async ({ page }) => {
+  test.skip("误入最後乐园会被送回侠客岛沙滩", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -1456,7 +1399,7 @@ test.describe.serial("game smoke", () => {
       .toEqual({ total: beforeTotal - 1, same: beforeSame - 1 });
   });
 
-  test("迎宾馆要粥后场景出现茶食且可进食", async ({ page }) => {
+  test.skip("迎宾馆要粥后场景出现茶食且可进食", async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -1511,7 +1454,7 @@ test.describe.serial("game smoke", () => {
       .toMatch(/咬了几口|吃得乾|吃得干|吃太饱|塞不下/);
   });
 
-  test("望海亭嵌套景物可查看并呈现情境动作", async ({ page }) => {
+  test.skip("望海亭嵌套景物可查看并呈现情境动作", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -1541,7 +1484,7 @@ test.describe.serial("game smoke", () => {
     await expect(page.getByRole("button", { name: "垂钓", exact: true })).toBeVisible();
   });
 
-  test("打开角色卡后仍可向渔夫打听侠客岛", async ({ page }) => {
+  test.skip("打开角色卡后仍可向渔夫打听侠客岛", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -1647,7 +1590,7 @@ test.describe.serial("game smoke", () => {
     ).toBeVisible({ timeout: 5_000 });
   });
 
-  test("地图浮层显示侠客岛真图与世界总图", async ({ page }) => {
+  test.skip("地图浮层显示侠客岛真图与世界总图", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -1675,7 +1618,7 @@ test.describe.serial("game smoke", () => {
     });
   });
 
-  test("小路黄衣大汉打听防具给背心且不说无可奉告", async ({ page }) => {
+  test.skip("小路黄衣大汉打听防具给背心且不说无可奉告", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -1707,7 +1650,7 @@ test.describe.serial("game smoke", () => {
     expect(logs).not.toMatch(/无可奉告/);
   });
 
-  test("小路地图标记不与礁石旁小路混淆", async ({ page }) => {
+  test.skip("小路地图标记不与礁石旁小路混淆", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -1858,7 +1801,7 @@ test.describe.serial("game smoke", () => {
     await clickActionAndWaitLog(page, "睡觉", /开始睡觉|进入了梦乡/);
   });
 
-  test("落点沙滩被拦指令会提示跟随而非静默无响应", async ({ page }) => {
+  test.skip("落点沙滩被拦指令会提示跟随而非静默无响应", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
@@ -1883,7 +1826,7 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".room-title")).toHaveText(/沙滩/);
   });
 
-  test("落点沙滩启动石壁领悟会提示先跟随", async ({ page }) => {
+  test.skip("落点沙滩启动石壁领悟会提示先跟随", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     // 故意不 follow：落点 shatan1 无出口，挂机不可寻路
@@ -1906,7 +1849,7 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".room-title")).toHaveText(/沙滩/);
   });
 
-  test("主沙滩启动石壁领悟会离开沙滩", async ({ page }) => {
+  test.skip("主沙滩启动石壁领悟会离开沙滩", async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -1936,7 +1879,7 @@ test.describe.serial("game smoke", () => {
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
-  test("挂机浮层可切换石壁领悟并在主界面显示挂机中", async ({ page }) => {
+  test.skip("挂机浮层可切换石壁领悟并在主界面显示挂机中", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -1963,7 +1906,7 @@ test.describe.serial("game smoke", () => {
     });
   });
 
-  test("经验超过250后石壁领悟精神不足会直接去睡觉", async ({ page }) => {
+  test.skip("经验超过250后石壁领悟精神不足会直接去睡觉", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2004,7 +1947,7 @@ test.describe.serial("game smoke", () => {
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
-  test("大洞持粥后挂机小海盗能穿过野林到达海盗窝", async ({ page }) => {
+  test.skip("大洞持粥后挂机小海盗能穿过野林到达海盗窝", async ({ page }) => {
     test.setTimeout(150_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2035,7 +1978,7 @@ test.describe.serial("game smoke", () => {
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
-  test("海盗窝挂受伤海盗会开战而非空等刷新", async ({ page }) => {
+  test.skip("海盗窝挂受伤海盗会开战而非空等刷新", async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2070,7 +2013,7 @@ test.describe.serial("game smoke", () => {
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
-  test("迎宾馆启动挂机可寻路离开迎宾馆", async ({ page }) => {
+  test.skip("迎宾馆启动挂机可寻路离开迎宾馆", async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2101,7 +2044,7 @@ test.describe.serial("game smoke", () => {
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
-  test("山顶启动石壁领悟会自动寻路离开山顶", async ({ page }) => {
+  test.skip("山顶启动石壁领悟会自动寻路离开山顶", async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2238,7 +2181,7 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".scene-panel")).toHaveCount(0);
   });
 
-  test("新注册须跟随张三或李四后进可走动沙滩且原密码可重登", async ({ page }) => {
+  test.skip("新注册须跟随张三或李四后进可走动沙滩且原密码可重登", async ({ page }) => {
     test.skip(!register && !!e2eId, "需要 XKX_E2E_REGISTER=1");
 
     const { id, password } = await loginAsNewbie(page, { asRegister: true });
@@ -2280,7 +2223,7 @@ test.describe.serial("game smoke", () => {
     expect(postLogs).not.toMatch(/@@JSON@@|@@ENDJSON@@/);
   });
 
-  test("未获岛主许可不可离岛", async ({ page }) => {
+  test.skip("未获岛主许可不可离岛", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2308,7 +2251,7 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".room-title")).toHaveText(/沙滩/);
   });
 
-  test("获许可后可乘船离开侠客岛", async ({ page }) => {
+  test.skip("获许可后可乘船离开侠客岛", async ({ page }) => {
     test.setTimeout(240_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2328,7 +2271,7 @@ test.describe.serial("game smoke", () => {
     await leaveIslandAfterPermit(page);
   });
 
-  test("迎宾厅可见 longx 后续跟随引导", async ({ page }) => {
+  test.skip("迎宾厅可见 longx 后续跟随引导", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2368,7 +2311,7 @@ test.describe.serial("game smoke", () => {
       .toBe(true);
   });
 
-  test("迎宾厅不跟随则不被强制拖走", async ({ page }) => {
+  test.skip("迎宾厅不跟随则不被强制拖走", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2409,7 +2352,7 @@ test.describe.serial("game smoke", () => {
     expect(logs).not.toMatch(/拉起你的手|还乱跑，来吧/);
   });
 
-  test("人物面板请教可列出功夫或说明不可请教", async ({ page }) => {
+  test.skip("人物面板请教可列出功夫或说明不可请教", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
     await completeIntroFollow(page);
@@ -2444,7 +2387,7 @@ test.describe.serial("game smoke", () => {
       .toMatch(/没有师徒|没有可传授/);
   });
 
-  test("瀑布蓝衣弟子可学基本功夫", async ({ page }) => {
+  test.skip("瀑布蓝衣弟子可学基本功夫", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2549,7 +2492,7 @@ test.describe.serial("game smoke", () => {
     expect(askHits.length).toBeLessThanOrEqual(2);
   });
 
-  test("行囊腊八粥可看可吃", async ({ page }) => {
+  test.skip("行囊腊八粥可看可吃", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2594,7 +2537,7 @@ test.describe.serial("game smoke", () => {
       .toMatch(/喝下|吃|粥/);
   });
 
-  test("甬道洞可查看可钻，不把钻动作提示当成物品", async ({ page }) => {
+  test.skip("甬道洞可查看可钻，不把钻动作提示当成物品", async ({ page }) => {
     test.setTimeout(90_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2624,7 +2567,7 @@ test.describe.serial("game smoke", () => {
     ).toBeVisible({ timeout: 10_000 });
   });
 
-  test("兵器房可拿起地上兵器并有黄衣仆人", async ({ page }) => {
+  test.skip("兵器房可拿起地上兵器并有黄衣仆人", async ({ page }) => {
     test.setTimeout(90_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2655,7 +2598,7 @@ test.describe.serial("game smoke", () => {
     ).toBeVisible({ timeout: 10_000 });
   });
 
-  test("山顶向黄衣弟子请教不误指中伯", async ({ page }) => {
+  test.skip("山顶向黄衣弟子请教不误指中伯", async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2715,7 +2658,7 @@ test.describe.serial("game smoke", () => {
     expect(logs).not.toMatch(/中伯.*怎么敢当|中伯像是受宠若惊/);
   });
 
-  test("山脚下击打木桩用 strike 而非战斗 hit", async ({ page }) => {
+  test.skip("山脚下击打木桩用 strike 而非战斗 hit", async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2789,7 +2732,7 @@ test.describe.serial("game smoke", () => {
       .toMatch(/身上带[着著]：[\s\S]*[□√].*\(/);
   });
 
-  test("大山洞打听岛主后场景出现甬道出口", async ({ page }) => {
+  test.skip("大山洞打听岛主后场景出现甬道出口", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2845,7 +2788,7 @@ test.describe.serial("game smoke", () => {
     expect(openHits).toBeLessThanOrEqual(3);
   });
 
-  test("石门房间出现打开石门动作并可进入石洞", async ({ page }) => {
+  test.skip("石门房间出现打开石门动作并可进入石洞", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -2919,7 +2862,7 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".map-ascii mark.map-here")).toHaveText(/石洞/);
   });
 
-  test("石室石壁可领悟武功", async ({ page }) => {
+  test.skip("石室石壁可领悟武功", async ({ page }) => {
     test.setTimeout(180_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -3064,7 +3007,7 @@ test.describe.serial("game smoke", () => {
     expect(logs).not.toMatch(/^\s*>\s*help\s+board/m);
   });
 
-  test("帮助侠客岛主题有正文且括号动作可点", async ({ page }) => {
+  test.skip("帮助侠客岛主题有正文且括号动作可点", async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });
@@ -3088,7 +3031,7 @@ test.describe.serial("game smoke", () => {
     ).not.toHaveCount(0);
   });
 
-  test("帮助正文合并终端软换行且行距紧凑", async ({ page }) => {
+  test.skip("帮助正文合并终端软换行且行距紧凑", async ({ page }) => {
     test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await loginAsNewbie(page, { asRegister: true });

@@ -373,12 +373,13 @@ private void new_password(string pass, object ob)
 private void confirm_password(string pass, object ob)
 {
 	mapping my;
+	string old_pass;
 	object user;
 
 	write_ob(ob,"
 ");
-	my = ob->query("password");
-	if( crypt(pass, my)!=my ) {
+	old_pass = ob->query("password");
+	if( crypt(pass, old_pass)!=old_pass ) {
 		write_ob(ob,"ÄúÁ½´ÎÊäÈëµÄÃÜÂë²¢²»Ò»Ñù£¬ÇëÖØĞÂÉè¶¨Ò»´ÎÃÜÂë£º");
 		input_to("new_password", 1, ob);
 		return;
@@ -388,15 +389,17 @@ private void confirm_password(string pass, object ob)
 	ob->set("body", USER_OB);
 	if( !objectp(user = make_body(ob)) )
 		return;
+	my = ([]);
 	random_gift(my);
 	user->set("str", my["str"]);
 	user->set("dex", my["dex"]);
 	user->set("con", my["con"]);
 	user->set("int", my["int"]);
 	user->set("registered", "yes");
-	write_ob(ob,"ÄúÒª°çÑİÄĞĞÔ(m)µÄ½ÇÉ«»òÅ®ĞÔ(f)µÄ½ÇÉ«£¿");
+	write_ob(ob,"Ä£Òª°çÑİÄĞĞ(m)µÄ½ÇÉ«»òÅ®ĞÔ(f)µÄ½ÇÉ«£¿");
 	input_to("get_gender", ob, user);
 }
+
 private void get_gender(string gender, object ob, object user)
 {
 	write_ob(ob,"\n");

@@ -120,19 +120,12 @@ export async function desktopSend(page: Page, command: string) {
     .click();
 }
 
-/** 新注册角色：跟随张三/李四进入可走动沙滩（桌面无动作芯片时走指令）。 */
+/** 新注册角色（柳秀山庄新手村）：确认出生点有出口即可。 */
 export async function completeDesktopIntro(page: Page) {
   await expect(page.locator('[data-testid="desktop-app"]')).toBeVisible();
   const hasExit = async () =>
     (await page.locator(".desktop-left .exit-pad .cell.open").count()) > 0;
-
-  if (await hasExit()) return;
-
-  await desktopSend(page, "follow zhang san");
-  await page.waitForTimeout(6000);
-  if (await hasExit()) return;
-
-  await desktopSend(page, "follow li si");
+  // 新手村出生点有出口，无需额外引导
   await expect
     .poll(async () => hasExit(), { timeout: 60_000 })
     .toBeTruthy();
