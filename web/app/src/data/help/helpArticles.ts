@@ -211,7 +211,181 @@ export const HELP_ARTICLES: HelpArticle[] = [
     actions: [],
     status: "published",
   },
-];
+
+  // ═══ 基础玩法 ═══
+  {
+    id: "basic-move",
+    title: "移动与探索",
+    summary: "如何在地图间行走、观察周围环境。",
+    category: "basic",
+    stage: "yangzhou",
+    body: `<p><strong>方向移动：</strong>点击屏幕上的出口按钮即可前往相邻房间。常用方向：north（北）、south（南）、east（东）、west（西）、up（上）、down（下）、enter（进）、out（出）。</p>
+<p><strong>观察：</strong>进入新场景时会自动显示场景描述。点击出口按钮可以远眺邻房。</p>
+<p><strong>localmaps：</strong>查看当前区域的小地图。</p>
+<p><strong>保存位置：</strong>在安全房间使用 save 指令或菜单保存进度。死亡后会在扬州武庙复活。</p>`,
+    related: ["yangzhou-basic"],
+    actions: [{ label: "查看地图", command: "localmaps" }],
+    status: "published",
+  },
+  {
+    id: "basic-hp",
+    title: "状态与恢复",
+    summary: "气血、精神、内力、精力的含义与恢复方法。",
+    category: "basic",
+    stage: "yangzhou",
+    body: `<p>你的状态在顶部以彩色条显示：</p>
+<p><strong>气血（红条）：</strong>生命值。战斗中被攻击会减少。降到 0 会昏迷甚至死亡。气血上限受根骨、内力和年龄影响。可以使用 exert/yun recover 消耗内力恢复气血。受伤时用 exert/yun heal 疗伤。</p>
+<p><strong>精神（蓝条）：</strong>学习和读书消耗精神。可以用 exert/yun regenerate 恢复精神。</p>
+<p><strong>内力：</strong>通过打坐（dazuo）将气血转化为内力。内力可用于恢复、加力和施展武功。上限受内功等级和根骨影响。</p>
+<p><strong>精力：</strong>通过吐纳（tuna）将精神转化为精力。精力影响精神和某些技能效果。</p>
+<p><strong>食物 / 饮水：</strong>两项中任一项降到 0 时，气血和精神不会自然恢复。去酒楼吃饭或在井边 fill 容器装水。</p>`,
+    related: ["basic-move", "graduate-attribute"],
+    actions: [],
+    status: "published",
+  },
+  {
+    id: "basic-combat",
+    title: "战斗详解",
+    summary: "切磋、击杀、逃跑与死亡惩罚。",
+    category: "combat",
+    stage: "yangzhou",
+    body: `<p><strong>切磋（fight）：</strong>与 NPC 或玩家进行友好比武。双方气血降至 50% 时自动停止。不会致死。</p>
+<p><strong>击杀（kill）：</strong>生死搏斗，直到一方死亡才会停止。新手慎用。</p>
+<p><strong>停止（halt）：</strong>随时可以停止战斗。</p>
+<p><strong>逃跑设定（wimpy）：</strong>在角色面板设定撤退阈值。当气血低于该比例时会自动尝试逃跑。</p>
+<p><strong>死亡惩罚：</strong>真死会损失约 2% 经验和部分潜能，所有技能降低 1 级。14 岁以下新手保护期无损失。</p>
+<p><strong>死亡后：</strong>在鬼门关停留一段时间后，会被送回扬州武庙。</p>`,
+    related: ["basic-hp", "skill-intro"],
+    actions: [{ label: "设定逃跑", command: "set wimpy 50" }],
+    status: "published",
+  },
+  {
+    id: "skill-intro",
+    title: "武功体系",
+    summary: "学习、练习、激发、准备——武功提升之路。",
+    category: "skill",
+    stage: "yangzhou",
+    body: `<p>武功分为基本功夫（如基本内功、基本剑法）和特殊功夫（如太极拳、独孤九剑）。特殊功夫需要激发（jifa）到相应的基本功上才能在战斗中发挥作用。</p>
+<p><strong>学习（xue）：</strong>向师傅学习武功。消耗精神和潜能。学习前需要先拜师（bai）。</p>
+<p><strong>练习（lian）：</strong>反复练习已学会的特殊功夫，提高等级。不消耗潜能，但需要对应的基本功夫达到一定等级。</p>
+<p><strong>读书：</strong>很多武功可以通过阅读秘籍学习。在行囊中点击书籍选择「阅读」。</p>
+<p><strong>激发（jifa）：</strong>将特殊武功激发到基本功上。例如 jifa force taiji-shengong 将特殊内功激发的内力上。</p>
+<p><strong>准备（bei）：</strong>空手功夫需要准备后才能使用。可以同时准备两种空手功夫，每回合出两招。</p>
+<p><strong>绝招（perform）：</strong>特殊武功的强力招式。在角色面板的武功详情中查看可用的绝招。</p>`,
+    related: ["basic-combat", "basic-hp"],
+    actions: [],
+    status: "published",
+  },
+  {
+    id: "skill-force",
+    title: "内功详解",
+    summary: "内力、打坐、吐纳与运功。",
+    category: "skill",
+    stage: "yangzhou",
+    body: `<p>内功是一切武学的根基。学好内功能大幅提升你的生存和战斗能力。</p>
+<p><strong>打坐（dazuo）：</strong>将气血转化为内力。需要激发特殊内功后才能使用。上限受内功等级和根骨影响。</p>
+<p><strong>吐纳（tuna）：</strong>将精神转化为精力。同样需要激发特殊内功。</p>
+<p><strong>运功（exert/yun）：</strong>使用内力实现各种效果：</p>
+<p>· recover：消耗内力恢复气血</p>
+<p>· regenerate：消耗内力恢复精神</p>
+<p>· heal：消耗内力治疗伤势（气血上限伤害）</p>
+<p>· lifeheal：消耗大量内力深度治疗</p>
+<p>· powerup：消耗内力临时提升攻击力（部分内功支持）</p>
+<p><strong>加力（jiali）：</strong>战斗中额外消耗内力增加伤害。在角色面板设置加力值。</p>`,
+    related: ["skill-intro", "basic-hp"],
+    actions: [{ label: "打坐", command: "dazuo" }],
+    status: "published",
+  },
+  {
+    id: "basic-economy",
+    title: "赚钱与交易",
+    summary: "如何在江湖中赚取和保存金钱。",
+    category: "economy",
+    stage: "yangzhou",
+    body: `<p><strong>赚钱方法：</strong></p>
+<p>· 做任务：大部分任务奖励金钱</p>
+<p>· 卖物品：在当铺（pawn）出售不需要的装备和物品</p>
+<p>· 捡取出售：路上掉落的物品可以捡起卖到当铺</p>
+<p>· 向老玩家求助：很多玩家乐意帮助新人</p>
+<p><strong>钱庄：</strong>扬州中心附近有钱庄。存款（deposit）安全保管金钱，死亡不会全部丢失。取款（withdraw）随时可用。各城市钱庄联网。</p>
+<p><strong>购买物品：</strong>在店铺前使用 list 查看商品，buy 购买。武器店、药铺、酒肆等遍布扬州。</p>`,
+    related: ["yangzhou-basic"],
+    actions: [],
+    status: "published",
+  },
+  {
+    id: "basic-social",
+    title: "社交与交流",
+    summary: "聊天、组队、留言板。",
+    category: "basic",
+    stage: "yangzhou",
+    body: `<p>MUD 是一个多人在线世界，交流是重要的组成部分！</p>
+<p><strong>公共聊天（chat）：</strong>发送的消息会被全服玩家看到。在输入框输入 chat 消息即可。</p>
+<p><strong>私聊（tell）：</strong>与指定玩家私下交流。格式：tell id 消息</p>
+<p><strong>回复（reply）：</strong>回复最近 tell 你的人。</p>
+<p><strong>耳语（whisper）：</strong>与同一房间的人秘密说话。</p>
+<p><strong>表情（semote）：</strong>使用 chat* 表情 或直接输入 表情 来表演动作。</p>
+<p><strong>留言板：</strong>在武庙和客店有留言板，可以阅读和留言。板上的文章会进入文选（wenxuan）。</p>`,
+    related: ["yangzhou-basic"],
+    actions: [],
+    status: "published",
+  },
+  {
+    id: "basic-move",
+    title: "移动与探索",
+    summary: "如何在地图间行走、观察周围环境。",
+    category: "basic",
+    stage: "yangzhou",
+    body: "方向移动：点击出口按钮前往相邻房间。north（北）、south（南）、east（东）、west（西）。保存位置：在安全房间使用 save 或菜单保存进度。",
+    related: ["yangzhou-basic"],
+    actions: [],
+    status: "published",
+  },
+  {
+    id: "basic-hp",
+    title: "状态与恢复",
+    summary: "气血、精神、内力、精力的含义。",
+    category: "basic",
+    stage: "yangzhou",
+    body: "气血：生命值。可用 exert recover 恢复，exert heal 疗伤。内力：打坐（dazuo）将气血转化而来。食物/饮水：任一为零时不会自然恢复。",
+    related: ["basic-move"],
+    actions: [{ label: "打坐", command: "dazuo" }],
+    status: "published",
+  },
+  {
+    id: "basic-combat",
+    title: "战斗详解",
+    summary: "切磋、击杀、逃跑与死亡。",
+    category: "combat",
+    stage: "yangzhou",
+    body: "切磋（fight）：友好比武，气血 50% 时自动停止。击杀（kill）：生死搏斗。逃跑（wimpy）：角色面板设定阈值。死亡：损失少量经验，14 岁以下无损失。",
+    related: ["basic-hp"],
+    actions: [],
+    status: "published",
+  },
+  {
+    id: "skill-intro",
+    title: "武功体系",
+    summary: "拜师、学习、激发、练习。",
+    category: "skill",
+    stage: "yangzhou",
+    body: "拜师（bai）：找 NPC 拜师。学习（xue）：向师傅学习，消耗精神潜能。激发（jifa）：将特殊武功激发到基本功。准备（bei）：空手功夫需要准备才能使用。练习（lian）：反复练习提高等级。",
+    related: ["basic-combat"],
+    actions: [],
+    status: "published",
+  },
+  {
+    id: "basic-economy",
+    title: "赚钱与交易",
+    summary: "赚钱、钱庄、购物。",
+    category: "economy",
+    stage: "yangzhou",
+    body: "赚钱：做任务、卖装备到当铺。钱庄：存款安全保管金钱。购物：用 list 查看商品，buy 购买。",
+    related: ["yangzhou-basic"],
+    actions: [],
+    status: "published",
+  },
+]
 
 export const HELP_INDEX: Record<string, HelpArticle> = {};
 for (const article of HELP_ARTICLES) {
