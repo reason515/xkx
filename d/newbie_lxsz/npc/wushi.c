@@ -65,6 +65,8 @@ void create()
 	set("long",
 		"他是柳秀山庄的武师。\n");
 
+	set("family/family_name", "柳秀山庄");
+
 	set("str", 30);
 	set("int", 30);
 	set("con", 30);

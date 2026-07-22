@@ -14,7 +14,7 @@ void create()
     set("short", "女浴室");
     set("long", 
 "这里是女子浴室，浴室很开阔，浴桶"+YEL"(yutong)"NOR+"一字排开，摆了
-十余具，底下还有可以加热生火的小灶。看来山庄的女仆都在此处洗浴。\n"
+十余具，底下还有可以加热生火的小灶。你可以在这里洗浴"+HBBLU"(bath)"NOR+"。\n"
 );
 
     set("indoors","liuxiu-shanzhuang");

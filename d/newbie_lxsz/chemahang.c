@@ -10,7 +10,7 @@ int do_gu();
 void create()
 {
     set("short", "车马行");
-    set("long", "这里是一家马车行，挂着一个招牌"+YEL"(paizi)"NOR+"，店里的马车停得满满当当的。\n");
+    set("long", "这里是一家马车行，挂着一个招牌"+YEL"(paizi)"NOR+"，店里的马车停得满满当当的。\n如果你准备好了，就可以雇车"+HBBLU"(gu yangzhou)"NOR+"离开这里了。\n");
 
     set("outdoors","liuxiu-shanzhuang");
 

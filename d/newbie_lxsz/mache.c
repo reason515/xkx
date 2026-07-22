@@ -14,7 +14,7 @@ void arrive_yz(object);
 void create()
 {
     set("short", "马车");
-    set("long", "这是一架普通的马车，去往(qu)扬州。你也可以下(xia)车。车窗的旁边有一行细细的字(zi)。\n");
+    set("long", "这是一架普通的马车，你可以乘车(qu yangzhou)去扬州，也可以下(xia)车。车窗的旁边有一行细细的字(zi)。\n");
 
     set("indoors","liuxiu-shanzhuang");
 
