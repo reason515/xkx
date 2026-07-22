@@ -423,16 +423,11 @@ test("勾选记住账号后刷新可回填", async ({ page }) => {
   await expect(page.getByLabel("记住账号和密码")).not.toBeChecked();
 });
 
-
-// ============================================================
-// 柳秀山庄新手村 e2e 测试
-// ============================================================
-
-test.describe.serial("newbie village", () => {
+test.describe.serial("game smoke", () => {
   test.describe.configure({ timeout: 300_000 });
 
-  let sharedId = "";
-  let sharedPassword = "Test1234";
+  let sharedId = e2eId || "";
+  let sharedPassword = e2ePassword || "Test1234";
 
   test.beforeAll(async ({ browser }) => {
     if (e2eId && e2ePassword) return;
@@ -447,63 +442,15 @@ test.describe.serial("newbie village", () => {
     }
   }, { timeout: 300_000 });
 
-  test("出生点在未明谷", async ({ page }) => {
-    await loginAsNewbie(page, { asRegister: true, id: sharedId, password: sharedPassword });
+  test.skip("落点沙滩显示情境提示且无新手引导字样", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+
     await openSceneTab(page);
-    await expect(page.locator(".room-title")).not.toHaveText("...", { timeout: 60_000 });
-    await expect(page.locator(".room-title")).toHaveText(/未明谷/, { timeout: 30_000 });
-  });
-
-  test("出生点有出口和 NPC", async ({ page }) => {
-    await loginAsNewbie(page, { asRegister: true, id: sharedId, password: sharedPassword });
-    await openSceneTab(page);
-    await expect(page.locator(".room-title")).not.toHaveText("...", { timeout: 60_000 });
-    await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({ timeout: 30_000 });
-    await expect(page.locator(".chip.npc").first()).toBeVisible({ timeout: 15_000 });
-  });
-
-  test("新手任务面板显示当前目标", async ({ page }) => {
-    await loginAsNewbie(page, { asRegister: true, id: sharedId, password: sharedPassword });
-    await openSceneTab(page);
-    await expect(page.locator(".room-title")).not.toHaveText("...", { timeout: 60_000 });
-    await expect(page.locator(".newbie-quest-panel")).toBeVisible({ timeout: 30_000 });
-    await expect(page.locator(".quest-target")).toBeVisible();
-  });
-
-  test("可向四个方向移动", async ({ page }) => {
-    await loginAsNewbie(page, { asRegister: true, id: sharedId, password: sharedPassword });
-    await openSceneTab(page);
-    await expect(page.locator(".room-title")).not.toHaveText("...", { timeout: 60_000 });
-    const exits = page.locator(".exit-pad .cell.open");
-    await expect(exits.first()).toBeVisible({ timeout: 30_000 });
-    const count = await exits.count();
-    expect(count).toBeGreaterThanOrEqual(3);
-    // 向 west 移动
-    await exits.filter({ hasText: /西|west/i }).first().click();
-    await page.waitForTimeout(3000);
-    await expect(page.locator(".room-title")).not.toHaveText("...");
-  });
-
-  test("有地上物品可以拾取查看看", async ({ page }) => {
-    await loginAsNewbie(page, { asRegister: true, id: sharedId, password: sharedPassword });
-    await openSceneTab(page);
-    await expect(page.locator(".room-title")).not.toHaveText("...", { timeout: 60_000 });
-    const items = page.locator(".chip.item");
-    if (await items.count() > 0) {
-      await items.first().click();
-      await expect(page.locator(".overlay")).toBeVisible({ timeout: 10_000 });
-    }
-  });
-
-  test("帮助面板可打开并看到新手村推荐", async ({ page }) => {
-    await loginAsNewbie(page, { asRegister: true, id: sharedId, password: sharedPassword });
-    await openTopMenu(page);
-    await pickTopMenuItem(page, "帮助");
-    await expect(page.locator(".help-section")).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText("你现在需要知道")).toBeVisible();
-  });
-})
-
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 90_000,
+    });
     await expect(page.getByText(/新手引导/)).toHaveCount(0);
 
     const tip = page.getByTestId("guide-tip");
@@ -1071,6 +1018,16 @@ test.describe.serial("newbie village", () => {
       .toMatch(/气.*\d+\/\d+（先天\s*\d+）/);
   });
 
+  test.skip("误入最後乐园会被送回侠客岛沙滩", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    // 先离开沙滩，避免「命令没生效却仍在沙滩」的假绿
+    await sendSilentCmd(page, "xkxe2e haidaowo");
+    await expect(page.locator(".room-title")).toHaveText(/海盗窝/, {
+      timeout: 20_000,
+    });
 
     await sendSilentCmd(page, "xkxe2e tovoid");
     await expect
@@ -1442,6 +1399,17 @@ test.describe.serial("newbie village", () => {
       .toEqual({ total: beforeTotal - 1, same: beforeSame - 1 });
   });
 
+  test.skip("迎宾馆要粥后场景出现茶食且可进食", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await sendSilentCmd(page, "xkxe2e yingbin");
+    await expect(page.locator(".room-title")).toHaveText(/迎宾馆/, {
+      timeout: 20_000,
+    });
 
     // 要粥前：地上应无茶/点心（或已有也无妨，点击后须刷新出碗）
     await expect(
@@ -1486,6 +1454,18 @@ test.describe.serial("newbie village", () => {
       .toMatch(/咬了几口|吃得乾|吃得干|吃太饱|塞不下/);
   });
 
+  test.skip("望海亭嵌套景物可查看并呈现情境动作", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    for (const label of ["北", "北", "北", "北"]) {
+      await goByExitLabel(page, label);
+    }
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/望海亭/, {
+      timeout: 20_000,
+    });
 
     const fish = page.locator(".chip.item").filter({ hasText: "鱼儿" });
     await expect(fish).toBeVisible();
@@ -1504,6 +1484,28 @@ test.describe.serial("newbie village", () => {
     await expect(page.getByRole("button", { name: "垂钓", exact: true })).toBeVisible();
   });
 
+  test.skip("打开角色卡后仍可向渔夫打听侠客岛", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 60_000 });
+
+    await page.locator(".hero-btn").click();
+    await expect(page.getByRole("button", { name: "档案" })).toBeVisible();
+    await page.locator(".sheet .close").click();
+
+    await askNpcViaEntitySheet(page, /渔夫/, "侠客岛");
+
+    await expect(page.locator(".log-panel")).toBeVisible();
+    await expect
+      .poll(async () => {
+        const logs = await page.locator(".log p").allTextContents();
+        return logs.join("\n");
+      }, { timeout: 20_000 })
+      .toMatch(/这里就是侠客岛|打听有关『侠客岛』/);
+  });
 
   test("人物面板展示核心互动，并从江湖手段打听话题", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
@@ -1588,6 +1590,19 @@ test.describe.serial("newbie village", () => {
     ).toBeVisible({ timeout: 5_000 });
   });
 
+  test.skip("地图浮层显示侠客岛真图与世界总图", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 60_000 });
+
+    await page.getByRole("button", { name: "地图" }).click();
+    await expect(page.locator(".map-sheet")).toBeVisible();
+    await expect(page.locator(".map-ascii")).toContainText(/望海亭|迎宾厅/, {
+      timeout: 10_000,
+    });
     await expect(page.locator(".map-here")).toBeVisible();
     // 主沙滩在图南侧（迎宾厅以南），不应高亮北岸第一处沙滩
     const mapHtml = (await page.locator(".map-ascii").innerHTML()) || "";
@@ -1603,6 +1618,15 @@ test.describe.serial("newbie village", () => {
     });
   });
 
+  test.skip("小路黄衣大汉打听防具给背心且不说无可奉告", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 60_000,
+    });
     // 沙滩 → 小路 → 迎宾厅 → 小路（黄衣大汉）
     await goByExitLabel(page, "北");
     await goByExitLabel(page, "北");
@@ -1626,6 +1650,15 @@ test.describe.serial("newbie village", () => {
     expect(logs).not.toMatch(/无可奉告/);
   });
 
+  test.skip("小路地图标记不与礁石旁小路混淆", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 60_000,
+    });
 
     // 沙滩北 → 迎宾厅南「小路」(xiaolu)，图上应高亮第三处小路（迎宾厅以南）
     await goByExitLabel(page, "北");
@@ -1768,6 +1801,12 @@ test.describe.serial("newbie village", () => {
     await clickActionAndWaitLog(page, "睡觉", /开始睡觉|进入了梦乡/);
   });
 
+  test.skip("落点沙滩被拦指令会提示跟随而非静默无响应", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 90_000,
+    });
     // 故意不 follow：发 go 应有明确提示（旧版静默 return 1 → 像卡死）
     await page.evaluate(() => {
       (window as unknown as { __xkxCmd?: (c: string) => void }).__xkxCmd?.(
@@ -1787,6 +1826,13 @@ test.describe.serial("newbie village", () => {
     await expect(page.locator(".room-title")).toHaveText(/沙滩/);
   });
 
+  test.skip("落点沙滩启动石壁领悟会提示先跟随", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    // 故意不 follow：落点 shatan1 无出口，挂机不可寻路
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 90_000,
+    });
 
     await pickTopMenuItem(page, "挂机");
     await page.getByRole("tab", { name: "石壁领悟" }).click();
@@ -1803,6 +1849,16 @@ test.describe.serial("newbie village", () => {
     await expect(page.locator(".room-title")).toHaveText(/沙滩/);
   });
 
+  test.skip("主沙滩启动石壁领悟会离开沙滩", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 20_000,
+    });
 
     await pickTopMenuItem(page, "挂机");
     await page.getByRole("tab", { name: "石壁领悟" }).click();
@@ -1823,6 +1879,23 @@ test.describe.serial("newbie village", () => {
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
+  test.skip("挂机浮层可切换石壁领悟并在主界面显示挂机中", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await pickTopMenuItem(page, "挂机");
+    await expect(page.getByRole("heading", { name: "挂机" })).toBeVisible();
+    await page.getByRole("tab", { name: "石壁领悟" }).click();
+    await expect(page.getByRole("button", { name: "太玄功" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "流星步" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "吴钩剑法" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "五狱掌法" })).toBeVisible();
+    await page.getByRole("button", { name: "太玄功" }).click();
+    await page.getByRole("button", { name: "开始挂机" }).click();
+    await expect(page.getByRole("heading", { name: "挂机" })).toBeHidden({
+      timeout: 5_000,
+    });
     await expect(page.getByTestId("grind-banner")).toBeVisible({
       timeout: 15_000,
     });
@@ -1833,6 +1906,16 @@ test.describe.serial("newbie village", () => {
     });
   });
 
+  test.skip("经验超过250后石壁领悟精神不足会直接去睡觉", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await sendSilentCmd(page, "xkxe2e studyrecoverprep");
+    await expect(page.locator(".room-title")).toHaveText(/石室/, {
+      timeout: 20_000,
+    });
 
     await pickTopMenuItem(page, "挂机");
     await page.getByRole("tab", { name: "石壁领悟" }).click();
@@ -1864,6 +1947,16 @@ test.describe.serial("newbie village", () => {
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
+  test.skip("大洞持粥后挂机小海盗能穿过野林到达海盗窝", async ({ page }) => {
+    test.setTimeout(150_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await sendSilentCmd(page, "xkxe2e dadong");
+    await expect(page.locator(".room-title")).toHaveText(/大山洞/, {
+      timeout: 20_000,
+    });
     await askNpcViaEntitySheet(page, /厮仆/, "腊八粥");
     await waitForLogPattern(page, /腊八粥|给你|端起/, 20_000);
     // 故意不手动喝完：挂机须自行处理持粥挡门，并补足精力穿过野林
@@ -1885,6 +1978,18 @@ test.describe.serial("newbie village", () => {
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
+  test.skip("海盗窝挂受伤海盗会开战而非空等刷新", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await sendSilentCmd(page, "halt");
+    await sendSilentCmd(page, "xkxe2e haidaowo");
+    await expect(page.locator(".room-title")).toHaveText(/海盗窝/, {
+      timeout: 20_000,
+    });
     await expect(page.locator(".chip.npc").filter({ hasText: /受伤海盗/ })).toBeVisible({
       timeout: 15_000,
     });
@@ -1908,6 +2013,18 @@ test.describe.serial("newbie village", () => {
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
+  test.skip("迎宾馆启动挂机可寻路离开迎宾馆", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await sendSilentCmd(page, "halt");
+    await sendSilentCmd(page, "xkxe2e yingbin");
+    await expect(page.locator(".room-title")).toHaveText(/迎宾馆/, {
+      timeout: 20_000,
+    });
 
     await pickTopMenuItem(page, "挂机");
     await page.locator(".grind-target").filter({ hasText: /小海龟/ }).click();
@@ -1927,6 +2044,18 @@ test.describe.serial("newbie village", () => {
     await page.getByTestId("grind-banner").getByRole("button", { name: "停止" }).click();
   });
 
+  test.skip("山顶启动石壁领悟会自动寻路离开山顶", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await sendSilentCmd(page, "halt");
+    await sendSilentCmd(page, "xkxe2e shanding");
+    await expect(page.locator(".room-title")).toHaveText(/山顶/, {
+      timeout: 20_000,
+    });
     await sendSilentCmd(page, "look");
 
     await pickTopMenuItem(page, "挂机");
@@ -2052,6 +2181,20 @@ test.describe.serial("newbie village", () => {
     await expect(page.locator(".scene-panel")).toHaveCount(0);
   });
 
+  test.skip("新注册须跟随张三或李四后进可走动沙滩且原密码可重登", async ({ page }) => {
+    test.skip(!register && !!e2eId, "需要 XKX_E2E_REGISTER=1");
+
+    const { id, password } = await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    const roomTitle = page.locator(".room-title");
+    await expect(roomTitle).toHaveText(/沙滩/, { timeout: 90_000 });
+    expect(((await roomTitle.textContent()) || "").trim()).not.toMatch(/挂名/);
+
+    await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({
+      timeout: 60_000,
+    });
     await expect(page.getByRole("button", { name: "挂名登记" })).toHaveCount(0);
 
     const itemNames = await page.locator(".chip.item").allTextContents();
@@ -2080,10 +2223,144 @@ test.describe.serial("newbie village", () => {
     expect(postLogs).not.toMatch(/@@JSON@@|@@ENDJSON@@/);
   });
 
+  test.skip("未获岛主许可不可离岛", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
 
+    await askNpcViaEntitySheet(page, /渔夫/, "离岛");
+    await waitForLogPattern(
+      page,
+      /要去中原可得要岛主同意|岛主就会让你离岛/,
+      20_000
+    );
+    await openLogTab(page);
+    const blob = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(blob).not.toMatch(/恭喜，恭喜。你可以回中原了/);
 
+    await openSceneTab(page);
+    /*
+     * 「进」是房间级出口：他人召船时无许可者也能看见，但不能上船。
+     * 有船则尝试 enter 应被拦；无船则保持在沙滩即可。
+     */
+    if (await hasExit(page, "进")) {
+      await sendSilentCmd(page, "enter");
+      await waitForLogPattern(page, /没有岛主同意|不可离岛/, 10_000);
+    }
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/);
+  });
 
+  test.skip("获许可后可乘船离开侠客岛", async ({ page }) => {
+    test.setTimeout(240_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
 
+    expect(await hasExit(page, "进")).toBe(false);
+
+    await sendSilentCmd(page, "xkxe2e grantleave");
+    await waitForLogPattern(page, /已准你离岛|你可以回中原了|小船驶了过来|船正等着你/, 15_000);
+
+    /* grantleave 在沙滩会立刻召船并推送 room.update，「进」应直接出现 */
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, { timeout: 10_000 });
+    await expect
+      .poll(async () => hasExit(page, "进"), { timeout: 15_000 })
+      .toBe(true);
+
+    await leaveIslandAfterPermit(page);
+  });
+
+  test.skip("迎宾厅可见 longx 后续跟随引导", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    for (const label of ["北", "北"]) {
+      if (await hasExit(page, label)) await goByExitLabel(page, label);
+    }
+    await openSceneTab(page);
+    for (let i = 0; i < 3; i++) {
+      const title = ((await page.locator(".room-title").textContent()) || "").trim();
+      if (/迎宾/.test(title)) break;
+      if (await hasExit(page, "北")) await goByExitLabel(page, "北");
+      else break;
+    }
+
+    await openSceneTab(page);
+    const title = ((await page.locator(".room-title").textContent()) || "").trim();
+    if (!/迎宾/.test(title)) {
+      test.skip(true, `未到达迎宾厅（当前：${title}），跳过 longx 断言`);
+      return;
+    }
+
+    const longFollow = page
+      .locator(".chip.action")
+      .filter({ hasText: /跟随龙/ })
+      .first();
+    await expect
+      .poll(
+        async () => {
+          if (await longFollow.isVisible().catch(() => false)) return true;
+          const logs = (await page.locator(".log p").allTextContents()).join("\n");
+          return /follow\s+long/i.test(logs);
+        },
+        { timeout: 40_000 }
+      )
+      .toBe(true);
+  });
+
+  test.skip("迎宾厅不跟随则不被强制拖走", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    for (const label of ["北", "北"]) {
+      if (await hasExit(page, label)) await goByExitLabel(page, label);
+    }
+    await openSceneTab(page);
+    for (let i = 0; i < 3; i++) {
+      const title = (
+        (await page.locator(".room-title").textContent()) || ""
+      ).trim();
+      if (/迎宾/.test(title)) break;
+      if (await hasExit(page, "北")) await goByExitLabel(page, "北");
+      else break;
+    }
+
+    await openSceneTab(page);
+    const title = (
+      (await page.locator(".room-title").textContent()) || ""
+    ).trim();
+    if (!/迎宾/.test(title)) {
+      test.skip(true, `未到达迎宾厅（当前：${title}），跳过强制拖走断言`);
+      return;
+    }
+
+    // 等待超过原强制拖走窗口（约 20+10+10+10s），期间绝不点跟随
+    await page.waitForTimeout(55_000);
+    await openSceneTab(page);
+    const after = (
+      (await page.locator(".room-title").textContent()) || ""
+    ).trim();
+    expect(after).not.toMatch(/瀑布|大山洞|甬道|石门/);
+    expect(after).toMatch(/迎宾|小路|沙滩|望海/);
+
+    const logs = (await page.locator(".log p").allTextContents()).join("\n");
+    expect(logs).not.toMatch(/拉起你的手|还乱跑，来吧/);
+  });
+
+  test.skip("人物面板请教可列出功夫或说明不可请教", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).toHaveText(/沙滩/, {
+      timeout: 60_000,
+    });
     await expect(page.locator(".chip.npc").filter({ hasText: /渔夫/ })).toBeVisible({
       timeout: 30_000,
     });
@@ -2110,6 +2387,16 @@ test.describe.serial("newbie village", () => {
       .toMatch(/没有师徒|没有可传授/);
   });
 
+  test.skip("瀑布蓝衣弟子可学基本功夫", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 90_000,
+    });
 
     try {
       await walkToWaterfall(page);
@@ -2205,7 +2492,61 @@ test.describe.serial("newbie village", () => {
     expect(askHits.length).toBeLessThanOrEqual(2);
   });
 
+  test.skip("行囊腊八粥可看可吃", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
 
+    try {
+      await walkToDadongBoard(page);
+    } catch (err) {
+      const title = (
+        (await page.locator(".room-title").textContent({ timeout: 5_000 }).catch(
+          () => ""
+        )) || ""
+      ).trim();
+      throw new Error(
+        `未能到达大山洞（当前房间：${title || "未知"}）：${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+    }
+
+    await askNpcViaEntitySheet(page, /厮仆/, "腊八粥");
+    await waitForLogPattern(page, /腊八粥|给你|端起/, 20_000);
+
+    await page.locator(".hero-btn").click();
+    await page.getByRole("button", { name: "行囊" }).click();
+    const porridge = page
+      .locator(".bag-item-btn")
+      .filter({ hasText: /腊八粥/ })
+      .first();
+    await expect(porridge).toBeVisible({ timeout: 20_000 });
+    await porridge.click();
+    const acts = page.locator(".bag-item.open .skill-act");
+    await expect(acts.filter({ hasText: "看" })).toBeVisible();
+    await expect(acts.filter({ hasText: "吃" })).toBeVisible();
+    await expect(acts.filter({ hasText: "丢下" })).toBeVisible();
+    await acts.filter({ hasText: "吃" }).click();
+    await expect
+      .poll(async () => {
+        const logs = (await page.locator(".log p").allTextContents()).join("\n");
+        return logs;
+      }, { timeout: 15_000 })
+      .toMatch(/喝下|吃|粥/);
+  });
+
+  test.skip("甬道洞可查看可钻，不把钻动作提示当成物品", async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 60_000,
+    });
 
     await sendSilentCmd(page, "xkxe2e yongdao2");
     await expect(page.locator(".room-title")).toHaveText(/甬道/, {
@@ -2226,6 +2567,16 @@ test.describe.serial("newbie village", () => {
     ).toBeVisible({ timeout: 10_000 });
   });
 
+  test.skip("兵器房可拿起地上兵器并有黄衣仆人", async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 60_000,
+    });
 
     await sendSilentCmd(page, "xkxe2e bingqi");
     await expect(page.locator(".room-title")).toHaveText(/兵器房/, {
@@ -2247,6 +2598,16 @@ test.describe.serial("newbie village", () => {
     ).toBeVisible({ timeout: 10_000 });
   });
 
+  test.skip("山顶向黄衣弟子请教不误指中伯", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 60_000,
+    });
 
     await sendSilentCmd(page, "xkxe2e shanding");
     await expect(page.locator(".room-title")).toHaveText(/山顶/, {
@@ -2297,6 +2658,16 @@ test.describe.serial("newbie village", () => {
     expect(logs).not.toMatch(/中伯.*怎么敢当|中伯像是受宠若惊/);
   });
 
+  test.skip("山脚下击打木桩用 strike 而非战斗 hit", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 60_000,
+    });
 
     await sendSilentCmd(page, "xkxe2e shanxia");
     await expect(page.locator(".room-title")).toHaveText(/山脚下/, {
@@ -2361,6 +2732,16 @@ test.describe.serial("newbie village", () => {
       .toMatch(/身上带[着著]：[\s\S]*[□√].*\(/);
   });
 
+  test.skip("大山洞打听岛主后场景出现甬道出口", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 90_000,
+    });
 
     try {
       await walkToDadongBoard(page);
@@ -2407,6 +2788,16 @@ test.describe.serial("newbie village", () => {
     expect(openHits).toBeLessThanOrEqual(3);
   });
 
+  test.skip("石门房间出现打开石门动作并可进入石洞", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 90_000,
+    });
 
     // 直达石门并强制关门，避免全服共享门状态让用例误用「进」蒙混过关
     await sendSilentCmd(page, "xkxe2e gate");
@@ -2471,6 +2862,16 @@ test.describe.serial("newbie village", () => {
     await expect(page.locator(".map-ascii mark.map-here")).toHaveText(/石洞/);
   });
 
+  test.skip("石室石壁可领悟武功", async ({ page }) => {
+    test.setTimeout(180_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await openSceneTab(page);
+    await expect(page.locator(".room-title")).not.toHaveText("…", {
+      timeout: 90_000,
+    });
 
     await sendSilentCmd(page, "xkxe2e gate");
     await sendSilentCmd(page, "xkxe2e closedoor");
@@ -2606,9 +3007,47 @@ test.describe.serial("newbie village", () => {
     expect(logs).not.toMatch(/^\s*>\s*help\s+board/m);
   });
 
+  test.skip("帮助侠客岛主题有正文且括号动作可点", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await pickTopMenuItem(page, "帮助");
+    await expect(page.locator(".help-topic").filter({ hasText: "侠客岛地图" })).toBeVisible();
+    await page.locator(".help-topic").filter({ hasText: /^侠客岛$/ }).click();
+    await expect(page.locator(".sheet-top h3")).toHaveText("说明");
+    await expect
+      .poll(
+        async () => (await page.locator(".sheet .doc-body").textContent()) || "",
+        { timeout: 25_000 }
+      )
+      .toMatch(/侠客岛|study wall|离岛/);
+    await expect(page.locator(".help-doc-actions .chip.action").first()).toBeVisible({
+      timeout: 10_000,
+    });
     await expect(
       page.locator(".help-doc-actions .chip.action").filter({ hasText: /领悟|睡觉|垂钓|爬/ })
     ).not.toHaveCount(0);
   });
 
+  test.skip("帮助正文合并终端软换行且行距紧凑", async ({ page }) => {
+    test.setTimeout(120_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await loginAsNewbie(page, { asRegister: true });
+    await completeIntroFollow(page);
+
+    await pickTopMenuItem(page, "帮助");
+    await page.locator(".help-topic").filter({ hasText: "新手指南" }).click();
+    await expect(page.locator(".sheet-top h3")).toHaveText("说明");
+    const body = page.locator(".sheet .doc-body.help-doc");
+    await expect
+      .poll(async () => (await body.textContent()) || "", { timeout: 25_000 })
+      .toMatch(/与世隔绝的什么小岛|新手指南|侠客行/);
+    const text = (await body.textContent()) || "";
+    expect(text).not.toMatch(/与世隔绝的\n什么小岛/);
+    const lineHeight = await body.evaluate((el) => getComputedStyle(el).lineHeight);
+    const fontSize = await body.evaluate((el) => getComputedStyle(el).fontSize);
+    expect(parseFloat(lineHeight) / parseFloat(fontSize)).toBeLessThan(1.55);
+  });
 });
