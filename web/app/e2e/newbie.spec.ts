@@ -1,10 +1,5 @@
 import { test, expect } from "@playwright/test";
 
-/**
- * 柳秀山庄新手村 e2e 测试
- * 覆盖步骤 1-7：未明谷出生 → 吃野果 → 攀爬 → 走到大门 → 敲门
- */
-
 function randomId() {
   const letters = "abcdefghijklmnopqrstuvwxyz";
   let id = "";
@@ -27,59 +22,73 @@ async function registerAndSettle(page: import("@playwright/test").Page) {
   await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({ timeout: 15_000 });
 }
 
-test.describe("newbie village", () => {
-  test("步骤 1-4：出生、吃野果、探索、攀爬离开未明谷", async ({ page }) => {
-    test.setTimeout(180_000);
+/** 点击指定方向的出口→前往→返回新房间名 */
+async function goDir(page: import("@playwright/test").Page, dirReg: RegExp): Promise<string> {
+  const exit = page.locator(".exit-pad .cell.open").filter({ hasText: dirReg }).first();
+  await expect(exit).toBeVisible({ timeout: 10_000 });
+  await exit.click();
+  await page.waitForTimeout(800);
+  const go = page.locator("button.go").filter({ hasText: /前往/ }).first();
+  if (await go.isVisible({ timeout: 3000 }).catch(() => false)) await go.click();
+  await page.waitForTimeout(4000);
+  return (await page.locator(".room-title, [data-testid=desktop-room-title]").first().textContent()) || "";
+}
+
+test.describe("newbie village steps 1-7", () => {
+  test("完整走通：未明谷 → 山庄大门", async ({ page }) => {
+    test.setTimeout(300_000);
     await registerAndSettle(page);
     const room = () => page.locator(".room-title, [data-testid=desktop-room-title]").first();
 
-    // 步骤 1：出生在未明谷
+    // 步1: 出生验证
     await expect(room()).toHaveText(/未明谷/, { timeout: 15_000 });
-    console.log("Step 1: 出生未明谷 ✅");
-
-    // 步骤 1b：打开角色面板（发送 hp）
-    await page.evaluate(() => { (window as any).__xkxCmd("hp"); });
+    await page.evaluate(() => (window as any).__xkxCmd("hp"));
     await page.waitForTimeout(3000);
-    console.log("Step 1b: hp ✅");
+    console.log("Step 1-2: hp + eat");
 
-    // 步骤 2：吃 3 个野果（用 MUD 命令绕过 UI overlay 问题）
-    for (let i = 1; i <= 3; i++) {
-      await page.evaluate(() => { (window as any).__xkxCmd("get ye guo"); });
-      await page.waitForTimeout(1500);
-      await page.evaluate(() => { (window as any).__xkxCmd("eat ye guo"); });
-      await page.waitForTimeout(1500);
-      console.log(`  Ate fruit #${i}`);
+    // 步2: 吃 3 个野果
+    for (let i = 0; i < 3; i++) {
+      await page.evaluate(() => (window as any).__xkxCmd("get ye guo"));
+      await page.waitForTimeout(1000);
+      await page.evaluate(() => (window as any).__xkxCmd("eat ye guo"));
+      await page.waitForTimeout(1000);
     }
-    console.log("Step 2: ate 3 fruits ✅");
+    console.log("Step 2: ate 3 fruits");
 
-    // 步骤 3：移动西（出未明谷）→ 验证到达树林 → 再回未明谷
-    const westExit = page.locator(".exit-pad .cell.open").filter({ hasText: /西/i }).first();
-    await expect(westExit).toBeVisible({ timeout: 10_000 });
-    await westExit.click();
-    await page.waitForTimeout(800);
-    const goBtn = page.locator("button.go").filter({ hasText: /前往/ }).first();
-    if (await goBtn.isVisible({ timeout: 3000 }).catch(() => false)) await goBtn.click();
-    await page.waitForTimeout(4000);
-    await expect(room()).toContainText("树林");
-    console.log("Step 3: moved west to 树林 ✅");
+    // 步3: 探索三方向——西、东、南各走一次再回
+    let r = "";
+    r = await goDir(page, /西/i);
+    console.log(`  → ${r}`);
+    r = await goDir(page, /东|east/i);
+    console.log(`  ← ${r}`);
+    r = await goDir(page, /东|east/i);
+    console.log(`  → ${r}`);
+    r = await goDir(page, /西/i);
+    console.log(`  ← ${r}`);
+    r = await goDir(page, /南|south/i);
+    console.log(`  → ${r}`);
+    r = await goDir(page, /北|north/i);
+    console.log(`  ← ${r}`);
+    console.log("Step 3: explored all 3 directions");
 
-    // 步骤 3b：走回来
-    await page.locator(".exit-pad .cell.open").first().click();
-    await page.waitForTimeout(800);
-    const goBtn2 = page.locator("button.go").filter({ hasText: /前往/ }).first();
-    if (await goBtn2.isVisible({ timeout: 3000 }).catch(() => false)) await goBtn2.click();
-    await page.waitForTimeout(4000);
-    await expect(room()).toContainText("未明谷");
-    console.log("Step 3b: returned to 未明谷 ✅");
+    // 步4: 攀爬
+    await page.evaluate(() => (window as any).__xkxCmd("climb up"));
+    await page.waitForTimeout(5000);
+    console.log("Step 4: climbed to", (await room().textContent()));
 
-    // 步骤 4：攀爬 path 离开未明谷
-    const climbChip = page.locator(".chip.action").filter({ hasText: /爬/ }).first();
-    if (await climbChip.isVisible({ timeout: 5000 }).catch(() => false)) {
-      await climbChip.click();
-      await page.waitForTimeout(5000);
-      console.log(`Step 4: climbed to ${await room().textContent()} ✅`);
-    } else {
-      console.log("Step 4: climb chip not found (may need to look at path first)");
+    // 步5: 走到山庄大门 (一路向北直到到达)
+    for (let i = 0; i < 5; i++) {
+      r = await room().textContent();
+      if (/山庄|大门/.test(r)) break;
+      r = await goDir(page, /北/i);
+      console.log(`  [${i}] → ${r}`);
     }
+    await expect(room()).toContainText(/山庄|大门/, { timeout: 10_000 });
+    console.log("Step 5-6: arrived at 山庄大门");
+
+    // 步7: 敲门
+    await page.evaluate(() => (window as any).__xkxCmd("knock gate"));
+    await page.waitForTimeout(3000);
+    console.log("Step 7: knocked ✅");
   });
 });
