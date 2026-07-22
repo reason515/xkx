@@ -77,18 +77,95 @@ test.describe("newbie village steps 1-7", () => {
     console.log("Step 4: climbed to", (await room().textContent()));
 
     // 步5: 走到山庄大门 (一路向北直到到达)
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
       r = await room().textContent();
       if (/山庄|大门/.test(r)) break;
-      r = await goDir(page, /北/i);
+      // 优先用 UI 出口，匹配不上则直接发 north 命令
+      const northExit = page.locator(".exit-pad .cell.open").filter({ hasText: /北/i }).first();
+      if (await northExit.isVisible({ timeout: 2000 }).catch(() => false)) {
+        r = await goDir(page, /北/i);
+      } else {
+        await page.evaluate(() => (window as any).__xkxCmd("north"));
+        await page.waitForTimeout(4000);
+        r = await room().textContent();
+      }
       console.log(`  [${i}] → ${r}`);
     }
     await expect(room()).toContainText(/山庄|大门/, { timeout: 10_000 });
     console.log("Step 5-6: arrived at 山庄大门");
 
-    // 步7: 敲门
+    // 步6: 向丫鬟打听葫芦
+    const yhBtn = page.locator(".chip.npc").filter({ hasText: /丫鬟|环/ }).first();
+    if (await yhBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await yhBtn.click();
+      await page.waitForTimeout(500);
+      const askBtn = page.getByRole("button", { name: "打听" });
+      if (await askBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await askBtn.click();
+        await page.waitForTimeout(1500);
+        // 找"葫芦"话题
+        const huluTopic = page.getByRole("button", { name: /葫芦/ }).first();
+        if (await huluTopic.isVisible({ timeout: 3000 }).catch(() => false)) {
+          await huluTopic.click();
+          await page.waitForTimeout(2000);
+          console.log("Step 6: asked yahuan about 葫芦 ✅");
+        }
+      }
+    }
+
+    // 步7: 敲门 → 往北进入山庄
     await page.evaluate(() => (window as any).__xkxCmd("knock gate"));
     await page.waitForTimeout(3000);
-    console.log("Step 7: knocked ✅");
+    // 进入北门
+    await page.evaluate(() => (window as any).__xkxCmd("north"));
+    await page.waitForTimeout(4000);
+    r = await room().textContent();
+    console.log(`Step 7: knocked and entered → ${r}`);
+
+    // 步8: 确认进入正厅，点击游鲲翼给予葫芦
+    await page.waitForTimeout(3000);
+    r = await room().textContent();
+    console.log(`Step 8: entered ${r}`);
+    
+    // 先确保有葫芦在身
+    await page.evaluate(() => (window as any).__xkxCmd("get hulu"));
+    await page.waitForTimeout(1000);
+    
+    // 点击游鲲翼
+    const youBtn = page.locator(".chip.npc").filter({ hasText: /游/ }).first();
+    if (await youBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await youBtn.click();
+      await page.waitForTimeout(500);
+      // 给予
+      const giveBtn = page.getByRole("button", { name: "给予" });
+      if (await giveBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await giveBtn.click();
+        await page.waitForTimeout(1500);
+        console.log("Step 8: gave hulu ✅");
+      }
+    }
+
+    // 步9: 打听游鲲翼
+    await page.locator(".chip.npc").filter({ hasText: /游/ }).first().click().catch(() => {});
+    await page.waitForTimeout(500);
+    const askBtn = page.getByRole("button", { name: "打听" });
+    if (await askBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await askBtn.click();
+      await page.waitForTimeout(2000);
+      console.log("Step 9: asked youkunyi ✅");
+    }
+
+    // 步10: 跟随阿姝
+    const ashuBtn = page.locator(".chip.npc").filter({ hasText: /阿姝|姝/ }).first();
+    if (await ashuBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await ashuBtn.click();
+      await page.waitForTimeout(500);
+      const followBtn = page.getByRole("button", { name: "跟随" });
+      if (await followBtn.isVisible({ timeout: 3000 }).catch(() => false)) {
+        await followBtn.click();
+        await page.waitForTimeout(5000);
+        console.log(`Step 10: followed 阿姝 → ${await room().textContent()} ✅`);
+      }
+    }
   });
 });
