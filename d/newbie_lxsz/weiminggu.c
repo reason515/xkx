@@ -22,7 +22,8 @@ void create()
     set("long", 
 	"山谷中绿树成荫，却不见有多么明媚的花开于此，但你仍能闻见了远远
 飘来的花香。耳边听到了溪水叮咚的声音，原来不远处有一条蜿蜒的小溪\n"+
-YEL"(river)"NOR+"，岸边似乎散落了一些物什。在山谷的北侧有条陡峭的山坡"+YEL"(path)\n"NOR+
+YEL"(river)"NOR+"，你可以用葫芦在这里装水"+HBBLU"(fill hulu)"NOR+"。岸边似乎散落了一些物什。
+在山谷的北侧有条陡峭的山坡"+YEL"(path)\n"NOR+
 "隐隐可以通向外界。\n");
 
     set("outdoors","liuxiu-shanzhuang");
