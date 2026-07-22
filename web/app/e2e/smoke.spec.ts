@@ -13,18 +13,10 @@ function randomId() {
 
 /** Wait for game to fully load */
 async function waitForInGame(page: import("@playwright/test").Page) {
-  const deadline = Date.now() + 90_000;
-  while (Date.now() < deadline) {
-    const inGame = page.locator(".scene-panel, .log-panel").first();
-    if (await inGame.isVisible()) return;
-    const loginErr = page.locator(".login-form .err");
-    if (await loginErr.isVisible()) {
-      const message = ((await loginErr.textContent()) || "").trim();
-      throw new Error(message || "登录失败");
-    }
-    await page.waitForTimeout(500);
-  }
-  throw new Error("登录/注册超时：未进入游戏");
+  await page.locator(".scene-panel, .log-panel").first().waitFor({
+    state: "visible",
+    timeout: 60_000,
+  });
 }
 
 async function openSceneTab(page: import("@playwright/test").Page) {
@@ -128,10 +120,6 @@ async function completeIntroFollow(page: import("@playwright/test").Page) {
   });
 }
 
-async function setMobileViewport(page: Page) {
-  await page.setViewportSize({ width: 390, height: 844 });
-}
-
 async function loginAsNewbie(
   page: Page,
   opts?: {
@@ -196,33 +184,17 @@ test("勾选记住账号后刷新可回填", async ({ page }) => {
 // 柳秀山庄新手村 e2e 测试
 // ============================================================
 test.describe.serial("newbie village", () => {
-  test.describe.configure({ timeout: 300_000 });
-
-  let sharedId = "";
-  let sharedPassword = "Test1234";
-
-  test.beforeAll(async ({ browser }) => {
-    if (e2eId && e2ePassword) return;
-    const page = await browser.newPage();
-    try {
-      const creds = await loginAsNewbie(page, { asRegister: true });
-      sharedId = creds.id;
-      sharedPassword = creds.password;
-      await completeIntroFollow(page);
-    } finally {
-      await page.close();
-    }
-  }, { timeout: 300_000 });
+  test.describe.configure({ timeout: 120_000 });
 
   test("出生点在未明谷", async ({ page }) => {
-    await loginAsNewbie(page, { asRegister: !e2eId, id: e2eId || sharedId || undefined, password: e2ePassword || sharedPassword });
+    await loginAsNewbie(page, { asRegister: true });
     await openSceneTab(page);
     await expect(page.locator(".room-title").first()).not.toHaveText("…", { timeout: 60_000 });
     await expect(page.locator(".room-title").first()).toHaveText(/未明谷/, { timeout: 30_000 });
   });
 
   test("出生点有出口和 NPC", async ({ page }) => {
-    await loginAsNewbie(page, { asRegister: !e2eId, id: e2eId || sharedId || undefined, password: e2ePassword || sharedPassword });
+    await loginAsNewbie(page, { asRegister: true });
     await openSceneTab(page);
     await expect(page.locator(".room-title").first()).not.toHaveText("...", { timeout: 60_000 });
     await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({ timeout: 30_000 });
@@ -230,7 +202,7 @@ test.describe.serial("newbie village", () => {
   });
 
   test.skip("新手任务面板显示当前目标", async ({ page }) => {
-    await loginAsNewbie(page, { asRegister: !e2eId, id: e2eId || sharedId || undefined, password: e2ePassword || sharedPassword });
+    await loginAsNewbie(page, { asRegister: true });
     await openSceneTab(page);
     await expect(page.locator(".room-title").first()).not.toHaveText("...", { timeout: 60_000 });
     await expect(page.locator(".newbie-quest-panel")).toBeVisible({ timeout: 30_000 });
@@ -238,7 +210,7 @@ test.describe.serial("newbie village", () => {
   });
 
   test("可向出口方向移动", async ({ page }) => {
-    await loginAsNewbie(page, { asRegister: !e2eId, id: e2eId || sharedId || undefined, password: e2ePassword || sharedPassword });
+    await loginAsNewbie(page, { asRegister: true });
     await openSceneTab(page);
     await expect(page.locator(".room-title").first()).not.toHaveText("...", { timeout: 60_000 });
     const exits = page.locator(".exit-pad .cell.open");
@@ -251,7 +223,7 @@ test.describe.serial("newbie village", () => {
   });
 
   test("帮助面板可打开并看到新手村推荐", async ({ page }) => {
-    await loginAsNewbie(page, { asRegister: !e2eId, id: e2eId || sharedId || undefined, password: e2ePassword || sharedPassword });
+    await loginAsNewbie(page, { asRegister: true });
     await openTopMenu(page);
     await pickTopMenuItem(page, "帮助");
     await expect(page.locator(".help-section")).toBeVisible({ timeout: 15_000 });
@@ -269,7 +241,6 @@ test.describe.serial("game smoke", () => {
   let sharedPassword = e2ePassword || "Test1234";
 
   test.beforeAll(async ({ browser }) => {
-    if (e2eId && e2ePassword) return;
     const page = await browser.newPage();
     try {
       const creds = await loginAsNewbie(page, { asRegister: true });
