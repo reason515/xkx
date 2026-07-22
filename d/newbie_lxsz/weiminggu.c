@@ -98,7 +98,13 @@ void init()
 
 	call_out("greeting",1,me);
 
-	// Web 客户端同步任务状态
+	// Web 客户端同步任务状态（延迟执行，等 Gateway 发完 webclient 标记）
+	call_out("send_initial_quest", 3, me);
+}
+
+void send_initial_quest(object me)
+{
+	if (!objectp(me)) return;
 	if (me->query_temp("web_client"))
 		WEBD->send_quest_status(me);
 }
