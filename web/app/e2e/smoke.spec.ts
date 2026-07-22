@@ -11,11 +11,11 @@ function randomId() {
   return id;
 }
 
-/** Force mobile shell so wide viewports do not enter desktop workbench. */
+/** Wait for game to fully load */
 async function waitForInGame(page: import("@playwright/test").Page) {
   const deadline = Date.now() + 90_000;
   while (Date.now() < deadline) {
-    const inGame = page.locator(".scene-panel, .log-panel, [data-testid=\"desktop-app\"]").first();
+    const inGame = page.locator(".scene-panel, .log-panel").first();
     if (await inGame.isVisible()) return;
     const loginErr = page.locator(".login-form .err");
     if (await loginErr.isVisible()) {
@@ -110,22 +110,26 @@ async function hasExit(page: import("@playwright/test").Page, dir: string) {
 }
 
 async function sendSilentCmd(page: import("@playwright/test").Page, command: string) {
-  // Desktop terminal input or mobile mode fallback
-  const input = page.locator('[data-testid="desktop-cmd-input"]');
+  // Mobile mode: use command input at bottom
+  const input = page.locator(".cmd-input, [data-testid=\"mobile-cmd-input\"]");
   if (await input.isVisible()) {
     await input.fill(command);
-    await page.locator('[data-testid="desktop-cmd"] button[type="submit"]').click();
+    await page.locator(".cmd-send, [data-testid=\"mobile-cmd-send\"]").click();
   }
 }
 
 /** 新注册角色（柳秀山庄新手村）：等待出生点加载完成。 */
 async function completeIntroFollow(page: import("@playwright/test").Page) {
-  await expect(page.locator('[data-testid="desktop-room-title"], .room-title').first()).not.toHaveText("…", {
+  await expect(page.locator(".room-title").first()).not.toHaveText("…", {
     timeout: 90_000,
   });
   await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({
     timeout: 30_000,
   });
+}
+
+async function setMobileViewport(page: Page) {
+  await page.setViewportSize({ width: 390, height: 844 });
 }
 
 async function loginAsNewbie(
@@ -213,14 +217,14 @@ test.describe.serial("newbie village", () => {
   test("出生点在未明谷", async ({ page }) => {
     await loginAsNewbie(page, { asRegister: !e2eId, id: e2eId || sharedId || undefined, password: e2ePassword || sharedPassword });
     await openSceneTab(page);
-    await expect(page.locator('[data-testid="desktop-room-title"], .room-title').first()).not.toHaveText("…", { timeout: 60_000 });
-    await expect(page.locator("[data-testid=desktop-room-title], .room-title").first()).toHaveText(/未明谷/, { timeout: 30_000 });
+    await expect(page.locator(".room-title").first()).not.toHaveText("…", { timeout: 60_000 });
+    await expect(page.locator(".room-title").first()).toHaveText(/未明谷/, { timeout: 30_000 });
   });
 
   test("出生点有出口和 NPC", async ({ page }) => {
     await loginAsNewbie(page, { asRegister: !e2eId, id: e2eId || sharedId || undefined, password: e2ePassword || sharedPassword });
     await openSceneTab(page);
-    await expect(page.locator("[data-testid=desktop-room-title], .room-title").first()).not.toHaveText("...", { timeout: 60_000 });
+    await expect(page.locator(".room-title").first()).not.toHaveText("...", { timeout: 60_000 });
     await expect(page.locator(".exit-pad .cell.open").first()).toBeVisible({ timeout: 30_000 });
     await expect(page.locator(".chip.npc").first()).toBeVisible({ timeout: 15_000 });
   });
@@ -228,7 +232,7 @@ test.describe.serial("newbie village", () => {
   test.skip("新手任务面板显示当前目标", async ({ page }) => {
     await loginAsNewbie(page, { asRegister: !e2eId, id: e2eId || sharedId || undefined, password: e2ePassword || sharedPassword });
     await openSceneTab(page);
-    await expect(page.locator("[data-testid=desktop-room-title], .room-title").first()).not.toHaveText("...", { timeout: 60_000 });
+    await expect(page.locator(".room-title").first()).not.toHaveText("...", { timeout: 60_000 });
     await expect(page.locator(".newbie-quest-panel")).toBeVisible({ timeout: 30_000 });
     await expect(page.locator(".quest-target")).toBeVisible();
   });
@@ -236,7 +240,7 @@ test.describe.serial("newbie village", () => {
   test("可向出口方向移动", async ({ page }) => {
     await loginAsNewbie(page, { asRegister: !e2eId, id: e2eId || sharedId || undefined, password: e2ePassword || sharedPassword });
     await openSceneTab(page);
-    await expect(page.locator("[data-testid=desktop-room-title], .room-title").first()).not.toHaveText("...", { timeout: 60_000 });
+    await expect(page.locator(".room-title").first()).not.toHaveText("...", { timeout: 60_000 });
     const exits = page.locator(".exit-pad .cell.open");
     await expect(exits.first()).toBeVisible({ timeout: 30_000 });
     const count = await exits.count();
@@ -279,7 +283,7 @@ test.describe.serial("game smoke", () => {
 
   test("登录后可见场景且不含登录横幅", async ({ page }) => {
     await loginAsNewbie(page, { id: sharedId, password: sharedPassword, asRegister: false });
-    await expect(page.locator("[data-testid=desktop-room-title], .room-title").first()).not.toHaveText("...", { timeout: 90_000 });
+    await expect(page.locator(".room-title").first()).not.toHaveText("...", { timeout: 90_000 });
     await expect(page.getByText(/欢迎来到/)).toHaveCount(0);
     const roomDesc = page.locator(".room-desc");
     await expect(roomDesc).toBeVisible();
