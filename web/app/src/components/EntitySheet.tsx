@@ -98,6 +98,9 @@ export function EntitySheet({
   const [giving, setGiving] = useState(false);
   const [selling, setSelling] = useState(false);
   const [trading, setTrading] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState(100);
+  const [withdrawCurrency, setWithdrawCurrency] = useState("silver");
   const [learnAction, setLearnAction] = useState<SuggestedAction | null>(null);
   const [learnStop, setLearnStop] = useState<"count" | "potential">("count");
   const [learnCount, setLearnCount] = useState(1);
@@ -153,6 +156,7 @@ export function EntitySheet({
   // Extra item interactions from webd.c flags
   const extraItemActions: [string, string][] = [];
   if (!!isContainer && !scenery) extraItemActions.push(["打开", `open ${target}`]);
+  if (!!isContainer && !scenery) extraItemActions.push(["放入物品", `__put_in__`]);
   if (!!isBook) extraItemActions.push(["阅读", `read ${target}`]);
   if (!!canSit) extraItemActions.push(["坐下", `sit ${target}`]);
   if (!!canRide) extraItemActions.push(["骑乘", `ride ${target}`]);
@@ -188,6 +192,13 @@ export function EntitySheet({
     onClearDoc?.();
   };
 
+  const leaveWithdrawingMode = () => setWithdrawing(false);
+
+  // 容器放入：显示可放入的物品列表
+  const [puttingIn, setPuttingIn] = useState(false);
+  const leavePuttingIn = () => setPuttingIn(false);
+  const putItems = inventory.filter((item) => !item.equipped && !item.embedded && item.id !== id);
+
   return (
     <div className="overlay open" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
@@ -203,6 +214,10 @@ export function EntitySheet({
                     ? `向「${name}」卖出`
                     : trading
                     ? `查看「${name}」的货品`
+                    : withdrawing
+                    ? `取款「${name}」`
+                    : puttingIn
+                    ? `放入「${name}」`
                     : reading
                       ? "留言"
                       : name}
@@ -441,6 +456,52 @@ export function EntitySheet({
                 </pre>
               )}
             </>
+          ) : withdrawing ? (
+            <>
+              <button type="button" className="doc-back" onClick={leaveWithdrawingMode}>
+                ← 返回
+              </button>
+              <p className="entity-mode-hint">取款金额与货币：</p>
+              <div className="learn-assist-form">
+                <label className="learn-count-field">
+                  <span>金额</span>
+                  <input type="number" min={1} max={9999} value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(Math.min(9999, Math.max(1, Number(e.target.value) || 1)))}
+                  />
+                </label>
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  {["silver","gold","coin"].map((c) => (
+                    <button key={c} type="button"
+                      className={`skill-act chip ${withdrawCurrency === c ? "on" : ""}`}
+                      onClick={() => setWithdrawCurrency(c)}
+                    >{c === "silver" ? "白银" : c === "gold" ? "黄金" : "铜钱"}</button>
+                  ))}
+                </div>
+                <button type="button" className="learn-start" style={{marginTop:12}}
+                  onClick={() => { runNpcAction(`qu ${withdrawAmount} ${withdrawCurrency}`); }}>
+                  确认取款
+                </button>
+              </div>
+            </>
+          ) : puttingIn ? (
+            <>
+              <button type="button" className="doc-back" onClick={leavePuttingIn}>
+                ← 返回
+              </button>
+              <p className="entity-mode-hint">选择要放入的物品：</p>
+              {putItems.length ? (
+                <div className="help-topics entity-item-list">
+                  {putItems.map((item) => (
+                    <button key={`${item.id}-${item.name}`} type="button" className="help-topic"
+                      onClick={() => { onAction(`put ${item.id} in ${target}`); onClose(); }}>
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="doc-status">行囊里没有可放入的物品。</p>
+              )}
+            </>
           ) : reading ? (
             <>
               <button
@@ -491,12 +552,17 @@ export function EntitySheet({
                   <button type="button" onClick={() => runNpcAction(`look ${target}`)}>查看</button>
                   <button type="button" onClick={() => { setAsking(true); onAskList?.(`ask ${askTarget}`); }}>打听</button>
                   <button type="button" onClick={() => { setLearning(true); onLearnList?.(`skills ${askTarget}`); }}>请教</button>
+                  <button type="button" onClick={() => runNpcAction(`cha ${askTarget}`)} data-testid="entity-cha">查看技能</button>
                   <button type="button" onClick={() => runNpcAction(`follow ${askTarget}`)}>跟随</button>
                   <button type="button" onClick={() => setGiving(true)}>给予</button>
                   {!!canApprentice && (<button type="button" className="entity-action-jade" onClick={() => runNpcAction(`apprentice ${askTarget}`)}>拜师</button>)}
                   {!!canTrade && (<button type="button" data-testid="entity-trade" onClick={() => { setTrading(true); onDocAction?.("list"); }}>购买</button>)}
                   {!!canSell && (<button type="button" data-testid="entity-sell" onClick={() => setSelling(true)}>卖出</button>)}
                   {!!canLead && (<button type="button" onClick={() => runNpcAction(`lead ${askTarget}`)}>带领</button>)}
+                  <button type="button" onClick={() => runNpcAction(`fight ${askTarget}`)}>切磋</button>
+                  <button type="button" className="entity-action-danger" onClick={() => runNpcAction(`kill ${askTarget}`)}>攻击</button>
+                  <button type="button" onClick={() => runNpcAction("halt")}>停手</button>
+                  <button type="button" onClick={() => setWithdrawing(true)}>取款</button>
                 </div>
               </section>
 
@@ -506,9 +572,6 @@ export function EntitySheet({
                   {!!canBeg && (<button type="button" onClick={() => runNpcAction(`beg ${askTarget}`)}>讨要</button>)}
                   {!!canPersuade && (<button type="button" onClick={() => runNpcAction(`persuade ${askTarget}`)}>说服</button>)}
                   {!!canSteal && (<button type="button" className="entity-action-danger" onClick={() => runNpcAction(`steal ${askTarget}`)}>偷窃</button>)}
-                  <button type="button" onClick={() => runNpcAction(`fight ${askTarget}`)}>切磋</button>
-                  <button type="button" className="entity-action-danger" onClick={() => runNpcAction(`kill ${askTarget}`)}>攻击</button>
-                  <button type="button" onClick={() => runNpcAction("halt")}>停手</button>
                 </div>
               </details>
               </>)}
@@ -525,7 +588,7 @@ export function EntitySheet({
             </p>
           )}
         </div>
-        {kind !== "npc" && !reading && !asking && !learning && (
+        {kind !== "npc" && !reading && !asking && !learning && !withdrawing && !puttingIn && (
           <div className="sheet-acts">
             {actions.map(([label, command]) => (
               <button
@@ -539,8 +602,11 @@ export function EntitySheet({
                   }
                   if (command === "__learn__") {
                     setLearning(true);
-                    // 师徒/配偶可查 skills；公开教头仍靠见闻 hints 合并进列表
                     onLearnList?.(`skills ${askTarget}`);
+                    return;
+                  }
+                  if (command === "__put_in__") {
+                    setPuttingIn(true);
                     return;
                   }
                   if (

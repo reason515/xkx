@@ -34,7 +34,7 @@ interface Props {
   tab: number;
   onTab: (n: number) => void;
   onClose: () => void;
-  onCmd: (cmd: string) => void;
+  onCmd: (cmd: string, opts?: { feedback?: boolean }) => void;
   onSetWimpy?: (pct: number) => void;
 }
 
@@ -441,7 +441,7 @@ function BagPanel({
   onCmd,
 }: {
   items: InvItem[];
-  onCmd: (cmd: string) => void;
+  onCmd: (cmd: string, opts?: { feedback?: boolean }) => void;
 }) {
   const [openKey, setOpenKey] = useState<string | null>(null);
 
@@ -499,7 +499,7 @@ function BagPanel({
                         key={a.command}
                         type="button"
                         className="skill-act chip"
-                        onClick={() => onCmd(a.command)}
+                        onClick={() => onCmd(a.command, { feedback: true })}
                       >
                         {a.label}
                       </button>

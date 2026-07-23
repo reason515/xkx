@@ -115,6 +115,9 @@ void quest_gain(object me, int exp, int pot, string hint)
 		tell_object(me,HIC"\n干的不错，你被奖励了"+chinese_number(exp)+"点经验，"+chinese_number(pot)+"点潜能！\n\n"NOR+hint+"\n"NOR);
         CHANNEL_D->do_channel(load_object(__DOMAIN_DIR__"npc/youkunyi"), "sys_misc", sprintf("%s在柳秀山庄第%d步任务中获得经验：%d、潜能：%d。", me->name(), me->query(NEWBIE_VILLAGE_INDEX), exp, pot));
 		me->add(NEWBIE_VILLAGE_INDEX, 1);
+        // Web 客户端同步任务状态
+        if (me->query_temp("web_client"))
+            WEBD->send_quest_status(me);
 	}
 	else
 	{

@@ -137,6 +137,7 @@ export function useGame(opts?: UseGameOptions) {
   /** 场景定时刷新：兜住 LPC 改出口/物品却未 notify_room 的情况。 */
   const scenePollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [state, setState] = useState<GameState>(initialState);
+  const pendingFeedback = useRef(false);
   const [toast, setToast] = useState("");
   // setToast 身份稳定，scheduler 只建一次即可
   const toastScheduler = useRef(createToastScheduler(setToast));
@@ -223,13 +224,19 @@ export function useGame(opts?: UseGameOptions) {
       isStaticPassageLine(text)
     )
       return;
-    setState((s) => ({
+    setState((s) => {
+      // 当 sheet 打开且有待反馈时，将操作结果 toast
+      if (pendingFeedback.current && kind !== "sys" && kind !== "combat" && s.sheet) {
+        pendingFeedback.current = false;
+        toastScheduler.current.show(text);
+      }
+      return {
       ...s,
       logs: [
         ...s.logs.slice(-80),
         { id: ++logId, text, html, kind: kind || "normal" },
       ],
-    }));
+    }});
   }, []);
 
   const finishDocCapture = useCallback(() => {
@@ -343,7 +350,7 @@ export function useGame(opts?: UseGameOptions) {
   }, []);
 
   const cmd = useCallback(
-    (command: string, opts?: { silent?: boolean }) => {
+    (command: string, opts?: { silent?: boolean; feedback?: boolean }) => {
       const parts = command.trim().split(/\s+/);
       const verb = parts[0]?.toLowerCase();
       const target = parts.slice(1).join(" ").trim().toLowerCase();
@@ -367,6 +374,8 @@ export function useGame(opts?: UseGameOptions) {
         scheduleEquipRefresh();
       }
       socket.current.cmd(command);
+      // 从 sheet 触发的操作：下一条服务器响应将 toast 展示
+      if (opts?.feedback) pendingFeedback.current = true;
       // go 由点出口触发，见闻不必回显；其它显式指令仍可 echo（如 say）
       const quiet =
         !!opts?.silent || verb === "go";

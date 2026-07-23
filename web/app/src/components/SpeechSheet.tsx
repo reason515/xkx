@@ -149,6 +149,22 @@ export function SpeechSheet({ nearby, onClose, onSend }: Props) {
               说出
             </button>
           </div>
+
+          {/* 快捷模板 */}
+          {nearby.length > 0 && (
+            <div className="speech-quick" style={{padding:"0 16px 16px"}}>
+              <p style={{fontSize:13,color:"var(--paper-dim)",marginBottom:8}}>快捷用语：</p>
+              <div className="chips">
+                {nearby.slice(0,5).map((person) => (
+                  <button key={`bye-${person.id}`} type="button"
+                    className="chip action"
+                    onClick={() => { onSend(`chat bye ${person.commandId || person.id}`); onClose(); }}>
+                    道别{person.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
         </form>
       </div>
     </div>

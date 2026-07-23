@@ -160,7 +160,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
   }, [menuOpen]);
 
   const afterEntityAction = (command: string) => {
-    g.cmd(command);
+    g.cmd(command, { feedback: true });
   };
 
   const afterBoardDocAction = (command: string) => {
@@ -346,7 +346,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                           key={a.command}
                           type="button"
                           className="chip action"
-                          onClick={() => g.cmd(a.command)}
+                          onClick={() => g.cmd(a.command, { feedback: true })}
                         >
                           {a.label}
                         </button>
@@ -408,11 +408,36 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                           key={a.command}
                           type="button"
                           className="chip action"
-                          onClick={() => g.cmd(a.command)}
+                          onClick={() => g.cmd(a.command, { feedback: true })}
                         >
                           {a.label}
                         </button>
                       ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 战斗绝招——基于已激发的武功 */}
+                {Object.keys(state.enabled).length > 0 && (
+                  <div className="ctx-block">
+                    <h2>绝招</h2>
+                    <div className="chips">
+                      {Object.entries(state.enabled).map(([slot, ent]) => {
+                        const skill = ent.skill;
+                        if (!skill || skill === "无") return null;
+                        // 常见绝招映射
+                        const perfMap: Record<string, [string,string][]> = {
+                          sword: [["八方风雨","perform sword.bafang"]],
+                          strike: [["太乙掌","perform strike.zhang"]],
+                          blade: [["刀法绝招","perform blade.dao"]],
+                          cuff: [["拳法绝招","perform cuff.quan"]],
+                        };
+                        const perfs = perfMap[slot] || [];
+                        return perfs.map(([label, cmd]) => (
+                          <button key={cmd} type="button" className="chip action"
+                            onClick={() => g.cmd(cmd, { feedback: true })}>{label}</button>
+                        ));
+                      })}
                     </div>
                   </div>
                 )}

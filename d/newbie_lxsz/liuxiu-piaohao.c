@@ -32,6 +32,7 @@ LONG
 void init()
 {
 	int balance;
+	object npc;
 
 	if( !this_player()->query("newsaver") ) 
 	{
@@ -44,5 +45,12 @@ void init()
 	this_player()->save();
 	
 	add_action("show_quest","quest");
+	
+	// 确保 NPC 已加载（Web 客户端连接时 reset 可能未触发）
+	if (!present("liu zhuqian", this_object()))
+	{
+		npc = new(__DIR__"npc/liuzhuqian");
+		if (npc) npc->move(this_object());
+	}
 }
 
