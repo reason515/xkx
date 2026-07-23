@@ -24,6 +24,27 @@ async function waitOrSkip(page: any, target: number) {
   await expect.poll(() => questStep(page), { timeout: 10000 }).toContain(`第 ${target}`);
 }
 
+test("登录后等待一段时间仍可执行指令", async ({ page }) => {
+  test.setTimeout(90_000);
+  await loginAsNewbie(page, { asRegister: true });
+  await expect(page.locator(".room-title").first()).not.toHaveText("…", {
+    timeout: 30_000,
+  });
+
+  // 覆盖旧版每 4 秒 webclient 刷新数次后的真实用户操作。
+  await page.waitForTimeout(14_000);
+  await sendCmd(page, "xkxe2e dangpu", 3_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/当铺/, {
+    timeout: 10_000,
+  });
+
+  await page.waitForTimeout(14_000);
+  await sendCmd(page, "xkxe2e yanzhougrind", 3_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/民屋/, {
+    timeout: 10_000,
+  });
+});
+
 test.describe("新手村 35 任务", () => {
   test("skip 模式全覆盖", async ({ page }) => {
     test.setTimeout(600_000);

@@ -157,15 +157,11 @@ void send_room(object me, object env)
 			}
 			dest = exits[dir];
 			/*
-			 * 出口目标尚未加载时，find_object() 会返回空。旧逻辑因此把
-			 * north/east/up 当作场景名称发给 Web。有效房间按路径安全加载，
-			 * 始终使用目标房间 short；加载失败则留空，勿泄露英文方向名。
+			 * 场景推送绝不能为了补出口名称而加载目标房间。部分房间的 create()
+			 * 会继续加载 NPC / 旧继承；在 Web 刷新路径中触发会阻塞玩家指令并
+			 * 反复记录驱动错误。未加载时保留空名称，前端仍按 dir 展示方向。
 			 */
 			ob = find_object(dest);
-			if (!objectp(ob)) {
-				if (catch(ob = load_object(dest)))
-					ob = 0;
-			}
 			elist += ({ sprintf(
 				"{\"dir\":\"%s\",\"name\":\"%s\"}",
 				dir,

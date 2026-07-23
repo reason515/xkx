@@ -68,9 +68,6 @@ import type {
 } from "../lib/types";
 import { GameSocket } from "../lib/ws";
 
-/** 进游戏后静默拉场景的间隔（毫秒）。 */
-const SCENE_POLL_MS = 4000;
-
 const initialState = (): GameState => ({
   connected: false,
   inGame: false,
@@ -134,8 +131,6 @@ export function useGame(opts?: UseGameOptions) {
   const roomRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** 战斗文案时节流补 hp，兜底尚未推送的 player.vitals。 */
   const combatHpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  /** 场景定时刷新：兜住 LPC 改出口/物品却未 notify_room 的情况。 */
-  const scenePollTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const [state, setState] = useState<GameState>(initialState);
   const pendingFeedback = useRef(false);
   const [toast, setToast] = useState("");
@@ -1126,33 +1121,6 @@ export function useGame(opts?: UseGameOptions) {
       delete w.__xkxCmd;
     };
   }, [cmd]);
-
-  /*
-   * 进游戏后定时静默刷新场景：LPC 里动态改 exits/物品却漏掉 notify_room 时，
-   * Web 出口/人物/物品仍能在数秒内跟上（如召船、开门、刷怪）。
-   * 用 webclient 而非 look，避免见闻刷屏与指令洪水。
-   */
-  useEffect(() => {
-    if (!state.inGame || !state.connected) {
-      if (scenePollTimer.current) {
-        clearInterval(scenePollTimer.current);
-        scenePollTimer.current = null;
-      }
-      return;
-    }
-    const poll = () => {
-      if (typeof document !== "undefined" && document.visibilityState === "hidden")
-        return;
-      socket.current.cmd("webclient");
-    };
-    scenePollTimer.current = setInterval(poll, SCENE_POLL_MS);
-    return () => {
-      if (scenePollTimer.current) {
-        clearInterval(scenePollTimer.current);
-        scenePollTimer.current = null;
-      }
-    };
-  }, [state.inGame, state.connected]);
 
   const confirmGo = useCallback(
     (dir: string) => {

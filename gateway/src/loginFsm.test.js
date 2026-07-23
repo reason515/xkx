@@ -78,8 +78,8 @@ describe("LoginFsm", () => {
       gender: "女",
     });
     fsm.state = LoginState.CONFIRM_PASSWORD;
-    assert.equal(fsm.onOutput("您接受这一组天赋吗？"), "f\n");
-    assert.equal(fsm.state, LoginState.GENDER);
+    assert.equal(fsm.onOutput("您接受这一组天赋吗？"), "y\n");
+    assert.equal(fsm.state, LoginState.GIFT);
   });
 
   it("transitions to in_game on welcome message", () => {
