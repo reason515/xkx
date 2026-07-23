@@ -739,6 +739,17 @@ describe("parseSuggestedActions", () => {
     ]);
   });
 
+  it("extracts scenery nouns but rejects narrative command hints", () => {
+    expect(parseSceneryFromDesc("你往山路(path)下一望。")).toEqual([
+      { id: "path", name: "山路", kind: "item", scenery: true },
+    ]);
+    expect(parseSceneryFromDesc("可尝试将毒蛇变(bian)。")).toEqual([]);
+    expect(parseSceneryFromDesc("似乎可以按(press)。")).toEqual([]);
+    expect(parseSceneryFromDesc("一块大石(stone)挡在路中。")).toEqual([
+      { id: "stone", name: "大石", kind: "item", scenery: true },
+    ]);
+  });
+
   it("treats 洞(hole)+钻(zuan) as scenery+action, not fake items", () => {
     // yongdao2 / shibi: 「洞(hole)，好象可以钻(zuan)进去」must not yield
     // items「洞」「象可以钻」— only lookable hole + zuan hole chip.

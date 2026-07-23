@@ -33,9 +33,16 @@ test("新手目标在进入游戏后五秒内展示", async ({ page }) => {
   await expect(page.locator(".quest-target")).toBeVisible();
 });
 
-test("不定量场景描述保留物件所属位置", async ({ page }) => {
+test("场景物件名称保留有效语义并滤除叙述残片", async ({ page }) => {
   test.setTimeout(60_000);
   await loginAsNewbie(page, { asRegister: true });
+  await sendCmd(page, "xkxe2e huanpo", 3_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/缓坡/, {
+    timeout: 10_000,
+  });
+  await expect(page.locator(".chip.item").filter({ hasText: "山路" })).toBeVisible();
+  await expect(page.locator(".chip.item").filter({ hasText: "你往山路" })).toHaveCount(0);
+
   await sendCmd(page, "xkxe2e luanshizhen", 3_000);
   await expect(page.locator(".room-title").first()).toHaveText(/乱石阵/, {
     timeout: 10_000,

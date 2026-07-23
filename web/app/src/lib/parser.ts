@@ -1661,6 +1661,17 @@ export function roomUtilityActions(room: {
 const SCENERY_NAME_NOISE =
   /可以|好象|似乎|只有|试试|不妨|想要|忍不住|不知|能不能/;
 
+/** Parenthesized command hints can resemble scenery, e.g.「将毒蛇变(bian)」. */
+const SCENERY_ACTION_TRAIL =
+  /(?:将|把).{1,3}(?:变|砍|打破)$|(?:打|砍|炸|划|按|喊|叫|爬|钻|跳|攀|吃|喝|读|唱|睡|下车|开始|变|打破)$/;
+
+/** Strip the player-facing lead-in from a real scenery noun:「你往山路」→「山路」。 */
+function normalizeSceneryName(nameRaw: string): string {
+  return nameRaw
+    .replace(/^(?:你|我|他|她)(?:正(?:在)?|可(?:以)?|会|能|想|要)?(?:往|向|朝|从|对)?/, "")
+    .trim();
+}
+
 /**
  * Scenery in room long / item_desc hints: 小条子(tiaozi) → lookable item chip.
  * Skips known action verbs like sleep / enter / zuan.
@@ -1674,8 +1685,9 @@ export function parseSceneryFromDesc(desc: string): Entity[] {
     preserveRelation = false
   ) => {
     const id = idRaw.toLowerCase();
+    if (SCENERY_ACTION_TRAIL.test(nameRaw)) return;
     // Strip prose glue / classifiers: 「是一道瀑布」→「瀑布」, 「旁的大石」→「大石」
-    const stripped = nameRaw
+    const stripped = normalizeSceneryName(nameRaw)
       .replace(/^(?:不时|时|这里|那里|水中|空中|左边|右边|西边|东边)?有/, "")
       // 「有些文字(word)」被通用括号匹配截到末尾时，不能展示量词残片。
       .replace(/^(?:一些|些)/, "")
