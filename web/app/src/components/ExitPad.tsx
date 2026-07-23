@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { DIR_MAP, PAD_SLOTS } from "../lib/parser";
 import type { ExitInfo } from "../lib/types";
 
@@ -7,6 +8,7 @@ interface Props {
 }
 
 export function ExitPad({ exits, onSelect }: Props) {
+  const lastClick = useRef(0);
   const byDir = Object.fromEntries(exits.map((e) => [e.dir, e]));
   const padDirs = new Set(
     PAD_SLOTS.flat().filter((d): d is string => typeof d === "string")
@@ -34,7 +36,11 @@ export function ExitPad({ exits, onSelect }: Props) {
               key={dir}
               type="button"
               className="cell open"
-              onClick={() => onSelect(ex)}
+              onClick={() => {
+                if (Date.now() - lastClick.current < 600) return;
+                lastClick.current = Date.now();
+                onSelect(ex);
+              }}
             >
               <span className="d">{ex.label || DIR_MAP[dir] || dir}</span>
               {ex.name}
@@ -49,7 +55,11 @@ export function ExitPad({ exits, onSelect }: Props) {
               key={ex.dir}
               type="button"
               className="cell open"
-              onClick={() => onSelect(ex)}
+              onClick={() => {
+                if (Date.now() - lastClick.current < 600) return;
+                lastClick.current = Date.now();
+                onSelect(ex);
+              }}
             >
               <span className="d">{ex.label || DIR_MAP[ex.dir] || ex.dir}</span>
               {ex.name}
