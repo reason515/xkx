@@ -39,6 +39,17 @@ int main(object me, string arg)
 		return 1;
 	}
 
+	if (arg == "jizhen") {
+		ob = load_object("/d/newbie_lxsz/jizhen-xiaodao1");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载集镇小道。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到集镇小道。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
 	if (arg == "haidaowo") {
 		ob = load_object("/d/xiakedao/haidaowo1");
 		if (!objectp(ob))
