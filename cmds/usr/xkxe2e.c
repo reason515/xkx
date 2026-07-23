@@ -15,7 +15,7 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | yanzhougrind | studyrecoverprep | haidaowo | dadong | yingbin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | givemoney | givesellitem | givesellrabbit | grantskills | grantforce\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | yanzhougrind | studyrecoverprep | haidaowo | dadong | yingbin | jizhen | luanshizhen | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | givemoney | givesellitem | givesellrabbit | grantskills | grantforce\n");
 
 	if (arg == "dadong") {
 		ob = load_object("/d/xiakedao/dadong");
@@ -45,6 +45,17 @@ int main(object me, string arg)
 			return notify_fail("（测试）无法加载集镇小道。\n");
 		me->move(ob);
 		tell_object(me, "（测试）你来到集镇小道。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
+	if (arg == "luanshizhen") {
+		ob = load_object("/d/newbie_lxsz/luanshizhen");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载乱石阵。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到乱石阵。\n");
 		WEBD->mark_web_client(me);
 		WEBD->send_room(me, ob);
 		return 1;

@@ -718,6 +718,13 @@ describe("parseSuggestedActions", () => {
     ).toEqual(["sleep"]);
   });
 
+  it("keeps the carrier when parsing words written on stones", () => {
+    const desc = "有几块石头上有些文字(word)。";
+    expect(parseSceneryFromDesc(desc)).toEqual([
+      { id: "word", name: "石头上的文字", kind: "item", scenery: true },
+    ]);
+  });
+
   it("treats 洞(hole)+钻(zuan) as scenery+action, not fake items", () => {
     // yongdao2 / shibi: 「洞(hole)，好象可以钻(zuan)进去」must not yield
     // items「洞」「象可以钻」— only lookable hole + zuan hole chip.

@@ -33,6 +33,17 @@ test("新手目标在进入游戏后五秒内展示", async ({ page }) => {
   await expect(page.locator(".quest-target")).toBeVisible();
 });
 
+test("乱石阵将石头上的文字作为场景物品展示", async ({ page }) => {
+  test.setTimeout(60_000);
+  await loginAsNewbie(page, { asRegister: true });
+  await sendCmd(page, "xkxe2e luanshizhen", 3_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/乱石阵/, {
+    timeout: 10_000,
+  });
+  await expect(page.locator(".chip.item").filter({ hasText: "石头上的文字" })).toBeVisible();
+  await expect(page.locator(".chip.item").filter({ hasText: "些文字" })).toHaveCount(0);
+});
+
 test("集镇东北远眺不加载药铺且仍可继续操作", async ({ page }) => {
   test.setTimeout(90_000);
   await loginAsNewbie(page, { asRegister: true });
