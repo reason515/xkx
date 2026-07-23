@@ -84,6 +84,30 @@ test("集镇东北远眺不加载药铺且仍可继续操作", async ({ page }) 
   });
 });
 
+test("集镇东北前往进入药铺且NPC不重复", async ({ page }) => {
+  test.setTimeout(90_000);
+  await loginAsNewbie(page, { asRegister: true });
+  await sendCmd(page, "xkxe2e jizhen", 3_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/集镇小道/, {
+    timeout: 10_000,
+  });
+
+  const northeast = page
+    .locator(".exit-pad .cell.open")
+    .filter({ hasText: /东北/ })
+    .first();
+  await expect(northeast).toBeVisible({ timeout: 10_000 });
+  await northeast.click();
+  await expect(page.locator(".exit-preview")).toBeVisible({ timeout: 5_000 });
+
+  await page.locator("button.go").filter({ hasText: /前往/ }).first().click();
+  await expect(page.locator(".room-title").first()).toHaveText(/药铺/, {
+    timeout: 10_000,
+  });
+  await expect(page.locator(".chip.npc").filter({ hasText: "药铺伙计" })).toHaveCount(1);
+  await expect(page.locator(".chip.npc").filter({ hasText: "薛慕华" })).toHaveCount(1);
+});
+
 test("登录空闲五分钟后仍可执行指令", async ({ page }) => {
   test.setTimeout(420_000);
   await loginAsNewbie(page, { asRegister: true });

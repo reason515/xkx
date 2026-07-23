@@ -36,9 +36,8 @@ LONG);
 
 void init()
 {
-	add_action("show_quest","quest");
+	if (interactive(this_player()))
+		add_action("show_quest", "quest");
 }
-
-
 
 
