@@ -33,6 +33,32 @@ test("新手目标在进入游戏后五秒内展示", async ({ page }) => {
   await expect(page.locator(".quest-target")).toBeVisible();
 });
 
+test("集镇东北远眺不加载药铺且仍可继续操作", async ({ page }) => {
+  test.setTimeout(90_000);
+  await loginAsNewbie(page, { asRegister: true });
+  await sendCmd(page, "newbietest skip 17", 3_000);
+  await sendCmd(page, "west", 2_000);
+  await sendCmd(page, "south", 2_000);
+  await sendCmd(page, "south", 2_000);
+
+  const northeast = page
+    .locator(".exit-pad .cell.open")
+    .filter({ hasText: /东北/ })
+    .first();
+  await expect(northeast).toBeVisible({ timeout: 10_000 });
+  await northeast.click();
+  await expect(page.locator(".exit-preview")).toContainText(
+    "远处景象尚不可辨清",
+    { timeout: 5_000 }
+  );
+
+  await page.locator(".sheet .close").first().click();
+  await sendCmd(page, "newbietest skip 18", 3_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/药铺/, {
+    timeout: 10_000,
+  });
+});
+
 test("登录空闲五分钟后仍可执行指令", async ({ page }) => {
   test.setTimeout(420_000);
   await loginAsNewbie(page, { asRegister: true });

@@ -234,12 +234,12 @@ int look_room_item(object me, string arg)
 		return 1;
 	}
 	if( mapp(exits = env->query("exits")) && !undefinedp(exits[arg]) ) {
+		/* 远眺不可为了描写而加载未进入的房间。目标房间的 reset/create
+		 * 可能生成 NPC 并递归加载依赖，导致一次点出口就卡住整个会话。 */
 		if( objectp(env = find_object(exits[arg])) )
 			look_room(me, env);
-		else {
-			call_other(exits[arg], "???");
-			look_room(me, find_object(exits[arg]));
-		}
+		else
+			write("远处景象尚不可辨清，还是亲自前往看看吧。\n");
 		return 1;
 	}
 	return notify_fail("你要看什么？\n");
