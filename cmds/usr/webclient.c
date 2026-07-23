@@ -10,6 +10,9 @@ int main(object me, string arg)
 
 	if (!objectp(me)) return 0;
 	WEBD->mark_web_client(me);
+	/* 已有任务进度的重登玩家立刻收到目标；新角色会在出生剧情设定
+	 * 任务后再由房间推送，避免前端为等任务状态空白数秒。 */
+	WEBD->send_quest_status(me);
 	if (arg == "skills" || arg == "enable") {
 		WEBD->send_skills_enable(me);
 		return 1;

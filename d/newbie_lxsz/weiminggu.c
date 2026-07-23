@@ -98,16 +98,6 @@ void init()
 	add_action("do_west","west");
 
 	call_out("greeting",1,me);
-
-	// Web 客户端同步任务状态（延迟执行，等 Gateway 发完 webclient 标记）
-	call_out("send_initial_quest", 3, me);
-}
-
-void send_initial_quest(object me)
-{
-	if (!objectp(me)) return;
-	if (me->query_temp("web_client"))
-		WEBD->send_quest_status(me);
 }
 
 void greeting(object me)
@@ -117,6 +107,8 @@ void greeting(object me)
 		me->set(NEWBIE_VILLAGE_INDEX,1);
 		me->set("food",1);
 		me->set("water",1);
+		/* 出生剧情确定首个目标后立即推送，勿再额外等待数秒。 */
+		WEBD->send_quest_status(me);
         tell_object(me,
 HIG"一只云粉蝶飞来飞去，最终决定落在你脸上。你睁开眼睛，晴天暖云像是
 一床被掀起来的锦被。你站起身来，抖了抖身上的灰尘，见四处绿草如茵，

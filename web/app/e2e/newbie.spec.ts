@@ -24,6 +24,15 @@ async function waitOrSkip(page: any, target: number) {
   await expect.poll(() => questStep(page), { timeout: 10000 }).toContain(`第 ${target}`);
 }
 
+test("新手目标在进入游戏后三秒内展示", async ({ page }) => {
+  test.setTimeout(60_000);
+  await loginAsNewbie(page, { asRegister: true });
+  await expect(page.locator(".newbie-quest-panel")).toBeVisible({
+    timeout: 3_000,
+  });
+  await expect(page.locator(".quest-target")).toBeVisible();
+});
+
 test("登录空闲五分钟后仍可执行指令", async ({ page }) => {
   test.setTimeout(420_000);
   await loginAsNewbie(page, { asRegister: true });
