@@ -718,10 +718,24 @@ describe("parseSuggestedActions", () => {
     ).toEqual(["sleep"]);
   });
 
-  it("keeps the carrier when parsing words written on stones", () => {
-    const desc = "有几块石头上有些文字(word)。";
-    expect(parseSceneryFromDesc(desc)).toEqual([
+  it("keeps carrier relations for scenery embedded in prose", () => {
+    expect(parseSceneryFromDesc("有几块石头上有些文字(word)。")).toEqual([
       { id: "word", name: "石头上的文字", kind: "item", scenery: true },
+    ]);
+    expect(parseSceneryFromDesc("墙上有一些小字(word)。")).toEqual([
+      { id: "word", name: "墙上的小字", kind: "item", scenery: true },
+    ]);
+    expect(parseSceneryFromDesc("一些杏树下有一些零散的脚印(yin)。")).toEqual([
+      { id: "yin", name: "杏树下的脚印", kind: "item", scenery: true },
+    ]);
+    expect(parseSceneryFromDesc("墙上有一行小字(word)。")).toEqual([
+      { id: "word", name: "小字", kind: "item", scenery: true },
+    ]);
+    expect(parseSceneryFromDesc("水中有几条小鱼(fish)。")).toEqual([
+      { id: "fish", name: "小鱼", kind: "item", scenery: true },
+    ]);
+    expect(parseSceneryFromDesc("有些文字(word)。")).toEqual([
+      { id: "word", name: "文字", kind: "item", scenery: true },
     ]);
   });
 

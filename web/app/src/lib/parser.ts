@@ -1677,9 +1677,11 @@ export function parseSceneryFromDesc(desc: string): Entity[] {
     // Strip prose glue / classifiers: 「是一道瀑布」→「瀑布」, 「旁的大石」→「大石」
     const stripped = nameRaw
       .replace(/^(?:不时|时|这里|那里|水中|空中|左边|右边|西边|东边)?有/, "")
+      // 「有些文字(word)」被通用括号匹配截到末尾时，不能展示量词残片。
+      .replace(/^(?:一些|些)/, "")
       .replace(/^[是在于]/, "")
       .replace(
-        /^[一两二三四五六七八九十几數数]*[张条个块面扇座间片本封只株棵道]/,
+        /^[一两二三四五六七八九十几數数]*[张条个块面扇座间片本封只株棵道行]/,
         ""
       );
     // 「石头上的文字」携带玩家判断交互对象所需的载体信息，不能按普通
@@ -1697,20 +1699,31 @@ export function parseSceneryFromDesc(desc: string): Entity[] {
     if (SKILL_LABELS[id] || found.has(id)) return;
     found.set(id, { id, name, kind: "item", scenery: true });
   };
-  // 「几块石头上有些文字(word)」：word 是石头上的铭文，不能截成
-  // 毫无信息量的「些文字」。先保留载体与内容的关系，再走通用匹配。
+  // 「石头上有些文字(word)」这类不定量描述，通用括号匹配只能拿到
+  // 「些文字」。对所有「载体 + 方位 + 有些/一些 + 物件」保留载体关系；
+  // 普通的「墙上有一行小字」仍交给量词规则解析，避免生成生硬的长名称。
   for (const m of desc.matchAll(
-    /([\u4e00-\u9fff]{1,12})上有(?:一些|些)([\u4e00-\u9fff]{1,6})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
+    /([\u4e00-\u9fff]{1,8})(上面|上|里面|里|中|内|下)(?:，)?(?:还)?有(?:一些|些)([\u4e00-\u9fff]{1,8})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
   )) {
-    const holder = m[1].replace(
-      /^.*?[一两二三四五六七八九十几數数]+[张条个块面扇座间片本封只株棵道]/,
-      ""
-    );
-    addScenery(m[3], `${holder}上的${m[2]}`, true);
+    // 截取到「上」之前的连续字串有时会带「有几块」等量词，去掉即可。
+    const holder = m[1]
+      .replace(
+        /^.*?[一两二三四五六七八九十几數数]+[张条个块面扇座间片本封只株棵道行]/,
+        ""
+      )
+      .replace(/^(?:一些|些)/, "");
+    const target = m[3].replace(/^.*的(?=[\u4e00-\u9fff]{1,6}$)/, "");
+    const relation = /^(?:上|上面)$/.test(m[2])
+      ? "上的"
+      : /^(?:里|里面|中|内)$/.test(m[2])
+        ? "中的"
+        : "下的";
+    if (holder && target)
+      addScenery(m[4], `${holder}${relation}${target}`, true);
   }
   // …一张小条子(tiaozi) — number + measure required so「迎面」的「面」不会误吞
   for (const m of desc.matchAll(
-    /[一两二三四五六七八九十几數数]+[张条个块面扇座间片本封只株棵道]([\u4e00-\u9fff]{1,6})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
+    /[一两二三四五六七八九十几數数]+[张条个块面扇座间片本封只株棵道行]([\u4e00-\u9fff]{1,6})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi
   )) {
     addScenery(m[2], m[1]);
   }

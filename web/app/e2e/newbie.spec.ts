@@ -33,7 +33,7 @@ test("新手目标在进入游戏后五秒内展示", async ({ page }) => {
   await expect(page.locator(".quest-target")).toBeVisible();
 });
 
-test("乱石阵将石头上的文字作为场景物品展示", async ({ page }) => {
+test("不定量场景描述保留物件所属位置", async ({ page }) => {
   test.setTimeout(60_000);
   await loginAsNewbie(page, { asRegister: true });
   await sendCmd(page, "xkxe2e luanshizhen", 3_000);
@@ -42,6 +42,13 @@ test("乱石阵将石头上的文字作为场景物品展示", async ({ page }) 
   });
   await expect(page.locator(".chip.item").filter({ hasText: "石头上的文字" })).toBeVisible();
   await expect(page.locator(".chip.item").filter({ hasText: "些文字" })).toHaveCount(0);
+
+  await sendCmd(page, "xkxe2e xingzilin", 3_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/杏子林/, {
+    timeout: 10_000,
+  });
+  await expect(page.locator(".chip.item").filter({ hasText: "杏树下的脚印" })).toBeVisible();
+  await expect(page.locator(".chip.item").filter({ hasText: "零散的脚印" })).toHaveCount(0);
 });
 
 test("集镇东北远眺不加载药铺且仍可继续操作", async ({ page }) => {
