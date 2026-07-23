@@ -984,6 +984,18 @@ export function useGame(opts?: UseGameOptions) {
     const offStatus = socket.current.onStatus((status, detail) => {
       if (status === "error") {
         setLoginError(detail || "无法连接网关");
+        return;
+      }
+      // Gateway/reverse-proxy 断开时未必能收到业务层 disconnected 消息；
+      // 必须退出游戏状态，避免界面仍显示在游戏中而后续指令被静默丢弃。
+      if (status === "closed" && enteredGame.current) {
+        enteredGame.current = false;
+        roomFromEvent.current = false;
+        textBuf.current = "";
+        const intentional = quittingRef.current;
+        quittingRef.current = false;
+        setState((s) => ({ ...s, connected: false, inGame: false }));
+        showToast(intentional ? "已退出" : "与服务器断开");
       }
     });
     return () => {

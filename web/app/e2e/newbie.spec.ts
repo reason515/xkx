@@ -24,23 +24,18 @@ async function waitOrSkip(page: any, target: number) {
   await expect.poll(() => questStep(page), { timeout: 10000 }).toContain(`第 ${target}`);
 }
 
-test("登录后等待一段时间仍可执行指令", async ({ page }) => {
-  test.setTimeout(90_000);
+test("登录空闲五分钟后仍可执行指令", async ({ page }) => {
+  test.setTimeout(420_000);
   await loginAsNewbie(page, { asRegister: true });
   await expect(page.locator(".room-title").first()).not.toHaveText("…", {
     timeout: 30_000,
   });
 
-  // 覆盖旧版每 4 秒 webclient 刷新数次后的真实用户操作。
-  await page.waitForTimeout(14_000);
+  // 回归：旧 Gateway 将没有 MUD 输出的正常玩家当作超时会话，5 分钟后
+  // 直接关闭 WebSocket；前端仍停在游戏页，用户看到的就是所有操作无响应。
+  await page.waitForTimeout(310_000);
   await sendCmd(page, "xkxe2e dangpu", 3_000);
   await expect(page.locator(".room-title").first()).toHaveText(/当铺/, {
-    timeout: 10_000,
-  });
-
-  await page.waitForTimeout(14_000);
-  await sendCmd(page, "xkxe2e yanzhougrind", 3_000);
-  await expect(page.locator(".room-title").first()).toHaveText(/民屋/, {
     timeout: 10_000,
   });
 });

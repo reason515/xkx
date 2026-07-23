@@ -85,6 +85,9 @@ wss.on("connection", (ws, req) => {
   const sessionId = `s${++sessionSeq}`;
   let mud = null;
   let heartbeat;
+  // WebSocket protocol pong is handled by browsers automatically. Keep a
+  // connected but idle player alive; only reap an actually dead browser.
+  let clientAlive = true;
 
   const cleanup = () => {
     clearInterval(heartbeat);
@@ -212,16 +215,21 @@ wss.on("connection", (ws, req) => {
     }
   });
 
+  ws.on("pong", () => {
+    clientAlive = true;
+  });
+
   ws.on("close", cleanup);
 
   heartbeat = setInterval(() => {
-    if (ws.readyState === ws.OPEN) {
-      ws.send(JSON.stringify({ type: "ping", t: Date.now() }));
+    if (ws.readyState !== ws.OPEN) return;
+    if (!clientAlive) {
+      log("info", sessionId, "client ping timeout");
+      ws.terminate();
+      return;
     }
-    if (mud && Date.now() - mud.lastActivity > config.sessionTimeoutMs) {
-      log("info", sessionId, "session timeout");
-      ws.close(4000, "timeout");
-    }
+    clientAlive = false;
+    ws.ping();
   }, config.heartbeatIntervalMs);
 });
 
