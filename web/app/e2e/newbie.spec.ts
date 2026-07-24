@@ -108,6 +108,75 @@ test("集镇东北前往进入药铺且NPC不重复", async ({ page }) => {
   await expect(page.locator(".chip.npc").filter({ hasText: "薛慕华" })).toHaveCount(1);
 });
 
+test("新手村主要NPC房间首次加载不重复", async ({ page }) => {
+  test.setTimeout(180_000);
+  await loginAsNewbie(page, { asRegister: true });
+
+  await sendCmd(page, "newbietest skip 17", 4_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/票号/, {
+    timeout: 10_000,
+  });
+  await expect(page.locator(".chip.npc").filter({ hasText: "柳住钱" })).toHaveCount(1);
+  console.log("✅ 票号");
+
+  await sendCmd(page, "newbietest skip 8", 4_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/柳秀山庄正厅/, {
+    timeout: 10_000,
+  });
+  await expect(page.locator(".chip.npc").filter({ hasText: "游鲲翼" })).toHaveCount(1);
+  await expect(page.locator(".chip.npc").filter({ hasText: "阿姝" })).toHaveCount(1);
+  console.log("✅ 正厅");
+
+  await sendCmd(page, "newbietest skip 11", 4_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/男浴室/);
+  await expect(page.locator(".chip.npc").filter({ hasText: "男侍童" })).toHaveCount(1);
+  console.log("✅ 男浴室");
+
+  await sendCmd(page, "newbietest skip 13", 4_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/尚武堂/);
+  await expect(page.locator(".chip.npc").filter({ hasText: "武师" })).toHaveCount(1);
+  console.log("✅ 尚武堂");
+
+  await sendCmd(page, "newbietest skip 34", 4_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/杏子林/);
+  await expect(page.locator(".chip.npc").filter({ hasText: "游鲲翼" })).toHaveCount(1);
+  console.log("✅ 杏子林副本");
+
+  await sendCmd(page, "xkxe2e jizhen", 3_000);
+  await page.locator(".exit-pad .cell.open").filter({ hasText: /东南/ }).first().click();
+  await page.locator("button.go").filter({ hasText: /前往/ }).first().click();
+  await expect(page.locator(".room-title").first()).toHaveText(/酒铺/);
+  await expect(page.locator(".chip.npc").filter({ hasText: "老汉" })).toHaveCount(1);
+  console.log("✅ 酒铺");
+
+  await sendCmd(page, "xkxe2e jizhen", 3_000);
+  await sendCmd(page, "north", 2_000);
+  await sendCmd(page, "west", 2_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/铁匠铺/);
+  await expect(page.locator(".chip.npc").filter({ hasText: "老胡" })).toHaveCount(1);
+  console.log("✅ 铁匠铺");
+
+  await sendCmd(page, "east", 2_000);
+  await sendCmd(page, "east", 2_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/杂货铺/);
+  await expect(page.locator(".chip.npc").filter({ hasText: "杨永福" })).toHaveCount(1);
+  console.log("✅ 杂货铺");
+
+  await sendCmd(page, "west", 2_000);
+  await sendCmd(page, "north", 2_000);
+  await sendCmd(page, "west", 2_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/当铺/);
+  await expect(page.locator(".chip.npc").filter({ hasText: "唐老板" })).toHaveCount(1);
+  console.log("✅ 当铺");
+
+  await sendCmd(page, "east", 2_000);
+  await sendCmd(page, "knock gate", 3_000);
+  await sendCmd(page, "look", 2_000);
+  await expect(page.locator(".chip.npc").filter({ hasText: "丫鬟" })).toHaveCount(1);
+  await sendCmd(page, "north", 2_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/长廊/);
+});
+
 test("登录空闲五分钟后仍可执行指令", async ({ page }) => {
   test.setTimeout(420_000);
   await loginAsNewbie(page, { asRegister: true });

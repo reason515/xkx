@@ -28,11 +28,11 @@ void create()
 	set("shen_type", 1);
 	set("attitude", "friendly");
 	set("env/wimpy", 50);
+	set("startroom", "/d/newbie_lxsz/liuxiu-piaohao");
+	setup();
 	add_money("coin", 88);
 	add_money("silver", 88);
-    carry_object(__DIR__"obj/gebu-changpao")->wear();
-	set("startroom","/d/newbie_lxsz/liuxiu-piaohao.c");
-	setup();
+	carry_object(__DIR__"obj/gebu-changpao")->wear();
 }
 
 void init()

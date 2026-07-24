@@ -32,17 +32,20 @@ LONG
 void init()
 {
 	int balance;
-	object npc;
+	object me, npc;
 
-	if( !this_player()->query("newsaver") ) 
+	me = this_player();
+	if (!objectp(me) || !interactive(me)) return;
+
+	if( !me->query("newsaver") )
 	{
-		balance = this_player()->query("balance");
+		balance = me->query("balance");
 		if( balance >= 100000 ) balance = 1000000;
-		this_player()->set("balance", balance);
-		this_player()->set("newsaver", 1);
+		me->set("balance", balance);
+		me->set("newsaver", 1);
 	}
 	
-	this_player()->save();
+	me->save();
 	
 	add_action("show_quest","quest");
 	

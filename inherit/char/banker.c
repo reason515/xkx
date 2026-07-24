@@ -17,16 +17,14 @@ int greeting(object pl)
 void init()
 {
     object pl = this_player();
+
+    if (!objectp(pl) || !interactive(pl)) return;
+
 	  add_action("do_check", ({"check", "chazhang", "查帐"}));
 	  add_action("do_transfer",({"zhuan","transfer","转账"}));
 	  add_action("do_convert", ({"convert", "duihuan", "兑换"}));
 	  add_action("do_deposit", ({"deposit", "cun", "存"}));
 	  add_action("do_withdraw", ({"withdraw", "qu", "取"}));
-	
-    if(FAMILY_D->get_repute_top1() != "" && FAMILY_D->get_repute_top1() == pl->query("family/family_name"))
-    {	
-    	call_out("greeting",1,this_player());
-	  }
 }
 
 int do_check()
@@ -324,7 +322,7 @@ int do_withdraw(string arg)
 	(money = new(what))->set_amount(amount);
 	if(!money->move(me))
 	{
-		tell_object(me,HIR+BNK+"由于你拿不动这许多钱，钱庄伙计把钱都给你放在了地上。\n"+NOR);
+		tell_object(me, HIR"由于你拿不动这许多钱，钱庄伙计把钱都给你放在了地上。\n"NOR);
 		money->move(environment(me));
 	}
 	me->add("balance", -v);
@@ -439,7 +437,7 @@ int do_transfer(string arg)
 	tell_object(receiver,me->query("name") + sprintf("从银号转账%s%s%s给你，银号伙计把钱给你送了过来。\n",chinese_number(amount), what->query("base_unit"), what->name()));
 	if(!money->move(receiver))
 	{
-		tell_object(receiver,HIR+BNK+"由于你拿不动这许多钱，银号伙计把钱都给你放在了地上。\n"+NOR);
+		tell_object(receiver, HIR"由于你拿不动这许多钱，银号伙计把钱都给你放在了地上。\n"NOR);
 		money->move(environment(receiver));
 	}
 

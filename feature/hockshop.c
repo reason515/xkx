@@ -8,7 +8,6 @@
 inherit ROOM;
 #define MAX_PAWN 20
 inherit F_SAVE;
-inherit F_UNIOBJ;
 
 //唯一的ID号，每一个实现者都必须分配一个不同的ID
 //这是区分存档文件的唯一标志。
@@ -775,7 +774,7 @@ int do_retrieve(string arg)
             ob->set("no_pawn",1);
           ob->move(me);
           attribute = me->query("apawn/"+sprintf("%d",num));
-          reset_attribute(me, ob, attribute);
+          ob->set("attribute", attribute);
           me->add("npawn/"+sprintf("%d",num),-1);
           if (me->query("npawn/"+sprintf("%d",num))<1)
           {
