@@ -655,27 +655,28 @@ export function labelSuggestedAction(
   }
   if (verb === "list") return "浏览留言";
   if (verb === "climb" && parts[1]) {
-    if (/^tree$/i.test(parts[1])) return "爬树取雨衣";
-    return `爬${parts.slice(1).join(" ")}`;
+    const where = parts.slice(1).join(" ");
+    if (/^tree$/i.test(where)) return "爬树取雨衣";
+    return `爬${ent(where)}`;
   }
   if (verb === "pa" && parts[1]) {
     const where = parts.slice(1).join(" ");
     if (/^tree$/i.test(where) || where === "树") return "爬树摘椰子";
     if (/^up$/i.test(where)) return "爬上树";
     if (/^down$/i.test(where)) return "爬下树";
-    return `爬${where}`;
+    return `爬${ent(where)}`;
   }
   if (verb === "zhai" && parts[1]) {
     if (/^guo$/i.test(parts[1]) || parts[1] === "果") return "摘野果";
-    return `摘${parts.slice(1).join(" ")}`;
+    return `摘${ent(parts.slice(1).join(" "))}`;
   }
   if (verb === "za" && parts[1]) {
     if (/^yezi$|^ye$/i.test(parts[1]) || parts[1] === "椰子") return "砸开椰子";
-    return `砸开${parts.slice(1).join(" ")}`;
+    return `砸开${ent(parts.slice(1).join(" "))}`;
   }
   if (verb === "move" && parts[1]) {
     if (/^stone$/i.test(parts[1]) || parts[1] === "石") return "搬开大石";
-    return `搬动${parts.slice(1).join(" ")}`;
+    return `搬动${ent(parts.slice(1).join(" "))}`;
   }
   if (verb === "halt") return "停手";
   if (verb === "fishing") return "垂钓";
@@ -701,23 +702,27 @@ export function labelSuggestedAction(
     const where = parts.slice(1).join(" ");
     if (/^fall$/i.test(where)) return "跳进瀑布";
     if (/^down$/i.test(where)) return "跳下去";
-    return `跳向${where}`;
+    return `跳向${ent(where)}`;
   }
   if (verb === "zuan" && parts[1]) {
     const what = parts.slice(1).join(" ");
     if (/^hole$/i.test(what)) return "钻洞";
     return `钻${ent(what)}`;
   }
+  if (verb === "fill" && parts[1]) {
+    const what = ent(parts.slice(1).join(" "));
+    return `${what}装水`;
+  }
   if (verb === "wear" && parts[1]) {
     const what = parts.slice(1).join(" ");
     if (/rain\s*coat|^coat$/i.test(what)) return "穿上雨衣";
-    return `${verbLabel}${what}`;
+    return `${verbLabel}${ent(what)}`;
   }
   if (verb === "remove" && parts[1]) {
     const what = parts.slice(1).join(" ");
     if (/^cloth$/i.test(what)) return "脱下布衣";
     if (/^all$/i.test(what)) return "脱下全部";
-    return `脱下${what}`;
+    return `脱下${ent(what)}`;
   }
   if (verb === "read") {
     const arg = (parts[1] || "").toLowerCase();
@@ -743,24 +748,24 @@ export function labelSuggestedAction(
     return `向${who}学${skillLabel}`;
   }
   if (verb === "enter" && parts.length === 1) return "上船";
-  if (verb === "knock" && parts[1]) return `敲${parts.slice(1).join(" ")}`;
+  if (verb === "knock" && parts[1]) return `敲${ent(parts.slice(1).join(" "))}`;
   if (verb === "open" && parts[1]) {
     const what = parts.slice(1).join(" ");
     if (/^(enter|out|north|south|east|west|up|down)$/i.test(what)) {
-      return `打开门`;
+      return "打开门";
     }
-    return `打开${what}`;
+    return `打开${ent(what)}`;
   }
   if (verb === "unlock" && parts[1]) {
     return `${parts.slice(1).join(" ")}上着锁`;
   }
   if ((verb === "qu" || verb === "goto") && parts[1]) {
-    return `乘车去${parts.slice(1).join(" ")}`;
+    return `乘车去${ent(parts.slice(1).join(" "))}`;
   }
   if (verb === "wield" && parts[1]) {
-    return `${verbLabel}${parts.slice(1).join(" ")}`;
+    return `${verbLabel}${ent(parts.slice(1).join(" "))}`;
   }
-  if (verb === "accept" && parts[1]) return `${verbLabel}${parts.slice(1).join(" ")}`;
+  if (verb === "accept" && parts[1]) return `${verbLabel}${ent(parts.slice(1).join(" "))}`;
   if (verb === "sleep") return "睡觉";
   if (parts.length === 1) return verbLabel;
   return `${verbLabel}${ent(parts.slice(1).join(" "))}`;
