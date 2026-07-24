@@ -6,11 +6,10 @@ import {
   invCommandTarget,
   mudCommandTarget,
   parseBoardReadActions,
-  parseDealerCategories,
-  parseVendorGoods,
 } from "../lib/parser";
 import type { AssistConfig, InvItem, SuggestedAction } from "../lib/types";
 import { ChoiceRow } from "./ChoiceRow";
+import { ShopView } from "./ShopView";
 
 interface Props {
   id: string;
@@ -96,8 +95,7 @@ export function EntitySheet({
   const [asking, setAsking] = useState(false);
   const [learning, setLearning] = useState(false);
   const [giving, setGiving] = useState(false);
-  const [selling, setSelling] = useState(false);
-  const [trading, setTrading] = useState(false);
+  const [shopMode, setShopMode] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState(100);
   const [withdrawCurrency, setWithdrawCurrency] = useState("silver");
@@ -116,8 +114,7 @@ export function EntitySheet({
   const askTopics = asking
     ? buildAskTopicActions(id, name, askHints, docText, [], commandId)
     : [];
-  const vendorGoods = trading ? parseVendorGoods(docText) : [];
-  const dealerCategories = trading ? parseDealerCategories(docText) : [];
+
   const learnTopics = learning
     ? buildLearnTopicActions(
         id,
@@ -185,14 +182,12 @@ export function EntitySheet({
 
   const leaveGivingMode = () => setGiving(false);
 
-  const leaveSellingMode = () => setSelling(false);
-
-  const leaveTradingMode = () => {
-    setTrading(false);
+  const leaveShopMode = () => {
+    setShopMode(false);
     onClearDoc?.();
   };
 
-  const leaveWithdrawingMode = () => setWithdrawing(false);
+  const leaveWithdrawing = () => setWithdrawing(false);
 
   // 容器放入：显示可放入的物品列表
   const [puttingIn, setPuttingIn] = useState(false);
@@ -210,10 +205,8 @@ export function EntitySheet({
                 ? `向「${name}」请教`
                 : giving
                   ? `给予「${name}」`
-                  : selling
-                    ? `向「${name}」卖出`
-                    : trading
-                    ? `查看「${name}」的货品`
+                  : shopMode
+                    ? `交易 · ${name}`
                     : withdrawing
                     ? `取款「${name}」`
                     : puttingIn
@@ -376,89 +369,28 @@ export function EntitySheet({
                 <p className="doc-status">行囊里没有可给予的物品。</p>
               )}
             </>
-          ) : selling ? (
+          ) : shopMode ? (
             <>
-              <button type="button" className="doc-back" onClick={leaveSellingMode}>
+              <button type="button" className="doc-back" onClick={leaveShopMode}>
                 ← 返回
               </button>
-              <p className="entity-mode-hint">选择要卖出的物品：</p>
-              {giveItems.length ? (
-                <div className="help-topics entity-item-list">
-                  {giveItems.map((item) => (
-                    <button
-                      key={`${item.id}-${item.name}`}
-                      type="button"
-                      className="help-topic"
-                      onClick={() =>
-                        runNpcAction(
-                          `sell ${invCommandTarget(item.id, item.name)}`
-                        )
-                      }
-                    >
-                      {item.name}
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className="doc-status">行囊里没有可卖出的物品。</p>
-              )}
-            </>
-          ) : trading ? (
-            <>
-              <button type="button" className="doc-back" onClick={leaveTradingMode}>
-                ← 返回
-              </button>
-              {docLoading && !docText ? (
-                <p className="doc-status">正在查看货品…</p>
-              ) : vendorGoods.length ? (
-                <>
-                  <p className="entity-mode-hint">点选购买：</p>
-                  <div className="help-topics entity-item-list">
-                    {vendorGoods.map((g) => (
-                      <button
-                        key={g.id}
-                        type="button"
-                        className="help-topic"
-                        data-testid={`buy-${g.id}`}
-                        onClick={() => onAction(g.command)}
-                      >
-                        {g.name}
-                        {g.price ? (
-                          <span className="entity-good-price">
-                            {" "}
-                            · {g.price}
-                          </span>
-                        ) : null}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : dealerCategories.length ? (
-                <>
-                  <p className="entity-mode-hint">选择要查看的货品类别：</p>
-                  <div className="help-topics entity-item-list">
-                    {dealerCategories.map((category) => (
-                      <button
-                        key={category.id}
-                        type="button"
-                        className="help-topic"
-                        data-testid={`dealer-category-${category.id}`}
-                        onClick={() => onDocAction?.(category.command)}
-                      >
-                        {category.label}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <pre className="doc-body">
-                  {docText || "对方目前没有列出货品。"}
-                </pre>
-              )}
+              <ShopView
+                npcName={name}
+                npcId={id}
+                askTarget={askTarget}
+                canTrade={!!canTrade}
+                canSell={!!canSell}
+                inventory={inventory}
+                docText={docText}
+                docLoading={docLoading}
+                onAction={onAction}
+                onDocAction={(cmd) => onDocAction?.(cmd)}
+                onClearDoc={() => onClearDoc?.()}
+              />
             </>
           ) : withdrawing ? (
             <>
-              <button type="button" className="doc-back" onClick={leaveWithdrawingMode}>
+              <button type="button" className="doc-back" onClick={leaveWithdrawing}>
                 ← 返回
               </button>
               <p className="entity-mode-hint">取款金额与货币：</p>
@@ -556,8 +488,7 @@ export function EntitySheet({
                   <button type="button" onClick={() => runNpcAction(`follow ${askTarget}`)}>跟随</button>
                   <button type="button" onClick={() => setGiving(true)}>给予</button>
                   {!!canApprentice && (<button type="button" className="entity-action-jade" onClick={() => runNpcAction(`apprentice ${askTarget}`)}>拜师</button>)}
-                  {!!canTrade && (<button type="button" data-testid="entity-trade" onClick={() => { setTrading(true); onDocAction?.("list"); }}>购买</button>)}
-                  {!!canSell && (<button type="button" data-testid="entity-sell" onClick={() => setSelling(true)}>卖出</button>)}
+                  {(!!canTrade || !!canSell) && (<button type="button" data-testid="entity-trade" className="entity-action-jade" onClick={() => setShopMode(true)}>交易</button>)}
                   {!!canLead && (<button type="button" onClick={() => runNpcAction(`lead ${askTarget}`)}>带领</button>)}
                   <button type="button" onClick={() => runNpcAction(`fight ${askTarget}`)}>切磋</button>
                   <button type="button" className="entity-action-danger" onClick={() => runNpcAction(`kill ${askTarget}`)}>攻击</button>
@@ -588,7 +519,7 @@ export function EntitySheet({
             </p>
           )}
         </div>
-        {kind !== "npc" && !reading && !asking && !learning && !withdrawing && !puttingIn && (
+        {kind !== "npc" && !reading && !asking && !learning && !withdrawing && !puttingIn && !shopMode && (
           <div className="sheet-acts">
             {actions.map(([label, command]) => (
               <button
