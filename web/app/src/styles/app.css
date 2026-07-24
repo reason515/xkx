@@ -287,11 +287,41 @@ button {
   margin-bottom: 8px;
 }
 
+.room-desc-wrap {
+  margin-bottom: 2px;
+}
+
 .room-desc {
   font-size: 14px;
   line-height: 1.8;
   color: var(--paper-dim);
-  margin-bottom: 14px;
+  margin-bottom: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease;
+}
+
+.room-desc.clamped {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.desc-toggle {
+  display: block;
+  margin: 4px 0 10px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--jade);
+  font-family: var(--font-body);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.desc-toggle:active {
+  opacity: 1;
 }
 
 .guide-tip {

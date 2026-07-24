@@ -7,6 +7,7 @@ import { MapSheet } from "./MapSheet";
 import { HelpSheet } from "./HelpSheet";
 import { TrainSheet } from "./TrainSheet";
 import { CombatSheet } from "./CombatSheet";
+import { CollapsibleDesc } from "./CollapsibleDesc";
 import { GrindBanner } from "./GrindBanner";
 import { EntitySheet } from "./EntitySheet";
 import { SpeechSheet } from "./SpeechSheet";
@@ -300,7 +301,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           <div className="game-body">
             <section className="scene-panel" aria-label="场景">
               <h1 className="room-title">{state.room.title || "…"}</h1>
-              <p className="room-desc">{state.room.desc || "环顾四周以了解所处之地。"}</p>
+              <CollapsibleDesc text={state.room.desc} />
               <GrindBanner
                 active={state.assistActive}
                 status={state.assistStatus}
