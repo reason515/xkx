@@ -132,6 +132,9 @@ export function useGame(opts?: UseGameOptions) {
   /** 战斗文案时节流补 hp，兜底尚未推送的 player.vitals。 */
   const combatHpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<GameState>(initialState);
+  /** 场景切换时在见闻中插入位置标记。 */
+  const prevRoomTitle = useRef(state.room.title);
+  const hasMovedRef = useRef(false);
   const pendingFeedback = useRef(false);
   const [toast, setToast] = useState("");
   // setToast 身份稳定，scheduler 只建一次即可
@@ -233,6 +236,21 @@ export function useGame(opts?: UseGameOptions) {
       ],
     }});
   }, []);
+
+  useEffect(() => {
+    const title = state.room.title;
+    if (!title) return;
+    // 首次进游戏：记录初始位置，不插标记
+    if (!hasMovedRef.current) {
+      hasMovedRef.current = true;
+      prevRoomTitle.current = title;
+      return;
+    }
+    if (title !== prevRoomTitle.current) {
+      prevRoomTitle.current = title;
+      addLog(`—— ${title} ——`, "sys");
+    }
+  }, [state.room.title, addLog]);
 
   const finishDocCapture = useCallback(() => {
     const cap = expectDoc.current;
