@@ -130,4 +130,5 @@ export const MUD_MAP_ALIASES: Record<string, string> = {
   "em": "emei",
   "kunlun": "mingjiao",
   "newbie_lxsz": "liuxiu",
+  "liuxiu-shanzhuang": "liuxiu",
 };
