@@ -161,7 +161,7 @@ string ask_me(string arg)
                 }
                 if (1==check_questindex(who,"向游鲲翼打听闯荡江湖！"))
                 {
-                    call_out("set_nextquest",1, who, "向游鲲翼打听闯荡江湖！", "你按照他的吩咐去做,出发之前先用(localmaps)查下柳秀票号在哪里。", 20, 100);
+                    call_out("set_nextquest",1, who, "向游鲲翼打听闯荡江湖！", "你按照他的吩咐去做,出发之前先点击地图按钮查下柳秀票号在哪里。", 20, 100);
 					who->set("balance",10000);
                     return "这位"+RANK_D->query_respect(who)+"切莫心急，庄里的武师甚是野蛮，得罪了阁下，把伤养好再说吧。\n我在柳秀票号为"+RANK_D->query_respect(who)+"存了些银两，我这里有事脱不开身，麻烦"+RANK_D->query_respect(who)+"自行取了，再去药铺买些药服下吧。";
                 }

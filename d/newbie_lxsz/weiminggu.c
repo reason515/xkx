@@ -234,7 +234,7 @@ void climb_finish(object me)
 	
 	me->move(__DIR__"huanpo");
 	me->start_busy(0);
-	set_nextquest(me, "使用look path命令，根据提示离开未明谷", "你看着怀里的葫芦，心想柳秀山庄会不会就在前面附近的地方。用localmaps命令可以查看附近地图。", 20, 100);
+	set_nextquest(me, "使用look path命令，根据提示离开未明谷", "你看着怀里的葫芦，心想柳秀山庄会不会就在前面附近的地方。点击地图按钮可以查看附近地图。", 20, 100);
 }
 
 int do_hp()

@@ -63,7 +63,7 @@ int show_localmaps()
 	object me;
 	me=this_player();
 
-	call_out("set_nextquest",2, me, "使用localmaps命令查看票号的位置", "快去柳秀票号看看游鲲翼给你存了多少钱，都取出来吧", 20, 100);
+	call_out("set_nextquest",2, me, "点击地图按钮查看票号的位置", "快去柳秀票号看看游鲲翼给你存了多少钱，都取出来吧", 20, 100);
 }
 
 
@@ -74,7 +74,7 @@ void command_me(string arg)
 
 int valid_leave(object me, string dir)
 {
-    if (1==check_questindex(me,"使用localmaps命令查看票号的位置")) return notify_fail("你还是先用localmaps查下柳秀票号的位置再走吧。\n");
+    if (1==check_questindex(me,"点击地图按钮查看票号的位置")) return notify_fail("你还是先点地图按钮查下柳秀票号的位置再走吧。\n");
 	if (me->query("id")!="a shu")
     {
 		if (dir=="west" && me->query("gender")=="女性") return notify_fail("那是男子的厢房！\n");
