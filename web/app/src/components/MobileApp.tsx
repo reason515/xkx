@@ -476,6 +476,9 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           roomItems={state.room.items}
           roomExits={state.room.exits}
           onClose={g.closeSheet}
+          onLocalmaps={() => g.docCmd("localmaps", "help")}
+          localmapsText={state.docTarget === "help" ? state.docText : ""}
+          localmapsLoading={state.docTarget === "help" && state.docLoading}
         />
       )}
       {state.sheet === "help" && (

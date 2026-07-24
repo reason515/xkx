@@ -18,6 +18,11 @@ interface Props {
   /** Exit destination names for duplicate-label disambiguation. */
   roomExits?: { name?: string }[];
   onClose: () => void;
+  /** Trigger localmaps command on the MUD server. */
+  onLocalmaps?: () => void;
+  /** Captured localmaps output text. */
+  localmapsText?: string;
+  localmapsLoading?: boolean;
 }
 
 export function MapSheet({
@@ -28,6 +33,9 @@ export function MapSheet({
   roomItems = [],
   roomExits = [],
   onClose,
+  onLocalmaps,
+  localmapsText = "",
+  localmapsLoading = false,
 }: Props) {
   const [mode, setMode] = useState<"region" | "world">("region");
 
@@ -112,11 +120,29 @@ export function MapSheet({
                   dangerouslySetInnerHTML={{ __html: regionHtml }}
                 />
               </>
+            ) : localmapsText ? (
+              <>
+                <p className="map-legend">来自 MUD localmaps 命令</p>
+                <pre className="map-ascii">{localmapsText}</pre>
+              </>
             ) : (
-              <p className="map-empty">
-                暂无此区域地图
-                {roomTitle ? `（${roomTitle}）` : ""}。可切换「世界」查看总图。
-              </p>
+              <div className="map-empty">
+                <p>
+                  暂无此区域地图
+                  {roomTitle ? `（${roomTitle}）` : ""}。可切换「世界」查看总图。
+                </p>
+                {onLocalmaps && (
+                  <button
+                    type="button"
+                    className="help-topic"
+                    style={{ marginTop: 12 }}
+                    onClick={onLocalmaps}
+                    disabled={localmapsLoading}
+                  >
+                    {localmapsLoading ? "正在查询…" : "查询 localmaps"}
+                  </button>
+                )}
+              </div>
             )
           ) : (
             <>
