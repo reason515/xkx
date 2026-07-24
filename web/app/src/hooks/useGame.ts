@@ -565,7 +565,7 @@ export function useGame(opts?: UseGameOptions) {
             applied.room.title || ""
           ).map((action) => ({
             ...action,
-            label: labelSuggestedAction(action.command, roomEntities),
+            label: labelSuggestedAction(action.command, applied.room.npcs, applied.room.items),
           }));
           const roomHints = [
             ...fromDesc,

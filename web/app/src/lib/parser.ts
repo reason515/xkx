@@ -514,26 +514,135 @@ const TARGET_REQUIRED_VERBS = new Set([
  */
 const OPTIONAL_TARGET_VERBS = new Set(["zuan", "leave", "swim", "serve"]);
 
-function displayNameForTarget(target: string, npcs: Entity[] = []): string {
+/** Common MUD English item/object ids → Chinese display name. */
+const COMMON_ITEM_LABELS: Record<string, string> = {
+  hulu: "葫芦",
+  gourd: "葫芦",
+  coconut: "椰子",
+  yezi: "椰子",
+  fish: "鱼",
+  fruit: "野果",
+  guo: "野果",
+  book: "书",
+  sword: "剑",
+  gangjian: "钢剑",
+  jiandao: "剪刀",
+  cloth: "布衣",
+  coat: "雨衣",
+  raincoat: "雨衣",
+  yuyi: "雨衣",
+  shoes: "鞋",
+  bag: "布袋",
+  xiang: "箱子",
+  lu: "火炉",
+  guolu: "锅炉",
+  huo: "火",
+  zhuo: "桌",
+  chuang: "床",
+  bed: "床",
+  tub: "浴桶",
+  yutong: "浴桶",
+  jitui: "鸡腿",
+  chicken: "鸡腿",
+  wine: "酒",
+  jiuhu: "酒壶",
+  shaojiu: "烧酒",
+  "shao daozi": "烧刀子",
+  shidaozi: "烧刀子",
+  jili: "鸡肋",
+  rou: "肉",
+  dan: "丹",
+  yao: "药",
+  jinchuang: "金创药",
+  yangjing: "养精丹",
+  heshi: "食盒",
+  shihe: "食盒",
+  "yao pu": "药铺",
+  yaopu: "药铺",
+  "tiejiang pu": "铁匠铺",
+  tiejiangpu: "铁匠铺",
+  "jiu pu": "酒铺",
+  jiupu: "酒铺",
+  "zahuo pu": "杂货铺",
+  zahuopu: "杂货铺",
+  "piao hao": "票号",
+  piaohao: "票号",
+  "che ma hang": "车马行",
+  chemahang: "车马行",
+  hill: "山坡",
+  path: "山路",
+  river: "溪流",
+  creek: "溪流",
+  waterfall: "瀑布",
+  water: "水",
+  fire: "火",
+  wall: "石壁",
+  stone: "大石",
+  hole: "石洞",
+  dong: "洞",
+  gate: "门",
+  door: "门",
+  men: "门",
+  bottle: "瓶子",
+  ping: "瓶子",
+  "jiu ping": "酒瓶",
+  jiuping: "酒瓶",
+  sheng: "绳索",
+  ladder: "梯子",
+  boat: "船",
+  cart: "大车",
+  carriage: "大车",
+  corpse: "尸体",
+  shitou: "石头",
+  yaoqian: "钥匙",
+  key: "钥匙",
+  jin: "金子",
+  gold: "金子",
+  silver: "银子",
+  coin: "铜钱",
+  };
+
+function displayNameForTarget(target: string, npcs: Entity[] = [], items?: Entity[]): string {
   const key = target.toLowerCase();
+  // Direction words
+  if (DIR_MAP[key]) return DIR_MAP[key];
+  // NPC names
   const npc = npcs.find(
     (n) => n.id.toLowerCase() === key || n.id.toLowerCase().includes(key)
   );
   if (npc) return npc.name;
+  // Room item names
+  if (items) {
+    const item = items.find(
+      (i) => i.id.toLowerCase() === key || i.id.toLowerCase().includes(key)
+    );
+    if (item) return item.name;
+  }
+  // Common item label map
+  if (COMMON_ITEM_LABELS[key]) return COMMON_ITEM_LABELS[key];
+  // Multi-word fallback: try individual words
+  if (key.includes(" ")) {
+    const parts = key.split(/\s+/);
+    if (parts.every((p) => !!/^[a-z]+$/.test(p) && COMMON_ITEM_LABELS[p])) {
+      return parts.map((p) => COMMON_ITEM_LABELS[p] || p).join("");
+    }
+  }
   return target;
 }
 
 export function labelSuggestedAction(
   command: string,
-  npcs: Entity[] = []
+  npcs: Entity[] = [],
+  items?: Entity[]
 ): string {
   const parts = command.trim().split(/\s+/);
   const verb = (parts[0] || "").toLowerCase();
   const verbLabel = ACTION_VERBS[verb];
   if (!verbLabel) return command;
+  const ent = (t: string) => displayNameForTarget(t, npcs, items);
 
   if (verb === "follow" && parts[1]) {
-    return `${verbLabel}${displayNameForTarget(parts.slice(1).join(" "), npcs)}`;
+    return `${verbLabel}${ent(parts.slice(1).join(" "))}`;
   }
   if (verb === "register") {
     return "挂名登记";
@@ -573,17 +682,17 @@ export function labelSuggestedAction(
   if ((verb === "study" || verb === "lingwu") && parts[1]) {
     const what = parts.slice(1).join(" ");
     if (/^wall$/i.test(what)) return "领悟石壁";
-    return `${verbLabel}${displayNameForTarget(what, npcs)}`;
+    return `${verbLabel}${ent(what)}`;
   }
   if (verb === "du" && parts[1]) {
     const what = parts.slice(1).join(" ");
     if (/^book$/i.test(what)) return "研读书籍";
-    return `研读${displayNameForTarget(what, npcs)}`;
+    return `研读${ent(what)}`;
   }
   if (verb === "hit" && parts[1]) {
     const what = parts.slice(1).join(" ");
     if (/^(?:mu)?zhuang$/i.test(what)) return "击打木桩";
-    return `击打${displayNameForTarget(what, npcs)}`;
+    return `击打${ent(what)}`;
   }
   if (verb === "strike" && parts[1] && /^(?:mu)?zhuang$/i.test(parts[1])) {
     return "击打木桩";
@@ -597,7 +706,7 @@ export function labelSuggestedAction(
   if (verb === "zuan" && parts[1]) {
     const what = parts.slice(1).join(" ");
     if (/^hole$/i.test(what)) return "钻洞";
-    return `钻${displayNameForTarget(what, npcs)}`;
+    return `钻${ent(what)}`;
   }
   if (verb === "wear" && parts[1]) {
     const what = parts.slice(1).join(" ");
@@ -618,7 +727,7 @@ export function labelSuggestedAction(
     return "阅读留言";
   }
   if (verb === "ask" && parts[1]) {
-    const who = displayNameForTarget(parts[1], npcs);
+    const who = ent(parts[1]);
     const aboutIdx = parts.findIndex((p) => p.toLowerCase() === "about");
     if (aboutIdx >= 0 && parts[aboutIdx + 1]) {
       const topic = parts.slice(aboutIdx + 1).join(" ");
@@ -628,7 +737,7 @@ export function labelSuggestedAction(
     return `向${who}打听`;
   }
   if ((verb === "learn" || verb === "xue") && parts[1] && parts[2]) {
-    const who = displayNameForTarget(parts[1], npcs);
+    const who = ent(parts[1]);
     const skill = parts[2].toLowerCase();
     const skillLabel = SKILL_LABELS[skill] || skill;
     return `向${who}学${skillLabel}`;
@@ -654,7 +763,7 @@ export function labelSuggestedAction(
   if (verb === "accept" && parts[1]) return `${verbLabel}${parts.slice(1).join(" ")}`;
   if (verb === "sleep") return "睡觉";
   if (parts.length === 1) return verbLabel;
-  return `${verbLabel}${displayNameForTarget(parts.slice(1).join(" "), npcs)}`;
+  return `${verbLabel}${ent(parts.slice(1).join(" "))}`;
 }
 
 /** Split "(ask fu about 侠客岛，ask fu about 离岛)" into separate commands. */
