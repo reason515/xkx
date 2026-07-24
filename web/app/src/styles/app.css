@@ -204,8 +204,8 @@ button {
 }
 
 .scene-panel {
-  /* 见闻内容已精简：场景略高、见闻略矮（约 55:45） */
-  flex: 1.1 1 0;
+  /* 场景优先：约 65:35 */
+  flex: 1.3 1 0;
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
@@ -215,7 +215,7 @@ button {
 }
 
 .log-section {
-  flex: 0.9 1 0;
+  flex: 0.7 1 0;
   min-height: 0;
   display: flex;
   flex-direction: column;
