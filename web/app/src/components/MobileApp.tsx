@@ -548,6 +548,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           canLead={g.selectedEntity.canLead}
           canBeg={g.selectedEntity.canBeg}
           canPersuade={g.selectedEntity.canPersuade}
+          canWithdraw={g.selectedEntity.canWithdraw}
           isContainer={g.selectedEntity.isContainer}
           isBook={g.selectedEntity.isBook}
           canSit={g.selectedEntity.canSit}

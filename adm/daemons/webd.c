@@ -213,7 +213,7 @@ void send_room(object me, object env)
 			command_id = ob->query("id") || "";
 		if (ob->is_character()) {
 			npcs += ({ sprintf(
-				"{\"id\":\"%s\",\"commandId\":\"%s\",\"name\":\"%s\",\"kind\":\"npc\",\"canApprentice\":%d,\"canTrade\":%d,\"canSell\":%d,\"canSteal\":%d,\"isCorpse\":%d,\"canLoot\":%d,\"canLead\":%d,\"canBeg\":%d,\"canPersuade\":%d}",
+				"{\"id\":\"%s\",\"commandId\":\"%s\",\"name\":\"%s\",\"kind\":\"npc\",\"canApprentice\":%d,\"canTrade\":%d,\"canSell\":%d,\"canSteal\":%d,\"isCorpse\":%d,\"canLoot\":%d,\"canLead\":%d,\"canBeg\":%d,\"canPersuade\":%d,\"canWithdraw\":%d}",
 				json_escape(ob->query("id") || ""),
 				json_escape(command_id),
 				json_escape(ob->name() || ""),
@@ -227,7 +227,8 @@ void send_room(object me, object env)
 				(function_exists("is_container", ob) && ob->is_container()) ? 1 : 0,
 				(!userp(ob)) ? 1 : 0,
 				(!userp(ob)) ? 1 : 0,
-				(!userp(ob)) ? 1 : 0
+				(!userp(ob)) ? 1 : 0,
+				ob->query("web/can_withdraw") ? 1 : 0
 			) });
 		} else
 			items += ({ sprintf(

@@ -15,5 +15,6 @@ void create()
         set("combat_exp", 5000);
         set("attitude", "friendly");
 
+	set("web/can_withdraw", 1);
         setup();
 }

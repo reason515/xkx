@@ -29,6 +29,7 @@ void create()
 	set("attitude", "friendly");
 	set("env/wimpy", 50);
 	set("startroom", "/d/newbie_lxsz/liuxiu-piaohao");
+	set("web/can_withdraw", 1);
 	setup();
 	add_money("coin", 88);
 	add_money("silver", 88);

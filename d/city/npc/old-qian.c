@@ -39,6 +39,7 @@ void create()
 	set_temp("apply/defense", 100);
 	set_temp("apply/damage", 40);
 
+	set("web/can_withdraw", 1);
 	setup();
 	add_money("gold", 5);
 }

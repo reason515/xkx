@@ -27,6 +27,7 @@ interface Props {
   canLead?: boolean | number;
   canBeg?: boolean | number;
   canPersuade?: boolean | number;
+  canWithdraw?: boolean | number;
   isContainer?: boolean | number;
   isBook?: boolean | number;
   canSit?: boolean | number;
@@ -75,6 +76,7 @@ export function EntitySheet({
   canLead = false,
   canBeg = false,
   canPersuade = false,
+  canWithdraw = false,
   isContainer = false,
   isBook = false,
   canSit = false,
@@ -493,7 +495,7 @@ export function EntitySheet({
                   <button type="button" onClick={() => runNpcAction(`fight ${askTarget}`)}>切磋</button>
                   <button type="button" className="entity-action-danger" onClick={() => runNpcAction(`kill ${askTarget}`)}>攻击</button>
                   <button type="button" onClick={() => runNpcAction("halt")}>停手</button>
-                  <button type="button" onClick={() => setWithdrawing(true)}>取款</button>
+                  {!!canWithdraw && (<button type="button" onClick={() => setWithdrawing(true)}>取款</button>)}
                 </div>
               </section>
 

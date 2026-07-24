@@ -57,6 +57,8 @@ export interface Entity {
   canBeg?: boolean | number;
   /** NPC: can persuade this character. */
   canPersuade?: boolean | number;
+  /** NPC: is a bank teller (钱庄) that supports withdraw/deposit. */
+  canWithdraw?: boolean | number;
   /** Item: is a container (box, bag, etc.) that can be opened. */
   isContainer?: boolean | number;
   /** Item: is a readable book/letter. */
