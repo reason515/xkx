@@ -599,6 +599,12 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             <div className="sheet-acts">
               <button
                 type="button"
+                onClick={() => g.docCmd(`look ${g.selectedExit!.dir}`, "exit")}
+              >
+                眺望
+              </button>
+              <button
+                type="button"
                 className="go"
                 onClick={() => g.confirmGo(g.selectedExit!.dir)}
               >
