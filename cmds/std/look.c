@@ -244,6 +244,9 @@ int look_room_item(object me, string arg)
 			else
 				write("远处景象尚不可辨清，还是亲自前往看看吧。\n");
 		}
+		/* 邻房已加载后，刷新当前房间出口数据，使出口方块显示目标房间名 */
+		if (objectp(me) && userp(me) && environment(me))
+			"/adm/daemons/webd"->send_room(me, environment(me));
 		return 1;
 	}
 	return notify_fail("你要看什么？\n");
