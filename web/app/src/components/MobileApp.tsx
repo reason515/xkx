@@ -174,6 +174,8 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
   const openMap = () => {
     g.clearDoc();
     g.openSheet("map");
+    // 同步触发 localmaps 命令（正厅有任务触发器，其他区域显示内置地图）
+    g.cmd("localmaps", { silent: true });
   };
 
   const doorActions = inferredShutDoorActions(state.room);
