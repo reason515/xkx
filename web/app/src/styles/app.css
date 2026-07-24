@@ -1699,7 +1699,6 @@ button {
 }
 
 .sheet-acts .go {
-  grid-column: 1 / -1;
   background: linear-gradient(180deg, rgba(95, 143, 120, 0.45), rgba(60, 100, 80, 0.55));
 }
 
