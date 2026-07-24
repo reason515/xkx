@@ -205,8 +205,8 @@ test.describe.serial("newbie village", () => {
     await loginAsNewbie(page, { asRegister: true });
     await openSceneTab(page);
     await expect(page.locator(".room-title").first()).not.toHaveText("...", { timeout: 60_000 });
-    await expect(page.locator(".newbie-quest-panel")).toBeVisible({ timeout: 30_000 });
-    await expect(page.locator(".quest-target")).toBeVisible();
+    await expect(page.locator(".fqb-pill")).toBeVisible({ timeout: 30_000 });
+    await expect(page.locator(".fqb-pill-text")).toBeVisible();
   });
 
   test("可向出口方向移动", async ({ page }) => {

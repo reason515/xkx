@@ -11,7 +11,7 @@ import { GrindBanner } from "./GrindBanner";
 import { EntitySheet } from "./EntitySheet";
 import { SpeechSheet } from "./SpeechSheet";
 import { GuideTip } from "./GuideTip";
-import { QuestPanel } from "./QuestPanel";
+import { FloatingQuestBar } from "./FloatingQuestBar";
 import { AttributeSheet } from "./AttributeSheet";
 import { inferredShutDoorActions, sceneActionChips, vitalCap } from "../lib/parser";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -310,13 +310,6 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                 <GuideTip text={g.guideTip.text} onDismiss={g.dismissGuideTip} />
               )}
 
-              {state.newbieQuestIndex && state.newbieQuestIndex > 0 && (
-                <div className="ctx-block">
-                  <h2>新手目标</h2>
-                  <QuestPanel questIndex={state.newbieQuestIndex} />
-                </div>
-              )}
-
               <section className="context">
                 <div className="ctx-block">
                   <div className="ctx-head">
@@ -448,6 +441,8 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           </div>
         </main>
       </div>
+
+      <FloatingQuestBar questIndex={state.newbieQuestIndex ?? 0} />
 
       {state.sheet === "character" && (
         <CharacterSheet

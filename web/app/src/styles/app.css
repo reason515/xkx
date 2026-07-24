@@ -2533,7 +2533,218 @@ button {
   justify-content: center;
 }
 
-/* ── 新手村任务面板 ── */
+/* ── 悬浮任务胶囊 ── */
+.fqb-pill {
+  position: absolute;
+  bottom: calc(50px + var(--safe-b, 0px));
+  left: 12px;
+  right: 12px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgba(95, 143, 120, 0.28);
+  border-radius: 10px;
+  background: rgba(12, 11, 10, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: var(--paper);
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.45;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+}
+.fqb-pill:active {
+  border-color: rgba(95, 143, 120, 0.5);
+  background: rgba(15, 18, 16, 0.94);
+}
+
+.fqb-pill-step {
+  flex-shrink: 0;
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--jade-bright);
+  min-width: 32px;
+  text-align: center;
+}
+
+.fqb-pill-text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--paper-dim);
+}
+
+.fqb-pill-chevron {
+  flex-shrink: 0;
+  font-size: 14px;
+  color: var(--jade);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+.fqb-pill:active .fqb-pill-chevron {
+  opacity: 1;
+}
+
+/* 展开遮罩 */
+.fqb-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  animation: fqb-fade-in 0.18s ease-out;
+}
+
+@keyframes fqb-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* 底部抽屉 */
+.fqb-sheet {
+  max-height: 72dvh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 14px 14px 0 0;
+  background: var(--ink-lift);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  animation: fqb-slide-up 0.22s ease-out;
+  padding-bottom: var(--safe-b, 0px);
+}
+
+@keyframes fqb-slide-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.fqb-sheet-handle {
+  width: 32px;
+  height: 4px;
+  margin: 10px auto 6px;
+  border-radius: 2px;
+  background: var(--line);
+  flex-shrink: 0;
+}
+
+.fqb-sheet-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 18px 10px;
+  flex-shrink: 0;
+}
+
+.fqb-sheet-title {
+  font-family: var(--font-display);
+  font-size: 16px;
+  letter-spacing: 0.08em;
+  color: var(--paper);
+}
+
+.fqb-sheet-close {
+  border: none;
+  background: transparent;
+  color: var(--jade-bright);
+  font-family: var(--font-body);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+.fqb-sheet-close:active {
+  background: rgba(95, 143, 120, 0.12);
+}
+
+.fqb-sheet-body {
+  flex: 1;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0 18px 14px;
+  font-size: 13px;
+}
+
+/* 当前目标卡片 */
+.fqb-current {
+  margin-bottom: 12px;
+}
+
+.fqb-current-label {
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--jade-bright);
+  margin-bottom: 6px;
+}
+
+.fqb-current-text {
+  color: var(--paper);
+  line-height: 1.65;
+  margin: 0 0 10px 0;
+  font-size: 14px;
+}
+
+.fqb-progress-bar {
+  height: 4px;
+  background: var(--line);
+  border-radius: 2px;
+  margin-bottom: 4px;
+  overflow: hidden;
+}
+
+.fqb-progress-fill {
+  height: 100%;
+  background: var(--jade);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+.fqb-progress-label {
+  text-align: right;
+  font-size: 11px;
+  color: var(--paper-dim);
+}
+
+/* 已完成/后续折叠区 */
+.fqb-section {
+  margin-top: 8px;
+}
+
+.fqb-section summary {
+  cursor: pointer;
+  color: var(--paper-dim);
+  font-size: 12px;
+  padding: 5px 0;
+}
+
+.fqb-list {
+  margin: 4px 0 0 16px;
+  padding: 0;
+}
+
+.fqb-list.done li {
+  color: var(--paper-dim);
+  font-size: 12px;
+  line-height: 1.6;
+  list-style: circle;
+  opacity: 0.55;
+}
+
+.fqb-list.todo li {
+  color: var(--paper-dim);
+  font-size: 12px;
+  line-height: 1.6;
+  list-style: disclosure-closed;
+}
+
+/* ── 旧版新手村任务面板（保留兼容，后续可移除）── */
 .newbie-quest-panel {
   font-size: 13px;
 }

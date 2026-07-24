@@ -7,7 +7,7 @@ async function sendCmd(page: any, text: string, wait = 1500) {
   await page.waitForTimeout(wait);
 }
 async function questStep(page: any) {
-  try { const el = page.locator(".quest-step").first(); if (await el.isVisible({ timeout: 2000 }).catch(() => false)) return (await el.textContent())?.trim() || ""; } catch { /* */ } return "";
+  try { const el = page.locator(".fqb-pill-step").first(); if (await el.isVisible({ timeout: 2000 }).catch(() => false)) return (await el.textContent())?.trim() || ""; } catch { /* */ } return "";
 }
 async function skipTo(page: any, n: number) {
   await sendCmd(page, `newbietest skip ${n}`, 3000);
@@ -16,21 +16,22 @@ async function skipTo(page: any, n: number) {
 /** 等待 quest 推进，超时则 newbietest skip 强制跳 */
 async function waitOrSkip(page: any, target: number) {
   const step = await questStep(page);
-  if (step.includes(`第 ${target}`)) return;
+  const targetStr = `${target}/35`;
+  if (step.startsWith(targetStr)) return;
   // 先等自然推进
-  try { await expect.poll(() => questStep(page), { timeout: 8000 }).toContain(`第 ${target}`); return; } catch {}
+  try { await expect.poll(() => questStep(page), { timeout: 8000 }).toMatch(new RegExp(`^${target}/`)); return; } catch {}
   // 超时则强制跳
   await sendCmd(page, `newbietest skip ${target}`, 3000);
-  await expect.poll(() => questStep(page), { timeout: 10000 }).toContain(`第 ${target}`);
+  await expect.poll(() => questStep(page), { timeout: 10000 }).toMatch(new RegExp(`^${target}/`));
 }
 
 test("新手目标在进入游戏后五秒内展示", async ({ page }) => {
   test.setTimeout(60_000);
   await loginAsNewbie(page, { asRegister: true });
-  await expect(page.locator(".newbie-quest-panel")).toBeVisible({
+  await expect(page.locator(".fqb-pill")).toBeVisible({
     timeout: 5_000,
   });
-  await expect(page.locator(".quest-target")).toBeVisible();
+  await expect(page.locator(".fqb-pill-text")).toBeVisible();
 });
 
 test("场景物件名称保留有效语义并滤除叙述残片", async ({ page }) => {
@@ -331,7 +332,7 @@ test.describe("新手村 35 任务", () => {
     // Q30 杀老虎
     await skipTo(page, 30);
     await sendCmd(page, "kill lao hu", 3000);
-    for (let i=0;i<10;i++) { await sendCmd(page, "perform sword.bafang", 2000); if ((await questStep(page)).includes("31")) break; }
+    for (let i=0;i<10;i++) { await sendCmd(page, "perform sword.bafang", 2000); if ((await questStep(page)).startsWith("31/")) break; }
     await waitOrSkip(page, 31); console.log("✅ Q30");
     // Q31 打听
     await skipTo(page, 31);
@@ -356,7 +357,7 @@ test.describe("新手村 35 任务", () => {
 
     const finalStep = await questStep(page);
     console.log("🎉 FINAL:", finalStep);
-    expect(finalStep.includes("35") || !finalStep.includes("第")).toBeTruthy();
+    expect(finalStep.startsWith("35/") || finalStep === "").toBeTruthy();
     console.log("🎉🎉🎉 全部 35 个新手任务完成！");
   });
 });
