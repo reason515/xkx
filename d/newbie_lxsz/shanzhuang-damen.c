@@ -80,6 +80,10 @@ void close_gate()
         message("vision", "丫鬟回到里面，乒地一声，把大门关上了。\n", this_object());
         room->delete("exits/south");
         message("vision", "丫鬟上前把大门关了起来。\n", room);
+
+	// 门关 + 丫鬟回去：通知 Web 客户端刷新
+	"/adm/daemons/webd"->notify_room(here);
+	"/adm/daemons/webd"->notify_room(room);
     }
     else 
 	{
@@ -121,6 +125,10 @@ int do_knock(string arg)
 			this_player());
 
 		yh->command_me("go south");
+
+		// 门开 + 丫鬟出来：通知 Web 客户端刷新两个房间
+		"/adm/daemons/webd"->notify_room(here);
+		"/adm/daemons/webd"->notify_room(room);
 
 		remove_call_out("close_gate");
 		call_out("close_gate", 15);

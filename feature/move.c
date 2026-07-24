@@ -100,11 +100,11 @@ varargs int move(mixed dest, int silently)
 	}
 
 	/*
-	 * 非人物物品进出房间时，通知房内 Web 客户端刷新场景物品列表。
-	 * （serve 上菜、丢下/捡起等不必再依赖离开再进房。）
+	 * 物品或 NPC 进出房间时，通知房内 Web 客户端刷新场景。
+	 * （serve 上菜、丢下/捡起、NPC 出现/离开等不必再依赖 leave+enter。）
 	 * 目的地/来源若是玩家行囊，notify_room 不会误推（行囊内无 web 玩家）。
 	 */
-	if (!silently && !interactive(this_object()) && !this_object()->is_character()) {
+	if (!silently && !interactive(this_object())) {
 		if (objectp(env) && env != ob)
 			"/adm/daemons/webd"->notify_room(env);
 		if (objectp(ob))

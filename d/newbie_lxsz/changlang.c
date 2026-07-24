@@ -58,6 +58,8 @@ void close_gate()
 		message("vision", "丫鬟上前把大门关了起来。\n", this_object());
 		room->delete("exits/north");
 		message("vision", "乒地一声，里面的丫鬟把大门关上了。\n", room);
+		"/adm/daemons/webd"->notify_room(this_object());
+		"/adm/daemons/webd"->notify_room(room);
 	}
 }
 
@@ -95,6 +97,8 @@ int do_open(string arg)
 		message_vision("$N使劲把大门打了开来。\n", this_player());
 		room->set("exits/north", __FILE__);
 		message("vision", "吱地一声，里面有人把大门打开了。\n", room);
+		"/adm/daemons/webd"->notify_room(this_object());
+		"/adm/daemons/webd"->notify_room(room);
 		remove_call_out("close_gate");
 		call_out("close_gate", 15);
 	}
