@@ -2575,9 +2575,9 @@ button {
   padding: 8px 12px;
   border: 1px solid rgba(95, 143, 120, 0.28);
   border-radius: 10px;
-  background: rgba(12, 11, 10, 0.58);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(12, 11, 10, 0.4);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   color: var(--paper);
   font-family: var(--font-body);
   font-size: 13px;
@@ -2585,11 +2585,11 @@ button {
   cursor: pointer;
   text-align: left;
   transition: border-color 0.2s, background 0.2s;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
 }
 .fqb-pill:active {
   border-color: rgba(95, 143, 120, 0.5);
-  background: rgba(15, 18, 16, 0.94);
+  background: rgba(12, 11, 10, 0.55);
 }
 
 .fqb-pill-step {
