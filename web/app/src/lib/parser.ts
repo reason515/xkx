@@ -1783,6 +1783,8 @@ const SCENERY_ACTION_TRAIL =
 function normalizeSceneryName(nameRaw: string): string {
   return nameRaw
     .replace(/^(?:你|我|他|她)(?:正(?:在)?|可(?:以)?|会|能|想|要)?(?:往|向|朝|从|对)?/, "")
+    // 「长廊南头是大门(gate)」被贪婪匹配截到「头是大门」→「大门」
+    .replace(/^.{1,3}(?:是|有)(?=[\u4e00-\u9fff]{1,4}$)/, "")
     .trim();
 }
 
