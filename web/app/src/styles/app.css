@@ -2564,20 +2564,14 @@ button {
 
 /* ── 悬浮任务胶囊 ── */
 .fqb-pill {
-  position: absolute;
-  bottom: calc(50px + var(--safe-b, 0px));
-  left: 12px;
-  right: 12px;
-  z-index: 10;
   display: flex;
   align-items: center;
   gap: 8px;
+  margin: 0 0 2px;
   padding: 8px 12px;
-  border: 1px solid rgba(95, 143, 120, 0.28);
+  border: 1px solid rgba(95, 143, 120, 0.25);
   border-radius: 10px;
-  background: rgba(12, 11, 10, 0.4);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(95, 143, 120, 0.08);
   color: var(--paper);
   font-family: var(--font-body);
   font-size: 13px;
@@ -2585,11 +2579,11 @@ button {
   cursor: pointer;
   text-align: left;
   transition: border-color 0.2s, background 0.2s;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
+  flex-shrink: 0;
 }
 .fqb-pill:active {
-  border-color: rgba(95, 143, 120, 0.5);
-  background: rgba(12, 11, 10, 0.55);
+  border-color: rgba(95, 143, 120, 0.45);
+  background: rgba(95, 143, 120, 0.14);
 }
 
 .fqb-pill-step {

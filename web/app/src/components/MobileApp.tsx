@@ -28,9 +28,11 @@ const LOG_FOLLOW_PX = 48;
 function EventLog({
   logs,
   onCmd,
+  showCmd,
 }: {
   logs: LogEntry[];
   onCmd: (command: string) => void;
+  showCmd: boolean;
 }) {
   const panelRef = useRef<HTMLElement>(null);
   const followingRef = useRef(true);
@@ -111,7 +113,7 @@ function EventLog({
           )}
         </div>
       </section>
-      <form
+      {showCmd && (<form
         className="log-cmd"
         onSubmit={(e) => {
           e.preventDefault();
@@ -131,7 +133,7 @@ function EventLog({
         <button type="submit" className="log-cmd-send">
           发送
         </button>
-      </form>
+      </form>)}
     </div>
   );
 }
@@ -140,6 +142,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
   const { state, toast } = g;
   const v = state.vitals;
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showCmd, setShowCmd] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -260,6 +263,16 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                   }}
                 >
                   挂机
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setShowCmd((v) => !v);
+                  }}
+                >
+                  指令{showCmd ? " ✓" : ""}
                 </button>
                 <button
                   type="button"
@@ -438,12 +451,11 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
               </section>
             </section>
 
-            <EventLog logs={state.logs} onCmd={g.cmd} />
+            <EventLog logs={state.logs} onCmd={g.cmd} showCmd={showCmd} />
+            <FloatingQuestBar questIndex={state.newbieQuestIndex ?? 0} />
           </div>
         </main>
       </div>
-
-      <FloatingQuestBar questIndex={state.newbieQuestIndex ?? 0} />
 
       {state.sheet === "character" && (
         <CharacterSheet
