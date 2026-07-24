@@ -66,7 +66,7 @@ void init()
 
 int do_give(string arg)
 {
-	object me,who,ob;
+	object me,who,ob,gift;
 	string target, item;
 	
 	me=this_player();
@@ -90,11 +90,14 @@ int do_give(string arg)
 
 	if( who->query("env/no_accept") ) return notify_fail(who->name() + "不想接受任何物品。\n");
 
-	if (("hulu"==item || "all"==item ) && objectp(present("hulu", me)))
+	// 兼容多字 ID 被截断的情况：present 支持部分匹配
+	gift = present(item, me);
+	if (!gift) gift = present("hu lu", me);
+	if (objectp(gift) && gift->query("id")=="hu lu")
 	{
 		if (1==check_questindex(me,"give hulu to you kunyi，把葫芦交给游鲲翼"))
 		{
-			present("hulu", me)->set("no_drop",0);
+			gift->set("no_drop",0);
 		}
 	}
 	return 0;
