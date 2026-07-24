@@ -2575,9 +2575,9 @@ button {
   padding: 8px 12px;
   border: 1px solid rgba(95, 143, 120, 0.28);
   border-radius: 10px;
-  background: rgba(12, 11, 10, 0.92);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(12, 11, 10, 0.58);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   color: var(--paper);
   font-family: var(--font-body);
   font-size: 13px;
