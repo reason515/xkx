@@ -1281,7 +1281,7 @@ export function parseSuggestedActions(
         const fullBefore = text.slice(0, hintAt);
         const before = text.slice(Math.max(0, hintAt - 180), hintAt);
         const markers = [
-          ...fullBefore.matchAll(/@@ITEM:([a-z][a-z0-9_\-]{1,30})@@/gi),
+          ...fullBefore.matchAll(/##ITEM:([a-z][a-z0-9_\-]{1,30})##/gi),
         ];
         const currentItemId = markers[markers.length - 1]?.[1]?.toLowerCase();
         const mentions = [

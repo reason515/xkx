@@ -39,8 +39,7 @@ string json_escape(string s)
 	s = replace_string(s, "\"", "\\\"");
 	s = replace_string(s, "\n", "\\n");
 	s = replace_string(s, "\r", "");
-	/* Strip ANSI escape sequences that would break JSON */
-	s = terminal_colour(s, ([]));
+	s = replace_string(s, "\t", "\\t");
 	return s;
 }
 
@@ -117,11 +116,9 @@ void send_room(object me, object env)
 	if (mapp(item_desc)) {
 		foreach (item_key, item_value in item_desc) {
 			if (stringp(item_value) && item_value != "") {
-				item_desc_text += "@@ITEM:" + item_key + "@@\n" + item_value + "\n";
+				item_desc_text += item_key + ": " + item_value + "\n";
 			} else if (functionp(item_value)) {
-				/* 函数式 item_desc（如 (: look_mist :)），只发 key
-				 * 作为占位标记，让 Web 至少能展示可点击目标。 */
-				item_desc_text += "@@ITEM:" + item_key + "@@\n" + item_key + "\n";
+				item_desc_text += item_key + "\n";
 			}
 		}
 	}

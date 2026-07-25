@@ -419,7 +419,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                           key={a.command}
                           type="button"
                           className="chip action"
-                          onClick={() => { if (a.command === 'cun' || a.command === 'qu') setBankingCmd(a.command as 'cun' | 'qu'); else if (a.command.startsWith('__shop__:')) { const cmdId = a.command.slice(9); const npc = state.room.npcs.find(n => (n.commandId || n.id) === cmdId); if (npc) g.setSelectedEntity(npc); } else g.cmd(a.command, { feedback: true }); }}
+                          onClick={() => { if (a.command === 'cun' || a.command === 'qu') setBankingCmd(a.command as 'cun' | 'qu'); else if (a.command.startsWith('__shop__:')) { const cmdId = a.command.slice(9); const npc = state.room.npcs.find(n => (n.commandId || n.id) === cmdId); if (npc) { g.setSelectedEntity(npc); g.openSheet('entity'); } } else g.cmd(a.command, { feedback: true }); }}
                         >
                           {a.label}
                         </button>

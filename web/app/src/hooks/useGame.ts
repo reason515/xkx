@@ -494,6 +494,7 @@ export function useGame(opts?: UseGameOptions) {
       }
       if (msg.type === "event" && msg.event) {
         const ev = msg.event as MudEvent;
+        if (ev.type === "room.update") console.log("[ws]", (ev as any).title, "npcs:", Array.isArray((ev as any).npcs) ? (ev as any).npcs.length : 0);
 
         // 毕业属性选择
         if (ev.type === "newbie.attribute_select") {
@@ -537,7 +538,10 @@ export function useGame(opts?: UseGameOptions) {
         ) {
           return;
         }
-        if (ev.type === "room.update") roomFromEvent.current = true;
+        if (ev.type === "room.update") {
+          console.log("[room.update]", (ev as any).title, "dropped:", expectDoc.current?.target === "exit");
+          roomFromEvent.current = true;
+        }
         if (ev.type === "assist.status") {
           const message = String(ev.message || "").trim();
           if (ev.active) {
