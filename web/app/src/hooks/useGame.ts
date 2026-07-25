@@ -400,6 +400,11 @@ export function useGame(opts?: UseGameOptions) {
           socket.current.cmd("look");
         }, 5500);
       }
+      // go 换房：清标记并拉 room.update，否则 NPC 能力（银行/商店）不更新
+      if (verb === "go") {
+        roomFromEvent.current = false;
+        scheduleRoomRefresh();
+      }
       if (verb === "eat" || verb === "drink") {
         scheduleInvRefresh(true);
         // 地上吃喝后物品可能消失；LPC move/destruct 可能不通知时 look 兜底
