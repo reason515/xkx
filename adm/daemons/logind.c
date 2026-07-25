@@ -369,18 +369,17 @@ private void new_password(string pass, object ob)
 	input_to("confirm_password", 1, ob);
 }
 
-/* ĞÂÊÖ´å£º¹Ì¶¨ËÄÎ¬ 20£¬Ìø¹ıÌì¸¸¡¢ÓÊÏäÌáÊ¾¡£±ÏÒµÊ±ÓÉÍæ¼ÒÖØ·ÖÅä¡£ */
+/* æ–°æ‰‹æ‘ï¼šå›ºå®šå››ç»´ 20ï¼Œæ¯•ä¸šæ—¶ç”±ç©å®¶é‡åˆ†é…ã€‚ */
 private void confirm_password(string pass, object ob)
 {
 	mapping my;
 	string old_pass;
 	object user;
 
-	write_ob(ob,"
-");
+	write_ob(ob,"\n");
 	old_pass = ob->query("password");
 	if( crypt(pass, old_pass)!=old_pass ) {
-		write_ob(ob,"ÄúÁ½´ÎÊäÈëµÄÃÜÂë²¢²»Ò»Ñù£¬ÇëÖØĞÂÉè¶¨Ò»´ÎÃÜÂë£º");
+		write_ob(ob,"æ‚¨ä¸¤æ¬¡è¾“å…¥çš„å¯†ç å¹¶ä¸ä¸€æ ·ï¼Œè¯·é‡æ–°è®¾å®šä¸€æ¬¡å¯†ç ï¼š");
 		input_to("new_password", 1, ob);
 		return;
 	}
@@ -396,7 +395,7 @@ private void confirm_password(string pass, object ob)
 	user->set("con", my["con"]);
 	user->set("int", my["int"]);
 	user->set("registered", "yes");
-	write_ob(ob,"Ä£Òª°çÑİÄĞĞ(m)µÄ½ÇÉ«»òÅ®ĞÔ(f)µÄ½ÇÉ«£¿");
+	write_ob(ob,"æ‚¨è¦æ‰®æ¼”ç”·æ€§(m)çš„è§’è‰²æˆ–å¥³æ€§(f)çš„è§’è‰²ï¼Ÿ");
 	input_to("get_gender", ob, user);
 }
 
