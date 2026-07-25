@@ -788,6 +788,9 @@ function normalizeActionCommand(raw: string): string | null {
   const parts = cmd.split(/\s+/);
   let verb = parts[0]?.toLowerCase();
   if (!verb || !/^[a-z][a-z0-9_\-]*$/.test(verb)) return null;
+  // Strip trailing Chinese/non-command text (e.g. "(wield jian 可以装备这把剑)")
+  const firstChinese = parts.findIndex((p, i) => i > 0 && /[\u4e00-\u9fff]/.test(p));
+  if (firstChinese > 0) cmd = parts.slice(0, firstChinese).join(" ");
   if (SKIP_ACTION_VERBS.has(verb)) return null;
   if (!ACTION_VERBS[verb]) return null;
   // Bare (get)/(move) tutorial noise is skipped; optional-target verbs like
