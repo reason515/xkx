@@ -101,6 +101,9 @@ export function EntitySheet({
   const [withdrawing, setWithdrawing] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState(100);
   const [withdrawCurrency, setWithdrawCurrency] = useState("silver");
+  const [depositing, setDepositing] = useState(false);
+  const [depositAmount, setDepositAmount] = useState(100);
+  const [depositCurrency, setDepositCurrency] = useState("silver");
   const [learnAction, setLearnAction] = useState<SuggestedAction | null>(null);
   const [learnStop, setLearnStop] = useState<"count" | "potential">("count");
   const [learnCount, setLearnCount] = useState(1);
@@ -191,6 +194,8 @@ export function EntitySheet({
 
   const leaveWithdrawing = () => setWithdrawing(false);
 
+  const leaveDepositing = () => setDepositing(false);
+
   // 容器放入：显示可放入的物品列表
   const [puttingIn, setPuttingIn] = useState(false);
   const leavePuttingIn = () => setPuttingIn(false);
@@ -211,6 +216,8 @@ export function EntitySheet({
                     ? `交易 · ${name}`
                     : withdrawing
                     ? `取款「${name}」`
+                    : depositing
+                    ? `存款「${name}」`
                     : puttingIn
                     ? `放入「${name}」`
                     : reading
@@ -417,6 +424,33 @@ export function EntitySheet({
                 </button>
               </div>
             </>
+          ) : depositing ? (
+            <>
+              <button type="button" className="doc-back" onClick={leaveDepositing}>
+                ← 返回
+              </button>
+              <p className="entity-mode-hint">存款金额与货币：</p>
+              <div className="learn-assist-form">
+                <label className="learn-count-field">
+                  <span>金额</span>
+                  <input type="number" min={1} max={9999} value={depositAmount}
+                    onChange={(e) => setDepositAmount(Math.min(9999, Math.max(1, Number(e.target.value) || 1)))}
+                  />
+                </label>
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  {["silver","gold","coin"].map((c) => (
+                    <button key={c} type="button"
+                      className={`skill-act chip ${depositCurrency === c ? "on" : ""}`}
+                      onClick={() => setDepositCurrency(c)}
+                    >{c === "silver" ? "白银" : c === "gold" ? "黄金" : "铜钱"}</button>
+                  ))}
+                </div>
+                <button type="button" className="learn-start" style={{marginTop:12}}
+                  onClick={() => { runNpcAction(`cun ${depositAmount} ${depositCurrency}`); }}>
+                  确认存款
+                </button>
+              </div>
+            </>
           ) : puttingIn ? (
             <>
               <button type="button" className="doc-back" onClick={leavePuttingIn}>
@@ -495,6 +529,8 @@ export function EntitySheet({
                   <button type="button" onClick={() => runNpcAction(`fight ${askTarget}`)}>切磋</button>
                   <button type="button" className="entity-action-danger" onClick={() => runNpcAction(`kill ${askTarget}`)}>攻击</button>
                   <button type="button" onClick={() => runNpcAction("halt")}>停手</button>
+                  {!!canWithdraw && (<button type="button" onClick={() => runNpcAction("check")}>查账</button>)}
+                  {!!canWithdraw && (<button type="button" onClick={() => setDepositing(true)}>存款</button>)}
                   {!!canWithdraw && (<button type="button" onClick={() => setWithdrawing(true)}>取款</button>)}
                 </div>
               </section>
@@ -521,7 +557,7 @@ export function EntitySheet({
             </p>
           )}
         </div>
-        {kind !== "npc" && !reading && !asking && !learning && !withdrawing && !puttingIn && !shopMode && (
+        {kind !== "npc" && !reading && !asking && !learning && !withdrawing && !depositing && !puttingIn && !shopMode && (
           <div className="sheet-acts">
             {actions.map(([label, command]) => (
               <button
