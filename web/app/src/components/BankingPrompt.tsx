@@ -8,18 +8,19 @@ interface Props {
 }
 
 const CURRENCIES = [
-  { id: "silver", label: "白银" },
-  { id: "gold", label: "黄金" },
-  { id: "coin", label: "铜钱" },
+  { id: "coin", label: "铜钱", color: "#c8a45c" },
+  { id: "silver", label: "白银", color: "#bcc6cc" },
+  { id: "gold", label: "黄金", color: "#e8c840" },
 ] as const;
 
 export function BankingPrompt({ command, onConfirm, onClose }: Props) {
-  const [amount, setAmount] = useState(100);
+  const [amount, setAmount] = useState("100");
   const [currency, setCurrency] = useState<string>("silver");
   const isDeposit = command === "cun";
 
   const handleConfirm = useCallback(() => {
-    onConfirm(`${command} ${amount} ${currency}`);
+    const n = Math.min(9999, Math.max(1, Number(amount) || 1));
+    onConfirm(`${command} ${n} ${currency}`);
   }, [command, amount, currency, onConfirm]);
 
   return (
@@ -43,11 +44,7 @@ export function BankingPrompt({ command, onConfirm, onClose }: Props) {
                 min={1}
                 max={9999}
                 value={amount}
-                onChange={(e) =>
-                  setAmount(
-                    Math.min(9999, Math.max(1, Number(e.target.value) || 1))
-                  )
-                }
+                onChange={(e) => setAmount(e.target.value)}
               />
             </label>
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
@@ -56,6 +53,7 @@ export function BankingPrompt({ command, onConfirm, onClose }: Props) {
                   key={c.id}
                   type="button"
                   className={`skill-act chip ${currency === c.id ? "on" : ""}`}
+                  style={currency === c.id ? { background: c.color, color: "#1a1a2e", fontWeight: 700 } : { color: c.color, borderColor: c.color }}
                   onClick={() => setCurrency(c.id)}
                 >
                   {c.label}
