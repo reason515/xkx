@@ -54,6 +54,8 @@ interface Props {
   /** Start repeated learning after choosing a teacher and skill. */
   onStartLearn?: (config: AssistConfig) => void;
   onClearDoc?: () => void;
+  /** Pre-open shop mode when EntitySheet mounts (for scene "逛店" chip). */
+  initialShopMode?: boolean;
 }
 
 function isBulletinBoard(id: string, name: string): boolean {
@@ -92,11 +94,12 @@ export function EntitySheet({
   onLearnList,
   onStartLearn,
   onClearDoc,
+  initialShopMode = false,
 }: Props) {
   const [asking, setAsking] = useState(false);
   const [learning, setLearning] = useState(false);
   const [giving, setGiving] = useState(false);
-  const [shopMode, setShopMode] = useState(false);
+  const [shopMode, setShopMode] = useState(initialShopMode);
   const [learnAction, setLearnAction] = useState<SuggestedAction | null>(null);
   const [learnStop, setLearnStop] = useState<"count" | "potential">("count");
   const [learnCount, setLearnCount] = useState(1);
@@ -190,6 +193,11 @@ export function EntitySheet({
   const leavePuttingIn = () => setPuttingIn(false);
   const putItems = inventory.filter((item) => !item.equipped && !item.embedded && item.id !== id);
 
+  // Put items INTO this inventory container
+  const [puttingInto, setPuttingInto] = useState(false);
+  const leavePuttingInto = () => setPuttingInto(false);
+  const putIntoItems = inventory.filter((item) => !item.equipped && !item.embedded && item.id !== id);
+
   return (
     <div className="overlay open" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
@@ -205,6 +213,8 @@ export function EntitySheet({
                     ? `交易 · ${name}`
                     : puttingIn
                     ? `放入「${name}」`
+                    : puttingInto
+                    ? `放入物品到「${name}」`
                     : reading
                       ? "留言"
                       : name}
@@ -401,6 +411,25 @@ export function EntitySheet({
                 <p className="doc-status">行囊里没有可放入的物品。</p>
               )}
             </>
+          ) : puttingInto ? (
+            <>
+              <button type="button" className="doc-back" onClick={leavePuttingInto}>
+                ← 返回
+              </button>
+              <p className="entity-mode-hint">选择要放入「{name}」的物品：</p>
+              {putIntoItems.length ? (
+                <div className="help-topics entity-item-list">
+                  {putIntoItems.map((item) => (
+                    <button key={`${item.id}-${item.name}`} type="button" className="help-topic"
+                      onClick={() => { onAction(`put ${item.id} in ${target}`); onClose(); }}>
+                      {item.name}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="doc-status">行囊里没有可放入的物品。</p>
+              )}
+            </>
           ) : reading ? (
             <>
               <button
@@ -486,7 +515,7 @@ export function EntitySheet({
             </p>
           )}
         </div>
-        {kind !== "npc" && !reading && !asking && !learning && !puttingIn && !shopMode && (
+        {kind !== "npc" && !reading && !asking && !learning && !puttingIn && !puttingInto && !shopMode && (
           <div className="sheet-acts">
             {actions.map(([label, command]) => (
               <button
@@ -505,6 +534,10 @@ export function EntitySheet({
                   }
                   if (command === "__put_in__") {
                     setPuttingIn(true);
+                    return;
+                  }
+                  if (command.startsWith("__put_into__:")) {
+                    setPuttingInto(true);
                     return;
                   }
                   if (

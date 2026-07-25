@@ -213,7 +213,7 @@ function DesktopShell({
           canLead={g.selectedEntity.canLead}
           canBeg={g.selectedEntity.canBeg}
           canPersuade={g.selectedEntity.canPersuade}
-          canWithdraw={g.selectedEntity.canWithdraw}
+          initialShopMode={!!(g.selectedEntity?.canTrade || g.selectedEntity?.canSell)}
           isContainer={g.selectedEntity.isContainer}
           isBook={g.selectedEntity.isBook}
           canSit={g.selectedEntity.canSit}

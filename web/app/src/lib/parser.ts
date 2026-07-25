@@ -1356,9 +1356,8 @@ export function inferNpcCapabilityActions(npcs: Entity[]): SuggestedAction[] {
     actions.push({ command: "qu", label: "取款" });
   }
   if (trader) {
-    actions.push({ command: "list", label: "商品列表" });
     const cmdId = trader.commandId || trader.id;
-    actions.push({ command: `__shop__:${cmdId}`, label: "逛店买卖" });
+    actions.push({ command: `__shop__:${cmdId}`, label: "逛店" });
   }
   return actions;
 }
@@ -2576,6 +2575,11 @@ export function bagItemActions(
     if (!acts.some((x) => x.command === a.command)) {
       acts.push({ label: a.label, command: a.command });
     }
+  }
+
+  // Openable containers — add put action
+  if (custom.some((a) => a.kind === "open" || a.command.startsWith("open "))) {
+    acts.push({ label: "放入物品", command: `__put_into__:${target}` });
   }
 
   // 椰子需石块砸开（za yezi），不能直接吃
