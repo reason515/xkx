@@ -1516,13 +1516,19 @@ export function mergeSuggestedActions(
   const pinned = all.filter((a) => {
     const v = a.command.trim().split(/\s+/)[0]?.toLowerCase();
     // learn/ask 与开关门一样优先保留，避免被房间芯片挤掉后请教列表变空
+    // 银行/商店操作也应始终可见
     return (
       v === "open" ||
       v === "unlock" ||
       v === "close" ||
       v === "learn" ||
       v === "xue" ||
-      v === "ask"
+      v === "ask" ||
+      v === "check" ||
+      v === "cun" ||
+      v === "qu" ||
+      v === "list" ||
+      v.startsWith("__shop__")
     );
   });
   const rest = all.filter((a) => !pinned.includes(a));
