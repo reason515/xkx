@@ -30,6 +30,7 @@ void create()
 
 	set("combat_exp", 50000);
 	set("attitude", "friendly");
+	set("web/can_trade", 1);
 	
 	setup();
 }
