@@ -241,9 +241,8 @@ int main(object me, string arg)
                 if( !objectp(me->query("rider")) && !me->query("env/invisibility") )
                         message( "vision", me->name() + min, environment(me), ({me}) );
                 me->set_temp("pending", 0);
-                /* Push structured room data for Web client after every move */
-                if (me->query_temp("web_client"))
-                        WEBD->send_room(me, environment(me));
+                /* Push structured room data after every move */
+                WEBD->send_room(me, environment(me));
                 all_inventory(env)->follow_me(me, arg);
 
                 if(( !objectp(rided = me->query("rided")) 
