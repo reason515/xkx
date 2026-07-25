@@ -413,7 +413,7 @@ export function useGame(opts?: UseGameOptions) {
         // 地上吃喝后物品可能消失；LPC move/destruct 可能不通知时 look 兜底
         roomFromEvent.current = false;
         scheduleRoomRefresh();
-      } else if (verb === "drop" || verb === "get" || verb === "buy" || verb === "sell") {
+      } else if (verb === "drop" || verb === "get" || verb === "buy" || verb === "sell" || verb === "put") {
         // 货品面板 list 捕获中点购买：先结束捕获，让回显进见闻
         if ((verb === "buy" || verb === "sell") && expectDoc.current) {
           finishDocCapture();
