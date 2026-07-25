@@ -444,6 +444,30 @@ function BagPanel({
   onCmd: (cmd: string, opts?: { feedback?: boolean }) => void;
 }) {
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const [puttingInto, setPuttingInto] = useState<string | null>(null);
+
+  if (puttingInto) {
+    const containerName = items.find(it => (it.id || it.name) === puttingInto)?.name || puttingInto;
+    const candidates = items.filter(it => !it.equipped && !it.embedded && (it.id || it.name) !== puttingInto);
+    return (
+      <div className="bag-panel">
+        <button type="button" className="doc-back" onClick={() => setPuttingInto(null)}>← 返回行囊</button>
+        <p className="entity-mode-hint">选择要放入「{containerName}」的物品：</p>
+        {candidates.length ? (
+          <div className="help-topics entity-item-list">
+            {candidates.map((it) => (
+              <button key={`${it.id}-${it.name}`} type="button" className="help-topic"
+                onClick={() => { onCmd(`put ${it.id} in ${puttingInto}`, { feedback: true }); setPuttingInto(null); setOpenKey(null); }}>
+                {it.name}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="doc-status">行囊里没有可放入的物品。</p>
+        )}
+      </div>
+    );
+  }
 
   if (items.length === 0) {
     return (
@@ -499,7 +523,7 @@ function BagPanel({
                         key={a.command}
                         type="button"
                         className="skill-act chip"
-                        onClick={() => onCmd(a.command, { feedback: true })}
+                        onClick={() => { if (a.command.startsWith('__put_into__:')) setPuttingInto(a.command.slice(13)); else onCmd(a.command, { feedback: true }); }}
                       >
                         {a.label}
                       </button>
