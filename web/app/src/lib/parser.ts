@@ -1334,10 +1334,31 @@ export function suggestedActionsFromRoomText(
       ...parseSuggestedActions(text, npcs),
       ...parseLearnOfferActions(text, npcs),
       ...inferSceneryPracticeActions(text),
+      ...inferNpcCapabilityActions(npcs),
     ],
     [],
     npcs
   );
+}
+
+/**
+ * Generate scene-level action chips from NPC capabilities (banking, shop).
+ * These go in the room action bar, not buried in the NPC entity sheet.
+ */
+export function inferNpcCapabilityActions(npcs: Entity[]): SuggestedAction[] {
+  const actions: SuggestedAction[] = [];
+  const hasBanker = npcs.some((n) => n.canWithdraw);
+  const hasTrader = npcs.some((n) => n.canTrade || n.canSell);
+
+  if (hasBanker) {
+    actions.push({ command: "check", label: "查账" });
+    actions.push({ command: "cun", label: "存款" });
+    actions.push({ command: "qu", label: "取款" });
+  }
+  if (hasTrader) {
+    actions.push({ command: "list", label: "商品列表" });
+  }
+  return actions;
 }
 
 /**
