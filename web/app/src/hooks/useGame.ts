@@ -400,10 +400,13 @@ export function useGame(opts?: UseGameOptions) {
           socket.current.cmd("look");
         }, 5500);
       }
-      // go 换房：清标记并拉 room.update，否则 NPC 能力（银行/商店）不更新
+      // go 换房：直接发 webclient 拉 room.update，不等 cooldown
       if (verb === "go") {
         roomFromEvent.current = false;
-        scheduleRoomRefresh();
+        setTimeout(() => {
+          if (!roomFromEvent.current)
+            socket.current.cmd("webclient");
+        }, 600);
       }
       if (verb === "eat" || verb === "drink") {
         scheduleInvRefresh(true);
