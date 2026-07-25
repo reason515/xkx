@@ -14,6 +14,7 @@ import { SpeechSheet } from "./SpeechSheet";
 import { GuideTip } from "./GuideTip";
 import { FloatingQuestBar } from "./FloatingQuestBar";
 import { AttributeSheet } from "./AttributeSheet";
+import { BankingPrompt } from "./BankingPrompt";
 import { inferredShutDoorActions, sceneActionChips, vitalCap } from "../lib/parser";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ExitInfo, LogEntry } from "../lib/types";
@@ -143,6 +144,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
   const v = state.vitals;
   const [menuOpen, setMenuOpen] = useState(false);
   const [showCmd, setShowCmd] = useState(false);
+  const [bankingCmd, setBankingCmd] = useState<"cun" | "qu" | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -417,7 +419,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                           key={a.command}
                           type="button"
                           className="chip action"
-                          onClick={() => g.cmd(a.command, { feedback: true })}
+                          onClick={() => { if (a.command === 'cun' || a.command === 'qu') setBankingCmd(a.command as 'cun' | 'qu'); else g.cmd(a.command, { feedback: true }); }}
                         >
                           {a.label}
                         </button>
@@ -641,6 +643,13 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           onConfirm={(str, intel, con, dex) =>
             g.confirmAttribute(str, intel, con, dex)
           }
+        />
+      )}
+      {bankingCmd && (
+        <BankingPrompt
+          command={bankingCmd}
+          onConfirm={(fullCmd) => { g.cmd(fullCmd, { feedback: true }); setBankingCmd(null); }}
+          onClose={() => setBankingCmd(null)}
         />
       )}
     </div>

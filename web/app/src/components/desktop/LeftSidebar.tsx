@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ExitPad } from "../ExitPad";
 import { GuideTip } from "../GuideTip";
+import { BankingPrompt } from "../BankingPrompt";
 import { useDesktop } from "../../context/DesktopContext";
 import { sceneryPracticeActions, inferredShutDoorActions, sceneActionChips } from "../../lib/parser";
 import type { ExitInfo } from "../../lib/types";
@@ -8,6 +9,7 @@ import type { ExitInfo } from "../../lib/types";
 export function LeftSidebar() {
   const { game, sendCommand, doEmergencyStop, emergencyStopped } = useDesktop();
   const { state } = game;
+  const [bankingCmd, setBankingCmd] = useState<"cun" | "qu" | null>(null);
   const doorActions = inferredShutDoorActions(state.room);
   const doorCmds = new Set(doorActions.map((a) => a.command));
   const sceneActions = sceneActionChips(state.suggestedActions).filter(
@@ -129,13 +131,20 @@ export function LeftSidebar() {
                 key={a.command}
                 type="button"
                 className="chip action"
-                onClick={() => sendCommand(a.command)}
+                onClick={() => { if (a.command === 'cun' || a.command === 'qu') setBankingCmd(a.command); else sendCommand(a.command); }}
               >
                 {a.label}
               </button>
             ))}
           </div>
         </div>
+      )}
+      {bankingCmd && (
+        <BankingPrompt
+          command={bankingCmd}
+          onConfirm={(fullCmd) => { sendCommand(fullCmd); setBankingCmd(null); }}
+          onClose={() => setBankingCmd(null)}
+        />
       )}
 
       <div className="desktop-left-block">
