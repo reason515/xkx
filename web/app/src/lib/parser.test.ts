@@ -11,6 +11,7 @@ import {
   isCarriageItem,
   isCombatLine,
   isDocReadingCommand,
+  isEatDrinkNoise,
   isLoginNoise,
   isMorePromptLine,
   isProtocolNoise,
@@ -692,6 +693,17 @@ describe("parseSuggestedActions", () => {
     expect(isMorePromptLine("木老七说道：请跟我来。")).toBe(false);
   });
 
+  it("filters drink, eat, and fill noise", () => {
+    expect(isEatDrinkNoise("你拿起葫芦咕噜噜地喝了几口清水。")).toBe(true);
+    expect(isEatDrinkNoise("你已经将葫芦里的清水喝得一滴也不剩了。")).toBe(true);
+    expect(isEatDrinkNoise("你将葫芦装满清水。")).toBe(true);
+    expect(isEatDrinkNoise("你将葫芦里剩下的清水倒掉。")).toBe(true);
+    expect(isEatDrinkNoise("你拿起野果咬了几口。")).toBe(true);
+    expect(isEatDrinkNoise("你将剩下的野果吃得乾乾净净。")).toBe(true);
+    expect(isEatDrinkNoise("店小二说道：客官里面请。")).toBe(false);
+    expect(isEatDrinkNoise("你向武师请教有关「内功」的疑问。")).toBe(false);
+  });
+
   it("ignores unknown verbs", () => {
     expect(parseSuggestedActions("(foobar baz)")).toEqual([]);
   });
@@ -1031,9 +1043,6 @@ describe("mudCommandTarget / buildAskTopicActions", () => {
     ).toEqual([
       "ask fu about 船",
       "ask fu about 离岛",
-      "ask fu about name",
-      "ask fu about here",
-      "ask fu about rumors",
     ]);
   });
 
@@ -1045,6 +1054,25 @@ describe("mudCommandTarget / buildAskTopicActions", () => {
       "ask er about here",
       "ask er about rumors",
     ]);
+  });
+
+  it("preserves Chinese ask topics from ask-list output", () => {
+    // 回归：parseSuggestedActions 应保留中文话题，不被 normalizeActionCommand 截断
+    // 有自定义话题时不追加通用话题（避免"江湖传闻"与"闯荡江湖"混淆）
+    const listText = `你可以向游鲲翼打听下列话题：
+    (ask you about 闯荡江湖)
+    (ask you about 葫芦)`;
+    const topics = buildAskTopicActions(
+      "you kunyi",
+      "游鲲翼",
+      [],
+      listText
+    );
+    expect(topics.map((a) => a.command)).toEqual([
+      "ask kunyi about 闯荡江湖",
+      "ask kunyi about 葫芦",
+    ]);
+    expect(topics.map((a) => a.label)).toEqual(["闯荡江湖", "葫芦"]);
   });
 });
 

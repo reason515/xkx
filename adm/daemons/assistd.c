@@ -126,7 +126,7 @@ int should_stop_train(object me, mapping cfg)
 		}
 		break;
 	case "potential":
-		if ((int)me->query("potential") < 1) return 1;
+		if ((int)me->query("potential") - (int)me->query("learned_points") < 1) return 1;
 		break;
 	case "count":
 		if (cfg["remaining"] <= 0) return 1;
@@ -313,7 +313,7 @@ string learn_stop_reason(object me, object teacher, mapping cfg)
 	if (!living(teacher)) return "授业者目前无法指点，学艺停止";
 	if (cfg["stop_combat"] && me->is_fighting())
 		return "进入战斗，学艺停止";
-	if ((int)me->query("potential") < 1)
+	if ((int)me->query("potential") - (int)me->query("learned_points") < 1)
 		return "潜能耗尽，学艺停止";
 
 	skill = cfg["skill"];
@@ -358,7 +358,7 @@ int learn_max_times(object me, object teacher, string skill, int want)
 
 	if (!objectp(me) || !objectp(teacher) || want < 1) return 0;
 	base = learn_unit_base(me, skill);
-	pot = (int)me->query("potential");
+	pot = (int)me->query("potential") - (int)me->query("learned_points");
 	if (pot < 1) return 0;
 	if (want > pot) want = pot;
 	if (want > 200) want = 200;
@@ -405,7 +405,7 @@ void learn_tick(string id)
 	if (cfg["stop_when"] == "count")
 		times = (int)cfg["remaining"];
 	else
-		times = (int)me->query("potential");
+		times = (int)me->query("potential") - (int)me->query("learned_points");
 	if (times < 1) {
 		stop_assist(me, "已完成设定的学习次数");
 		return;
@@ -455,7 +455,7 @@ void learn_tick(string id)
 		stop_assist(me, "已完成设定的学习次数");
 		return;
 	}
-	if (cfg["stop_when"] == "potential" && (int)me->query("potential") < 1) {
+	if (cfg["stop_when"] == "potential" && (int)me->query("potential") - (int)me->query("learned_points") < 1) {
 		stop_assist(me, "潜能耗尽，学艺停止");
 		return;
 	}

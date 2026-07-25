@@ -120,7 +120,7 @@ async function completeIntroFollow(page: import("@playwright/test").Page) {
   });
 }
 
-async function loginAsNewbie(
+async function loginAsNewbieLocal(
   page: Page,
   opts?: {
     desktop?: boolean;

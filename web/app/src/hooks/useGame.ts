@@ -11,6 +11,7 @@ import {
   extractLookBlock,
   extractSelfLookPanel,
   isCombatLine,
+  isEatDrinkNoise,
   isEntitySheetAction,
   isLoginNoise,
   isMorePromptLine,
@@ -223,8 +224,8 @@ export function useGame(opts?: UseGameOptions) {
     )
       return;
     setState((s) => {
-      // 当 sheet 打开且有待反馈时，将操作结果 toast
-      if (pendingFeedback.current && kind !== "sys" && kind !== "combat" && s.sheet) {
+      // 当有待反馈时（来自 EntitySheet 操作），将结果 toast 提示
+      if (pendingFeedback.current && kind !== "sys" && kind !== "combat") {
         pendingFeedback.current = false;
         toastScheduler.current.show(text);
       }
@@ -413,7 +414,7 @@ export function useGame(opts?: UseGameOptions) {
         // 地上吃喝后物品可能消失；LPC move/destruct 可能不通知时 look 兜底
         roomFromEvent.current = false;
         scheduleRoomRefresh();
-      } else if (verb === "drop" || verb === "get" || verb === "buy" || verb === "sell" || verb === "put") {
+      } else if (verb === "drop" || verb === "get" || verb === "buy" || verb === "sell" || verb === "put" || verb === "give") {
         // 货品面板 list 捕获中点购买：先结束捕获，让回显进见闻
         if ((verb === "buy" || verb === "sell") && expectDoc.current) {
           finishDocCapture();
@@ -661,6 +662,7 @@ export function useGame(opts?: UseGameOptions) {
           if (line.length < 2) continue;
           if (/^>{0,1}\s*$/.test(line)) continue;
           if (isLoginNoise(line) || isProtocolNoise(line)) continue;
+          if (isEatDrinkNoise(line)) continue;
           if (isMorePromptLine(line)) continue;
           if (isSheetDumpLine(line, chunk)) continue;
           if (
@@ -998,6 +1000,27 @@ export function useGame(opts?: UseGameOptions) {
             showToast("现在还不能睡觉");
           } else if (/你往床上一躺|进入了梦乡|倒在床上/.test(chunk)) {
             showToast("已入睡");
+          } else if (/一觉醒来/.test(chunk)) {
+            // 睡觉醒来后气血精内力都已恢复，主动拉取刷新顶部状态条
+            showToast("已醒来");
+            window.setTimeout(() => {
+              cmd("hp", { silent: true });
+            }, 200);
+          } else if (/拿起.*咕噜噜地喝了几口/.test(chunk)) {
+            showToast("已饮水");
+            scheduleInvRefresh(true);
+          } else if (/已经将.*里的.*喝得一滴也不剩了/.test(chunk)) {
+            showToast("已喝完");
+            scheduleInvRefresh(false);
+          } else if (/将.*装满清水/.test(chunk)) {
+            showToast("已装满");
+            scheduleInvRefresh(false);
+          } else if (/将.*里剩下的.*倒掉/.test(chunk)) {
+            // 倒掉旧液体的提示不必要弹 toast，静默
+            scheduleInvRefresh(false);
+          } else if (/拿起.*咬了几口|将剩下的.*吃得/.test(chunk)) {
+            showToast("已进食");
+            scheduleInvRefresh(true);
           } else if (/档案储存完毕/.test(chunk)) {
             showToast("已存档");
           } else if (/储存失败|不能储存/.test(chunk)) {

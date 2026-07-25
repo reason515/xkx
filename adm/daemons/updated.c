@@ -62,8 +62,8 @@ void login_check(object ob)
 	if( undefinedp(my["quest_exp"]) ) my["quest_exp"] = my["age"]*10;
 	if( undefinedp(my["potential"]) ) my["potential"] = 100;
 	if( undefinedp(my["max_potential"]) ) my["max_potential"] = 100;
-	if( my["potential"] > my["max_potential"] )
-		my["potential"] = my["max_potential"];
+	// 对齐 pkuxkx：不强制裁剪潜能，允许自由累积
+	// (原代码 my["potential"] > my["max_potential"] 时强制裁剪，pkuxkx 无此逻辑)
 
 	if( my["shen"] < 0 && -my["shen"] > my["combat_exp"] )
 		my["shen"] = - my["combat_exp"];

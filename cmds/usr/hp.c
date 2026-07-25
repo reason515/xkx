@@ -39,8 +39,8 @@ int main(object me, string arg)
     printf(" 食物： %s%4d/ %4d      " NOR "   潜能： %s%4d / %4d\n" NOR,
         status_color(my["food"], ob->max_food_capacity()),
         my["food"], ob->max_food_capacity(),
-        HIY,
-        (int)ob->query("potential"),
+        ((int)ob->query("potential") - (int)ob->query("learned_points")) * 100 / ((int)ob->query("max_potential")+1) >= 30 ? HIY : HIR,
+        (int)ob->query("potential") - (int)ob->query("learned_points"),
         (int)ob->query("max_potential"));
     printf(" 饮水： %s%4d/ %4d      " NOR "   经验： %s%d\n" NOR,
         status_color(my["water"], ob->max_water_capacity()),

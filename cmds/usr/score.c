@@ -105,7 +105,7 @@ int main(object me, string arg)
 		line += " 食物：\t";
 	
 	if( my["max_potential"] > 0 )
-		line += line_of(" 潜能：", my["potential"], my["max_potential"], my["max_potential"], "\n");
+		line += line_of(" 潜能：", (int)ob->query("potential") - (int)ob->query("learned_points"), my["max_potential"], my["max_potential"], "\n");
 	else
 		line += " 潜能：\n";
 

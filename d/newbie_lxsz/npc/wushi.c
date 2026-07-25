@@ -264,7 +264,7 @@ int accept_object(object who, object ob)
 	object *inv;
 	int i;
 	
-	call_out("dest_ob",2);
+	call_out("dest_ob",0);
 
 	// if (ob->query("id")=="hulu" && ob->qurery("name")=="[33m"+"葫芦")
 	if (1==check_questindex(who,"帮武师去铁匠铺买一把钢剑，去酒铺买一壶烧刀子酒，回来交给武师"))

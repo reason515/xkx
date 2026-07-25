@@ -282,6 +282,11 @@ export function isMorePromptLine(line: string): boolean {
   return /未完继续|继续下一页|n 或\s*<ENTER>|q 离开/.test(line);
 }
 
+/** 吃喝/装水/填水等动作文案，前端已转为 Toast，不应进入见闻。 */
+export function isEatDrinkNoise(line: string): boolean {
+  return /拿起.*咕噜噜地喝了几口|已经将.*里的.*喝得一滴也不剩了|将.*装满清水|将.*里剩下的.*倒掉|拿起.*咬了几口|将剩下的.*吃得/.test(line);
+}
+
 /** Dialogue / event narrative that must stay in 见闻 (not room look structure). */
 const ROOM_LOOK_KEEP =
   /说道|问道|喊道|叫道|向.+打听|你向|你从|脱了下来|装备著|装备着|穿上|戴上/;
@@ -789,8 +794,12 @@ function normalizeActionCommand(raw: string): string | null {
   let verb = parts[0]?.toLowerCase();
   if (!verb || !/^[a-z][a-z0-9_\-]*$/.test(verb)) return null;
   // Strip trailing Chinese/non-command text (e.g. "(wield jian 可以装备这把剑)")
-  const firstChinese = parts.findIndex((p, i) => i > 0 && /[\u4e00-\u9fff]/.test(p));
-  if (firstChinese > 0) cmd = parts.slice(0, firstChinese).join(" ");
+  // BUT keep Chinese for ask/learn/fill verbs which have Chinese arguments.
+  const keepChineseVerbs = new Set(["ask", "learn", "xue", "fill", "zhuang"]);
+  if (!keepChineseVerbs.has(verb)) {
+    const firstChinese = parts.findIndex((p, i) => i > 0 && /[\u4e00-\u9fff]/.test(p));
+    if (firstChinese > 0) cmd = parts.slice(0, firstChinese).join(" ");
+  }
   if (SKIP_ACTION_VERBS.has(verb)) return null;
   if (!ACTION_VERBS[verb]) return null;
   // Bare (get)/(move) tutorial noise is skipped; optional-target verbs like
@@ -939,8 +948,16 @@ export function buildAskTopicActions(
 
   for (const a of hinted) consider(a.command);
   for (const a of parseSuggestedActions(listText, npcs)) consider(a.command);
-  for (const topic of ["name", "here", "rumors"]) {
-    consider(`ask ${target} about ${topic}`);
+  // 只在 NPC 没有自定义话题时补充通用话题（name/here/rumors），
+  // 否则通用话题会与自定义话题重复，且"江湖传闻"容易让玩家
+  // 误点（例如与"闯荡江湖"混淆，导致任务无法推进）。
+  const hasCustomTopics = [...found.keys()].some(
+    (k) => !/about (?:name|here|rumors)$/i.test(k)
+  );
+  if (!hasCustomTopics) {
+    for (const topic of ["name", "here", "rumors"]) {
+      consider(`ask ${target} about ${topic}`);
+    }
   }
   return [...found.values()];
 }

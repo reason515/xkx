@@ -115,6 +115,8 @@ void wakeup(object me,object where)
 	if (!objectp(me)) return;
 
 	me->enable_player();
+	if (userp(me))
+		"/adm/daemons/webd"->notify_vitals(me);
         while( objectp(environment(me)) && environment(me)->is_character() )
         	me->move(environment(environment(me)));
 	me->apply_condition("sleep", 8 + random(5));

@@ -268,7 +268,7 @@ void send_vitals(object me)
 		my["qi"], my["max_qi"], my["eff_qi"], my["jing"], my["max_jing"], my["eff_jing"],
 		my["jingli"], my["max_jingli"], my["neili"], my["max_neili"],
 		my["food"], me->max_food_capacity(), my["water"], me->max_water_capacity(),
-		me->query("potential"), my["combat_exp"]
+		me->query("potential") - me->query("learned_points"), my["combat_exp"]
 	));
 }
 

@@ -210,7 +210,7 @@ int accept_object(object who, object ob)
 		message_vision(GRN"游鲲翼起身恭敬接过葫芦，低头看了看，喃喃道：“剧饮千杯男儿事，杏子林中，商略平生义……“\n\n"NOR, who);
 		if (1==check_questindex(who,"give hulu to you kunyi，把葫芦交给游鲲翼"))
 		{
-			call_out("dest_hulu",1);
+			call_out("dest_hulu",0);
             call_out("set_nextquest", 1, who, "give hulu to you kunyi，把葫芦交给游鲲翼", "游鲲翼似乎对你言而不尽，看看能不能问个明白。\n向游鲲翼依次打听：here、name、葫芦、闯荡江湖。", 20, 100);
 			return 1;
 		}
