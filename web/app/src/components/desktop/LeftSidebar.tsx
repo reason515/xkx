@@ -131,7 +131,7 @@ export function LeftSidebar() {
                 key={a.command}
                 type="button"
                 className="chip action"
-                onClick={() => { if (a.command === 'cun' || a.command === 'qu') setBankingCmd(a.command); else sendCommand(a.command); }}
+                onClick={() => { if (a.command === 'cun' || a.command === 'qu') setBankingCmd(a.command); else if (a.command.startsWith('__shop__:')) { const cmdId = a.command.slice(9); const npc = state.room.npcs.find(n => (n.commandId || n.id) === cmdId); if (npc) game.setSelectedEntity(npc); } else sendCommand(a.command); }}
               >
                 {a.label}
               </button>

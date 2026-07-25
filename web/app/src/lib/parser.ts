@@ -1347,16 +1347,18 @@ export function suggestedActionsFromRoomText(
  */
 export function inferNpcCapabilityActions(npcs: Entity[]): SuggestedAction[] {
   const actions: SuggestedAction[] = [];
-  const hasBanker = npcs.some((n) => n.canWithdraw);
-  const hasTrader = npcs.some((n) => n.canTrade || n.canSell);
+  const banker = npcs.find((n) => n.canWithdraw);
+  const trader = npcs.find((n) => n.canTrade || n.canSell);
 
-  if (hasBanker) {
+  if (banker) {
     actions.push({ command: "check", label: "查账" });
     actions.push({ command: "cun", label: "存款" });
     actions.push({ command: "qu", label: "取款" });
   }
-  if (hasTrader) {
+  if (trader) {
     actions.push({ command: "list", label: "商品列表" });
+    const cmdId = trader.commandId || trader.id;
+    actions.push({ command: `__shop__:${cmdId}`, label: "逛店买卖" });
   }
   return actions;
 }
