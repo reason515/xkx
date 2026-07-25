@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  clearSavedCredentials,
-  loadSavedCredentials,
-  saveCredentials,
+  clearSavedAccount,
+  loadSavedAccount,
+  saveAccount,
 } from "./savedCredentials";
 
 function memoryStorage() {
@@ -19,28 +19,33 @@ function memoryStorage() {
 }
 
 describe("savedCredentials", () => {
-  it("saves and loads id/password", () => {
+  it("saves and loads only the account ID", () => {
     const storage = memoryStorage();
-    saveCredentials({ id: "hero", password: "secret" }, storage);
-    expect(loadSavedCredentials(storage)).toEqual({
-      id: "hero",
-      password: "secret",
-    });
+    saveAccount({ id: "hero" }, storage);
+    expect(loadSavedAccount(storage)).toEqual({ id: "hero" });
+    expect(storage.getItem("xkx.login.saved")).toBe('{"id":"hero"}');
+  });
+
+  it("removes passwords saved by earlier versions", () => {
+    const storage = memoryStorage();
+    storage.setItem("xkx.login.saved", JSON.stringify({ id: "hero", password: "secret" }));
+    expect(loadSavedAccount(storage)).toEqual({ id: "hero" });
+    expect(storage.getItem("xkx.login.saved")).toBe('{"id":"hero"}');
   });
 
   it("returns null for empty or corrupt data", () => {
     const storage = memoryStorage();
-    expect(loadSavedCredentials(storage)).toBeNull();
+    expect(loadSavedAccount(storage)).toBeNull();
     storage.setItem("xkx.login.saved", "{");
-    expect(loadSavedCredentials(storage)).toBeNull();
-    storage.setItem("xkx.login.saved", JSON.stringify({ id: "a" }));
-    expect(loadSavedCredentials(storage)).toBeNull();
+    expect(loadSavedAccount(storage)).toBeNull();
+    storage.setItem("xkx.login.saved", JSON.stringify({ password: "secret" }));
+    expect(loadSavedAccount(storage)).toBeNull();
   });
 
-  it("clears stored credentials", () => {
+  it("clears the stored account", () => {
     const storage = memoryStorage();
-    saveCredentials({ id: "hero", password: "secret" }, storage);
-    clearSavedCredentials(storage);
-    expect(loadSavedCredentials(storage)).toBeNull();
+    saveAccount({ id: "hero" }, storage);
+    clearSavedAccount(storage);
+    expect(loadSavedAccount(storage)).toBeNull();
   });
 });

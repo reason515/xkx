@@ -38,6 +38,7 @@ export function MapSheet({
   localmapsLoading = false,
 }: Props) {
   const [mode, setMode] = useState<"region" | "world">("region");
+  const [mapZoom, setMapZoom] = useState(1);
 
   const regionKey = useMemo(
     () => resolveRegionMapKey(roomArea, roomTitle),
@@ -110,6 +111,25 @@ export function MapSheet({
             世界
           </button>
         </div>
+        <div className="map-tools" aria-label="地图缩放">
+          <button
+            type="button"
+            aria-label="缩小地图"
+            onClick={() => setMapZoom((zoom) => Math.max(0.8, zoom - 0.2))}
+            disabled={mapZoom <= 0.8}
+          >
+            −
+          </button>
+          <span>{Math.round(mapZoom * 100)}%</span>
+          <button
+            type="button"
+            aria-label="放大地图"
+            onClick={() => setMapZoom((zoom) => Math.min(1.6, zoom + 0.2))}
+            disabled={mapZoom >= 1.6}
+          >
+            ＋
+          </button>
+        </div>
         <div className="sheet-scroll">
           {mode === "region" ? (
             regionText ? (
@@ -117,13 +137,14 @@ export function MapSheet({
                 <p className="map-legend">◎ 当前位置已高亮　图源同 MUD「map」</p>
                 <pre
                   className="map-ascii"
+                  style={{ fontSize: `${11 * mapZoom}px` }}
                   dangerouslySetInnerHTML={{ __html: regionHtml }}
                 />
               </>
             ) : localmapsText ? (
               <>
                 <p className="map-legend">来自 MUD localmaps 命令</p>
-                <pre className="map-ascii">{localmapsText}</pre>
+                <pre className="map-ascii" style={{ fontSize: `${11 * mapZoom}px` }}>{localmapsText}</pre>
               </>
             ) : (
               <div className="map-empty">
@@ -149,6 +170,7 @@ export function MapSheet({
               <p className="map-legend">侠客行第一阶段总图　当前区域地标已高亮</p>
               <pre
                 className="map-ascii"
+                style={{ fontSize: `${11 * mapZoom}px` }}
                 dangerouslySetInnerHTML={{ __html: worldHtml }}
               />
             </>

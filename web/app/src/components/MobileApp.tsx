@@ -24,6 +24,10 @@ function pct(cur?: number, max?: number) {
   return `${Math.min(100, Math.round((cur / max) * 100))}%`;
 }
 
+function vitalValue(cur?: number, max?: number) {
+  return `${cur ?? "—"}/${max ?? "—"}`;
+}
+
 const LOG_FOLLOW_PX = 48;
 
 function EventLog({
@@ -187,8 +191,10 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
     (a) => !doorCmds.has(a.command)
   );
 
+  const hasNewbieQuest = (state.newbieQuestIndex ?? 0) > 0;
+
   return (
-    <div className="phone">
+    <div className={`phone${hasNewbieQuest ? " has-quest" : ""}`}>
       <div className={`toast ${toast ? "show" : ""}`}>{toast}</div>
       <div className="screen">
         <header className="topbar">
@@ -196,30 +202,33 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             <div className="hero-meta">
               <div className="hero-name">{state.playerName}</div>
             </div>
-            <div className="vitals">
+            <div className="vitals" aria-label="身体状态">
               <div className="vital hp">
+                <span className="vital-label">气</span>
                 <div className="bar">
                   <div className="fill" style={{ width: pct(v.qi, vitalCap(v, "qi")) }} />
                 </div>
-                <span className="n">{v.qi ?? "—"}</span>
+                <span className="n">{vitalValue(v.qi, vitalCap(v, "qi"))}</span>
               </div>
               <div className="vital sp">
+                <span className="vital-label">精</span>
                 <div className="bar">
                   <div
                     className="fill"
                     style={{ width: pct(v.jing, vitalCap(v, "jing")) }}
                   />
                 </div>
-                <span className="n">{v.jing ?? "—"}</span>
+                <span className="n">{vitalValue(v.jing, vitalCap(v, "jing"))}</span>
               </div>
               <div className="vital mp">
+                <span className="vital-label">内</span>
                 <div className="bar">
                   <div
                     className="fill"
                     style={{ width: pct(v.neili, vitalCap(v, "neili")) }}
                   />
                 </div>
-                <span className="n">{v.neili ?? "—"}</span>
+                <span className="n">{vitalValue(v.neili, vitalCap(v, "neili"))}</span>
               </div>
             </div>
           </button>
@@ -237,6 +246,16 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             </button>
             {menuOpen && (
               <div className="menu-panel" role="menu">
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    openMap();
+                  }}
+                >
+                  地图
+                </button>
                 <button
                   type="button"
                   role="menuitem"
@@ -456,10 +475,11 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             </section>
 
             <EventLog logs={state.logs} onCmd={g.cmd} showCmd={showCmd} />
-            <FloatingQuestBar questIndex={state.newbieQuestIndex ?? 0} />
           </div>
         </main>
       </div>
+
+      <FloatingQuestBar questIndex={state.newbieQuestIndex ?? 0} />
 
       {state.sheet === "character" && (
         <CharacterSheet

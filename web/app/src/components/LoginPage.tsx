@@ -1,8 +1,8 @@
 import { useState } from "react";
 import {
-  clearSavedCredentials,
-  loadSavedCredentials,
-  saveCredentials,
+  clearSavedAccount,
+  loadSavedAccount,
+  saveAccount,
 } from "../lib/savedCredentials";
 import { ChoiceRow } from "./ChoiceRow";
 
@@ -21,13 +21,11 @@ type Mode = "login" | "register";
 
 export function LoginPage({ onLogin, error }: Props) {
   const [mode, setMode] = useState<Mode>("login");
-  const [id, setId] = useState(() => loadSavedCredentials()?.id ?? "");
-  const [password, setPassword] = useState(
-    () => loadSavedCredentials()?.password ?? ""
-  );
+  const [id, setId] = useState(() => loadSavedAccount()?.id ?? "");
+  const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [gender, setGender] = useState("男");
-  const [remember, setRemember] = useState(() => Boolean(loadSavedCredentials()));
+  const [remember, setRemember] = useState(() => Boolean(loadSavedAccount()));
 
   const isRegister = mode === "register";
 
@@ -62,9 +60,9 @@ export function LoginPage({ onLogin, error }: Props) {
         onSubmit={(e) => {
           e.preventDefault();
           if (remember) {
-            saveCredentials({ id, password });
+            saveAccount({ id });
           } else {
-            clearSavedCredentials();
+            clearSavedAccount();
           }
           onLogin({
             id,
@@ -126,11 +124,12 @@ export function LoginPage({ onLogin, error }: Props) {
             onChange={(e) => {
               const next = e.target.checked;
               setRemember(next);
-              if (!next) clearSavedCredentials();
+              if (!next) clearSavedAccount();
             }}
           />
-          记住账号和密码
+          记住账号
         </label>
+        <p className="login-privacy-hint">密码不会保存在此设备，可使用浏览器密码管理器。</p>
         {error && <p className="err">{error}</p>}
         <button type="submit">{isRegister ? "注册并进入" : "进入游戏"}</button>
       </form>

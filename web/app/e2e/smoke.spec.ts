@@ -120,7 +120,7 @@ async function completeIntroFollow(page: import("@playwright/test").Page) {
   });
 }
 
-async function loginAsNewbieLocal(
+async function loginAsNewbie(
   page: Page,
   opts?: {
     desktop?: boolean;
@@ -129,6 +129,10 @@ async function loginAsNewbieLocal(
     password?: string;
   }
 ) {
+  await page.addInitScript(() => {
+    localStorage.setItem("xkx-ui-mode", "mobile");
+  });
+
   const asRegister = opts?.asRegister ?? true;
   let id = opts?.id ?? randomId();
   const password = opts?.password ?? `Pw${id}9x`;
@@ -159,25 +163,27 @@ async function loginAsNewbieLocal(
   throw new Error("登录/注册失败：重试次数已用尽");
 }
 
-test("勾选记住账号后刷新可回填", async ({ page }) => {
+test("勾选记住账号后仅回填账号", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("tab", { name: "登录" })).toBeVisible({ timeout: 15_000 });
   await page.getByRole("tab", { name: "登录" }).click();
   await page.getByLabel("账号（英文 ID）").fill("abcdef");
   await page.getByLabel("密码", { exact: true }).fill("Test1234");
-  await page.getByLabel("记住账号和密码").check();
+  await page.getByLabel("记住账号").check();
   await page.getByRole("button", { name: "进入游戏" }).click();
-  await expect.poll(async () => page.evaluate(() => localStorage.getItem("xkx.login.saved"))).toContain("abcdef");
+  await expect
+    .poll(async () => page.evaluate(() => localStorage.getItem("xkx.login.saved")))
+    .toBe('{"id":"abcdef"}');
   await page.goto("/");
   await expect(page.getByLabel("账号（英文 ID）")).toHaveValue("abcdef");
-  await expect(page.getByLabel("密码", { exact: true })).toHaveValue("Test1234");
-  await expect(page.getByLabel("记住账号和密码")).toBeChecked();
-  await page.getByLabel("记住账号和密码").uncheck();
+  await expect(page.getByLabel("密码", { exact: true })).toHaveValue("");
+  await expect(page.getByLabel("记住账号")).toBeChecked();
+  await page.getByLabel("记住账号").uncheck();
   await expect.poll(async () => page.evaluate(() => localStorage.getItem("xkx.login.saved"))).toBeNull();
   await page.goto("/");
   await expect(page.getByLabel("账号（英文 ID）")).toHaveValue("");
   await expect(page.getByLabel("密码", { exact: true })).toHaveValue("");
-  await expect(page.getByLabel("记住账号和密码")).not.toBeChecked();
+  await expect(page.getByLabel("记住账号")).not.toBeChecked();
 });
 
 // ============================================================
@@ -265,6 +271,21 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".log-panel")).toBeVisible({ timeout: 30_000 });
     await expect(page.locator(".log").first()).toBeVisible();
     await expect(page.locator(".scene-panel")).toBeVisible();
+  });
+
+  test("顶栏状态显示名称与当前/上限", async ({ page }) => {
+    await loginAsNewbie(page, { id: sharedId, password: sharedPassword, asRegister: false });
+    await expect(page.locator(".vital-label")).toHaveText(["气", "精", "内"]);
+    await expect(page.locator(".vital .n").first()).toContainText("/");
+  });
+
+  test("菜单可打开地图并调节缩放", async ({ page }) => {
+    await loginAsNewbie(page, { id: sharedId, password: sharedPassword, asRegister: false });
+    await openTopMenu(page);
+    await pickTopMenuItem(page, "地图");
+    await expect(page.locator(".map-tools")).toBeVisible({ timeout: 10_000 });
+    await page.getByRole("button", { name: "放大地图" }).click();
+    await expect(page.locator(".map-tools")).toContainText("120%");
   });
 
   test("顶栏帮助可查阅主题且不进见闻", async ({ page }) => {
