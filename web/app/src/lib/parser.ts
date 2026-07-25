@@ -1506,7 +1506,7 @@ export function mergeSuggestedActions(
   for (const a of [...prev, ...next]) {
     map.set(a.command, {
       command: a.command,
-      label: labelSuggestedAction(a.command, npcs),
+      label: a.label || labelSuggestedAction(a.command, npcs),
     });
   }
   const all = [...map.values()];
