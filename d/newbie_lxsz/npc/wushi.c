@@ -532,10 +532,12 @@ int do_learn(string arg)
         tell_object(me,"指令格式：learn|xue <某人> for <技能> [次数]\n");
         return 1;
     }
+	/* Accept both "xue wushi for force 10" and "xue wushi force 10" */
   	if (sscanf(arg, "%s for %s %d", teacher, skill, learn_times)!=3 )
-    {
-        tell_object(me,"指令格式：learn|xue <某人> for <技能> [次数]\n");
-	}
+		if (sscanf(arg, "%s %s %d", teacher, skill, learn_times)!=3) {
+			tell_object(me,"指令格式：learn|xue <某人> for <技能> [次数]\n");
+			return 1;
+		}
 	if (learn_times < 1) 
 		{
             tell_object(me,"指令格式：learn|xue <某人> for <技能> [次数]\n");
