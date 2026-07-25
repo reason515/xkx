@@ -66,6 +66,7 @@ const aliases = {
   city: "yangzhou",
   em: "emei",
   kunlun: "mingjiao",
+  newbie_lxsz: "liuxiu",
 };
 
 const keys = Object.keys(maps).sort();
