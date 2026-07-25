@@ -707,16 +707,10 @@ pkuxkx 独有的关键 inherit：
 
 | 项目 | 详情 |
 |------|------|
-| **源文件** | `pkuxkx/include/combat/damage.h` (184行) + `combatd.c` 吸收/反击部分 |
-| **目标文件** | `xkx2001/include/combat/` (新建目录) + `xkx2001/combatd.c` |
-| **工作量** | ⭐⭐⭐⭐ 较大（需合并两套战斗逻辑） |
-| **依赖** | vitals 公式 (1.1) |
-| **收益** | 战斗立即有深度：伤害受技能影响、吸收/反击/乾坤大挪移 |
-
-**移植要点**：
-- 以 pkuxkx 的 `calc_damage` 为基础，逐步替换 xkx2001 简化版
-- 保留 xkx2001 的 `damage_msg` 作为兜底
-- 分阶段：先移植伤害计算 → 再移植吸收 → 最后移植反击
+| **状态** | ✅ **已完成** |
+| **新建** | `include/combat/damage.h` (116行) `calc_damage` 统一伤害计算 |
+| **改动** | `combatd.c` 用 `calc_damage` 替换 ~80 行硬编码公式 |
+| **收益** | 伤害计算包含：单系加成、膂力/内功/外功/武器 hit_ob、增益减伤系统、经验减伤 |
 
 ### 1.3 技能引擎 → `feature/skill.c`
 
