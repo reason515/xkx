@@ -39,6 +39,8 @@ string json_escape(string s)
 	s = replace_string(s, "\"", "\\\"");
 	s = replace_string(s, "\n", "\\n");
 	s = replace_string(s, "\r", "");
+	/* Strip ANSI escape sequences that would break JSON */
+	s = terminal_colour(s, ([]));
 	return s;
 }
 
