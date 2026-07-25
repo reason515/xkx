@@ -69,40 +69,28 @@ void setup_human(object ob)
 	if( userp(ob) || undefinedp(my["max_potential"]) )
 		my["max_potential"] = 100 + to_int(sqrt(to_float(my["combat_exp"]))) / 10 + (my["max_jing"]-100)/30;
 
-	//if( userp(ob) || undefinedp(my["max_jing"]) ) {
+	// 使用统一的动态气血/精神计算（feature/attribute.c），替代旧的硬编码公式
 	if( userp(ob) || undefinedp(my["max_jing"]) || (!userp(ob) && !ob->query("special_npc")) ) {
+		my["max_jing"] = ob->query_max_jing();
+		my["max_qi"]   = ob->query_max_qi();
 
-		if( my["age"] <= 14 ) my["max_jing"] = 100;
-		else if( my["age"] <= 30 )
-			my["max_jing"] = 100 + (my["age"] - 14) * (my["int"] + my["con"])/2;
-		else my["max_jing"] = (my["int"] + my["con"]) * 8 + 100;
-
-		if( my["age"] <= 14 ) my["max_qi"] = 100;
-		else if( my["age"] <= 30 )
-			my["max_qi"] = 100 + (my["age"] - 14) * (my["con"] + my["str"])/2;
-		else my["max_qi"] = 100 + (my["con"] + my["str"]) * 8;
-
-
-		//jing start drop after 70 years old:
+		// xkx2001 保留：70 岁后道家保精（武当/全真 taoism ≥100 可逆转衰减）
 		if( my["age"] > 70 )
 		{
 			my["max_jing"] -= (my["age"] - 70) * (my["int"] + my["con"])/7;
-
-		// 道家保精：
 			if ( mapp(my["family"]) && (my["family"]["family_name"] == "武当派"
 			|| my["family"]["family_name"] == "全真教")
 			&& (lvl = (int)ob->query_skill("taoism", 1)) >= 100 )
 				my["max_jing"] += (my["age"] - 70) * lvl/20 ;
-
 		}
 
-                // 佛家养精：３０岁前补精，３０岁后长精
+		// xkx2001 保留：佛家养精——各门派佛法技能对 force 的加成
 		if ( mapp(my["family"]) ) {
-                        if ( my["family"]["family_name"] == "峨嵋派" )
+			if ( my["family"]["family_name"] == "峨嵋派" )
 				xism_age = (int)ob->query_skill("mahayana", 1);
 			else if ( my["family"]["family_name"] == "少林派" )
 				xism_age = (int)ob->query_skill("buddhism", 1);
-                        else if ( my["family"]["family_name"] == "大理段家" )
+			else if ( my["family"]["family_name"] == "大理段家" )
 				xism_age = (int)ob->query_skill("buddhism", 1);
 			else if ( my["family"]["family_name"] == "雪山派" || my["family"]["family_name"] == "血刀门" )
 				xism_age = (int)ob->query_skill("lamaism", 1);
@@ -113,43 +101,16 @@ void setup_human(object ob)
 			xism_age = xism_age/2;
 			if (my["age"] <= 30) xism_age -= my["age"];
 			else xism_age -= 30;
-
 			skill = ob->query_skill("force");
-			skill1 = ob->query_skill("hunyuan-yiqi");
-			skill2 = ob->query_skill("linji-zhuang");
-			skill3 = ob->query_skill("longxiang-banruo");
-			skill4 = ob->query_skill("kurong-changong");
 			if (xism_age > 0) {
-				//skill1 = xism_age * (skill1/10);
-				//skill2 = xism_age * (skill2/10);
-				//skill3 = xism_age * (skill3/10);
-				//skill4 = xism_age * (skill4/10);
 				skill = xism_age * (skill/10);
-				if ( my["family"]["family_name"] == "少林派" )
-				{
-					my["max_jing"] += skill;
-					my["max_qi"] += skill/2;
-				}
-                                else if ( my["family"]["family_name"] == "峨嵋派" )
-				{
-					my["max_jing"] += skill;
-					my["max_qi"] += skill/2;
-				}
-                                else if ( my["family"]["family_name"] == "大理段家" )
-				{
-					my["max_jing"] += skill;
-					my["max_qi"] += skill/2;
-				}
-				else
-				{
-					my["max_jing"] += skill;
-					my["max_qi"] += skill/2;
-				}
+				my["max_jing"] += skill;
+				my["max_qi"]   += skill/2;
 			}
 		}
 
-                // 地刹炼魂：每死一次，丐帮精长根骨值
-                if( mapp(my["family"]) && my["family"]["family_name"] == "丐帮" )
+		// xkx2001 保留：丐帮地刹炼魂——每死一次精长根骨值
+		if( mapp(my["family"]) && my["family"]["family_name"] == "丐帮" )
 			my["max_jing"] += my["con"] * my["death_times"];
 
                 // 华山紫氤吟；３０岁前补精，３０岁后长精
