@@ -104,7 +104,7 @@ int do_enable(string arg)
     map = who->query_skill_map();
 	if (5==sizeof(map))
     {
-        set_nextquest(who,"激发内功为太乙神功、轻功为太乙轻功、掌法为太乙掌法、剑法为太乙剑法、招架为太乙剑法","基本功夫是准备好了，还要再准备一下主用空手招式\nbei taiyi-zhang\n", 20, 100);
+        set_nextquest(who,"激发内功为太乙神功、轻功为太乙轻功、掌法为太乙掌法、剑法为太乙剑法、招架为太乙剑法","基本功夫是准备好了，还要再准备一下主用空手招式。\n打开角色面板→武功页，点击太乙掌法的「准备出招」即可。\n也可输入指令：bei taiyi-zhang", 20, 100);
     }
 
     return 1;

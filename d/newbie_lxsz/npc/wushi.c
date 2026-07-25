@@ -159,7 +159,7 @@ int checking(object ob,object who)
                     tell_object(who, HIC "你的「" + to_chinese("sword") + "」进步了！\n" NOR);
                     // SKILL_D("sword")->skill_improved(who);
                     who->set_skill("sword",6);
-                    set_nextquest(who,"尚武堂找武师再次比武","你颇有慧根，竟悟出了剑法的剑意。\n趁热打铁去练习一级太乙剑法，一定能有收获的。\n可通过lian sword <次数>，来提高你当前enable的剑法\n", 50, 250);
+                    set_nextquest(who,"尚武堂找武师再次比武","你颇有慧根，竟悟出了剑法的剑意。\n趁热打铁去练习一级太乙剑法，一定能有收获的。\n打开菜单→修炼面板练习，或输入 lian sword <次数>。", 50, 250);
                     message_vision(GRN"武师对$N说道：”能教的我都传授给你了，其他的就靠你自己领悟和努力了！“\n"NOR, who);
                 }
 			}
@@ -341,7 +341,7 @@ int do_cha(string arg)
             return 1;
         }
 
-        call_out("set_nextquest",2,me,"bai wushi,查看武师技能，cha wushi","你问清楚了武师学了哪些技能，赶紧向他学点功夫吧！\n要求学习武师身上所有基本功夫到5级，所有高级功夫到5级。\n请输入xue [师父id] for [技能id] [学习的次数]\n学习消耗精神，在现阶段只能通过睡觉来恢复。\n内功是一切武学之根基！建议先学基本内功和特殊内功！", 20, 100);
+        call_out("set_nextquest",2,me,"bai wushi,查看武师技能，cha wushi","你问清楚了武师学了哪些技能，赶紧向他学点功夫吧！\n要求学习武师身上所有基本功夫到5级，所有高级功夫到5级。\n点击武师→请教→选择技能即可学习，也可输入指令 xue wushi <技能> <次数>。\n学习消耗精神，现阶段只能通过睡觉来恢复。\n内功是一切武学之根基！建议先学基本内功和特殊内功！", 20, 100);
                 
         skl = ob->query_skills();
         if(!sizeof(skl)) {
@@ -600,8 +600,7 @@ int do_learn(string arg)
     if (5==me->query_skill("dodge",1) && 5==me->query_skill("force",1) && 5==me->query_skill("parry",1) && 5==me->query_skill("strike",1) && 5==me->query_skill("sword",1)
 && 5==me->query_skill("taiyi-shengong",1) && 5==me->query_skill("taiyi-you",1) && 5==me->query_skill("taiyi-zhang",1) && 5==me->query_skill("taiyi-jian",1))
     {
-        set_nextquest(me,"学习武师身上所有基本功夫到5级，所有高级功夫到5级","把学到的功夫都激发起来吧！\njifa force taiyi-shengong 将太乙神功作为你使用的内功
-jifa dodge taiyi-you 将太乙神游作为你使用的轻功\njifa sword taiyi-jian 将太乙剑法作为你使用的剑法\njifa parry taiyi-jian 将太乙剑法作为你使用的招架\njifa strike taiyi-zhang 将太乙掌法作为你使用的掌法", 50, 250);
+        set_nextquest(me,"学习武师身上所有基本功夫到5级，所有高级功夫到5级","把学到的功夫都激发起来吧！\n打开角色面板→武功页，点击各武功的激发槽位即可。\n也可输入指令：\njifa force taiyi-shengong 将太乙神功作为内功\njifa dodge taiyi-you 将太乙神游作为轻功\njifa sword taiyi-jian 将太乙剑法作为剑法\njifa parry taiyi-jian 将太乙剑法作为招架\njifa strike taiyi-zhang 将太乙掌法作为掌法", 50, 250);
 		return 1;
 	}	
 
@@ -693,8 +692,7 @@ jifa dodge taiyi-you 将太乙神游作为你使用的轻功\njifa sword taiyi-j
     if (5==me->query_skill("dodge",1) && 5==me->query_skill("force",1) && 5==me->query_skill("parry",1) && 5==me->query_skill("strike",1) && 5==me->query_skill("sword",1)
 && 5==me->query_skill("taiyi-shengong",1) && 5==me->query_skill("taiyi-you",1) && 5==me->query_skill("taiyi-zhang",1) && 5==me->query_skill("taiyi-jian",1))
     {
-        set_nextquest(me,"学习武师身上所有基本功夫到5级，所有高级功夫到5级","把学到的功夫都激发起来吧！\njifa force taiyi-shengong 将太乙神功作为你使用的内功
-jifa dodge taiyi-you 将太乙神游作为你使用的轻功\njifa sword taiyi-jian 将太乙剑法作为你使用的剑法\njifa parry taiyi-jian 将太乙剑法作为你使用的招架\njifa strike taiyi-zhang 将太乙掌法作为你使用的掌法", 50, 250);
+        set_nextquest(me,"学习武师身上所有基本功夫到5级，所有高级功夫到5级","把学到的功夫都激发起来吧！\n打开角色面板→武功页，点击各武功的激发槽位即可。\n也可输入指令：\njifa force taiyi-shengong 将太乙神功作为内功\njifa dodge taiyi-you 将太乙神游作为轻功\njifa sword taiyi-jian 将太乙剑法作为剑法\njifa parry taiyi-jian 将太乙剑法作为招架\njifa strike taiyi-zhang 将太乙掌法作为掌法", 50, 250);
     }
 
 	return 1;

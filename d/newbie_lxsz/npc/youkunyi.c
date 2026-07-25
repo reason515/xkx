@@ -211,7 +211,7 @@ int accept_object(object who, object ob)
 		if (1==check_questindex(who,"give hulu to you kunyi，把葫芦交给游鲲翼"))
 		{
 			call_out("dest_hulu",0);
-            call_out("set_nextquest", 1, who, "give hulu to you kunyi，把葫芦交给游鲲翼", "游鲲翼似乎对你言而不尽，看看能不能问个明白。\n向游鲲翼依次打听：here、name、葫芦、闯荡江湖。", 20, 100);
+            call_out("set_nextquest", 1, who, "give hulu to you kunyi，把葫芦交给游鲲翼", "游鲲翼似乎对你言而不尽，看看能不能问个明白。\n向游鲲翼依次打听：此地、姓名、葫芦、闯荡江湖（按顺序，共4步）。", 20, 100);
 			return 1;
 		}
 	}
