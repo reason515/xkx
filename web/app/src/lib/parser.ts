@@ -1502,7 +1502,7 @@ export function mergeSuggestedActions(
   prev: SuggestedAction[],
   next: SuggestedAction[],
   npcs: Entity[] = [],
-  limit = 12
+  limit = 20
 ): SuggestedAction[] {
   const map = new Map<string, SuggestedAction>();
   for (const a of [...prev, ...next]) {
