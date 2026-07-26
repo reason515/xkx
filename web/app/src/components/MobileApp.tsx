@@ -256,7 +256,9 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             onClick={g.onOpenCharacter}
             aria-label={`角色：${state.playerName}`}
           >
-            {(state.playerName || "侠")[0]}
+            {/[一-鿿]/.test((state.playerName || "侠")[0]!)
+              ? (state.playerName || "侠")[0]
+              : "侠"}
           </button>
           <div className="vitals" aria-label="身体状态">
             <div className={`vital hp${vitalClass(v.qi, vitalCap(v, "qi"))}`}>
