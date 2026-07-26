@@ -1,12 +1,14 @@
+import { GraphicalMap } from "./GraphicalMap";
+import { RoomGraph } from "./RoomGraph";
 import { useMemo, useState } from "react";
 import {
   getMapLabel,
   getMapText,
   highlightMapText,
-  mapMarkerOccurrence,
   resolveRegionMapKey,
   worldHighlightMarkers,
 } from "../data/maps";
+import { AREA_MAPS } from "../data/roomMaps";
 import type { Entity } from "../lib/types";
 
 interface Props {
@@ -30,9 +32,9 @@ interface Props {
 export function MapSheet({
   roomTitle,
   roomArea,
-  roomPath,
-  roomNpcs = [],
-  roomItems = [],
+  roomPath: _roomPath,
+  roomNpcs: _roomNpcs = [],
+  roomItems: _roomItems = [],
   roomExits = [],
   onClose,
   onLocalmaps,
@@ -41,7 +43,7 @@ export function MapSheet({
   localmapsLoading = false,
 }: Props) {
   const [mode, setMode] = useState<"region" | "world">("region");
-  const [mapZoom, setMapZoom] = useState(1);
+  const [mapZoom, setMapZoom] = useState(1.25);
 
   const regionKey = useMemo(
     () => resolveRegionMapKey(roomArea, roomTitle),
@@ -50,29 +52,39 @@ export function MapSheet({
   const regionText = getMapText(regionKey);
   const regionLabel = getMapLabel(regionKey);
 
+  // Structured room-graph map for known areas
+  const roomGraph = useMemo(() => {
+    const area = (roomArea || "").toLowerCase();
+    const mapKey =
+      area === "newbie_lxsz" || area === "liuxiu-shanzhuang"
+        ? "newbie_lxsz"
+        : null;
+    if (!mapKey || !AREA_MAPS[mapKey]) return null;
+    const nodes = AREA_MAPS[mapKey];
+    const title = (roomTitle || "").replace(/[【】\[\]「」]/g, "").trim();
+    // Find candidates whose name matches the room title
+    const candidates = nodes.filter((n) =>
+      title.includes(n.name) || n.name.includes(title)
+    );
+    let currentId = candidates[0]?.id;
+    // Disambiguate: use exit destination names when multiple candidates share a base name
+    if (candidates.length > 1) {
+      const exitNames = new Set(roomExits.map((e) => (e.name || "").trim()).filter(Boolean));
+      const byId = new Map(nodes.map((n) => [n.id, n]));
+      let bestScore = 0;
+      for (const c of candidates) {
+        let score = 0;
+        for (const tid of Object.values(c.exits)) {
+          const tgt = byId.get(tid);
+          if (tgt && exitNames.has(tgt.name)) score++;
+        }
+        if (score > bestScore) { bestScore = score; currentId = c.id; }
+      }
+    }
+    return { nodes, currentId };
+  }, [roomArea, roomTitle, roomExits]);
+
   const worldText = getMapText("all") || "";
-  const regionHtml = useMemo(() => {
-    if (!regionText || !roomTitle) return regionText ? highlightMapText(regionText, []) : "";
-    const nth = mapMarkerOccurrence(regionKey, roomTitle, {
-      roomPath,
-      hasFisherman: roomNpcs.some(
-        (n) => /yu fu|渔夫/i.test(n.id) || /渔夫/.test(n.name)
-      ),
-      hasCarriage: roomItems.some(
-        (i) => /da che|carriage/i.test(i.id) || /大车/.test(i.name)
-      ),
-      exitNames: roomExits.map((e) => e.name || "").filter(Boolean),
-    });
-    return highlightMapText(regionText, [roomTitle], { [roomTitle]: nth });
-  }, [
-    regionText,
-    regionKey,
-    roomTitle,
-    roomPath,
-    roomNpcs,
-    roomItems,
-    roomExits,
-  ]);
 
   const worldHtml = useMemo(() => {
     if (!worldText) return "";
@@ -116,7 +128,7 @@ export function MapSheet({
         </div>
         <div className="map-tools" aria-label="地图缩放">
           {roomTitle && (
-            <span className="map-loc-chip" title="当前位置">📍 {roomTitle}</span>
+            <span className="map-loc-chip" title="当前位置">{roomTitle}</span>
           )}
           <button
             type="button"
@@ -138,13 +150,19 @@ export function MapSheet({
         </div>
         <div className="sheet-scroll">
           {mode === "region" ? (
-            regionText ? (
+            roomGraph ? (
+              <RoomGraph
+                nodes={roomGraph.nodes}
+                currentRoomId={roomGraph.currentId}
+              />
+            ) : regionText ? (
               <>
-                <p className="map-legend">◎ 当前位置已高亮　△ 可前往方向　※ 地标建筑　图源同 MUD「map」</p>
-                <pre
-                  className="map-ascii"
-                  style={{ fontSize: `${11 * mapZoom}px` }}
-                  dangerouslySetInnerHTML={{ __html: regionHtml }}
+                <p className="map-legend">◎ 当前位置已高亮　△ 出口方向　图源同 MUD「map」</p>
+                <GraphicalMap
+                  text={regionText}
+                  roomTitle={roomTitle}
+                  exitLabels={roomExits.map((e) => e.label || e.dir || "").filter(Boolean)}
+                  scale={mapZoom}
                 />
                 {roomExits.length > 0 && (
                   <div className="map-exit-chips">

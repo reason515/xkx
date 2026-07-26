@@ -129,6 +129,7 @@ export interface ScoreInfo {
   headline?: string;
   bio?: string;
   master?: string;
+  family?: string;
   spouse?: string;
   attrs?: {
     str?: ScoreAttr;
@@ -136,6 +137,7 @@ export interface ScoreInfo {
     con?: ScoreAttr;
     dex?: ScoreAttr;
   };
+  age?: number;
   exp?: number;
   shen?: number;
   questExp?: number;
@@ -260,6 +262,8 @@ export interface GameState {
     max: number;
     initial: { str: number; int: number; con: number; dex: number };
   };
+  /** 出口方向 → 眺望发现的目标场景名称 */
+  exitNames: Record<string, string>;
   /** 新手村任务进度索引（1-based） */
   newbieQuestIndex?: number;
   sheet: SheetKind;

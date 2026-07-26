@@ -131,7 +131,7 @@ export function EntitySheet({
     learning &&
     !docLoading &&
     learnTopics.length === 0 &&
-    /你要察看谁的技能/.test(docText);
+    /你要察看谁的技能|只有巫师.*能察看他人的技能|周围有这个人吗/.test(docText);
   const learnEmpty =
     learning &&
     !docLoading &&

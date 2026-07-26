@@ -14,11 +14,11 @@ string *quest_newbie = ({
 "用east、west、south等方向命令来探索未明谷周围的三块地方，并回到未明谷",
 "使用look path命令，根据提示离开未明谷",
 "拿着刻有“柳秀山庄”的葫芦去柳秀山庄一问究竟",
-"ask yahuan about 葫芦，向丫鬟询问有关“葫芦”的事情",
+"向丫鬟打听葫芦",
 "再次敲门(knock gate)，去见山庄庄主",
 // "follow yahuan，跟随丫环去见山庄庄主",
 "give hulu to you kunyi，把葫芦交给游鲲翼",
-"向游鲲翼依次打听，here、name、葫芦、闯荡江湖",
+"向游鲲翼依次打听：此地、姓名、葫芦、闯荡江湖",
 "使用follow a shu命令跟随丫鬟阿姝，然后她会带你熟悉一下山庄",
 "把脏衣服脱了，在浴室洗个澡",
 "洗完穿上衣服，向游鲲翼打听闯荡江湖",//"洗完穿上衣服，到厢房睡一觉",
@@ -128,7 +128,7 @@ void quest_gain(object me, int exp, int pot, string hint)
 string quest_desc(string text)
 {
 	string desc;
-	desc=HIG+text+NOR+"\n"+GRN"你可以用"NOR+HIY"quest"NOR+GRN"命令了解你现在应该做些什么。\n\n"NOR;
+	desc=HIG+text+NOR+"\n\n"NOR;
 	return desc;
 }
 

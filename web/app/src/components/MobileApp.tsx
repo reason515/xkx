@@ -280,7 +280,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
               ? (state.playerName || "侠")[0]
               : "侠"}
           </button>
-          <div className="vitals" aria-label="身体状态">
+          <div className="vitals" aria-label="身体状态" onClick={g.onOpenCharacter} role="button" tabIndex={0}>
             <div className={`vital hp${vitalClass(v.qi, vitalCap(v, "qi"))}`}>
               <span className="vital-label">气</span>
               <div className="bar">
@@ -449,6 +449,8 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                   </div>
                   <ExitPad
                     exits={state.room.exits}
+                    exitNames={state.exitNames}
+                    roomTitle={state.room.title || ""}
                     onSelect={(ex: ExitInfo) => {
                       g.clearDoc();
                       g.setSelectedExit({ dir: ex.dir, name: ex.name });
@@ -742,11 +744,17 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
         />
       )}
       {state.sheet === "exit" && g.selectedExit && (
-        <div className="overlay open" onClick={g.closeSheet}>
+        <div className="overlay open" onClick={() => {
+          g.saveExitName(g.selectedExit!.dir, state.docText);
+          g.closeSheet();
+        }}>
           <div className="sheet" onClick={(e) => e.stopPropagation()}>
             <div className="sheet-top">
               <h3>{g.selectedExit.name || g.selectedExit.dir}</h3>
-              <button type="button" className="close" onClick={g.closeSheet}>
+              <button type="button" className="close" onClick={() => {
+                g.saveExitName(g.selectedExit!.dir, state.docText);
+                g.closeSheet();
+              }}>
                 ×
               </button>
             </div>
@@ -771,16 +779,19 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             <div className="sheet-acts">
               <button
                 type="button"
-                onClick={() => g.docCmd(`look ${g.selectedExit!.dir}`, "exit")}
-              >
-                眺望
-              </button>
-              <button
-                type="button"
                 className="go"
                 onClick={() => g.confirmGo(g.selectedExit!.dir)}
               >
                 前往
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  g.saveExitName(g.selectedExit!.dir, state.docText);
+                  g.closeSheet();
+                }}
+              >
+                返回
               </button>
             </div>
           </div>

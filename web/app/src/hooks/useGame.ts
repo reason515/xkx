@@ -94,6 +94,7 @@ const initialState = (): GameState => ({
   assistActive: false,
   assistStatus: "",
   attrSelectData: undefined,
+  exitNames: {},
   newbieQuestIndex: undefined,
   sheet: null,
   docText: "",
@@ -921,7 +922,7 @@ export function useGame(opts?: UseGameOptions) {
           }
         }
 
-        if (/个人档案|膂力|悟性|根骨|身法|攻击力|防御力/.test(chunk)) {
+        if (/个人档案|膂力|悟性|根骨|身法|攻击力|防御力|你的师父|你的妻子|你的丈夫|你的配偶|神\s*[：:]|阅历[：:]|总共杀了|总共死了|经验[：:]/.test(chunk)) {
           const scoreText = stripScoreBanner(chunk);
           const scoreHtml = buildScoreHtml(chunk, msg.htmlLines);
           const score = parseScore(chunk);
@@ -1227,6 +1228,17 @@ export function useGame(opts?: UseGameOptions) {
     setSelectedEntity(null);
   }, [finishDocCapture]);
 
+  /** 退出出口预览时，将眺望到的场景名缓存到对应方向。 */
+  const saveExitName = useCallback((dir: string, previewText: string) => {
+    const m = previewText.match(/^(.+?)\s*-\s*$/m);
+    const name = m ? m[1].trim() : "";
+    if (!name) return;
+    setState((s) => ({
+      ...s,
+      exitNames: { ...s.exitNames, [`${s.room.title}|${dir}`]: name },
+    }));
+  }, []);
+
   const refreshCharacter = useCallback(() => {
     expectLookMe.current = true;
     window.setTimeout(() => {
@@ -1373,6 +1385,7 @@ export function useGame(opts?: UseGameOptions) {
     clearDoc,
     openSheet,
     closeSheet,
+    saveExitName,
     onOpenCharacter,
     onOpenHelp,
     onHelpTopic,

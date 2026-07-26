@@ -144,6 +144,7 @@ textarea:focus-visible {
   flex-direction: column;
   gap: 3px;
   padding: 2px 0;
+  cursor: pointer;
 }
 
 .vital {
@@ -1159,6 +1160,15 @@ textarea:focus-visible {
   color: var(--paper-dim);
   opacity: 0.45;
   cursor: default;
+}
+
+/* Map sheet needs more width than other sheets */
+.sheet.map-sheet {
+  max-width: 720px;
+}
+.sheet.map-sheet .sheet-scroll {
+  overflow-x: auto;
+  overflow-y: auto;
 }
 
 .map-ascii {

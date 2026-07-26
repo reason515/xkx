@@ -111,7 +111,7 @@ string ask_me(string arg)
 	switch(arg)
 	{
 		case "here" :
-			if (0==who->query_temp("newbie/askyou") && 1==check_questindex(who, "向游鲲翼依次打听，here、name、葫芦、闯荡江湖"))
+			if (0==who->query_temp("newbie/askyou") && 1==check_questindex(who, "向游鲲翼依次打听：此地、姓名、葫芦、闯荡江湖"))
 			{
 				who->set_temp("newbie/askyou",1);
 			}
@@ -122,7 +122,7 @@ string ask_me(string arg)
 			return "这里……现在是柳秀山庄。";
 			
 		case "name" :
-			if (1==who->query_temp("newbie/askyou") && 1==check_questindex(who, "向游鲲翼依次打听，here、name、葫芦、闯荡江湖"))
+			if (1==who->query_temp("newbie/askyou") && 1==check_questindex(who, "向游鲲翼依次打听：此地、姓名、葫芦、闯荡江湖"))
 			{
 				who->set_temp("newbie/askyou",2);
 			}
@@ -133,7 +133,7 @@ string ask_me(string arg)
 			return "在下不才，正是柳秀山庄庄主游鲲翼，山庄附近百里皆由在下打点。";
 			
 		case "hulu" :
-			if (2==who->query_temp("newbie/askyou") && 1==check_questindex(who, "向游鲲翼依次打听，here、name、葫芦、闯荡江湖"))
+			if (2==who->query_temp("newbie/askyou") && 1==check_questindex(who, "向游鲲翼依次打听：此地、姓名、葫芦、闯荡江湖"))
 			{
 				who->set_temp("newbie/askyou",3);
 			}
@@ -144,10 +144,10 @@ string ask_me(string arg)
 			return "让"+RANK_D->query_respect(who)+"劳心了，这葫芦只是庄内仆人的用具。";
 		
 		case "jianghu" :
-			if (3==who->query_temp("newbie/askyou") && 1==check_questindex(who, "向游鲲翼依次打听，here、name、葫芦、闯荡江湖"))
+			if (3==who->query_temp("newbie/askyou") && 1==check_questindex(who, "向游鲲翼依次打听：此地、姓名、葫芦、闯荡江湖"))
 			{
 				who->set_temp("newbie/askyou",0);
-				call_out("set_nextquest", 1, who, "向游鲲翼依次打听，here、name、葫芦、闯荡江湖", "你见他如此盛情，便也不好推辞，跟着丫鬟阿姝，让她带你熟悉一下山庄吧。", 50, 250);
+				call_out("set_nextquest", 1, who, "向游鲲翼依次打听：此地、姓名、葫芦、闯荡江湖", "你见他如此盛情，便也不好推辞，跟着丫鬟阿姝，让她带你熟悉一下山庄吧。", 50, 250);
 				return RANK_D->query_respect(who)+"能有这份心思，实属不易。不过还是容在下招呼阁下几天，如若有不周之处，还望恕罪则个。\n既是有缘人，那请多盘桓几日。阿姝，带这位"+RANK_D->query_respect(who)+"好好休息休息，先在庄里做些事吧。\n";
 			}
 			else

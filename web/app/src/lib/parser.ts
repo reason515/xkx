@@ -519,6 +519,9 @@ const TARGET_REQUIRED_VERBS = new Set([
  */
 const OPTIONAL_TARGET_VERBS = new Set(["zuan", "leave", "swim", "serve"]);
 
+/** Verbs whose label is self-contained; appending scenery name would be redundant ("洗澡浴桶" → "洗澡"). */
+const SELF_CONTAINED_VERBS = new Set(["bath", "sleep", "sit", "swim", "fill"]);
+
 /** Common MUD English item/object ids → Chinese display name. */
 const COMMON_ITEM_LABELS: Record<string, string> = {
   hulu: "葫芦",
@@ -773,6 +776,8 @@ export function labelSuggestedAction(
   if (verb === "accept" && parts[1]) return `${verbLabel}${ent(parts.slice(1).join(" "))}`;
   if (verb === "sleep") return "睡觉";
   if (parts.length === 1) return verbLabel;
+  // 自足动词（洗澡/睡觉/坐下等）不加目标名，避免"洗澡浴桶"之类
+  if (SELF_CONTAINED_VERBS.has(verb)) return verbLabel;
   return `${verbLabel}${ent(parts.slice(1).join(" "))}`;
 }
 
@@ -1321,7 +1326,9 @@ export function parseSuggestedActions(
         if (sceneryId && scenery) {
           consider(
             `${verb} ${sceneryId}`,
-            `${ACTION_VERBS[verb]}${scenery.name || sceneryId}`
+            SELF_CONTAINED_VERBS.has(verb)
+              ? ACTION_VERBS[verb]
+              : `${ACTION_VERBS[verb]}${scenery.name || sceneryId}`
           );
         } else if (OPTIONAL_TARGET_VERBS.has(verb)) {
           // 钻(zuan)进石缝 — no hole id nearby; bare verb is valid
@@ -3125,10 +3132,19 @@ export function parseScore(text: string): ScoreInfo {
   const info: ScoreInfo = {};
 
   const bio = body.match(/你是一[^。\n]+。/);
-  if (bio) info.bio = bio[0].trim();
+  if (bio) {
+    info.bio = bio[0].trim();
+    // Extract age from bio: "你是一位十八岁的未婚男性..."
+    const ageM = bio[0].match(/(\d+)岁/);
+    if (ageM) info.age = +ageM[1];
+  }
 
   const master = body.match(/你的师父是([^。\n]+)/);
   if (master) info.master = master[1].trim();
+
+  // 门派/师承
+  const family = body.match(/你是(\S+?)第(?:\d+)代弟子/);
+  if (family) info.family = family[1].trim();
 
   const spouse = body.match(/你的(妻子|丈夫|配偶)是([^。\n]+)/);
   if (spouse) info.spouse = `${spouse[1]}：${spouse[2].trim()}`;

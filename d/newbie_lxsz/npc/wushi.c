@@ -226,6 +226,7 @@ int do_bai(string arg)
 		tell_object(me, "武师说道：”好吧，看你是个习武的料，便教你两手，不过先得帮我做点事。“
 武师趴在你耳边轻轻说道：“我需要一壶烧刀子和一把钢剑，你去酒铺、铁匠铺给我买回来。”\n\n");
 		me->set_temp("newbie/needmoney",1);
+		set_nextquest(me,"找武师拜师学艺，bai wushi","去铁匠铺买一把钢剑、去酒铺买一壶烧刀子酒，回来交给武师。", 20, 100);
 		return 1;
 	}
 	if (2==check_questindex(me,"找武师拜师学艺，bai wushi") )
@@ -237,10 +238,14 @@ int do_bai(string arg)
 		else
 		{
 			message_vision(GRN"$N恭恭敬敬地向$n磕头请安，叫道：「师父！」\n"NOR, me, ob);
-            if ( 1==check_questindex(me,"bai wushi,查看武师技能，cha wushi") && 0==me->query("newbie_village/master") )
+            if ( (1==check_questindex(me,"bai wushi,查看武师技能，cha wushi") || 2==check_questindex(me,"bai wushi,查看武师技能，cha wushi")) && 0==me->query("newbie_village/master") )
             {
                 message_vision(GRN"武师笑道：“为师退隐江湖已久，早已不收徒弟。只传你武功，今后莫要对外人提起及我。\n跟我学艺这段时间，你就用这把太乙剑吧。”\n"NOR,me);
                 me->set("newbie_village/master",1);
+                me->set("family/family_name","柳秀山庄");
+                me->set("family/master_name","武师");
+                me->set("family/master_id","wu shi");
+                me->set("family/generation",2);
                 wuqi=new(__DOMAIN_DIR__"weapon/taiyijian");
                 if (wuqi->move(me)) message_vision(GRN"武师从兵器架上拿给了$N一把太乙剑。(wield jian 可以装备这把剑)\n"NOR,me);
                 me->save();

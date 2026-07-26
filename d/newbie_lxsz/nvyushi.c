@@ -14,13 +14,14 @@ void create()
     set("short", "女浴室");
     set("long", 
 "这里是女子浴室，浴室很开阔，浴桶"+YEL"(yutong)"NOR+"一字排开，摆了
-十余具，底下还有可以加热生火的小灶。你可以在这里洗浴"+HBBLU"(bath)"NOR+"。\n"
+十余具，底下还有可以加热生火的小灶。你可以在这里洗浴"+HBBLU"(bath)"NOR+"，
+洗完后记得穿上衣服"+HBBLU+WHT"(wear cloth)"NOR+"。\n"
 );
 
     set("indoors","liuxiu-shanzhuang");
 
     set("item_desc", ([
-        "yutong":HIY"快把脏衣服脱光了"NOR+HBBLU+WHT"(remove cloth)\n"NOR+"，赶紧洗个澡。"+HBBLU+WHT"(bath)\n"NOR,
+        "yutong":HIY"快把脏衣服脱光了"NOR+HBBLU+WHT"(remove cloth)\n"NOR+"，赶紧洗个澡。"+HBBLU+WHT"(bath)\n"NOR+"洗完记得穿上衣服。"+HBBLU+WHT"(wear cloth)\n"NOR,
         ]));
 
     set("exits", ([

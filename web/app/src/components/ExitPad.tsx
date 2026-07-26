@@ -4,10 +4,12 @@ import type { ExitInfo } from "../lib/types";
 
 interface Props {
   exits: ExitInfo[];
+  exitNames?: Record<string, string>;
+  roomTitle?: string;
   onSelect: (exit: ExitInfo) => void;
 }
 
-export function ExitPad({ exits, onSelect }: Props) {
+export function ExitPad({ exits, exitNames = {}, roomTitle = "", onSelect }: Props) {
   const lastClick = useRef(0);
   const byDir = Object.fromEntries(exits.map((e) => [e.dir, e]));
   const padDirs = new Set(
@@ -31,6 +33,8 @@ export function ExitPad({ exits, onSelect }: Props) {
           if (!ex) {
             return <div key={dir} className="cell empty" aria-hidden />;
           }
+          const discoveredName = exitNames[`${roomTitle}|${dir}`];
+          const displayName = ex.name || discoveredName || "";
           return (
             <button
               key={dir}
@@ -43,14 +47,17 @@ export function ExitPad({ exits, onSelect }: Props) {
               }}
             >
               <span className="d">{ex.label || DIR_MAP[dir] || dir}</span>
-              {ex.name}
+              {displayName}
             </button>
           );
         })}
       </div>
       {extra.length > 0 && (
         <div className="exit-extra">
-          {extra.map((ex) => (
+          {extra.map((ex) => {
+            const discoveredName = exitNames[`${roomTitle}|${ex.dir}`];
+            const displayName = ex.name || discoveredName || "";
+            return (
             <button
               key={ex.dir}
               type="button"
@@ -62,9 +69,9 @@ export function ExitPad({ exits, onSelect }: Props) {
               }}
             >
               <span className="d">{ex.label || DIR_MAP[ex.dir] || ex.dir}</span>
-              {ex.name}
+              {displayName}
             </button>
-          ))}
+          )})}
         </div>
       )}
     </div>

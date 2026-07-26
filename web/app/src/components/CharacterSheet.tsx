@@ -83,16 +83,23 @@ function ScorePanel({ score, fallbackHtml, fallbackText }: {
   return (
     <div className="score-panel">
       {score.headline && <div className="score-headline">{score.headline}</div>}
-      {(score.bio || score.master || score.spouse) && (
+      {(score.bio || score.master || score.spouse || score.family) && (
         <div className="profile-line">
           {score.bio && <p>{score.bio}</p>}
+          {score.family && <p>门派：{score.family}</p>}
           {score.master && <p>师父：{score.master}</p>}
           {score.spouse && <p>{score.spouse}</p>}
         </div>
       )}
 
-      {(score.attack != null || score.defense != null) && (
+      {(score.age != null || score.attack != null || score.defense != null) && (
         <div className="combat-grid">
+          {score.age != null && (
+            <div className="combat-pill age">
+              <div className="k">年龄</div>
+              <div className="v">{score.age}岁</div>
+            </div>
+          )}
           {score.attack != null && (
             <div className="combat-pill atk">
               <div className="k">攻击</div>

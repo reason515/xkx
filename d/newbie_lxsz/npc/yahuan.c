@@ -62,13 +62,13 @@ int ask_me()
 	ob=this_object();
 	me=this_player();
 	
-		if (((!ob->query_temp("player")) && (me->query(NEWBIE_VILLAGE_INDEX)==get_questindex("ask yahuan about 葫芦，向丫鬟询问有关“葫芦”的事情"))))
+		if (((!ob->query_temp("player")) && (me->query(NEWBIE_VILLAGE_INDEX)==get_questindex("向丫鬟打听葫芦"))))
 		{
 			message_vision(GRN"丫鬟见$N手中的葫芦，惊诧地「咦？」了一声。
 她转而眉开眼笑，两手举起来，高兴地「呀！」地跳了起来！显得大为惊喜。
 一转身跑到里面去了。\n\n"NOR, me);
 			call_other(environment(),"close_gate");
-			set_nextquest(me , "ask yahuan about 葫芦，向丫鬟询问有关“葫芦”的事情", "你怔怔地站在那里不知所措，不如再去敲敲门，向她问个究竟", 20, 100);
+			set_nextquest(me , "向丫鬟打听葫芦", "你怔怔地站在那里不知所措，不如再去敲敲门，向她问个究竟", 20, 100);
 			return 1;
 		}
 	    else
