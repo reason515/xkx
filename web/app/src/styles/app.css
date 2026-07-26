@@ -982,11 +982,50 @@ textarea:focus-visible {
   line-height: 1.5;
 }
 
+.map-legend-sub {
+  font-size: 10px;
+  color: rgba(185, 173, 152, 0.6);
+  line-height: 1.7;
+}
+
 .map-empty {
   font-size: 13px;
   color: var(--paper-dim);
   line-height: 1.7;
   padding: 12px 0;
+}
+
+.map-exit-chips {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.map-exit-label {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--jade-bright);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.map-exit-chips .chips {
+  gap: 6px;
+}
+
+.map-exit-chips .chip.exit {
+  min-height: 40px;
+  border-radius: 10px;
+  border-color: rgba(95, 143, 120, 0.45);
+  background: rgba(95, 143, 120, 0.1);
+  color: #d5ebe0;
+}
+
+.map-exit-chips .chip.exit .dir {
+  color: var(--jade-bright);
+  margin-right: 6px;
+  font-family: var(--font-display);
 }
 
 .map-tools {
@@ -997,6 +1036,18 @@ textarea:focus-visible {
   margin: -6px 0 8px;
   color: var(--paper-dim);
   font-size: 12px;
+}
+
+.map-loc-chip {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--cinnabar);
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.06em;
 }
 
 .map-tools button {

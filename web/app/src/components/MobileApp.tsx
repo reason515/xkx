@@ -543,6 +543,13 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           roomExits={state.room.exits}
           onClose={g.closeSheet}
           onLocalmaps={() => g.docCmd("localmaps", "help")}
+          onNavigate={(ex) => {
+            g.closeSheet();
+            g.clearDoc();
+            g.setSelectedExit({ dir: ex.dir, name: ex.name || ex.dir });
+            g.openSheet("exit");
+            g.docCmd(`look ${ex.dir}`, "exit");
+          }}
           localmapsText={state.docTarget === "help" ? state.docText : ""}
           localmapsLoading={state.docTarget === "help" && state.docLoading}
         />

@@ -16,8 +16,10 @@ interface Props {
   roomNpcs?: Entity[];
   roomItems?: Entity[];
   /** Exit destination names for duplicate-label disambiguation. */
-  roomExits?: { name?: string }[];
+  roomExits?: { dir?: string; name?: string; label?: string }[];
   onClose: () => void;
+  /** Navigate via an exit from the quick-jump chips. */
+  onNavigate?: (exit: { dir: string; name?: string; label?: string }) => void;
   /** Trigger localmaps command on the MUD server. */
   onLocalmaps?: () => void;
   /** Captured localmaps output text. */
@@ -34,6 +36,7 @@ export function MapSheet({
   roomExits = [],
   onClose,
   onLocalmaps,
+  onNavigate,
   localmapsText = "",
   localmapsLoading = false,
 }: Props) {
@@ -112,6 +115,9 @@ export function MapSheet({
           </button>
         </div>
         <div className="map-tools" aria-label="地图缩放">
+          {roomTitle && (
+            <span className="map-loc-chip" title="当前位置">📍 {roomTitle}</span>
+          )}
           <button
             type="button"
             aria-label="缩小地图"
@@ -134,12 +140,30 @@ export function MapSheet({
           {mode === "region" ? (
             regionText ? (
               <>
-                <p className="map-legend">◎ 当前位置已高亮　图源同 MUD「map」</p>
+                <p className="map-legend">◎ 当前位置已高亮　△ 可前往方向　※ 地标建筑　图源同 MUD「map」</p>
                 <pre
                   className="map-ascii"
                   style={{ fontSize: `${11 * mapZoom}px` }}
                   dangerouslySetInnerHTML={{ __html: regionHtml }}
                 />
+                {roomExits.length > 0 && (
+                  <div className="map-exit-chips">
+                    <span className="map-exit-label">快速前往</span>
+                    <div className="chips">
+                      {roomExits.filter((ex) => ex.dir).map((ex) => (
+                        <button
+                          key={ex.dir}
+                          type="button"
+                          className="chip exit"
+                          onClick={() => onNavigate?.({ dir: ex.dir!, name: ex.name, label: ex.label })}
+                        >
+                          <span className="dir">{ex.label || ex.dir}</span>
+                          {ex.name || ex.dir}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             ) : localmapsText ? (
               <>
@@ -167,7 +191,8 @@ export function MapSheet({
             )
           ) : (
             <>
-              <p className="map-legend">侠客行第一阶段总图　当前区域地标已高亮</p>
+              <p className="map-legend">侠客行第一阶段总图　当前区域地标已高亮
+              <br /><span className="map-legend-sub">红色底块 = 当前区域 · 绿色标记 = 城市 · 青色 = 门派 · 黄色 = 山川地带</span></p>
               <pre
                 className="map-ascii"
                 style={{ fontSize: `${11 * mapZoom}px` }}
