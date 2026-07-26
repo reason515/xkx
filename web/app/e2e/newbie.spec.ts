@@ -13,6 +13,15 @@ async function skipTo(page: any, n: number) {
   await sendCmd(page, `newbietest skip ${n}`, 3000);
   await page.waitForTimeout(2000);
 }
+/** 切换场景交互 Tab（人物/物品/动作） */
+async function switchSceneTab(page: any, tab: "人物" | "物品" | "动作") {
+  const tabBtn = page.locator(".scene-tabs button").filter({ hasText: tab }).first();
+  if (await tabBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+    await tabBtn.click();
+    await page.waitForTimeout(300);
+  }
+}
+
 /** 等待 quest 推进，超时则 newbietest skip 强制跳 */
 async function waitOrSkip(page: any, target: number) {
   const step = await questStep(page);
@@ -41,6 +50,7 @@ test("场景物件名称保留有效语义并滤除叙述残片", async ({ page 
   await expect(page.locator(".room-title").first()).toHaveText(/缓坡/, {
     timeout: 10_000,
   });
+  await switchSceneTab(page, "物品");
   await expect(page.locator(".chip.item").filter({ hasText: "山路" })).toBeVisible();
   await expect(page.locator(".chip.item").filter({ hasText: "你往山路" })).toHaveCount(0);
 
@@ -48,6 +58,7 @@ test("场景物件名称保留有效语义并滤除叙述残片", async ({ page 
   await expect(page.locator(".room-title").first()).toHaveText(/乱石阵/, {
     timeout: 10_000,
   });
+  await switchSceneTab(page, "物品");
   await expect(page.locator(".chip.item").filter({ hasText: "石头上的文字" })).toBeVisible();
   await expect(page.locator(".chip.item").filter({ hasText: "些文字" })).toHaveCount(0);
 
@@ -55,6 +66,7 @@ test("场景物件名称保留有效语义并滤除叙述残片", async ({ page 
   await expect(page.locator(".room-title").first()).toHaveText(/杏子林/, {
     timeout: 10_000,
   });
+  await switchSceneTab(page, "物品");
   await expect(page.locator(".chip.item").filter({ hasText: "杏树下的脚印" })).toBeVisible();
   await expect(page.locator(".chip.item").filter({ hasText: "零散的脚印" })).toHaveCount(0);
 });

@@ -190,6 +190,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
   const v = state.vitals;
   const [menuOpen, setMenuOpen] = useState(false);
   const [showCmd, setShowCmd] = useState(false);
+  const [ctxTab, setCtxTab] = useState<"npcs" | "items" | "actions">("npcs");
   const [bankingCmd, setBankingCmd] = useState<"cun" | "qu" | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -232,6 +233,16 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
   const sceneActions = sceneActionChips(state.suggestedActions).filter(
     (a) => !doorCmds.has(a.command)
   );
+
+  const hasNpcs = state.room.npcs.length > 0;
+  const hasItems = state.room.items.length > 0;
+
+  // 切换房间时重置场景 tab 到第一个可用项
+  useEffect(() => {
+    if (hasNpcs) setCtxTab("npcs");
+    else if (hasItems) setCtxTab("items");
+    else if (sceneActions.length > 0) setCtxTab("actions");
+  }, [state.room.title]);
 
   const hasNewbieQuest = (state.newbieQuestIndex ?? 0) > 0;
 
@@ -427,65 +438,100 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                   )}
                 </div>
 
-                {state.room.npcs.length > 0 && (
+                {(hasNpcs || hasItems || sceneActions.length > 0) && (
                   <div className="ctx-block">
-                    <h2>人物</h2>
-                    <div className="chips">
-                      {state.room.npcs.map((n) => (
+                    <div className="scene-tabs" role="tablist" aria-label="场景交互">
+                      {hasNpcs && (
                         <button
-                          key={n.id}
                           type="button"
-                          className="chip npc"
-                          onClick={() => {
-                            g.clearDoc();
-                            g.setSelectedEntity(n);
-                            g.openSheet("entity");
-                          }}
+                          role="tab"
+                          aria-selected={ctxTab === "npcs"}
+                          className={ctxTab === "npcs" ? "on" : ""}
+                          onClick={() => setCtxTab("npcs")}
                         >
-                          {n.name}
+                          人物{state.room.npcs.length > 0 && (
+                            <span className="scene-tab-count">{state.room.npcs.length}</span>
+                          )}
                         </button>
-                      ))}
+                      )}
+                      {hasItems && (
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={ctxTab === "items"}
+                          className={ctxTab === "items" ? "on" : ""}
+                          onClick={() => setCtxTab("items")}
+                        >
+                          物品{state.room.items.length > 0 && (
+                            <span className="scene-tab-count">{state.room.items.length}</span>
+                          )}
+                        </button>
+                      )}
+                      {sceneActions.length > 0 && (
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={ctxTab === "actions"}
+                          className={ctxTab === "actions" ? "on" : ""}
+                          onClick={() => setCtxTab("actions")}
+                        >
+                          动作
+                        </button>
+                      )}
                     </div>
-                  </div>
-                )}
 
-                {state.room.items.length > 0 && (
-                  <div className="ctx-block">
-                    <h2>物品</h2>
-                    <div className="chips">
-                      {state.room.items.map((it, idx) => (
-                        <button
-                          key={`${it.id}-${it.name}-${idx}`}
-                          type="button"
-                          className="chip item"
-                          onClick={() => {
-                            g.clearDoc();
-                            g.setSelectedEntity(it);
-                            g.openSheet("entity");
-                          }}
-                        >
-                          {it.name}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                    {ctxTab === "npcs" && (
+                      <div className="chips">
+                        {state.room.npcs.map((n) => (
+                          <button
+                            key={n.id}
+                            type="button"
+                            className="chip npc"
+                            onClick={() => {
+                              g.clearDoc();
+                              g.setSelectedEntity(n);
+                              g.openSheet("entity");
+                            }}
+                          >
+                            {n.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
 
-                {sceneActions.length > 0 && (
-                  <div className="ctx-block">
-                    <h2>动作</h2>
-                    <div className="chips">
-                      {sceneActions.map((a) => (
-                        <button
-                          key={a.command}
-                          type="button"
-                          className="chip action"
-                          onClick={() => { if (a.command === 'cun' || a.command === 'qu') setBankingCmd(a.command as 'cun' | 'qu'); else if (a.command.startsWith('__shop__:')) { const cmdId = a.command.slice(9); const npc = state.room.npcs.find(n => (n.commandId || n.id) === cmdId); if (npc) { g.setSelectedEntity(npc); g.openSheet('entity'); } } else g.cmd(a.command, { feedback: true }); }}
-                        >
-                          {a.label}
-                        </button>
-                      ))}
-                    </div>
+                    {ctxTab === "items" && (
+                      <div className="chips">
+                        {state.room.items.map((it, idx) => (
+                          <button
+                            key={`${it.id}-${it.name}-${idx}`}
+                            type="button"
+                            className="chip item"
+                            onClick={() => {
+                              g.clearDoc();
+                              g.setSelectedEntity(it);
+                              g.openSheet("entity");
+                            }}
+                          >
+                            {it.name}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {ctxTab === "actions" && (
+                      <div className="chips">
+                        {sceneActions.map((a) => (
+                          <button
+                            key={a.command}
+                            type="button"
+                            className="chip action"
+                            onClick={() => { if (a.command === 'cun' || a.command === 'qu') setBankingCmd(a.command as 'cun' | 'qu'); else if (a.command.startsWith('__shop__:')) { const cmdId = a.command.slice(9); const npc = state.room.npcs.find(n => (n.commandId || n.id) === cmdId); if (npc) { g.setSelectedEntity(npc); g.openSheet('entity'); } } else g.cmd(a.command, { feedback: true }); }}
+                          >
+                            {a.label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
