@@ -13,7 +13,7 @@ export function GrindBanner({
 
   return (
     <div className="grind-banner" data-testid="grind-banner">
-      <span className="grind-banner-text">{status || "挂机中"}</span>
+      <span className="grind-banner-text">{status.replace(/挂机/g, "自动历练") || "自动历练中"}</span>
       <button type="button" className="grind-banner-stop" onClick={onStop}>
         停止
       </button>

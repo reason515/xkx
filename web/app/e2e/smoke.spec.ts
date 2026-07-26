@@ -266,11 +266,15 @@ test.describe.serial("game smoke", () => {
     await expect(roomDesc).toBeVisible();
   });
 
-  test("见闻中有文字且场景可互动", async ({ page }) => {
+  test("见闻摘要不挤占场景，且可展开完整记录", async ({ page }) => {
     await loginAsNewbie(page, { id: sharedId, password: sharedPassword, asRegister: false });
-    await expect(page.locator(".log-panel")).toBeVisible({ timeout: 30_000 });
-    await expect(page.locator(".log").first()).toBeVisible();
-    await expect(page.locator(".scene-panel")).toBeVisible();
+    await expect(page.locator(".scene-panel")).toBeVisible({ timeout: 30_000 });
+    const summary = page.locator(".log-summary");
+    await expect(summary).toBeVisible();
+    await expect(summary).toHaveAttribute("aria-expanded", "false");
+    await summary.click();
+    await expect(page.locator(".log-panel")).toBeVisible();
+    await expect(summary).toHaveAttribute("aria-expanded", "true");
   });
 
   test("顶栏状态显示名称与当前/上限", async ({ page }) => {
@@ -286,6 +290,13 @@ test.describe.serial("game smoke", () => {
     await expect(page.locator(".map-tools")).toBeVisible({ timeout: 10_000 });
     await page.getByRole("button", { name: "放大地图" }).click();
     await expect(page.locator(".map-tools")).toContainText("120%");
+  });
+
+  test("菜单以江湖助手说明自动历练", async ({ page }) => {
+    await loginAsNewbie(page, { id: sharedId, password: sharedPassword, asRegister: false });
+    await openTopMenu(page);
+    await pickTopMenuItem(page, "江湖助手");
+    await expect(page.locator(".sheet h3")).toHaveText("江湖助手");
   });
 
   test("顶栏帮助可查阅主题且不进见闻", async ({ page }) => {

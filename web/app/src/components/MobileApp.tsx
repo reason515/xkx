@@ -24,6 +24,11 @@ function pct(cur?: number, max?: number) {
   return `${Math.min(100, Math.round((cur / max) * 100))}%`;
 }
 
+function vitalClass(cur?: number, max?: number) {
+  if (!cur || !max) return "";
+  return cur / max < 0.3 ? " vital-low" : "";
+}
+
 function vitalValue(cur?: number, max?: number) {
   return `${cur ?? "—"}/${max ?? "—"}`;
 }
@@ -43,8 +48,10 @@ function EventLog({
   const followingRef = useRef(true);
   const pinningRef = useRef(false);
   const [following, setFollowing] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const [cmdDraft, setCmdDraft] = useState("");
   const lastLogId = logs.length ? logs[logs.length - 1]!.id : 0;
+  const latest = logs.length ? logs[logs.length - 1] : undefined;
 
   const pinToBottom = () => {
     const panel = panelRef.current;
@@ -58,10 +65,15 @@ function EventLog({
     });
   };
 
-  // 新消息到来时在绘制前贴底，避免内容变高触发 onScroll 误判为「已上翻」。
   useLayoutEffect(() => {
-    if (followingRef.current) pinToBottom();
-  }, [lastLogId, logs.length]);
+    if (expanded && followingRef.current) pinToBottom();
+  }, [expanded, lastLogId, logs.length]);
+
+  const openLog = () => {
+    followingRef.current = true;
+    setFollowing(true);
+    setExpanded(true);
+  };
 
   const submitCmd = () => {
     const text = cmdDraft.trim();
@@ -72,73 +84,103 @@ function EventLog({
 
   return (
     <div className="log-section">
-      <section
-        ref={panelRef}
-        className="log log-panel"
-        aria-label="见闻"
+      <button
+        type="button"
+        className="log-summary"
         data-testid="event-log"
-        onScroll={() => {
-          if (pinningRef.current) return;
-          const panel = panelRef.current;
-          if (!panel) return;
-          const atBottom =
-            panel.scrollHeight - panel.scrollTop - panel.clientHeight <
-            LOG_FOLLOW_PX;
-          followingRef.current = atBottom;
-          setFollowing(atBottom);
-        }}
+        aria-expanded={expanded}
+        onClick={openLog}
       >
-        {!following && (
-          <div className="log-head">
-            <button
-              type="button"
-              onClick={() => {
-                followingRef.current = true;
-                setFollowing(true);
-                pinToBottom();
+        <span className="log-summary-title">见闻</span>
+        <span className={`log-summary-text${latest?.kind === "combat" ? " hl" : ""}`}>
+          {latest?.html ? (
+            <span dangerouslySetInnerHTML={{ __html: latest.html }} />
+          ) : (
+            latest?.text || "尚无新的见闻"
+          )}
+        </span>
+        <span className="log-summary-open">展开</span>
+      </button>
+      {showCmd && (
+        <form
+          className="log-cmd"
+          onSubmit={(e) => {
+            e.preventDefault();
+            submitCmd();
+          }}
+        >
+          <input
+            type="text"
+            className="log-cmd-input"
+            value={cmdDraft}
+            onChange={(e) => setCmdDraft(e.target.value)}
+            placeholder="输入指令…"
+            aria-label="指令"
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <button type="submit" className="log-cmd-send">
+            发送
+          </button>
+        </form>
+      )}
+      {expanded && (
+        <div className="overlay open log-overlay" onClick={() => setExpanded(false)}>
+          <div className="sheet log-sheet" onClick={(e) => e.stopPropagation()}>
+            <div className="sheet-top">
+              <h3>见闻</h3>
+              <button type="button" className="close" onClick={() => setExpanded(false)}>
+                ×
+              </button>
+            </div>
+            <section
+              ref={panelRef}
+              className="log log-panel"
+              aria-label="完整见闻"
+              onScroll={() => {
+                if (pinningRef.current) return;
+                const panel = panelRef.current;
+                if (!panel) return;
+                const atBottom =
+                  panel.scrollHeight - panel.scrollTop - panel.clientHeight <
+                  LOG_FOLLOW_PX;
+                followingRef.current = atBottom;
+                setFollowing(atBottom);
               }}
             >
-              最新
-            </button>
+              {!following && (
+                <div className="log-head">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      followingRef.current = true;
+                      setFollowing(true);
+                      pinToBottom();
+                    }}
+                  >
+                    最新
+                  </button>
+                </div>
+              )}
+              <div aria-live="polite" aria-relevant="additions text">
+                {logs.slice(-100).map((l) =>
+                  l.html ? (
+                    <p
+                      key={l.id}
+                      className={l.kind === "combat" ? "hl" : ""}
+                      dangerouslySetInnerHTML={{ __html: l.html }}
+                    />
+                  ) : (
+                    <p key={l.id} className={l.kind === "combat" ? "hl" : ""}>
+                      {l.text}
+                    </p>
+                  )
+                )}
+              </div>
+            </section>
           </div>
-        )}
-        <div aria-live="polite" aria-relevant="additions text">
-          {logs.slice(-100).map((l) =>
-            l.html ? (
-              <p
-                key={l.id}
-                className={l.kind === "combat" ? "hl" : ""}
-                dangerouslySetInnerHTML={{ __html: l.html }}
-              />
-            ) : (
-              <p key={l.id} className={l.kind === "combat" ? "hl" : ""}>
-                {l.text}
-              </p>
-            )
-          )}
         </div>
-      </section>
-      {showCmd && (<form
-        className="log-cmd"
-        onSubmit={(e) => {
-          e.preventDefault();
-          submitCmd();
-        }}
-      >
-        <input
-          type="text"
-          className="log-cmd-input"
-          value={cmdDraft}
-          onChange={(e) => setCmdDraft(e.target.value)}
-          placeholder="输入指令…"
-          aria-label="指令"
-          autoComplete="off"
-          spellCheck={false}
-        />
-        <button type="submit" className="log-cmd-send">
-          发送
-        </button>
-      </form>)}
+      )}
     </div>
   );
 }
@@ -203,14 +245,14 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
               <div className="hero-name">{state.playerName}</div>
             </div>
             <div className="vitals" aria-label="身体状态">
-              <div className="vital hp">
+              <div className={`vital hp${vitalClass(v.qi, vitalCap(v, "qi"))}`}>
                 <span className="vital-label">气</span>
                 <div className="bar">
                   <div className="fill" style={{ width: pct(v.qi, vitalCap(v, "qi")) }} />
                 </div>
                 <span className="n">{vitalValue(v.qi, vitalCap(v, "qi"))}</span>
               </div>
-              <div className="vital sp">
+              <div className={`vital sp${vitalClass(v.jing, vitalCap(v, "jing"))}`}>
                 <span className="vital-label">精</span>
                 <div className="bar">
                   <div
@@ -220,7 +262,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                 </div>
                 <span className="n">{vitalValue(v.jing, vitalCap(v, "jing"))}</span>
               </div>
-              <div className="vital mp">
+              <div className={`vital mp${vitalClass(v.neili, vitalCap(v, "neili"))}`}>
                 <span className="vital-label">内</span>
                 <div className="bar">
                   <div
@@ -285,7 +327,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                     g.openSheet("combat");
                   }}
                 >
-                  挂机
+                  江湖助手
                 </button>
                 <button
                   type="button"

@@ -166,7 +166,7 @@ export function LeftSidebar() {
             修炼
           </button>
           <button type="button" onClick={() => game.openSheet("combat")}>
-            挂机
+            江湖助手
           </button>
           <button type="button" onClick={() => game.onOpenCharacter()}>
             角色

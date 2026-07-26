@@ -19,6 +19,18 @@ interface Props {
 
 type Mode = "login" | "register";
 
+const JIANGHU_QUOTES = [
+  "青山不老，绿水长流。",
+  "十步杀一人，千里不留行。",
+  "江湖多风雨，一剑任平生。",
+  "天下风云出我辈，一入江湖岁月催。",
+  "相逢意气为君饮，系马高楼垂柳边。",
+];
+
+function pickQuote() {
+  return JIANGHU_QUOTES[Math.floor(Math.random() * JIANGHU_QUOTES.length)];
+}
+
 export function LoginPage({ onLogin, error }: Props) {
   const [mode, setMode] = useState<Mode>("login");
   const [id, setId] = useState(() => loadSavedAccount()?.id ?? "");
@@ -33,6 +45,7 @@ export function LoginPage({ onLogin, error }: Props) {
     <div className="login-page">
       <h1>侠客行</h1>
       <p className="sub">轻量文字武侠 · 手机优先</p>
+      <p className="login-quote">{pickQuote()}</p>
 
       <div className="login-tabs" role="tablist" aria-label="登录或注册">
         <button

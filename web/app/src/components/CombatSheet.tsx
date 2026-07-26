@@ -39,6 +39,7 @@ export function CombatSheet({
   const [grindLowHp, setGrindLowHp] = useState(30);
   const [studySkill, setStudySkill] = useState("taixuan-gong");
   const grinding = assistActive && /挂机/.test(assistStatus || "");
+  const displayStatus = assistStatus.replace(/挂机/g, "自动历练");
   const studying =
     grinding &&
     /石壁|领悟|前往石室|摘野果|取粥|喝粥|吃果/.test(assistStatus || "");
@@ -47,7 +48,7 @@ export function CombatSheet({
     <div className="overlay open" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="sheet-top">
-          <h3>挂机</h3>
+          <h3>江湖助手</h3>
           <button type="button" className="close" onClick={onClose}>
             ×
           </button>
@@ -57,7 +58,7 @@ export function CombatSheet({
             <p className="doc-status">请前往侠客岛，或扬州城内任意地点。</p>
           ) : grinding ? (
             <>
-              <p className="combat-assist-label">挂机进行中</p>
+              <p className="combat-assist-label">自动历练进行中</p>
               <p
                 style={{
                   fontSize: 14,
@@ -65,7 +66,7 @@ export function CombatSheet({
                   marginBottom: 16,
                 }}
               >
-                {assistStatus || "挂机中"}
+                {displayStatus || "自动历练中"}
               </p>
               <p
                 style={{
@@ -84,7 +85,7 @@ export function CombatSheet({
           ) : (
             <>
               {canStudy && (
-                <div className="grind-tab-row" role="tablist" aria-label="挂机类型">
+                <div className="grind-tab-row" role="tablist" aria-label="历练类型">
                   <button
                     type="button"
                     role="tab"
@@ -92,7 +93,7 @@ export function CombatSheet({
                     className={`grind-tab${tab === "fight" ? " on" : ""}`}
                     onClick={() => setTab("fight")}
                   >
-                    打怪
+                    自动战斗
                   </button>
                   <button
                     type="button"
@@ -101,7 +102,7 @@ export function CombatSheet({
                     className={`grind-tab${tab === "study" ? " on" : ""}`}
                     onClick={() => setTab("study")}
                   >
-                    石壁领悟
+                    自动领悟
                   </button>
                 </div>
               )}
@@ -184,7 +185,7 @@ export function CombatSheet({
         <div className="sheet-acts">
           {grinding ? (
             <button type="button" className="danger" onClick={onStopAssist}>
-              停止挂机
+              停止自动历练
             </button>
           ) : tab === "fight" ? (
             <button
@@ -193,7 +194,7 @@ export function CombatSheet({
               disabled={!showGrind || !onStartGrind || !grindTarget}
               onClick={() => onStartGrind?.(grindTarget, grindLowHp)}
             >
-              开始挂机
+              开始自动战斗
             </button>
           ) : (
             <button
@@ -202,7 +203,7 @@ export function CombatSheet({
               disabled={!showGrind || !onStartStudy || !studySkill}
               onClick={() => onStartStudy?.(studySkill)}
             >
-              开始挂机
+              开始自动领悟
             </button>
           )}
           {onHalt ? (
