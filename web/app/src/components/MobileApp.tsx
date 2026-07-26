@@ -103,21 +103,19 @@ function EventLog({
       >
         <span className="log-summary-title">见闻</span>
         <span className={`log-summary-text${latestTwo.length > 0 && latestTwo[latestTwo.length - 1]?.kind === "combat" ? " hl" : ""}`}>
-          <span className="log-summary-text-inner">
-            {latestTwo.length > 0 ? (
-              latestTwo.map((entry) => (
-                <span key={entry.id}>
-                  {entry.html ? (
-                    <span dangerouslySetInnerHTML={{ __html: entry.html }} />
-                  ) : (
-                    entry.text
-                  )}
-                </span>
-              ))
-            ) : (
-              "尚无新的见闻"
-            )}
-          </span>
+          {latestTwo.length > 0 ? (
+            latestTwo.map((entry) => (
+              <span key={entry.id} className="log-summary-line">
+                {entry.html ? (
+                  <span dangerouslySetInnerHTML={{ __html: entry.html }} />
+                ) : (
+                  entry.text
+                )}
+              </span>
+            ))
+          ) : (
+            <span className="log-summary-line">尚无新的见闻</span>
+          )}
         </span>
         <span className="log-summary-open">展开</span>
       </button>

@@ -106,6 +106,68 @@ const DOC_MAX_MS = 20_000;
 
 let logId = 0;
 
+/** 根据移动方向生成小说式到达描述。 */
+function moveNarrative(
+  move: { dir: string; verb: string; target?: string } | null,
+  title: string
+): string {
+  if (!move) return `—— ${title} ——`;
+  const { dir, verb, target } = move;
+  // 跟随
+  if (verb === "follow" && target) {
+    const phrases = [
+      `你跟随${target}，一路来到了${title}。`,
+      `你紧随${target}身后，到了${title}。`,
+      `你跟在${target}后面，走进了${title}。`,
+      `${target}带你来到了${title}。`,
+      `你随着${target}的步伐，步入了${title}。`,
+    ];
+    return phrases[Math.floor(Math.random() * phrases.length)];
+  }
+  // 方向描述
+  const DIR_NARRATIVES: Record<string, string[]> = {
+    north: ["你向北走去，来到了{title}。"],
+    south: ["你向南走去，来到了{title}。"],
+    east: ["你向东走去，来到了{title}。"],
+    west: ["你向西走去，来到了{title}。"],
+    northeast: ["你向东北走去，来到了{title}。"],
+    northwest: ["你向西北走去，来到了{title}。"],
+    southeast: ["你向东南走去，来到了{title}。"],
+    southwest: ["你向西南走去，来到了{title}。"],
+    up: [
+      "你向上攀爬，来到了{title}。",
+      "你攀援而上，到达了{title}。",
+      "你经过一番攀爬，终于上到了{title}。",
+    ],
+    down: [
+      "你向下走去，来到了{title}。",
+      "你顺着斜坡向下，到了{title}。",
+    ],
+    enter: [
+      "你迈步走进，来到了{title}。",
+      "你推门而入，到了{title}。",
+      "你跨过门槛，进到了{title}。",
+    ],
+    out: [
+      "你走了出来，来到了{title}。",
+      "你转身走出，到了{title}。",
+    ],
+    northup: ["你向北攀爬，来到了{title}。"],
+    southup: ["你向南攀爬，来到了{title}。"],
+    eastup: ["你向东攀爬，来到了{title}。"],
+    westup: ["你向西攀爬，来到了{title}。"],
+    northdown: ["你向北而下，来到了{title}。"],
+    southdown: ["你向南而下，来到了{title}。"],
+    eastdown: ["你向东而下，来到了{title}。"],
+    westdown: ["你向西而下，来到了{title}。"],
+  };
+  const phrases = DIR_NARRATIVES[dir];
+  if (phrases && phrases.length) {
+    return phrases[Math.floor(Math.random() * phrases.length)].replace("{title}", title);
+  }
+  return `—— ${title} ——`;
+}
+
 export type UseGameOptions = {
   /** Desktop terminal: ANSI raw stream (JSON frames already stripped). */
   onRawText?: (raw: string) => void;
@@ -137,11 +199,13 @@ export function useGame(opts?: UseGameOptions) {
   /** 场景切换时在见闻中插入位置标记。 */
   const prevRoomTitle = useRef(state.room.title);
   const hasMovedRef = useRef(false);
+  /** 最近一次移动的方向/动词，用于生成小说式到达描述。 */
+  const lastMove = useRef<{ dir: string; verb: string; target?: string } | null>(null);
   const pendingFeedback = useRef(false);
   /** Which verb triggered pendingFeedback — used to decide toast-vs-log behavior. */
   const pendingFeedbackVerb = useRef("");
   /** Verbs whose responses are toast-only (not added to 见闻). */
-  const UTILITY_VERBS = useRef(new Set(["eat", "drink", "fill", "zhuang", "look"])).current;
+  const UTILITY_VERBS = useRef(new Set(["eat", "drink", "fill", "zhuang", "look", "climb", "pa"])).current;
   const [toast, setToast] = useState("");
   // setToast 身份稳定，scheduler 只建一次即可
   const toastScheduler = useRef(createToastScheduler(setToast));
@@ -262,7 +326,11 @@ export function useGame(opts?: UseGameOptions) {
     }
     if (title !== prevRoomTitle.current) {
       prevRoomTitle.current = title;
-      addLog(`—— ${title} ——`, "sys");
+      addLog(moveNarrative(lastMove.current, title), "sys");
+      // follow 会触发连续多次换房，不清空以便后续房间也用跟随描述
+      if (!lastMove.current || lastMove.current.verb !== "follow") {
+        lastMove.current = null;
+      }
     }
   }, [state.room.title, addLog]);
 
@@ -381,6 +449,14 @@ export function useGame(opts?: UseGameOptions) {
       const parts = command.trim().split(/\s+/);
       const verb = parts[0]?.toLowerCase();
       const target = parts.slice(1).join(" ").trim().toLowerCase();
+      // 记录移动，用于生成到达新场景的小说式描述
+      if (verb === "go" || verb === "climb" || verb === "enter" || verb === "follow") {
+        lastMove.current = {
+          dir: verb === "enter" && !target ? "enter" : target,
+          verb,
+          target: verb === "follow" ? target : undefined,
+        };
+      }
       // follow/enter 会换房：清掉旧建议动作，并允许文本 look 回退更新标题
       if (verb === "follow" || verb === "enter" || verb === "register") {
         roomFromEvent.current = false;
@@ -411,9 +487,9 @@ export function useGame(opts?: UseGameOptions) {
         pendingFeedback.current = false;
         pendingFeedbackVerb.current = "";
       }
-      // go 由点出口触发，见闻不必回显；其它显式指令仍可 echo（如 say）
+      // UI 点击触发（feedback/silent/go）不回声命令，手动输入才回声
       const quiet =
-        !!opts?.silent || verb === "go";
+        !!opts?.silent || !!opts?.feedback || verb === "go";
       if (!quiet) addLog(`> ${command}`, "sys");
       // 张三传送约 5s；补一次 look，避免 room.update 迟到时标题仍停在沙滩
       if (verb === "follow") {
@@ -695,11 +771,10 @@ export function useGame(opts?: UseGameOptions) {
           if (/^>{0,1}\s*$/.test(line)) continue;
           if (isLoginNoise(line) || isProtocolNoise(line)) continue;
           if (isEatDrinkNoise(line)) {
-            // 吃喝/装水响应被过滤不进见闻，消费 pendingFeedback 并展示 toast
+            // 吃喝/装水响应不进见闻；toast 已由上方 regex 块展示实际游戏文本
             if (pendingFeedback.current) {
               pendingFeedback.current = false;
               pendingFeedbackVerb.current = "";
-              toastScheduler.current.show(line);
             }
             continue;
           }
@@ -1047,19 +1122,22 @@ export function useGame(opts?: UseGameOptions) {
               cmd("hp", { silent: true });
             }, 200);
           } else if (/拿起.*咕噜噜地喝了几口/.test(chunk)) {
-            showToast("已饮水");
+            showToast(chunk.trim());
             scheduleInvRefresh(true);
           } else if (/已经将.*里的.*喝得一滴也不剩了/.test(chunk)) {
-            showToast("已喝完");
+            showToast(chunk.trim());
             scheduleInvRefresh(false);
           } else if (/将.*装满清水/.test(chunk)) {
-            showToast("已装满");
+            showToast(chunk.trim());
             scheduleInvRefresh(false);
           } else if (/将.*里剩下的.*倒掉/.test(chunk)) {
             // 倒掉旧液体的提示不必要弹 toast，静默
             scheduleInvRefresh(false);
+          } else if (/你已经喝太多了|你已经吃太饱了/.test(chunk)) {
+            // 吃喝已饱：展示实际游戏文案作为 toast
+            showToast(chunk.trim());
           } else if (/拿起.*咬了几口|将剩下的.*吃得/.test(chunk)) {
-            showToast("已进食");
+            showToast(chunk.trim());
             scheduleInvRefresh(true);
           } else if (/档案储存完毕/.test(chunk)) {
             showToast("已存档");

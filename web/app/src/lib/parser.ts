@@ -284,7 +284,7 @@ export function isMorePromptLine(line: string): boolean {
 
 /** 吃喝/装水/填水等动作文案，前端已转为 Toast，不应进入见闻。 */
 export function isEatDrinkNoise(line: string): boolean {
-  return /拿起.*咕噜噜地喝了几口|已经将.*里的.*喝得一滴也不剩了|将.*装满清水|将.*里剩下的.*倒掉|拿起.*咬了几口|将剩下的.*吃得|你拿起.*吃了|你拿起.*喝了|你已经喝饱了|你已经吃饱了|你拿起.*一饮而尽|你拿起.*吃了个精光|将.*打开，咕噜噜地喝|你从.*取出一.*吃了|你从.*取出一.*喝了/.test(line);
+  return /拿起.*咕噜噜地喝了几口|已经将.*里的.*喝得一滴也不剩了|将.*装满清水|将.*里剩下的.*倒掉|拿起.*咬了几口|将剩下的.*吃得|你拿起.*吃了|你拿起.*喝了|你已经喝饱了|你已经吃饱了|你已经喝太多了|你已经吃太饱了|你拿起.*一饮而尽|你拿起.*吃了个精光|将.*打开，咕噜噜地喝|你从.*取出一.*吃了|你从.*取出一.*喝了/.test(line);
 }
 
 /** Dialogue / event narrative that must stay in 见闻 (not room look structure). */
