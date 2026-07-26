@@ -38,10 +38,12 @@ function EventLog({
   logs,
   onCmd,
   showCmd,
+  onExpandedChange,
 }: {
   logs: LogEntry[];
   onCmd: (command: string) => void;
   showCmd: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
 }) {
   const panelRef = useRef<HTMLElement>(null);
   const followingRef = useRef(true);
@@ -50,7 +52,8 @@ function EventLog({
   const [expanded, setExpanded] = useState(false);
   const [cmdDraft, setCmdDraft] = useState("");
   const lastLogId = logs.length ? logs[logs.length - 1]!.id : 0;
-  const latest = logs.length ? logs[logs.length - 1] : undefined;
+  // Show last 2 entries so collapsed summary fills ~2 lines
+  const latestTwo = logs.length ? logs.slice(-2) : [];
 
   const pinToBottom = () => {
     const panel = panelRef.current;
@@ -68,10 +71,18 @@ function EventLog({
     if (expanded && followingRef.current) pinToBottom();
   }, [expanded, lastLogId, logs.length]);
 
+  useEffect(() => {
+    onExpandedChange?.(expanded);
+  }, [expanded, onExpandedChange]);
+
   const openLog = () => {
     followingRef.current = true;
     setFollowing(true);
     setExpanded(true);
+  };
+
+  const closeLog = () => {
+    setExpanded(false);
   };
 
   const submitCmd = () => {
@@ -91,12 +102,22 @@ function EventLog({
         onClick={openLog}
       >
         <span className="log-summary-title">见闻</span>
-        <span className={`log-summary-text${latest?.kind === "combat" ? " hl" : ""}`}>
-          {latest?.html ? (
-            <span dangerouslySetInnerHTML={{ __html: latest.html }} />
-          ) : (
-            latest?.text || "尚无新的见闻"
-          )}
+        <span className={`log-summary-text${latestTwo.length > 0 && latestTwo[latestTwo.length - 1]?.kind === "combat" ? " hl" : ""}`}>
+          <span className="log-summary-text-inner">
+            {latestTwo.length > 0 ? (
+              latestTwo.map((entry) => (
+                <span key={entry.id}>
+                  {entry.html ? (
+                    <span dangerouslySetInnerHTML={{ __html: entry.html }} />
+                  ) : (
+                    entry.text
+                  )}
+                </span>
+              ))
+            ) : (
+              "尚无新的见闻"
+            )}
+          </span>
         </span>
         <span className="log-summary-open">展开</span>
       </button>
@@ -124,11 +145,11 @@ function EventLog({
         </form>
       )}
       {expanded && (
-        <div className="overlay open log-overlay" onClick={() => setExpanded(false)}>
+        <div className="overlay open log-overlay" onClick={closeLog}>
           <div className="sheet log-sheet" onClick={(e) => e.stopPropagation()}>
             <div className="sheet-top">
               <h3>见闻</h3>
-              <button type="button" className="close" onClick={() => setExpanded(false)}>
+              <button type="button" className="close" onClick={closeLog}>
                 ×
               </button>
             </div>
@@ -191,6 +212,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
   const [showCmd, setShowCmd] = useState(false);
   const [ctxTab, setCtxTab] = useState<"npcs" | "items" | "actions">("npcs");
   const [bankingCmd, setBankingCmd] = useState<"cun" | "qu" | null>(null);
+  const [logExpanded, setLogExpanded] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -578,12 +600,12 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
               </section>
             </section>
 
-            <EventLog logs={state.logs} onCmd={g.cmd} showCmd={showCmd} />
+            <EventLog logs={state.logs} onCmd={g.cmd} showCmd={showCmd} onExpandedChange={setLogExpanded} />
           </div>
         </main>
       </div>
 
-      <FloatingQuestBar questIndex={state.newbieQuestIndex ?? 0} />
+      {!logExpanded && <FloatingQuestBar questIndex={state.newbieQuestIndex ?? 0} />}
 
       {state.sheet === "character" && (
         <CharacterSheet

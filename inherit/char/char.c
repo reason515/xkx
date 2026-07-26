@@ -168,6 +168,29 @@ void heart_beat()
 		this_object()->user_dump(DUMP_IDLE);
 }
 
+void fullme()
+{
+	object me = this_object();
+	if(me->query("qi") < me->query("max_qi"))
+	    me->set("qi",me->query("max_qi"));
+	if(me->query("eff_qi") < me->query("max_qi"))
+	    me->set("eff_qi",me->query("max_qi"));
+	if(me->query("jing") < me->query("max_jing"))
+	    me->set("jing",me->query("max_jing"));
+	if(me->query("eff_jing") < me->query("max_jing"))
+	    me->set("eff_jing",me->query("max_jing"));
+	if(me->query("jingli") < me->query("max_jingli"))
+	    me->set("jingli",me->query("max_jingli"));
+	if(me->query("eff_jingli") < me->query("max_jingli"))
+	    me->set("eff_jingli",me->query("max_jingli"));
+	if(me->query("neili") < me->query("max_neili"))
+	    me->set("neili",me->query("max_neili"));
+	if(me->query("eff_neili") < me->query("max_neili"))
+	    me->set("eff_neili",me->query("max_neili"));
+	me->set("food",me->max_food_capacity());
+	me->set("water",me->max_water_capacity());
+}
+
 int visible(object ob)
 {
 	int lvl, invis;

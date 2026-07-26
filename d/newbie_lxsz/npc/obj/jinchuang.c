@@ -57,7 +57,8 @@ int cure_ob(object me)
 	}
 	else {	
 		message_vision("$N吃下一包金创药，感觉好多了。\n", me);
-		me->fullme();
+		me->set("qi", me->query("max_qi"));
+		me->set("eff_qi", me->query("max_qi"));
 		return 1;
 	}
 }

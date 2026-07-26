@@ -18,6 +18,7 @@ import {
   isProtocolNoise,
   isSelfLookLine,
   isSelfLookStopLine,
+  isRoomLookChunk,
   isRoomLookLine,
   isStaticPassageLine,
   isSheetDumpLine,
@@ -137,6 +138,10 @@ export function useGame(opts?: UseGameOptions) {
   const prevRoomTitle = useRef(state.room.title);
   const hasMovedRef = useRef(false);
   const pendingFeedback = useRef(false);
+  /** Which verb triggered pendingFeedback — used to decide toast-vs-log behavior. */
+  const pendingFeedbackVerb = useRef("");
+  /** Verbs whose responses are toast-only (not added to 见闻). */
+  const UTILITY_VERBS = useRef(new Set(["eat", "drink", "fill", "zhuang", "look"])).current;
   const [toast, setToast] = useState("");
   // setToast 身份稳定，scheduler 只建一次即可
   const toastScheduler = useRef(createToastScheduler(setToast));
@@ -224,9 +229,17 @@ export function useGame(opts?: UseGameOptions) {
     )
       return;
     setState((s) => {
-      // 当有待反馈时（来自 EntitySheet 操作），将结果 toast 提示
+      // 消费待反馈（来自 EntitySheet / 行囊操作）
       if (pendingFeedback.current && kind !== "sys" && kind !== "combat") {
+        const verb = pendingFeedbackVerb.current;
         pendingFeedback.current = false;
+        pendingFeedbackVerb.current = "";
+        if (UTILITY_VERBS.has(verb)) {
+          // 吃喝/装水/观察等工具指令：仅 toast，不进见闻
+          toastScheduler.current.show(text);
+          return s;
+        }
+        // 打听/给予/切磋等：toast + 进见闻
         toastScheduler.current.show(text);
       }
       return {
@@ -389,7 +402,15 @@ export function useGame(opts?: UseGameOptions) {
       }
       socket.current.cmd(command);
       // 从 sheet 触发的操作：下一条服务器响应将 toast 展示
-      if (opts?.feedback) pendingFeedback.current = true;
+      if (opts?.feedback) {
+        pendingFeedback.current = true;
+        pendingFeedbackVerb.current = verb;
+      }
+      // go 换房时清掉旧的 pendingFeedback，避免旧操作反馈污染新房间描述
+      if (verb === "go") {
+        pendingFeedback.current = false;
+        pendingFeedbackVerb.current = "";
+      }
       // go 由点出口触发，见闻不必回显；其它显式指令仍可 echo（如 say）
       const quiet =
         !!opts?.silent || verb === "go";
@@ -660,6 +681,12 @@ export function useGame(opts?: UseGameOptions) {
           appendDocText(chunk);
         }
 
+        // 房间描述块到达时，旧操作反馈已过期，避免房间标题/描述被 toast
+        if (isRoomLookChunk(chunk)) {
+          pendingFeedback.current = false;
+          pendingFeedbackVerb.current = "";
+        }
+
         const pendingLog: { text: string; html?: string }[] = [];
         for (const [index, line] of lines.entries()) {
           const html = msg.htmlLines?.[index];
@@ -667,7 +694,15 @@ export function useGame(opts?: UseGameOptions) {
           if (line.length < 2) continue;
           if (/^>{0,1}\s*$/.test(line)) continue;
           if (isLoginNoise(line) || isProtocolNoise(line)) continue;
-          if (isEatDrinkNoise(line)) continue;
+          if (isEatDrinkNoise(line)) {
+            // 吃喝/装水响应被过滤不进见闻，消费 pendingFeedback 并展示 toast
+            if (pendingFeedback.current) {
+              pendingFeedback.current = false;
+              pendingFeedbackVerb.current = "";
+              toastScheduler.current.show(line);
+            }
+            continue;
+          }
           if (isMorePromptLine(line)) continue;
           if (isSheetDumpLine(line, chunk)) continue;
           if (

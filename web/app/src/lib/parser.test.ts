@@ -636,6 +636,12 @@ describe("parseSuggestedActions", () => {
     ]);
   });
 
+  it("filters out follow none stop-following command", () => {
+    const text = "记得不要再跟随我了。(follow none)";
+    const actions = parseSuggestedActions(text);
+    expect(actions).toEqual([]);
+  });
+
   it("extracts enter and ask hints", () => {
     const text =
       "快上船吧。别被别人看到了。(enter)\n(ask fu about 侠客岛)";
