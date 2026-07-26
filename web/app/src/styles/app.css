@@ -269,6 +269,13 @@ textarea:focus-visible {
   padding-top: 12px;
 }
 
+.menu-panel .menu-sep {
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 8px 8px;
+  margin-top: 2px;
+  padding-top: 12px;
+}
+
 .main {
   flex: 1;
   min-height: 0;
@@ -535,29 +542,33 @@ textarea:focus-visible {
 
 .scene-tabs {
   display: flex;
-  gap: 2px;
+  gap: 0;
   margin-bottom: 10px;
-  padding: 3px;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--line);
 }
 
 .scene-tabs button {
+  position: relative;
   flex: 1;
-  min-height: 38px;
-  padding: 0 8px;
+  min-height: 36px;
+  padding: 4px 8px;
   border: none;
-  border-radius: 8px;
+  border-bottom: 2px solid transparent;
   background: transparent;
   color: var(--paper-dim);
   font-family: var(--font-display);
-  font-size: 13px;
-  letter-spacing: 0.1em;
+  font-size: 14px;
+  letter-spacing: 0.14em;
   cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
 }
 
 .scene-tabs button.on {
-  background: var(--ink-lift);
+  color: var(--jade-bright);
+  border-bottom-color: var(--jade);
+}
+
+.scene-tabs button:not(.on):active {
   color: var(--paper);
 }
 
@@ -565,8 +576,12 @@ textarea:focus-visible {
   margin-left: 4px;
   font-family: var(--font-body);
   font-size: 10px;
-  color: var(--jade-bright);
+  opacity: 0.7;
   vertical-align: middle;
+}
+
+.scene-tabs button.on .scene-tab-count {
+  opacity: 1;
 }
 
 .scene-map-btn {

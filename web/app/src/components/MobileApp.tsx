@@ -305,10 +305,21 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                   role="menuitem"
                   onClick={() => {
                     setMenuOpen(false);
-                    onModeChange(mode === "desktop" ? "mobile" : "desktop");
+                    g.refreshCharacter();
+                    g.openSheet("train");
                   }}
                 >
-                  {mode === "desktop" ? "移动版" : "桌面版"}
+                  修炼
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    g.openSheet("combat");
+                  }}
+                >
+                  江湖助手
                 </button>
                 <button
                   type="button"
@@ -329,27 +340,6 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                   }}
                 >
                   发言
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    g.refreshCharacter();
-                    g.openSheet("train");
-                  }}
-                >
-                  修炼
-                </button>
-                <button
-                  type="button"
-                  role="menuitem"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    g.openSheet("combat");
-                  }}
-                >
-                  江湖助手
                 </button>
                 <button
                   type="button"
@@ -380,6 +370,17 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                   }}
                 >
                   帮助
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="menu-sep"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onModeChange(mode === "desktop" ? "mobile" : "desktop");
+                  }}
+                >
+                  {mode === "desktop" ? "移动版" : "桌面版"}
                 </button>
                 <button
                   type="button"
