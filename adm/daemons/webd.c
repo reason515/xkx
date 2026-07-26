@@ -243,7 +243,8 @@ void send_room(object me, object env)
 	}
 
 	emit_raw(me, sprintf(
-		"{\"v\":1,\"type\":\"room.update\",\"title\":\"%s\",\"long\":\"%s\",\"itemDesc\":\"%s\",\"area\":\"%s\",\"path\":\"%s\",\"canSleep\":%d,\"exits\":%s,\"doors\":%s,\"npcs\":[%s],\"items\":[%s]}",
+		"{\"v\":1,\"type\":\"room.update\",\"playerName\":\"%s\",\"title\":\"%s\",\"long\":\"%s\",\"itemDesc\":\"%s\",\"area\":\"%s\",\"path\":\"%s\",\"canSleep\":%d,\"exits\":%s,\"doors\":%s,\"npcs\":[%s],\"items\":[%s]}",
+		json_escape(me->name() || ""),
 		json_escape(env->query("short") || ""),
 		json_escape(env->query("long") || ""),
 		json_escape(item_desc_text),

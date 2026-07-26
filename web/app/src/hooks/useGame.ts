@@ -564,6 +564,10 @@ export function useGame(opts?: UseGameOptions) {
         }
         setState((s) => {
           const applied = applyEvent(ev, s);
+          const playerName =
+            ev.type === "room.update" && typeof ev.playerName === "string" && ev.playerName
+              ? ev.playerName
+              : s.playerName;
           const roomChanged =
             ev.type === "room.update" &&
             !!applied.room.title &&
@@ -599,6 +603,7 @@ export function useGame(opts?: UseGameOptions) {
           return {
             ...s,
             ...applied,
+            playerName,
             inGame: true,
             suggestedActions: mergeSuggestedActions(
               prevKeep,
