@@ -232,7 +232,7 @@ test.describe.serial("newbie village", () => {
     await loginAsNewbie(page, { asRegister: true });
     await openTopMenu(page);
     await pickTopMenuItem(page, "帮助");
-    await expect(page.locator(".help-section")).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator(".help-section").first()).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText("你现在需要知道")).toBeVisible();
   });
 });
