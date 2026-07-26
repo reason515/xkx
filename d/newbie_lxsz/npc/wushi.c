@@ -653,18 +653,11 @@ int do_learn(string arg)
 
 	tell_object(ob, sprintf("%s向你请教有关「%s」的问题。\n", me->name(), to_chinese(skill)));
 
-	if( (int)ob->query("jing") > learn_times*gin_cost/5 + 1 ) {
-		if( userp(ob) ) ob->receive_damage("jing", learn_times*gin_cost/5 + 1);
-	} else {
-		write("但是" + ob->name() + "显然太累了，没有办法教你什么。\n");
-		tell_object(ob, "但是你太累了，没有办法教" + me->name() + "。\n");
-		return 1;
-	}
-		
-	gin_cost = learn_times * gin_cost*3/2;
-	
-	if( (int)me->query("jing") > gin_cost ) {
-		if( (string)SKILL_D(skill)->type()=="martial"
+	// assistd 已通过 learn_max_times 确保精神足够
+	if (learn_times < 1) learn_times = 1;
+	gin_cost = learn_times * gin_cost * 3 / 2;
+
+	if( (string)SKILL_D(skill)->type()=="martial"
 		&&	my_skill * my_skill * my_skill / 10 > (int)me->query("combat_exp") ) {
 			printf("也许是缺乏实战经验，你对%s的回答总是无法领会。\n", ob->name() );
 		} else {
@@ -685,12 +678,7 @@ int do_learn(string arg)
 		    for (i=0; i<learn_times; i++)  tmp += random(me->query_int());
 	
 		    me->improve_skill(skill, tmp/slow_factor);
-
 		}
-	} else {
-		gin_cost = me->query("jing") > 0 ? (int)me->query("jing") : 0;
-		write("你今天太累了，结果什么也没有学到。去睡一觉再来学吧。\n");
-	}
 
 	me->receive_damage("jing", gin_cost);
     

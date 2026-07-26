@@ -103,6 +103,7 @@ export function EntitySheet({
   const [learnAction, setLearnAction] = useState<SuggestedAction | null>(null);
   const [learnStop, setLearnStop] = useState<"count" | "potential">("count");
   const [learnCount, setLearnCount] = useState(1);
+  const [learnCountRaw, setLearnCountRaw] = useState("1");
 
   // Prefer english id for mud commands when available
   const target =
@@ -298,12 +299,13 @@ export function EntitySheet({
                         type="number"
                         min={1}
                         max={999}
-                        value={learnCount}
-                        onChange={(e) =>
-                          setLearnCount(
-                            Math.min(999, Math.max(1, Number(e.target.value) || 1))
-                          )
-                        }
+                        value={learnCountRaw}
+                        onChange={(e) => setLearnCountRaw(e.target.value)}
+                        onBlur={() => {
+                          const n = parseInt(learnCountRaw, 10);
+                          if (!n || n < 1) { setLearnCountRaw("1"); setLearnCount(1); }
+                          else { setLearnCountRaw(String(Math.min(999, n))); setLearnCount(Math.min(999, n)); }
+                        }}
                       />
                     </label>
                   )}
@@ -479,8 +481,7 @@ export function EntitySheet({
                 <div className="entity-action-grid">
                   <button type="button" onClick={() => runNpcAction(`look ${target}`)}>查看</button>
                   <button type="button" onClick={() => { setAsking(true); onAskList?.(`ask ${askTarget}`); }}>打听</button>
-                  <button type="button" onClick={() => { setLearning(true); onLearnList?.(`skills ${askTarget}`); }}>请教</button>
-                  <button type="button" onClick={() => { setLearning(true); onLearnList?.(`skills ${askTarget}`); }} data-testid="entity-cha">查看技能</button>
+                  <button type="button" onClick={() => { setLearning(true); onLearnList?.(`skills ${askTarget}`); }}>学艺</button>
                   <button type="button" onClick={() => runNpcAction(`follow ${askTarget}`)}>跟随</button>
                   <button type="button" onClick={() => setGiving(true)}>给予</button>
                   {!!canApprentice && (<button type="button" className="entity-action-jade" onClick={() => runNpcAction(`apprentice ${askTarget}`)}>拜师</button>)}
