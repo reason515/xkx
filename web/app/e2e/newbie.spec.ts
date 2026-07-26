@@ -2,7 +2,22 @@ import { test, expect } from "@playwright/test";
 import { loginAsNewbie } from "./helpers";
 
 async function sendCmd(page: any, text: string, wait = 1500) {
-  await page.locator(".log-cmd-input").fill(text);
+  // 确保指令输入框可见——移动端默认隐藏，需先通过菜单切换
+  const input = page.locator(".log-cmd-input");
+  if (!(await input.isVisible({ timeout: 800 }).catch(() => false))) {
+    // 打开菜单
+    const menuBtn = page.getByRole("button", { name: "菜单" });
+    if (await menuBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await menuBtn.click();
+      await page.waitForTimeout(400);
+    }
+    const cmdItem = page.locator('[role="menuitem"]').filter({ hasText: "指令" }).first();
+    if (await cmdItem.isVisible({ timeout: 2000 }).catch(() => false)) {
+      await cmdItem.click();
+      await page.waitForTimeout(400);
+    }
+  }
+  await input.fill(text);
   await page.locator(".log-cmd-send").click();
   await page.waitForTimeout(wait);
 }
