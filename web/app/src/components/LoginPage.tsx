@@ -33,11 +33,12 @@ function pickQuote() {
 
 export function LoginPage({ onLogin, error }: Props) {
   const [mode, setMode] = useState<Mode>("login");
-  const [id, setId] = useState(() => loadSavedAccount()?.id ?? "");
+  const saved = loadSavedAccount();
+  const [id, setId] = useState(() => saved?.id ?? "");
+  const [name, setName] = useState(() => saved?.name ?? "");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
+  const [remember, setRemember] = useState(() => Boolean(saved));
   const [gender, setGender] = useState("男");
-  const [remember, setRemember] = useState(() => Boolean(loadSavedAccount()));
 
   const isRegister = mode === "register";
 
@@ -73,7 +74,7 @@ export function LoginPage({ onLogin, error }: Props) {
         onSubmit={(e) => {
           e.preventDefault();
           if (remember) {
-            saveAccount({ id });
+            saveAccount({ id, name });
           } else {
             clearSavedAccount();
           }

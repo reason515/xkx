@@ -19,18 +19,18 @@ function memoryStorage() {
 }
 
 describe("savedCredentials", () => {
-  it("saves and loads only the account ID", () => {
+  it("saves and loads account ID and Chinese name", () => {
     const storage = memoryStorage();
-    saveAccount({ id: "hero" }, storage);
-    expect(loadSavedAccount(storage)).toEqual({ id: "hero" });
-    expect(storage.getItem("xkx.login.saved")).toBe('{"id":"hero"}');
+    saveAccount({ id: "hero", name: "东方" }, storage);
+    expect(loadSavedAccount(storage)).toEqual({ id: "hero", name: "东方" });
+    expect(storage.getItem("xkx.login.saved")).toBe('{"id":"hero","name":"东方"}');
   });
 
   it("removes passwords saved by earlier versions", () => {
     const storage = memoryStorage();
     storage.setItem("xkx.login.saved", JSON.stringify({ id: "hero", password: "secret" }));
-    expect(loadSavedAccount(storage)).toEqual({ id: "hero" });
-    expect(storage.getItem("xkx.login.saved")).toBe('{"id":"hero"}');
+    expect(loadSavedAccount(storage)).toEqual({ id: "hero", name: "" });
+    expect(storage.getItem("xkx.login.saved")).toBe('{"id":"hero","name":""}');
   });
 
   it("returns null for empty or corrupt data", () => {
@@ -44,7 +44,7 @@ describe("savedCredentials", () => {
 
   it("clears the stored account", () => {
     const storage = memoryStorage();
-    saveAccount({ id: "hero" }, storage);
+    saveAccount({ id: "hero", name: "东方" }, storage);
     clearSavedAccount(storage);
     expect(loadSavedAccount(storage)).toBeNull();
   });

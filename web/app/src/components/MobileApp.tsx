@@ -487,7 +487,9 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                           className={ctxTab === "actions" ? "on" : ""}
                           onClick={() => setCtxTab("actions")}
                         >
-                          动作
+                          动作{sceneActions.length > 0 && (
+                            <span className="scene-tab-count">{sceneActions.length}</span>
+                          )}
                         </button>
                       )}
                     </div>

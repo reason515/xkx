@@ -2,6 +2,7 @@ const STORAGE_KEY = "xkx.login.saved";
 
 export type SavedAccount = {
   id: string;
+  name?: string;
 };
 
 type AccountStorage = Pick<Storage, "getItem" | "setItem" | "removeItem">;
@@ -21,9 +22,9 @@ export function loadSavedAccount(
 
     // Remove passwords saved by earlier versions on the first subsequent load.
     if (typeof parsed.password === "string") {
-      storage.setItem(STORAGE_KEY, JSON.stringify({ id: parsed.id }));
+      storage.setItem(STORAGE_KEY, JSON.stringify({ id: parsed.id, name: parsed.name || "" }));
     }
-    return { id: parsed.id };
+    return { id: parsed.id, name: parsed.name || "" };
   } catch {
     return null;
   }
@@ -33,7 +34,7 @@ export function saveAccount(
   account: SavedAccount,
   storage: Pick<Storage, "setItem"> = localStorage
 ): void {
-  storage.setItem(STORAGE_KEY, JSON.stringify({ id: account.id }));
+  storage.setItem(STORAGE_KEY, JSON.stringify({ id: account.id, name: account.name || "" }));
 }
 
 export function clearSavedAccount(

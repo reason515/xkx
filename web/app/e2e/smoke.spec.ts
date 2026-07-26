@@ -173,7 +173,7 @@ test("勾选记住账号后仅回填账号", async ({ page }) => {
   await page.getByRole("button", { name: "进入游戏" }).click();
   await expect
     .poll(async () => page.evaluate(() => localStorage.getItem("xkx.login.saved")))
-    .toBe('{"id":"abcdef"}');
+    .toContain('"id":"abcdef"');
   await page.goto("/");
   await expect(page.getByLabel("账号（英文 ID）")).toHaveValue("abcdef");
   await expect(page.getByLabel("密码", { exact: true })).toHaveValue("");
