@@ -1,6 +1,5 @@
 import { ExitPad } from "./ExitPad";
 import type { GameApi } from "../context/DesktopContext";
-import { ModeSwitch } from "./desktop/ModeSwitch";
 import type { UiMode } from "../lib/uiMode";
 import { CharacterSheet } from "./CharacterSheet";
 import { MapSheet } from "./MapSheet";
@@ -251,41 +250,43 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
       <div className={`toast ${toast ? "show" : ""}`}>{toast}</div>
       <div className="screen">
         <header className="topbar">
-          <button type="button" className="hero-btn" onClick={g.onOpenCharacter}>
-            <div className="hero-meta">
-              <div className="hero-name">{state.playerName}</div>
-            </div>
-            <div className="vitals" aria-label="身体状态">
-              <div className={`vital hp${vitalClass(v.qi, vitalCap(v, "qi"))}`}>
-                <span className="vital-label">气</span>
-                <div className="bar">
-                  <div className="fill" style={{ width: pct(v.qi, vitalCap(v, "qi")) }} />
-                </div>
-                <span className="n">{vitalValue(v.qi, vitalCap(v, "qi"))}</span>
-              </div>
-              <div className={`vital sp${vitalClass(v.jing, vitalCap(v, "jing"))}`}>
-                <span className="vital-label">精</span>
-                <div className="bar">
-                  <div
-                    className="fill"
-                    style={{ width: pct(v.jing, vitalCap(v, "jing")) }}
-                  />
-                </div>
-                <span className="n">{vitalValue(v.jing, vitalCap(v, "jing"))}</span>
-              </div>
-              <div className={`vital mp${vitalClass(v.neili, vitalCap(v, "neili"))}`}>
-                <span className="vital-label">内</span>
-                <div className="bar">
-                  <div
-                    className="fill"
-                    style={{ width: pct(v.neili, vitalCap(v, "neili")) }}
-                  />
-                </div>
-                <span className="n">{vitalValue(v.neili, vitalCap(v, "neili"))}</span>
-              </div>
-            </div>
+          <button
+            type="button"
+            className="hero-avatar"
+            onClick={g.onOpenCharacter}
+            aria-label={`角色：${state.playerName}`}
+          >
+            {(state.playerName || "侠")[0]}
           </button>
-          <ModeSwitch mode={mode} onChange={onModeChange} />
+          <div className="vitals" aria-label="身体状态">
+            <div className={`vital hp${vitalClass(v.qi, vitalCap(v, "qi"))}`}>
+              <span className="vital-label">气</span>
+              <div className="bar">
+                <div className="fill" style={{ width: pct(v.qi, vitalCap(v, "qi")) }} />
+              </div>
+              <span className="n">{vitalValue(v.qi, vitalCap(v, "qi"))}</span>
+            </div>
+            <div className={`vital sp${vitalClass(v.jing, vitalCap(v, "jing"))}`}>
+              <span className="vital-label">精</span>
+              <div className="bar">
+                <div
+                  className="fill"
+                  style={{ width: pct(v.jing, vitalCap(v, "jing")) }}
+                />
+              </div>
+              <span className="n">{vitalValue(v.jing, vitalCap(v, "jing"))}</span>
+            </div>
+            <div className={`vital mp${vitalClass(v.neili, vitalCap(v, "neili"))}`}>
+              <span className="vital-label">内</span>
+              <div className="bar">
+                <div
+                  className="fill"
+                  style={{ width: pct(v.neili, vitalCap(v, "neili")) }}
+                />
+              </div>
+              <span className="n">{vitalValue(v.neili, vitalCap(v, "neili"))}</span>
+            </div>
+          </div>
           <div className="topbar-menu" ref={menuRef}>
             <button
               type="button"
@@ -299,6 +300,16 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             </button>
             {menuOpen && (
               <div className="menu-panel" role="menu">
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onModeChange(mode === "desktop" ? "mobile" : "desktop");
+                  }}
+                >
+                  {mode === "desktop" ? "移动版" : "桌面版"}
+                </button>
                 <button
                   type="button"
                   role="menuitem"

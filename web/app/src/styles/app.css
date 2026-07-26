@@ -79,10 +79,32 @@ textarea:focus-visible {
 .topbar {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 12px 6px;
+  gap: 10px;
+  padding: 6px 12px 8px;
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
+}
+
+.hero-avatar {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--jade);
+  background: var(--ink-lift);
+  color: var(--paper);
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hero-avatar:active {
+  border-color: var(--jade-bright);
+  box-shadow: 0 0 10px rgba(95, 143, 120, 0.30);
 }
 
 .hero-btn {
@@ -117,17 +139,19 @@ textarea:focus-visible {
 
 .vitals {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  padding: 2px 0;
 }
 
 .vital {
   display: grid;
-  grid-template-columns: 1.1em minmax(32px, 1fr) auto;
+  grid-template-columns: 1.1em minmax(40px, 1fr) auto;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
+  gap: 6px;
+  font-size: 12px;
   line-height: 1.1;
   color: var(--paper-dim);
 }
@@ -138,9 +162,17 @@ textarea:focus-visible {
 }
 
 .vital .n {
-  min-width: 4.8em;
+  min-width: 5.4em;
   text-align: right;
   font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+
+.vital .bar {
+  height: 5px;
+  border-radius: 99px;
+  background: rgba(232, 223, 208, 0.1);
+  overflow: hidden;
 }
 
 .vital.vital-low .vital-label,

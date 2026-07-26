@@ -301,7 +301,10 @@ test.describe.serial("桌面工作台", () => {
     await page.locator('[data-testid="mode-mobile"]').click();
     await expect(page.locator(".phone")).toBeVisible({ timeout: 15_000 });
     await expect(page.locator(".scene-panel")).toBeVisible();
-    await page.locator('[data-testid="mode-desktop"]').click();
+    // 移动端模式切换已移入菜单
+    await page.getByRole("button", { name: "菜单" }).click();
+    await page.waitForTimeout(300);
+    await page.locator('[role="menuitem"]').filter({ hasText: "桌面版" }).click();
     await expect(page.locator('[data-testid="desktop-app"]')).toBeVisible({
       timeout: 15_000,
     });
