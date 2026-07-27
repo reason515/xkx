@@ -305,27 +305,29 @@ void train_tick(string id)
 
 string learn_stop_reason(object me, object teacher, mapping cfg)
 {
-	int mine, theirs;
+	int mine, theirs, learned;
 	string skill;
 
+	learned = cfg["ticks"];
+
 	if (!objectp(teacher) || environment(teacher) != environment(me))
-		return "授业者已不在身边，学艺停止";
-	if (!living(teacher)) return "授业者目前无法指点，学艺停止";
+		return sprintf("学艺中断 · 已学%d次，授业者离开", learned);
+	if (!living(teacher)) return sprintf("学艺中断 · 已学%d次，授业者无法指点", learned);
 	if (cfg["stop_combat"] && me->is_fighting())
-		return "进入战斗，学艺停止";
+		return sprintf("学艺中断 · 已学%d次，进入战斗", learned);
 	if ((int)me->query("potential") - (int)me->query("learned_points") < 1)
-		return "潜能耗尽，学艺停止";
+		return sprintf("潜能耗尽 · 已学%d次", learned);
 
 	skill = cfg["skill"];
 	theirs = teacher->query_skill(skill, 1);
-	if (theirs < 1) return "对方不会这门功夫，学艺停止";
+	if (theirs < 1) return sprintf("学艺中断 · 已学%d次，对方不会此功夫", learned);
 	mine = me->query_skill(skill, 1);
-	if (mine >= theirs) return "这门功夫已不逊于授业者，学艺停止";
+	if (mine >= theirs) return sprintf("学艺完成 · 已学%d次，技能已达师父水平", learned);
 	if ((string)SKILL_D(skill)->type() == "martial"
 	 && mine * mine * mine / 10 > (int)me->query("combat_exp"))
-		return "实战经验不足，暂时无法继续领悟";
+		return sprintf("学艺暂停 · 已学%d次，实战经验不足", learned);
 	if (cfg["stop_when"] == "count" && cfg["remaining"] <= 0)
-		return "已完成设定的学习次数";
+		return sprintf("学艺完成 · 共学%d次", learned);
 	return 0;
 }
 
@@ -336,7 +338,7 @@ int learn_unit_base(object me, string skill)
 
 	intel = me->query_int();
 	if (intel < 1) intel = 1;
-	cost = 150 / intel;
+	cost = 60 / intel;
 	if (!me->query_skill(skill, 1)) cost *= 2;
 	if (cost < 1) cost = 1;
 	return cost;
@@ -418,11 +420,11 @@ void learn_tick(string id)
 		WEBD->send_assist_status(
 			me, 1,
 			(int)me->query("jing") <= unit_cost
-				? "调息中 · 精不足，恢复后继续学艺"
-				: "授业者正在休息，稍后继续学艺"
+				? sprintf("调息中 · 已学%d次，精不足", cfg["ticks"])
+				: sprintf("等待中 · 已学%d次，授业者休息中", cfg["ticks"])
 		);
 		WEBD->send_vitals(me);
-		call_out("learn_tick", 4, id);
+		call_out("learn_tick", 6, id);
 		return;
 	}
 	if (cfg["resting"]) {
@@ -445,18 +447,19 @@ void learn_tick(string id)
 	sessions[id] = cfg;
 	WEBD->send_vitals(me);
 	WEBD->send_assist_status(
-		me, 1, sprintf("学艺中 · 已学 %d 次", cfg["ticks"])
+		me, 1, sprintf("学艺中 · 已学 %d / %d 次", cfg["ticks"],
+			cfg["stop_when"] == "count" ? cfg["ticks"] + cfg["remaining"] : cfg["ticks"])
 	);
 	if (cfg["ticks"] >= MAX_LEARN_TICKS) {
-		stop_assist(me, "学习次数已达上限");
+		stop_assist(me, sprintf("学艺停止 · 已学%d次（达上限）", cfg["ticks"]));
 		return;
 	}
 	if (cfg["stop_when"] == "count" && cfg["remaining"] <= 0) {
-		stop_assist(me, "已完成设定的学习次数");
+		stop_assist(me, sprintf("学艺完成 · 共学%d次", cfg["ticks"]));
 		return;
 	}
 	if (cfg["stop_when"] == "potential" && (int)me->query("potential") - (int)me->query("learned_points") < 1) {
-		stop_assist(me, "潜能耗尽，学艺停止");
+		stop_assist(me, sprintf("潜能耗尽 · 已学%d次", cfg["ticks"]));
 		return;
 	}
 	call_out("learn_tick", 2, id);

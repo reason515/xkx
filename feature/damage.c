@@ -340,5 +340,9 @@ int heal_up()
 		update_flag++;
 	}
 
+	// 自然恢复后推送给 Web 客户端更新状态条
+	if (update_flag && userp(this_object()))
+		"/adm/daemons/webd"->notify_vitals(this_object());
+
 	return update_flag;
 }

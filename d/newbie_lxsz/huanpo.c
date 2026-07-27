@@ -39,7 +39,10 @@ int do_climb(string arg)
     object me;
 	me=this_player();
 	
-	if (me->is_busy()) return 0;
+	if (me->is_busy()) {
+		tell_object(me,"你正忙着呢，等一下再爬。\n");
+		return 1;
+	}
 	
 	if (arg!="down" && arg!="path")
 	{
