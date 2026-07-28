@@ -4,6 +4,7 @@ import {
   buildLearnTopicActions,
   groundItemActions,
   invCommandTarget,
+  masteryColor,
   mudCommandTarget,
   parseBoardReadActions,
 } from "../lib/parser";
@@ -334,17 +335,38 @@ export function EntitySheet({
                   </button>
                 </div>
               ) : (
-                <div className="help-topics">
-                  {learnTopics.map((a) => (
+                <div className="help-topics skill-list">
+                  {learnTopics.map((a) => {
+                    // Parse mastery from label for color
+                    const labelParts = a.label.split(" · ");
+                    const mastery = labelParts.length >= 3 ? labelParts[1] : "";
+                    const color = mastery ? masteryColor(mastery) : undefined;
+                    // Enabled skills (marked with □ in MUD output) have a prefix
+                    const isEnabled = /^[□■]/.test(a.label);
+                    const cleanLabel = a.label.replace(/^[□■]\s*/, "");
+                    const displayParts = cleanLabel.split(" · ");
+                    return (
                     <button
                       key={a.command}
                       type="button"
-                      className="help-topic"
+                      className="help-topic skill-item"
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: 8,
+                        width: "100%",
+                        textAlign: "left",
+                        whiteSpace: "nowrap",
+                        borderColor: isEnabled ? "var(--jade)" : undefined,
+                      }}
                       onClick={() => setLearnAction(a)}
                     >
-                      {a.label}
+                      <span>{displayParts[0]}</span>
+                      <span style={{ fontSize: 11, color, fontWeight: 500 }}>{displayParts.slice(1).join(" · ")}</span>
                     </button>
-                  ))}
+                  )})}
                 </div>
               )}
             </>

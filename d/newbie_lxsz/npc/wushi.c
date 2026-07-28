@@ -674,10 +674,10 @@ int do_learn(string arg)
 			
             me->add("learned_points", learn_times );
 
-		    tmp = 0;
-		    for (i=0; i<learn_times; i++)  tmp += random(me->query_int());
-	
-		    me->improve_skill(skill, tmp/slow_factor);
+		    for (i=0; i<learn_times; i++) {
+			tmp = random(me->query_int());
+			me->improve_skill(skill, tmp/slow_factor);
+		    }
 		}
 
 	me->receive_damage("jing", gin_cost);

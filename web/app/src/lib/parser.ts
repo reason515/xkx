@@ -429,6 +429,32 @@ const SKILL_LABELS: Record<string, string> = {
   literate: "读书识字",
 };
 
+/** Specific skill English id → Chinese display name (for skills whose to_chinese() returns raw id) */
+const SKILL_CN: Record<string, string> = {
+  "taiyi-jian": "太乙剑法",
+  "taiyi-shengong": "太乙神功",
+  "taiyi-you": "太乙神游",
+  "taiyi-zhang": "太乙掌法",
+};
+
+/** Mastery rank → CSS color class */
+export function masteryColor(mastery: string): string {
+  if (/第一重楼|第二重楼|第三重楼/.test(mastery)) return "#5f8f78";
+  if (/第四重楼|第五重楼|第六重楼/.test(mastery)) return "#7ab89a";
+  if (/第七重楼|第八重楼|第九重楼/.test(mastery)) return "#e8c84a";
+  if (/第十重楼|十一重楼|十二重楼/.test(mastery)) return "#c06030";
+  if (/不堪一击|毫不足虑|不足挂齿/.test(mastery)) return "#6a8a9a";
+  if (/初学乍练|勉勉强强|初窥门径|初出茅庐|略知一二/.test(mastery)) return "#6a9a8a";
+  if (/普普通通|平平淡淡|平淡无奇|粗通皮毛|半生不熟/.test(mastery)) return "#8a9a6a";
+  if (/马马虎虎|略有小成|已有小成|鹤立鸡群|驾轻就熟/.test(mastery)) return "#9a9a6a";
+  if (/青出于蓝|融会贯通|心领神会|炉火纯青|了然于胸/.test(mastery)) return "#9a8a20";
+  if (/略有大成|已有大成|豁然贯通|出类拔萃|无可匹敌/.test(mastery)) return "#c0a020";
+  if (/技冠群雄|神乎其技|出神入化|非同凡响|傲视群雄/.test(mastery)) return "#c08020";
+  if (/登峰造极|无与伦比|所向披靡|一代宗师/.test(mastery)) return "#c04020";
+  if (/精深奥妙|神功盖世|举世无双|惊世骇俗|撼天动地|震古铄今|超凡入圣|威镇寰宇|空前绝后|天人合一|深藏不露|深不可测|返璞归真/.test(mastery)) return "#c02040";
+  return "inherit";
+}
+
 /** Room/item ids often written as 中文(id) but are not skills. */
 const NON_SKILL_IDS = new Set([
   "fall",
@@ -1235,24 +1261,28 @@ export function parseSkillsPanelLearnActions(
   teacherTarget: string
 ): SuggestedAction[] {
   if (!text.trim()) return [];
-  if (/你要察看谁的技能/.test(text)) return [];
-  if (/目前并没有学会任何技能|不会任何技能/.test(text)) return [];
+  // Strip ANSI escape codes and box-drawing prefix chars
+  const clean = text.replace(/\x1b\[[0-9;]*m/g, "").replace(/\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)?/g, "");
+  if (/你要察看谁的技能/.test(clean)) return [];
+  if (/目前并没有学会任何技能|不会任何技能/.test(clean)) return [];
 
   const found = new Map<string, SuggestedAction>();
-  // skills.c: to_chinese(id) + " (" + id + ")"
-  for (const m of text.matchAll(
-    /([\u4e00-\u9fff][\u4e00-\u9fffA-Za-z0-9_\-·\s]{0,24}?)\s*\(([a-z][a-z0-9_\-]{1,30})\)/g
-  )) {
-    const cn = m[1].replace(/\s+/g, "").trim();
-    const skill = m[2].toLowerCase();
-    if (!cn || NON_SKILL_IDS.has(skill)) continue;
+  // Match: 中文或英文名 (skill_id) - 境界 等级/经验
+  // Groups: 1=name, 2=skill_id, 3=mastery, 4=level
+  const SKILL_LINE_RE = /([\u4e00-\u9fff]{2,}[\u4e00-\u9fffA-Za-z0-9_\-·]*|[a-z][a-z0-9_\-]+)\s*\(([a-z][a-z0-9_\-]+)\)[^\n]*-\s*(\S+)\s+(\d+)\s*\//g;
+  for (const m of clean.matchAll(SKILL_LINE_RE)) {
+    const cn = (m[1] || "").replace(/\s+/g, "").trim();
+    const skill = (m[2] || "").toLowerCase();
+    const mastery = m[3] || "";
+    const lvl = m[4] || "";
+    if (!cn || !skill || NON_SKILL_IDS.has(skill)) continue;
     if (ACTION_VERBS[skill] && !SKILL_LABELS[skill]) continue;
     const command = `learn ${teacherTarget} ${skill}`;
     if (found.has(command)) continue;
-    found.set(command, {
-      command,
-      label: cn || SKILL_LABELS[skill] || skill,
-    });
+    // Resolve Chinese display name
+    const displayName = SKILL_CN[skill] || (/^[a-z]/.test(cn) ? (SKILL_LABELS[cn] || cn) : cn);
+    const label = mastery ? `${displayName} · ${mastery} · Lv${lvl}` : `${displayName} · Lv${lvl}`;
+    found.set(command, { command, label });
   }
   return [...found.values()];
 }
