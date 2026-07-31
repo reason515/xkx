@@ -32,7 +32,7 @@ int valid_enable(string usage) { return (usage == "sword") || (usage == "parry")
 
 int valid_learn(object me)
 {
-	if ((int)me->query("family"))
+	if (mapp(me->query("family")) && me->query("family/family_name"))
 		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
     if (me->query("chushi"))
   		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
@@ -74,7 +74,7 @@ int practice_skill(object me)
 	if (!objectp(weapon = me->query_temp("weapon"))
 	|| (string)weapon->query("skill_type") != "sword")
 		return notify_fail("你使用的武器不对。\n");
-	if ((int)me->query("family"))
+	if (mapp(me->query("family")) && me->query("family/family_name"))
 		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
     if (me->query("chushi"))
   		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
@@ -84,9 +84,9 @@ int practice_skill(object me)
 		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
 	if(me->query("newbie_village"))
 	{
-		if ((int)me->query("qi") <= 25)
+		if ((int)me->query("qi") < 20)
 			return notify_fail("你的体力不够练太乙神剑。\n");
-		me->receive_damage("qi", 25);
+		me->receive_damage("qi", 10);
 		return 1;
 	}
 //有门派或者有过门派都无法练习，纯百姓技能

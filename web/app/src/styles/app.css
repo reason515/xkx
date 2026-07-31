@@ -140,30 +140,41 @@ textarea:focus-visible {
 .vitals {
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 2px 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 6px;
+  padding: 1px 0;
   cursor: pointer;
 }
 
 .vital {
-  display: grid;
-  grid-template-columns: 1.1em minmax(40px, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  line-height: 1.1;
+  min-height: 10px;
+}
+
+.vital .bar {
+  flex: 1;
+  height: 7px;
+}
+
+.vital-resources {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 10px;
+  font-size: 10px;
   color: var(--paper-dim);
+  padding-top: 1px;
 }
 
 .vital-label {
   font-family: var(--font-display);
   color: var(--paper);
+  font-size: 11px;
 }
 
 .vital .n {
-  min-width: 5.4em;
+  min-width: 4.8em;
   text-align: right;
   font-variant-numeric: tabular-nums;
   font-size: 11px;
@@ -198,15 +209,19 @@ textarea:focus-visible {
 }
 
 .hp .fill {
-  background: linear-gradient(90deg, #6e2a25, var(--stat-qi));
+  background: linear-gradient(90deg, #a03020, #d04430);
 }
 
 .sp .fill {
-  background: linear-gradient(90deg, #3a5560, var(--stat-jing));
+  background: linear-gradient(90deg, #3870a0, #48a0d0);
+}
+
+.jl .fill {
+  background: linear-gradient(90deg, #807020, #c0a830);
 }
 
 .mp .fill {
-  background: linear-gradient(90deg, #355a48, var(--stat-neili));
+  background: linear-gradient(90deg, #308050, #40c070);
 }
 
 .topbar-menu {
@@ -1506,6 +1521,26 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.food-water {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  color: var(--paper-dim);
+}
+
+.food-water .meter-label {
+  font-family: var(--font-display);
+  color: var(--paper);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+}
+
+.food-water .meter-val {
+  font-variant-numeric: tabular-nums;
+  color: var(--paper-dim);
 }
 
 .force-exert {
@@ -3467,4 +3502,107 @@ textarea:focus-visible {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ===== 战斗窗（移动端浮动窗：战斗开始自动弹出） ===== */
+.combat-window {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: calc(64px + var(--safe-b));
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  max-height: 46dvh;
+  background: rgba(17, 16, 14, 0.96);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.phone.has-quest .combat-window {
+  bottom: calc(70px + var(--safe-b));
+}
+
+.combat-window-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--ink-lift);
+  flex-shrink: 0;
+}
+
+.combat-window-title {
+  font-family: var(--font-display);
+  font-size: 15px;
+  color: var(--cinnabar);
+}
+
+.combat-window-vitals {
+  flex: 1;
+  text-align: right;
+  font-size: 12px;
+  color: var(--paper-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.combat-window-close {
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--paper-dim);
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.combat-window-log {
+  overflow-y: auto;
+  padding: 8px 10px;
+  font-size: 13px;
+  line-height: 1.6;
+  max-height: 20dvh;
+  color: var(--paper);
+}
+
+.combat-window-log p {
+  margin-bottom: 4px;
+}
+
+.combat-window-log p:last-child {
+  margin-bottom: 0;
+}
+
+.combat-window-empty {
+  color: var(--paper-dim);
+}
+
+.combat-window-perf {
+  border-top: 1px solid var(--line);
+  padding: 8px 10px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 24dvh;
+  overflow-y: auto;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.combat-window-perf-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.combat-window-perf-skill {
+  font-size: 12px;
+  color: var(--paper-dim);
 }

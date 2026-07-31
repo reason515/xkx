@@ -19,7 +19,10 @@ type TrainStop = "full" | "count";
 export function buildPracticeOptions(enabled: Record<string, EnabledSkill>) {
   return Object.entries(enabled)
     .filter(
-      ([slot, ent]) => slot !== "parry" && !!ent?.skill && ent.skill !== "无"
+      ([slot]) => slot !== "parry" && slot !== "force"
+    )
+    .filter(
+      ([, ent]) => !!ent?.skill && ent.skill !== "无"
     )
     .map(([slot, ent]) => ({
       id: slot,
@@ -176,12 +179,13 @@ export function TrainSheet({
                 />
               </label>
             )}
-            <label style={{ display: "block", marginTop: 10 }}>
+            <label style={{ display: "block", marginTop: 10, color: "var(--paper-dim)", fontSize: 13 }}>
               <input
                 type="checkbox"
                 checked={stopOnCombat}
                 onChange={(e) => setStopOnCombat(e.target.checked)}
-              />{" "}
+                style={{ accentColor: "var(--jade)", marginRight: 6 }}
+              />
               遇战斗则停止
             </label>
           </div>
@@ -199,6 +203,7 @@ export function TrainSheet({
               <button
                 type="button"
                 className="go"
+                style={{ gridColumn: "1 / -1" }}
                 onClick={() =>
                   onStart({
                     mode,

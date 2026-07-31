@@ -16,7 +16,7 @@ int valid_learn(object me)
 {
         if ((int)me->query_skill("force", 1) < 5)
                 return notify_fail("你的基本内功火候不足，不能学太乙神功。\n");
-	if ((int)me->query("family"))
+	if (mapp(me->query("family")) && me->query("family/family_name"))
 		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
     if (me->query("chushi"))
   		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");

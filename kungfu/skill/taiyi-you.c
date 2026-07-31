@@ -14,7 +14,7 @@ int valid_enable(string usage) { return (usage == "dodge") || (usage == "move");
 
 int valid_learn(object me)
 {
-	if ((int)me->query("family"))
+	if (mapp(me->query("family")) && me->query("family/family_name"))
 		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
 	if (me->query_skill("hunyuan-yiqi",1) > 0)
 		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
@@ -33,7 +33,7 @@ string query_dodge_msg(string limb)
 
 int practice_skill(object me)
 {
-	if ((int)me->query("family"))
+	if (mapp(me->query("family")) && me->query("family/family_name"))
 		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
     if( (int)me->query("qi") < 60 )
         return notify_fail("你的精力太差了，不能练太乙神游。\n");

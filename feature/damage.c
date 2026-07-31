@@ -169,25 +169,12 @@ void die()
 	int i;
 
     me = this_object();
-	if( environment()->query("no_death") && userp(this_object()) )
-		{
-
-//			if ( !objectp(rum_ob = find_object("/d/huashan/npc/referee")) )
-//				rum_ob = load_object("/d/huashan/npc/referee");
-
-//			killer = query_temp("last_damage_from");
-
-//			if ( stringp(killer) )
-//				CHANNEL_D->do_channel(rum_ob, "chat",
-//					sprintf("%s被" + killer + "干掉了。", this_object()->name(1)));
-//			else
-//				CHANNEL_D->do_channel(rum_ob, "rumor",
-//					sprintf("%s被干掉了。", this_object()->name(1)));
-			unconcious();
-			remove_call_out("revive");
-
-			return;
-		}
+	// 新手村玩家在厢房复活，不走武庙
+	if (userp(this_object()) && this_object()->query("newbie_village")) {
+		this_object()->move(__DIR__"wxiangfang");
+		revive(1);
+		return;
+	}
 
 	if( !living(this_object()) ) revive(1);
 	if( wizardp(this_object()) && query("env/immortal") ) return;

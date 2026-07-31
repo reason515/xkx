@@ -113,6 +113,13 @@ void init()
 	add_action("do_learn","learn");
 	add_action("do_cha","cha");
 	add_action("do_cha","skills");
+	// 清理误写的 family 数据（太乙武功要求无门派）
+	if (this_player()->query("newbie_village/master")
+	 && this_player()->query("family/family_name") == "柳秀山庄") {
+		this_player()->delete("family");
+		this_player()->save();
+		tell_object(this_player(), "[系统] 已清理临时门派记录。\n");
+	}
 }
 
 int do_halt()
@@ -242,10 +249,6 @@ int do_bai(string arg)
             {
                 message_vision(GRN"武师笑道：“为师退隐江湖已久，早已不收徒弟。只传你武功，今后莫要对外人提起及我。\n跟我学艺这段时间，你就用这把太乙剑吧。”\n"NOR,me);
                 me->set("newbie_village/master",1);
-                me->set("family/family_name","柳秀山庄");
-                me->set("family/master_name","武师");
-                me->set("family/master_id","wu shi");
-                me->set("family/generation",2);
                 wuqi=new(__DOMAIN_DIR__"weapon/taiyijian");
                 if (wuqi->move(me)) message_vision(GRN"武师从兵器架上拿给了$N一把太乙剑。(wield jian 可以装备这把剑)\n"NOR,me);
                 me->save();
@@ -485,6 +488,18 @@ int do_cha(string arg)
         }
         if(j>0) { write("[32m└────────────────────────────────┘[37;0m\n");}
 
+
+	// 所有功夫达到5级时自动推进任务
+	if (1==check_questindex(me,"学习武师身上所有基本功夫到5级，所有高级功夫到5级")
+	 && me->query_skill("dodge",1) >= 5 && me->query_skill("force",1)
+	 && me->query_skill("parry",1) >= 5 && me->query_skill("strike",1)
+	 && me->query_skill("sword",1) >= 5 && me->query_skill("taiyi-shengong",1) >= 5
+	 && me->query_skill("taiyi-you",1) >= 5 && me->query_skill("taiyi-zhang",1) >= 5
+	 && me->query_skill("taiyi-jian",1) >= 5) {
+		set_nextquest(me,"学习武师身上所有基本功夫到5级，所有高级功夫到5级",
+			"把学到的功夫都激发起来吧！
+打开角色面板->武功页，点击各武功的激发槽位即可。", 50, 250);
+	}
         return 1;
 }
 
@@ -602,8 +617,8 @@ int do_learn(string arg)
 
 	my_skill = me->query_skill(skill, 1);
 
-    if (5==me->query_skill("dodge",1) && 5==me->query_skill("force",1) && 5==me->query_skill("parry",1) && 5==me->query_skill("strike",1) && 5==me->query_skill("sword",1)
-&& 5==me->query_skill("taiyi-shengong",1) && 5==me->query_skill("taiyi-you",1) && 5==me->query_skill("taiyi-zhang",1) && 5==me->query_skill("taiyi-jian",1))
+    if (me->query_skill("dodge",1) >= 5 && me->query_skill("force",1) >= 5 && me->query_skill("parry",1) >= 5 && me->query_skill("strike",1) >= 5 && me->query_skill("sword",1)
+&& me->query_skill("taiyi-shengong",1) >= 5 && me->query_skill("taiyi-you",1) >= 5 && me->query_skill("taiyi-zhang",1) >= 5 && me->query_skill("taiyi-jian",1) >= 5)
     {
         set_nextquest(me,"学习武师身上所有基本功夫到5级，所有高级功夫到5级","把学到的功夫都激发起来吧！\n打开角色面板→武功页，点击各武功的激发槽位即可。\n也可输入指令：\njifa force taiyi-shengong 将太乙神功作为内功\njifa dodge taiyi-you 将太乙神游作为轻功\njifa sword taiyi-jian 将太乙剑法作为剑法\njifa parry taiyi-jian 将太乙剑法作为招架\njifa strike taiyi-zhang 将太乙掌法作为掌法", 50, 250);
 		return 1;
@@ -682,8 +697,8 @@ int do_learn(string arg)
 
 	me->receive_damage("jing", gin_cost);
     
-    if (5==me->query_skill("dodge",1) && 5==me->query_skill("force",1) && 5==me->query_skill("parry",1) && 5==me->query_skill("strike",1) && 5==me->query_skill("sword",1)
-&& 5==me->query_skill("taiyi-shengong",1) && 5==me->query_skill("taiyi-you",1) && 5==me->query_skill("taiyi-zhang",1) && 5==me->query_skill("taiyi-jian",1))
+    if (me->query_skill("dodge",1) >= 5 && me->query_skill("force",1) >= 5 && me->query_skill("parry",1) >= 5 && me->query_skill("strike",1) >= 5 && me->query_skill("sword",1)
+&& me->query_skill("taiyi-shengong",1) >= 5 && me->query_skill("taiyi-you",1) >= 5 && me->query_skill("taiyi-zhang",1) >= 5 && me->query_skill("taiyi-jian",1) >= 5)
     {
         set_nextquest(me,"学习武师身上所有基本功夫到5级，所有高级功夫到5级","把学到的功夫都激发起来吧！\n打开角色面板→武功页，点击各武功的激发槽位即可。\n也可输入指令：\njifa force taiyi-shengong 将太乙神功作为内功\njifa dodge taiyi-you 将太乙神游作为轻功\njifa sword taiyi-jian 将太乙剑法作为剑法\njifa parry taiyi-jian 将太乙剑法作为招架\njifa strike taiyi-zhang 将太乙掌法作为掌法", 50, 250);
     }

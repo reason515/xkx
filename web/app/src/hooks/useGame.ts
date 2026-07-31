@@ -15,6 +15,8 @@ import {
   isEntitySheetAction,
   isLoginNoise,
   isMorePromptLine,
+  isCombatEndLine,
+  isMyCombatLine,
   isProtocolNoise,
   isSelfLookLine,
   isSelfLookStopLine,
@@ -91,6 +93,8 @@ const initialState = (): GameState => ({
   wimpyPct: 0,
   combatLog: [],
   trainLog: [],
+  inCombat: false,
+  myCombatLog: [],
   assistActive: false,
   assistStatus: "",
   attrSelectData: undefined,
@@ -104,6 +108,9 @@ const initialState = (): GameState => ({
 
 const DOC_IDLE_MS = 1400;
 const DOC_MAX_MS = 20_000;
+
+/** 战斗窗超时：无「我」的战斗行超过该时长则视为战斗结束收起。 */
+const COMBAT_IDLE_MS = 10_000;
 
 let logId = 0;
 
@@ -196,6 +203,8 @@ export function useGame(opts?: UseGameOptions) {
   const roomRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** 战斗文案时节流补 hp，兜底尚未推送的 player.vitals。 */
   const combatHpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** 战斗窗收起计时器（无「我」的战斗行超时后关闭）。 */
+  const combatEndTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<GameState>(initialState);
   /** 场景切换时在见闻中插入位置标记。 */
   const prevRoomTitle = useRef(state.room.title);
@@ -581,9 +590,13 @@ export function useGame(opts?: UseGameOptions) {
         enteredGame.current = false;
         roomFromEvent.current = false;
         textBuf.current = "";
+        if (combatEndTimer.current) {
+          clearTimeout(combatEndTimer.current);
+          combatEndTimer.current = null;
+        }
         const intentional = quittingRef.current;
         quittingRef.current = false;
-        setState((s) => ({ ...s, connected: false, inGame: false }));
+        setState((s) => ({ ...s, connected: false, inGame: false, inCombat: false, myCombatLog: [] }));
         showToast(intentional ? "已退出" : "与服务器断开");
         return;
       }
@@ -646,7 +659,7 @@ export function useGame(opts?: UseGameOptions) {
           if (ev.active) {
             // 重要提示弹 toast；例行心跳（交手中/等候刷新）只走挂机条，避免刷屏冲掉可读时间
             if (
-              /助手进行中|战斗辅助|前往石室|石壁领悟|精力不足|无法赶路|无法前往|撤回受阻|请先跟随|落点沙滩|动作受阻|改道前往|忙碌中|正在调息|力尽昏迷|学艺中|调息中|等待中/.test(
+              /助手进行中|战斗辅助|前往石室|石壁领悟|精力不足|无法赶路|无法前往|撤回受阻|请先跟随|落点沙滩|动作受阻|改道前往|忙碌中|正在调息|力尽昏迷|学艺中|调息中|等待中|练功中|修炼助手|你的「.+」进步了/.test(
                 message
               )
             ) {
@@ -806,6 +819,34 @@ export function useGame(opts?: UseGameOptions) {
               ...s,
               trainLog: [...s.trainLog.slice(-40), line],
             }));
+          }
+          // 战斗窗：结束行优先；否则「我」的战斗行保持弹出并续期收起计时器
+          if (isCombatEndLine(line)) {
+            if (combatEndTimer.current) {
+              clearTimeout(combatEndTimer.current);
+              combatEndTimer.current = null;
+            }
+            setState((s) =>
+              s.inCombat || s.myCombatLog.length
+                ? { ...s, inCombat: false, myCombatLog: [] }
+                : s
+            );
+          } else if (isMyCombatLine(line)) {
+            setState((s) => ({
+              ...s,
+              inCombat: true,
+              myCombatLog: [
+                ...s.myCombatLog.slice(-24),
+                { text: line, html },
+              ],
+            }));
+            if (combatEndTimer.current) clearTimeout(combatEndTimer.current);
+            combatEndTimer.current = setTimeout(() => {
+              combatEndTimer.current = null;
+              setState((s) =>
+                s.inCombat ? { ...s, inCombat: false, myCombatLog: [] } : s
+              );
+            }, COMBAT_IDLE_MS);
           }
           // 长文进帮助/告示牌面板，不灌见闻
           if (capturingDoc) continue;
@@ -1164,9 +1205,13 @@ export function useGame(opts?: UseGameOptions) {
         enteredGame.current = false;
         roomFromEvent.current = false;
         textBuf.current = "";
+        if (combatEndTimer.current) {
+          clearTimeout(combatEndTimer.current);
+          combatEndTimer.current = null;
+        }
         const intentional = quittingRef.current;
         quittingRef.current = false;
-        setState((s) => ({ ...s, connected: false, inGame: false }));
+        setState((s) => ({ ...s, connected: false, inGame: false, inCombat: false, myCombatLog: [] }));
         showToast(intentional ? "已退出" : "与服务器断开");
       }
     });

@@ -40,7 +40,7 @@ string query_parry_msg(object weapon)
 
 int valid_learn(object me)
 {
-	if ((int)me->query("family"))
+	if (mapp(me->query("family")) && me->query("family/family_name"))
 		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
     if (me->query("chushi"))
   		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
@@ -65,7 +65,7 @@ mapping query_action(object me, object weapon)
 
 int practice_skill(object me)
 {
-	if ((int)me->query("family"))
+	if (mapp(me->query("family")) && me->query("family/family_name"))
 		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");
     if (me->query("chushi"))
   		return notify_fail("往矣，非曳尾涂中之士，如何领悟太乙正道？\n");

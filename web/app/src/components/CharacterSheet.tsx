@@ -86,9 +86,13 @@ function ScorePanel({ score, fallbackHtml, fallbackText }: {
       {(score.bio || score.master || score.spouse || score.family) && (
         <div className="profile-line">
           {score.bio && <p>{score.bio}</p>}
-          {score.family && <p>门派：{score.family}</p>}
-          {score.master && <p>师父：{score.master}</p>}
+          <p>师父：{score.master || "无"}{score.family ? `（${score.family}）` : ""}</p>
           {score.spouse && <p>{score.spouse}</p>}
+        </div>
+      )}
+      {!score.bio && !score.master && !score.spouse && !score.family && (
+        <div className="profile-line">
+          <p style={{ color: "var(--paper-dim)" }}>师父：无</p>
         </div>
       )}
 
@@ -597,33 +601,33 @@ export function CharacterSheet({
                 [
                   {
                     key: "qi",
-                    label: "气",
+                    label: "气血",
                     cur: v.qi,
                     cap: vitalCap(v, "qi"),
                     innate: v.maxQi,
-                    color: "var(--stat-qi)",
+                    color: "#d04430",
                   },
                   {
                     key: "jing",
-                    label: "精",
+                    label: "精神",
                     cur: v.jing,
                     cap: vitalCap(v, "jing"),
                     innate: v.maxJing,
-                    color: "var(--stat-jing)",
+                    color: "#48a0d0",
                   },
                   {
                     key: "jingli",
                     label: "精力",
                     cur: v.jingli,
                     cap: vitalCap(v, "jingli"),
-                    color: "var(--stat-jingli)",
+                    color: "#c0a830",
                   },
                   {
                     key: "neili",
                     label: "内力",
                     cur: v.neili,
                     cap: vitalCap(v, "neili"),
-                    color: "var(--stat-neili)",
+                    color: "#40c070",
                   },
                   {
                     key: "food",
@@ -648,6 +652,15 @@ export function CharacterSheet({
                   color: string;
                 }>
               ).map((row) => {
+                // 食物/饮水用文字显示
+                if (row.key === "food" || row.key === "water") {
+                  return (
+                    <div key={row.key} className="meter-row food-water">
+                      <span className="meter-label">{row.label}</span>
+                      <span className="meter-val">{row.cur ?? "—"} / {row.cap ?? "—"}</span>
+                    </div>
+                  );
+                }
                 const wounded =
                   row.innate != null &&
                   row.cap != null &&

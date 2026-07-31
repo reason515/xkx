@@ -283,6 +283,11 @@ test.describe("新手村 35 任务", () => {
     const ws13 = page.locator(".chip.npc").filter({ hasText: /武师/ }).first();
     await ws13.click(); await page.waitForTimeout(600);
     await page.locator(".entity-action-grid button").filter({ hasText: "切磋" }).first().click();
+    // 切磋开打 → 战斗窗自动弹出；尚未拜师学特殊武功，绝招区不显示
+    await expect(page.locator('[data-testid="combat-window"]')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(page.locator(".combat-window-perf")).toHaveCount(0);
     await page.waitForTimeout(12000);
     await waitOrSkip(page, 14); console.log("✅ Q13");
     // Q14 睡觉

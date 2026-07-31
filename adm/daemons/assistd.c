@@ -171,6 +171,7 @@ int train_can_act(object me, mapping cfg, int recovering)
 		if (max_qi > 0 && my["qi"] * 100 / max_qi < 70) return 0;
 		return 1;
 	case "lian":
+		if (recovering && max_qi > 0 && my["qi"] * 100 / max_qi < 40) return 0;
 		need = LIAN_MIN_JINGLI;
 		if (recovering && max_jingli > 0) {
 			need = max_jingli * 40 / 100;
@@ -244,7 +245,7 @@ void train_tick(string id)
 		sessions[id] = cfg;
 		WEBD->send_assist_status(me, 1, recover_status(me, cfg));
 		WEBD->send_vitals(me);
-		call_out("train_tick", 4, id);
+		call_out("train_tick", 6, id);
 		return;
 	}
 
@@ -284,7 +285,7 @@ void train_tick(string id)
 			WEBD->send_assist_status(
 				me, 1, "调息中 · 练功所需精力或内力不足"
 			);
-			call_out("train_tick", 4, id);
+			call_out("train_tick", 6, id);
 			return;
 		}
 		stop_assist(me, "当前环境或状态无法继续修炼");
@@ -296,6 +297,9 @@ void train_tick(string id)
 	WEBD->send_vitals(me);
 	cfg["ticks"]++;
 	sessions[id] = cfg;
+	// 每次练习后报告进度
+	WEBD->send_assist_status(me, 1,
+		sprintf("练功中 · 已练 %d 次", cfg["ticks"]));
 	if (cfg["ticks"] > MAX_TRAIN_TICKS) {
 		stop_assist(me, "挂机时长已达上限");
 		return;
@@ -534,6 +538,19 @@ varargs int start_train(object me, string mode, string stop_when,
 			WEBD->send_assist_status(me, 0, "请先激发要练习的功夫");
 			return 0;
 		}
+		// 内功只能学不能练
+		if (SKILL_D(mapped)->valid_enable("force")) {
+			WEBD->send_assist_status(me, 0, "内功只能通过学习(xue)来提高，不能练习");
+			return 0;
+		}
+		// 武器检查（剑法/刀法等需要对应武器）
+		if (member_array(skill, ({ "sword", "blade", "stick", "staff", "whip", "hammer", "axe", "spear", "club", "dagger", "fork", "halberd", "hook", "pike", "throwing" })) >= 0) {
+			object wp = me->query_temp("weapon");
+			if (!objectp(wp) || (string)wp->query("skill_type") != skill) {
+				WEBD->send_assist_status(me, 0, "你使用的武器不对。");
+				return 0;
+			}
+		}
 		if (me->query_skill(skill, 1) < 1
 		 || me->query_skill(mapped, 1) < 1
 		 || me->query_skill(skill, 1) / 2
@@ -541,7 +558,7 @@ varargs int start_train(object me, string mode, string stop_when,
 			WEBD->send_assist_status(me, 0, "基本功火候不足，暂时无法练习");
 			return 0;
 		}
-		if (!SKILL_D(mapped)->valid_learn(me)) {
+		if (!SKILL_D(mapped) || !SKILL_D(mapped)->valid_learn(me)) {
 			WEBD->send_assist_status(me, 0, "当前条件不允许练习这门功夫");
 			return 0;
 		}

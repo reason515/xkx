@@ -9,6 +9,7 @@ import {
   worldHighlightMarkers,
 } from "../data/maps";
 import { AREA_MAPS } from "../data/roomMaps";
+import type { RoomMap } from "../data/roomMaps";
 import type { Entity } from "../lib/types";
 
 interface Props {
@@ -60,28 +61,32 @@ export function MapSheet({
         ? "newbie_lxsz"
         : null;
     if (!mapKey || !AREA_MAPS[mapKey]) return null;
-    const nodes = AREA_MAPS[mapKey];
+    const map = AREA_MAPS[mapKey] as RoomMap;
     const title = (roomTitle || "").replace(/[【】\[\]「」]/g, "").trim();
-    // Find candidates whose name matches the room title
-    const candidates = nodes.filter((n) =>
+    // Find current room by fuzzy-matching title
+    const candidates = map.nodes.filter((n) =>
       title.includes(n.name) || n.name.includes(title)
     );
     let currentId = candidates[0]?.id;
-    // Disambiguate: use exit destination names when multiple candidates share a base name
+    // Disambiguate using exit destinations
     if (candidates.length > 1) {
       const exitNames = new Set(roomExits.map((e) => (e.name || "").trim()).filter(Boolean));
-      const byId = new Map(nodes.map((n) => [n.id, n]));
       let bestScore = 0;
       for (const c of candidates) {
         let score = 0;
-        for (const tid of Object.values(c.exits)) {
-          const tgt = byId.get(tid);
+        const connIds = new Set(
+          map.edges
+            .filter(e => e.from === c.id || e.to === c.id)
+            .map(e => e.from === c.id ? e.to : e.from)
+        );
+        for (const tid of connIds) {
+          const tgt = map.nodes.find(n => n.id === tid);
           if (tgt && exitNames.has(tgt.name)) score++;
         }
         if (score > bestScore) { bestScore = score; currentId = c.id; }
       }
     }
-    return { nodes, currentId };
+    return { map, currentId };
   }, [roomArea, roomTitle, roomExits]);
 
   const worldText = getMapText("all") || "";
@@ -152,7 +157,7 @@ export function MapSheet({
           {mode === "region" ? (
             roomGraph ? (
               <RoomGraph
-                nodes={roomGraph.nodes}
+                map={roomGraph.map}
                 currentRoomId={roomGraph.currentId}
               />
             ) : regionText ? (

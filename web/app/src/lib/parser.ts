@@ -2872,6 +2872,29 @@ export function isCombatLine(text: string): boolean {
   return /(?:攻击|闪避|招架|受伤|气血|致命|死亡|停手|逃跑|出招|一招)/.test(text);
 }
 
+/**
+ * 该行是否属于「我」参与的战斗（含「你」且带战斗特征）。
+ * 用于战斗窗口弹出/收起；旁观他人打架的行（不含「你」）不触发。
+ */
+export function isMyCombatLine(text: string): boolean {
+  if (!text.includes("你")) return false;
+  if (
+    /攻击|攻去|袭来|打来|出招|招架|闪避|闪过|躲过|避过|打中|击中|受伤|致命|死亡|死了|停手|逃跑|惨叫|闷哼|精疲力尽|昏迷|倒了下去|杀死了|赢得了|大喝|怒吼|暴喝|喝道/.test(
+      text
+    )
+  )
+    return true;
+  // 对手主动攻向你的行（如「老虎向你扑来」）
+  return /(?:向你|朝你|对你|冲你|扑向你|攻向你|袭向你|逼向)/.test(text);
+}
+
+/** 战斗明确结束的行（优先于 isMyCombatLine，命中立即收起战斗窗）。 */
+export function isCombatEndLine(text: string): boolean {
+  return /(?:获得了.{0,8}经验|你的眼前一黑|你死了|你已经死了|你战胜了|你赢得了|停手|不再理你了|结束了战斗|赢了这一仗|被打得落荒而逃|抱头鼠窜)/.test(
+    text
+  );
+}
+
 export function isTrainLine(text: string): boolean {
   return /(?:打坐|吐纳|练功|缓缓|盘膝|调息)/.test(text);
 }
@@ -2963,6 +2986,7 @@ export function isSheetDumpLine(line: string, chunk?: string): boolean {
   )
     return true;
   if (/好吧，只用基本功夫|你从现在起用.+作为.+的特殊技能/.test(t)) return true;
+  if (/你使用的武器不对|你的体力不够练|你的内力不够练|你的精力值太低了|你只能练习用 enable/.test(t)) return true;
   if (/这个技能不能当成这种用途|不需要 enable|尚未激发或目前不能准备/.test(t))
     return true;
   // skills boxed UI (cmds/skill/skills.c)

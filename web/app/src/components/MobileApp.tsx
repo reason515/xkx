@@ -6,6 +6,7 @@ import { MapSheet } from "./MapSheet";
 import { HelpSheet } from "./HelpSheet";
 import { TrainSheet } from "./TrainSheet";
 import { CombatSheet } from "./CombatSheet";
+import { CombatWindow } from "./CombatWindow";
 import { CollapsibleDesc } from "./CollapsibleDesc";
 import { GrindBanner } from "./GrindBanner";
 import { EntitySheet } from "./EntitySheet";
@@ -28,9 +29,6 @@ function vitalClass(cur?: number, max?: number) {
   return cur / max < 0.3 ? " vital-low" : "";
 }
 
-function vitalValue(cur?: number, max?: number) {
-  return `${cur ?? "—"}/${max ?? "—"}`;
-}
 
 const LOG_FOLLOW_PX = 48;
 
@@ -211,7 +209,14 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
   const [ctxTab, setCtxTab] = useState<"npcs" | "items" | "actions">("npcs");
   const [bankingCmd, setBankingCmd] = useState<"cun" | "qu" | null>(null);
   const [logExpanded, setLogExpanded] = useState(false);
+  /** 玩家手动收起战斗窗：本次战斗不再显示，下次战斗重新弹出。 */
+  const [combatWinDismissed, setCombatWinDismissed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // 战斗结束后复位「已收起」状态，下一次战斗自动重新弹出
+  useEffect(() => {
+    if (!state.inCombat) setCombatWinDismissed(false);
+  }, [state.inCombat]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -282,31 +287,20 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           </button>
           <div className="vitals" aria-label="身体状态" onClick={g.onOpenCharacter} role="button" tabIndex={0}>
             <div className={`vital hp${vitalClass(v.qi, vitalCap(v, "qi"))}`}>
-              <span className="vital-label">气</span>
-              <div className="bar">
-                <div className="fill" style={{ width: pct(v.qi, vitalCap(v, "qi")) }} />
-              </div>
-              <span className="n">{vitalValue(v.qi, vitalCap(v, "qi"))}</span>
+              <div className="bar"><div className="fill" style={{ width: pct(v.qi, vitalCap(v, "qi")) }} /></div>
             </div>
             <div className={`vital sp${vitalClass(v.jing, vitalCap(v, "jing"))}`}>
-              <span className="vital-label">精</span>
-              <div className="bar">
-                <div
-                  className="fill"
-                  style={{ width: pct(v.jing, vitalCap(v, "jing")) }}
-                />
-              </div>
-              <span className="n">{vitalValue(v.jing, vitalCap(v, "jing"))}</span>
+              <div className="bar"><div className="fill" style={{ width: pct(v.jing, vitalCap(v, "jing")) }} /></div>
+            </div>
+            <div className={`vital jl${vitalClass(v.jingli, vitalCap(v, "jingli"))}`}>
+              <div className="bar"><div className="fill" style={{ width: pct(v.jingli, vitalCap(v, "jingli")) }} /></div>
             </div>
             <div className={`vital mp${vitalClass(v.neili, vitalCap(v, "neili"))}`}>
-              <span className="vital-label">内</span>
-              <div className="bar">
-                <div
-                  className="fill"
-                  style={{ width: pct(v.neili, vitalCap(v, "neili")) }}
-                />
-              </div>
-              <span className="n">{vitalValue(v.neili, vitalCap(v, "neili"))}</span>
+              <div className="bar"><div className="fill" style={{ width: pct(v.neili, vitalCap(v, "neili")) }} /></div>
+            </div>
+            <div className="vital-resources">
+              <span>食 {v.food ?? "—"}/{v.maxFood ?? "—"}</span>
+              <span>饮 {v.water ?? "—"}/{v.maxWater ?? "—"}</span>
             </div>
           </div>
           <div className="topbar-menu" ref={menuRef}>
@@ -573,15 +567,14 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                   </div>
                 )}
 
-                {/* 战斗绝招——基于已激发的武功 */}
+                {/* 我的绝招——基于已激发的武功 */}
                 {Object.keys(state.enabled).length > 0 && (
-                  <div className="ctx-block">
-                    <h2>绝招</h2>
+                  <div className="ctx-block perf-block">
+                    <h2>我的绝招</h2>
                     <div className="chips">
                       {Object.entries(state.enabled).map(([slot, ent]) => {
                         const skill = ent.skill;
                         if (!skill || skill === "无") return null;
-                        // 常见绝招映射
                         const perfMap: Record<string, [string,string][]> = {
                           sword: [["八方风雨","perform sword.bafang"]],
                           strike: [["太乙掌","perform strike.zhang"]],
@@ -606,6 +599,17 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
       </div>
 
       {!logExpanded && <FloatingQuestBar questIndex={state.newbieQuestIndex ?? 0} />}
+
+      {/* 战斗窗：战斗开始自动弹出；挂机/已手动收起时不显示 */}
+      {state.inCombat && !state.assistActive && !combatWinDismissed && (
+        <CombatWindow
+          combatLog={state.myCombatLog}
+          enabled={state.enabled}
+          vitals={state.vitals}
+          onCmd={(c) => g.cmd(c, { feedback: true })}
+          onClose={() => setCombatWinDismissed(true)}
+        />
+      )}
 
       {state.sheet === "character" && (
         <CharacterSheet

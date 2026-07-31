@@ -10,6 +10,8 @@ import {
   extractLookBlock,
   isCarriageItem,
   isCombatLine,
+  isCombatEndLine,
+  isMyCombatLine,
   isDocReadingCommand,
   isEatDrinkNoise,
   isLoginNoise,
@@ -1927,6 +1929,26 @@ describe("isCombatLine", () => {
   it("detects combat-related lines", () => {
     expect(isCombatLine("你一招「横扫千军」向店小二攻去。")).toBe(true);
     expect(isCombatLine("你环顾四周。")).toBe(false);
+  });
+});
+
+describe("isMyCombatLine", () => {
+  it("detects lines where I fight, but not bystander fights", () => {
+    expect(isMyCombatLine("你一招「横扫千军」向店小二攻去。")).toBe(true);
+    expect(isMyCombatLine("你身子一侧，闪过了店小二的一击。")).toBe(true);
+    expect(isMyCombatLine("老虎向你扑来！")).toBe(true);
+    expect(isMyCombatLine("张三攻击李四。")).toBe(false);
+    expect(isMyCombatLine("你环顾四周。")).toBe(false);
+    expect(isMyCombatLine("你看见地上有一把长剑。")).toBe(false);
+  });
+});
+
+describe("isCombatEndLine", () => {
+  it("detects combat-over lines", () => {
+    expect(isCombatEndLine("你杀死了老虎，获得了 25 点经验。")).toBe(true);
+    expect(isCombatEndLine("你死了。")).toBe(true);
+    expect(isCombatEndLine("你赢了这一仗，转身离去。")).toBe(true);
+    expect(isCombatEndLine("你一招「横扫千军」向店小二攻去。")).toBe(false);
   });
 });
 
