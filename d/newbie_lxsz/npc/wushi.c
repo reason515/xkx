@@ -618,13 +618,6 @@ int do_learn(string arg)
 
 	my_skill = me->query_skill(skill, 1);
 
-    if (me->query_skill("dodge",1) >= 5 && me->query_skill("force",1) >= 5 && me->query_skill("parry",1) >= 5 && me->query_skill("strike",1) >= 5 && me->query_skill("sword",1)
-&& me->query_skill("taiyi-shengong",1) >= 5 && me->query_skill("taiyi-you",1) >= 5 && me->query_skill("taiyi-zhang",1) >= 5 && me->query_skill("taiyi-jian",1) >= 5)
-    {
-        set_nextquest(me,"学习武师身上所有基本功夫到5级，所有高级功夫到5级","把学到的功夫都激发起来吧！\n打开角色面板→武功页，点击各武功的激发槽位即可。\n也可输入指令：\njifa force taiyi-shengong 将太乙神功作为内功\njifa dodge taiyi-you 将太乙神游作为轻功\njifa sword taiyi-jian 将太乙剑法作为剑法\njifa parry taiyi-jian 将太乙剑法作为招架\njifa strike taiyi-zhang 将太乙掌法作为掌法", 50, 250);
-		return 1;
-	}	
-
 	if ( my_skill>=5 && (skill == "dodge" || skill == "force" || skill == "parry" || skill == "strike" || skill == "sword"))
 	{
 		tell_object(me,"你只能学到五级的基本功夫。\n");

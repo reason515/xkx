@@ -1973,6 +1973,8 @@ describe("isMyCombatLine", () => {
     expect(isMyCombatLine("你身子一侧，闪过了店小二的一击。")).toBe(true);
     expect(isMyCombatLine("老虎向你扑来！")).toBe(true);
     expect(isMyCombatLine("老虎扑向你！")).toBe(true);
+    expect(isMyCombatLine("武师手中钢剑如一股流水向你的左肩竖劈而下！")).toBe(true);
+    expect(isMyCombatLine("野兔扑上来张嘴往你的头顶狠狠地一咬！")).toBe(true);
     expect(isMyCombatLine("你见野兔攻击失误，趁机发动攻击！")).toBe(true);
     expect(isMyCombatLine("张三攻击李四。")).toBe(false);
     expect(isMyCombatLine("你环顾四周。")).toBe(false);
