@@ -94,7 +94,7 @@ const initialState = (): GameState => ({
   combatLog: [],
   trainLog: [],
   inCombat: false,
-  myCombatLog: [],
+
   assistActive: false,
   assistStatus: "",
   attrSelectData: undefined,
@@ -110,7 +110,7 @@ const DOC_IDLE_MS = 1400;
 const DOC_MAX_MS = 20_000;
 
 /** 战斗窗超时：无「我」的战斗行超过该时长则视为战斗结束收起。 */
-const COMBAT_IDLE_MS = 10_000;
+const COMBAT_IDLE_MS = 6_000;
 
 let logId = 0;
 
@@ -596,7 +596,7 @@ export function useGame(opts?: UseGameOptions) {
         }
         const intentional = quittingRef.current;
         quittingRef.current = false;
-        setState((s) => ({ ...s, connected: false, inGame: false, inCombat: false, myCombatLog: [] }));
+        setState((s) => ({ ...s, connected: false, inGame: false, inCombat: false }));
         showToast(intentional ? "已退出" : "与服务器断开");
         return;
       }
@@ -820,36 +820,22 @@ export function useGame(opts?: UseGameOptions) {
               trainLog: [...s.trainLog.slice(-40), line],
             }));
           }
-          // 战斗窗：结束行优先（收起）；「我」的战斗行只进战斗窗、不进见闻
+          // 战斗状态（用于触发悬浮绝招按钮/自动展开见闻）：结束行优先收起
           if (isCombatEndLine(line)) {
             if (combatEndTimer.current) {
               clearTimeout(combatEndTimer.current);
               combatEndTimer.current = null;
             }
-            setState((s) =>
-              s.inCombat || s.myCombatLog.length
-                ? { ...s, inCombat: false, myCombatLog: [] }
-                : s
-            );
+            setState((s) => (s.inCombat ? { ...s, inCombat: false } : s));
           } else if (isMyCombatLine(line)) {
-            setState((s) => ({
-              ...s,
-              inCombat: true,
-              myCombatLog: [
-                ...s.myCombatLog.slice(-40),
-                { text: line, html },
-              ],
-            }));
+            setState((s) => (s.inCombat ? s : { ...s, inCombat: true }));
             if (combatEndTimer.current) clearTimeout(combatEndTimer.current);
             combatEndTimer.current = setTimeout(() => {
               combatEndTimer.current = null;
-              setState((s) =>
-                s.inCombat ? { ...s, inCombat: false, myCombatLog: [] } : s
-              );
+              setState((s) => (s.inCombat ? { ...s, inCombat: false } : s));
             }, COMBAT_IDLE_MS);
-            // 我的战斗行不灌见闻（详情在战斗窗展示）
-            continue;
           }
+          // 战斗行照常进见闻（战斗详情在见闻展示）
           // 长文进帮助/告示牌面板，不灌见闻
           if (capturingDoc) continue;
           pendingLog.push({ text: line, html });
@@ -1213,7 +1199,7 @@ export function useGame(opts?: UseGameOptions) {
         }
         const intentional = quittingRef.current;
         quittingRef.current = false;
-        setState((s) => ({ ...s, connected: false, inGame: false, inCombat: false, myCombatLog: [] }));
+        setState((s) => ({ ...s, connected: false, inGame: false, inCombat: false }));
         showToast(intentional ? "已退出" : "与服务器断开");
       }
     });

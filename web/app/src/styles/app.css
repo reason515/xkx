@@ -410,6 +410,7 @@ textarea:focus-visible {
   flex: 1;
   min-width: 0;
   border: 1px solid var(--line-strong);
+  background: var(--ink);
   border-radius: 8px;
   background: var(--ink-lift);
   color: var(--paper);
@@ -3504,107 +3505,61 @@ textarea:focus-visible {
   }
 }
 
-/* ===== 战斗窗（移动端浮动窗：战斗开始自动弹出） ===== */
-.combat-window {
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: calc(64px + var(--safe-b));
-  z-index: 20;
-  display: flex;
-  flex-direction: column;
-  max-height: 62dvh;
-  background: rgba(17, 16, 14, 0.96);
+
+/* ===== 悬浮绝招按钮（战斗中出现，浮在见闻浮层之上） ===== */
+.floating-perf {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(24px + var(--safe-b));
+  z-index: 150;
+  width: min(440px, calc(100% - 24px));
+  background: rgba(17, 16, 14, 0.94);
   border: 1px solid var(--line-strong);
   border-radius: 12px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
-  overflow: hidden;
-}
-
-.phone.has-quest .combat-window {
-  bottom: calc(70px + var(--safe-b));
-}
-
-.combat-window-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-bottom: 1px solid var(--line);
-  background: var(--ink-lift);
-  flex-shrink: 0;
-}
-
-.combat-window-title {
-  font-family: var(--font-display);
-  font-size: 15px;
-  color: var(--cinnabar);
-}
-
-.combat-window-vitals {
-  flex: 1;
-  text-align: right;
-  font-size: 12px;
-  color: var(--paper-dim);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.combat-window-close {
-  border: 1px solid var(--line);
-  background: transparent;
-  color: var(--paper-dim);
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  font-size: 15px;
-  line-height: 1;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.combat-window-log {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 8px 10px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--paper);
-}
-
-.combat-window-log p {
-  margin-bottom: 4px;
-}
-
-.combat-window-log p:last-child {
-  margin-bottom: 0;
-}
-
-.combat-window-empty {
-  color: var(--paper-dim);
-}
-
-.combat-window-perf {
-  flex-shrink: 0;
-  border-top: 1px solid var(--line);
-  padding: 8px 10px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 24dvh;
-  overflow-y: auto;
-  background: rgba(0, 0, 0, 0.18);
-}
-
-.combat-window-perf-group {
+  padding: 6px 8px 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.combat-window-perf-skill {
-  font-size: 12px;
+.floating-perf-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.floating-perf-title {
+  font-family: var(--font-display);
+  font-size: 13px;
+  color: var(--cinnabar);
+}
+
+.floating-perf-close {
+  border: none;
+  background: transparent;
   color: var(--paper-dim);
+  font-size: 16px;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.floating-perf .chips {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.floating-perf .chip {
+  flex-shrink: 0;
+}
+
+/* 见闻展开时面板底部的指令输入框（与折叠态共用 .log-cmd 样式） */
+.log-sheet .log-cmd {
+  flex-shrink: 0;
+  padding: 10px 2px 2px;
+  border-top: 1px solid var(--line);
 }

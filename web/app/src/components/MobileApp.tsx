@@ -6,7 +6,7 @@ import { MapSheet } from "./MapSheet";
 import { HelpSheet } from "./HelpSheet";
 import { TrainSheet } from "./TrainSheet";
 import { CombatSheet } from "./CombatSheet";
-import { CombatWindow } from "./CombatWindow";
+import { FloatingPerfBar } from "./FloatingPerfBar";
 import { CollapsibleDesc } from "./CollapsibleDesc";
 import { GrindBanner } from "./GrindBanner";
 import { EntitySheet } from "./EntitySheet";
@@ -37,11 +37,14 @@ function EventLog({
   onCmd,
   showCmd,
   onExpandedChange,
+  autoExpand = false,
 }: {
   logs: LogEntry[];
   onCmd: (command: string) => void;
   showCmd: boolean;
   onExpandedChange?: (expanded: boolean) => void;
+  /** 战斗开始后自动展开见闻（战斗信息在此展示）。 */
+  autoExpand?: boolean;
 }) {
   const panelRef = useRef<HTMLElement>(null);
   const followingRef = useRef(true);
@@ -73,6 +76,19 @@ function EventLog({
     onExpandedChange?.(expanded);
   }, [expanded, onExpandedChange]);
 
+  // 战斗开始自动展开见闻（战斗信息在见闻展示）；战斗中手动收起后不再强制
+  // 战斗结束（autoExpand 变 false）时，若此前是自动展开的则自动收起，恢复任务栏等常态
+  const autoOpenedRef = useRef(false);
+  useEffect(() => {
+    if (autoExpand) {
+      autoOpenedRef.current = true;
+      setExpanded(true);
+    } else if (autoOpenedRef.current) {
+      autoOpenedRef.current = false;
+      setExpanded(false);
+    }
+  }, [autoExpand]);
+
   const openLog = () => {
     followingRef.current = true;
     setFollowing(true);
@@ -89,6 +105,31 @@ function EventLog({
     onCmd(text);
     setCmdDraft("");
   };
+
+  // 指令输入框：折叠时在见闻栏内，展开时移入面板底部（DOM 保持唯一）
+  const cmdForm = (
+    <form
+      className="log-cmd"
+      onSubmit={(e) => {
+        e.preventDefault();
+        submitCmd();
+      }}
+    >
+      <input
+        type="text"
+        className="log-cmd-input"
+        value={cmdDraft}
+        onChange={(e) => setCmdDraft(e.target.value)}
+        placeholder="输入指令…"
+        aria-label="指令"
+        autoComplete="off"
+        spellCheck={false}
+      />
+      <button type="submit" className="log-cmd-send">
+        发送
+      </button>
+    </form>
+  );
 
   return (
     <div className="log-section">
@@ -117,29 +158,7 @@ function EventLog({
         </span>
         <span className="log-summary-open">展开</span>
       </button>
-      {showCmd && (
-        <form
-          className="log-cmd"
-          onSubmit={(e) => {
-            e.preventDefault();
-            submitCmd();
-          }}
-        >
-          <input
-            type="text"
-            className="log-cmd-input"
-            value={cmdDraft}
-            onChange={(e) => setCmdDraft(e.target.value)}
-            placeholder="输入指令…"
-            aria-label="指令"
-            autoComplete="off"
-            spellCheck={false}
-          />
-          <button type="submit" className="log-cmd-send">
-            发送
-          </button>
-        </form>
-      )}
+      {showCmd && !expanded && cmdForm}
       {expanded && (
         <div className="overlay open log-overlay" onClick={closeLog}>
           <div className="sheet log-sheet" onClick={(e) => e.stopPropagation()}>
@@ -194,6 +213,7 @@ function EventLog({
                 )}
               </div>
             </section>
+            {showCmd && cmdForm}
           </div>
         </div>
       )}
@@ -209,13 +229,13 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
   const [ctxTab, setCtxTab] = useState<"npcs" | "items" | "actions">("npcs");
   const [bankingCmd, setBankingCmd] = useState<"cun" | "qu" | null>(null);
   const [logExpanded, setLogExpanded] = useState(false);
-  /** 玩家手动收起战斗窗：本次战斗不再显示，下次战斗重新弹出。 */
-  const [combatWinDismissed, setCombatWinDismissed] = useState(false);
+  /** 玩家手动收起悬浮绝招按钮：本次战斗不再显示，下次战斗重新出现。 */
+  const [perfDismissed, setPerfDismissed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // 战斗结束后复位「已收起」状态，下一次战斗自动重新弹出
+  // 战斗结束后复位「已收起」状态，下一次战斗自动重新出现
   useEffect(() => {
-    if (!state.inCombat) setCombatWinDismissed(false);
+    if (!state.inCombat) setPerfDismissed(false);
   }, [state.inCombat]);
 
   useEffect(() => {
@@ -569,21 +589,25 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
               </section>
             </section>
 
-            <EventLog logs={state.logs} onCmd={g.cmd} showCmd={showCmd} onExpandedChange={setLogExpanded} />
+            <EventLog
+              logs={state.logs}
+              onCmd={g.cmd}
+              showCmd={showCmd}
+              onExpandedChange={setLogExpanded}
+              autoExpand={state.inCombat && !state.assistActive}
+            />
           </div>
         </main>
       </div>
 
       {!logExpanded && <FloatingQuestBar questIndex={state.newbieQuestIndex ?? 0} />}
 
-      {/* 战斗窗：战斗开始自动弹出；挂机/已手动收起时不显示 */}
-      {state.inCombat && !state.assistActive && !combatWinDismissed && (
-        <CombatWindow
-          combatLog={state.myCombatLog}
+      {/* 战斗中的悬浮绝招按钮：战斗开始出现，浮在见闻之上；挂机/已手动收起时不显示 */}
+      {state.inCombat && !state.assistActive && !perfDismissed && (
+        <FloatingPerfBar
           enabled={state.enabled}
-          vitals={state.vitals}
           onCmd={(c) => g.cmd(c, { feedback: true })}
-          onClose={() => setCombatWinDismissed(true)}
+          onClose={() => setPerfDismissed(true)}
         />
       )}
 

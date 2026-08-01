@@ -3,10 +3,12 @@
  * 绝招数据来自 kungfu/skill/<id>/ 动作目录；动作名以 perform <slot>.<action> 使用。
  */
 export interface PerfAction {
-  /** perform <slot>.<action> 中的 action 段 */
+  /** 绝招标识 */
   action: string;
   /** 绝招中文名 */
   name: string;
+  /** 完整指令（缺省无前缀 perform <action>；特殊武功如太乙剑需带门类） */
+  command: string;
 }
 export interface PerfSkill {
   /** 武功中文名 */
@@ -15,245 +17,248 @@ export interface PerfSkill {
 }
 export const PERF_MOVES: Record<string, PerfSkill> = {
   "banruo-zhang": { name: "般若掌", actions: [
-    { action: "san", name: "一拍两散" },
+    { action: "san", name: "一拍两散", command: "perform san" },
   ] },
   "canhe-zhi": { name: "参合指", actions: [
-    { action: "canshang", name: "动静如参商" },
+    { action: "canshang", name: "动静如参商", command: "perform canshang" },
   ] },
   "dagou-bang": { name: "打狗棒法", actions: [
-    { action: "ban", name: "绊" },
-    { action: "chan", name: "缠" },
-    { action: "dagou", name: "打狗阵法" },
-    { action: "duo", name: "獒口夺杖" },
-    { action: "feng", name: "封字诀" },
-    { action: "sansha", name: "三记杀招" },
-    { action: "zhuan", name: "转字诀" },
+    { action: "ban", name: "绊", command: "perform ban" },
+    { action: "chan", name: "缠", command: "perform chan" },
+    { action: "dagou", name: "打狗阵法", command: "perform dagou" },
+    { action: "duo", name: "獒口夺杖", command: "perform duo" },
+    { action: "feng", name: "封字诀", command: "perform feng" },
+    { action: "sansha", name: "三记杀招", command: "perform sansha" },
+    { action: "zhuan", name: "转字诀", command: "perform zhuan" },
   ] },
   "damo-jian": { name: "达摩剑", actions: [
-    { action: "weituo", name: "韦陀伏魔剑" },
+    { action: "weituo", name: "韦陀伏魔剑", command: "perform weituo" },
   ] },
   "douzhuan-xingyi": { name: "斗转星移", actions: [
-    { action: "attack", name: "attack" },
-    { action: "bidu", name: "bidu" },
-    { action: "huxin", name: "护心功" },
+    { action: "attack", name: "attack", command: "perform attack" },
+    { action: "bidu", name: "bidu", command: "perform bidu" },
+    { action: "huxin", name: "护心功", command: "perform huxin" },
   ] },
   "duanjia-jian": { name: "段家剑法", actions: [
-    { action: "ailao", name: "哀牢山剑意" },
-    { action: "yiyang", name: "一阳指力" },
+    { action: "ailao", name: "哀牢山剑意", command: "perform ailao" },
+    { action: "yiyang", name: "一阳指力", command: "perform yiyang" },
   ] },
   "duanyun-bian": { name: "断云鞭", actions: [
-    { action: "duanyun", name: "断云鞭" },
-    { action: "riyue", name: "日月无光" },
+    { action: "duanyun", name: "断云鞭", command: "perform duanyun" },
+    { action: "riyue", name: "日月无光", command: "perform riyue" },
   ] },
   "dugu-jiujian": { name: "独孤九剑", actions: [
-    { action: "po", name: "总诀式" },
-    { action: "pobian", name: "破鞭式" },
-    { action: "podao", name: "破刀式" },
-    { action: "pojian", name: "破剑式" },
-    { action: "poqi", name: "破气式" },
-    { action: "poqiang", name: "破枪式" },
-    { action: "posuo", name: "破索式" },
-    { action: "pozhang", name: "破掌式" },
+    { action: "po", name: "总诀式", command: "perform po" },
+    { action: "pobian", name: "破鞭式", command: "perform pobian" },
+    { action: "podao", name: "破刀式", command: "perform podao" },
+    { action: "pojian", name: "破剑式", command: "perform pojian" },
+    { action: "poqi", name: "破气式", command: "perform poqi" },
+    { action: "poqiang", name: "破枪式", command: "perform poqiang" },
+    { action: "posuo", name: "破索式", command: "perform posuo" },
+    { action: "pozhang", name: "破掌式", command: "perform pozhang" },
   ] },
   "emei-jian": { name: "峨眉剑法", actions: [
-    { action: "jue", name: "绝剑" },
-    { action: "mie", name: "灭剑" },
+    { action: "jue", name: "绝剑", command: "perform jue" },
+    { action: "mie", name: "灭剑", command: "perform mie" },
   ] },
   "feifeng-bian": { name: "飞凤鞭法", actions: [
-    { action: "jiutian", name: "凤舞九天" },
+    { action: "jiutian", name: "凤舞九天", command: "perform jiutian" },
   ] },
   "feiyu-bian": { name: "飞羽鞭法", actions: [
-    { action: "chanrao", name: "缠绕" },
-    { action: "heji", name: "合击" },
+    { action: "chanrao", name: "缠绕", command: "perform chanrao" },
+    { action: "heji", name: "合击", command: "perform heji" },
   ] },
   "fengmo-zhang": { name: "疯魔杖法", actions: [
-    { action: "feizhang", name: "疯魔飞杖" },
-    { action: "fengmo", name: "疯魔飞杖" },
+    { action: "feizhang", name: "疯魔飞杖", command: "perform feizhang" },
+    { action: "fengmo", name: "疯魔飞杖", command: "perform fengmo" },
   ] },
   "huashan-jianfa": { name: "华山剑法", actions: [
-    { action: "feilong", name: "天外飞龙" },
-    { action: "jianzhang", name: "剑掌五连环" },
+    { action: "feilong", name: "天外飞龙", command: "perform feilong" },
+    { action: "jianzhang", name: "剑掌五连环", command: "perform jianzhang" },
   ] },
   "huifeng-jian": { name: "回风拂柳剑", actions: [
-    { action: "jue", name: "绝剑" },
-    { action: "mie", name: "灭剑" },
+    { action: "jue", name: "绝剑", command: "perform jue" },
+    { action: "mie", name: "灭剑", command: "perform mie" },
   ] },
   "hunyuan-zhang": { name: "混元掌", actions: [
-    { action: "leidong", name: "雷动九天" },
-    { action: "wuji", name: "混元无极" },
+    { action: "leidong", name: "雷动九天", command: "perform leidong" },
+    { action: "wuji", name: "混元无极", command: "perform wuji" },
   ] },
   "huoyan-dao": { name: "火焰刀", actions: [
-    { action: "fen", name: "焚" },
+    { action: "fen", name: "焚", command: "perform fen" },
   ] },
   "jinding-zhang": { name: "金顶绵掌", actions: [
-    { action: "piaoxue", name: "飘雪穿云掌" },
-    { action: "puzhao", name: "佛光普照" },
+    { action: "piaoxue", name: "飘雪穿云掌", command: "perform piaoxue" },
+    { action: "puzhao", name: "佛光普照", command: "perform puzhao" },
   ] },
   "jingang-quan": { name: "金刚拳", actions: [
-    { action: "jingang", name: "金刚神通" },
+    { action: "jingang", name: "金刚神通", command: "perform jingang" },
   ] },
   "jinshe-zhuifa": { name: "金蛇锥法", actions: [
-    { action: "huayu", name: "漫天花雨" },
-    { action: "tuwu", name: "金蛇吐雾" },
+    { action: "huayu", name: "漫天花雨", command: "perform huayu" },
+    { action: "tuwu", name: "金蛇吐雾", command: "perform tuwu" },
   ] },
   "jiuyin-zhao": { name: "九阴神爪", actions: [
-    { action: "shenzhua", name: "九阴神爪" },
+    { action: "shenzhua", name: "九阴神爪", command: "perform shenzhua" },
   ] },
   "jueming-tui": { name: "绝命腿", actions: [
-    { action: "lianhuan", name: "连环腿" },
+    { action: "lianhuan", name: "连环腿", command: "perform lianhuan" },
   ] },
   "jueqing-bian": { name: "绝情鞭法", actions: [
-    { action: "sanwu", name: "三无三不手" },
+    { action: "sanwu", name: "三无三不手", command: "perform sanwu" },
   ] },
   "liangyi-dao": { name: "两仪刀法", actions: [
-    { action: "hebi", name: "双刀合璧" },
-    { action: "sanshen", name: "华岳三神峰" },
+    { action: "hebi", name: "双刀合璧", command: "perform hebi" },
+    { action: "sanshen", name: "华岳三神峰", command: "perform sanshen" },
   ] },
   "liangyi-jian": { name: "两仪剑法", actions: [
-    { action: "xunlei", name: "迅雷剑" },
+    { action: "xunlei", name: "迅雷剑", command: "perform xunlei" },
   ] },
   "liuhe-dao": { name: "六合刀", actions: [
-    { action: "cross", name: "十字砍" },
-    { action: "lianhuan", name: "连环诀" },
-    { action: "xiaoyao", name: "逍遥幻影" },
+    { action: "cross", name: "十字砍", command: "perform cross" },
+    { action: "lianhuan", name: "连环诀", command: "perform lianhuan" },
+    { action: "xiaoyao", name: "逍遥幻影", command: "perform xiaoyao" },
   ] },
   "liumai-shenjian": { name: "六脉神剑", actions: [
-    { action: "shangyang", name: "商阳剑" },
-    { action: "shaoshang", name: "少商剑" },
-    { action: "shaoze", name: "少泽剑" },
-    { action: "zhongchong", name: "中冲剑" },
+    { action: "shangyang", name: "商阳剑", command: "perform shangyang" },
+    { action: "shaoshang", name: "少商剑", command: "perform shaoshang" },
+    { action: "shaoze", name: "少泽剑", command: "perform shaoze" },
+    { action: "zhongchong", name: "中冲剑", command: "perform zhongchong" },
   ] },
   "liuyang-zhang": { name: "六阳掌", actions: [
-    { action: "baihong", name: "白虹掌力" },
-    { action: "qufu", name: "解生死符" },
-    { action: "zhongfu", name: "种生死符" },
+    { action: "baihong", name: "白虹掌力", command: "perform baihong" },
+    { action: "qufu", name: "解生死符", command: "perform qufu" },
+    { action: "zhongfu", name: "种生死符", command: "perform zhongfu" },
   ] },
   "longxiang-banruo": { name: "龙象般若功", actions: [
-    { action: "longxiang", name: "龙象之力" },
-    { action: "shield", name: "护体神功" },
-    { action: "sing", name: "梵唱" },
+    { action: "longxiang", name: "龙象之力", command: "perform longxiang" },
+    { action: "shield", name: "护体神功", command: "perform shield" },
+    { action: "sing", name: "梵唱", command: "perform sing" },
   ] },
   "longzhua-gong": { name: "龙爪功", actions: [
-    { action: "lianhuan", name: "龙爪功连环八式" },
+    { action: "lianhuan", name: "龙爪功连环八式", command: "perform lianhuan" },
   ] },
   "luoying-shenjian": { name: "落英神剑", actions: [
-    { action: "kuangfeng", name: "狂风绝技" },
+    { action: "kuangfeng", name: "狂风绝技", command: "perform kuangfeng" },
   ] },
   "meinu-quan": { name: "美女拳法", actions: [
-    { action: "wuqing", name: "玉女无情" },
-    { action: "youju", name: "古墓幽居" },
+    { action: "wuqing", name: "玉女无情", command: "perform wuqing" },
+    { action: "youju", name: "古墓幽居", command: "perform youju" },
   ] },
   "mian-zhang": { name: "绵掌", actions: [
-    { action: "huakai", name: "花开并蒂" },
+    { action: "huakai", name: "花开并蒂", command: "perform huakai" },
   ] },
   "mo-bang": { name: "墨家棒法", actions: [
-    { action: "mo", name: "魔" },
+    { action: "mo", name: "魔", command: "perform mo" },
   ] },
   "nianhua-zhi": { name: "拈花指", actions: [
-    { action: "fuxue", name: "拈花拂穴" },
+    { action: "fuxue", name: "拈花拂穴", command: "perform fuxue" },
   ] },
   "pixie-jian": { name: "辟邪剑法", actions: [
-    { action: "cimu", name: "刺目" },
-    { action: "ciwan", name: "刺腕" },
-    { action: "cixin", name: "刺心" },
-    { action: "cizu", name: "刺足" },
-    { action: "guimei", name: "鬼魅" },
+    { action: "cimu", name: "刺目", command: "perform cimu" },
+    { action: "ciwan", name: "刺腕", command: "perform ciwan" },
+    { action: "cixin", name: "刺心", command: "perform cixin" },
+    { action: "cizu", name: "刺足", command: "perform cizu" },
+    { action: "guimei", name: "鬼魅", command: "perform guimei" },
   ] },
   "quanzhen-jian": { name: "全真剑法", actions: [
-    { action: "hubo", name: "双手互搏" },
-    { action: "jianhebi", name: "双剑合璧" },
-    { action: "lianhuan", name: "三连环" },
-    { action: "sanqing", name: "一剑化三清" },
-    { action: "tonggui", name: "同归剑法" },
+    { action: "hubo", name: "双手互搏", command: "perform hubo" },
+    { action: "jianhebi", name: "双剑合璧", command: "perform jianhebi" },
+    { action: "lianhuan", name: "三连环", command: "perform lianhuan" },
+    { action: "sanqing", name: "一剑化三清", command: "perform sanqing" },
+    { action: "tonggui", name: "同归剑法", command: "perform tonggui" },
   ] },
   "riyue-bian": { name: "日月鞭法", actions: [
-    { action: "chanrao", name: "天缠地绕" },
+    { action: "chanrao", name: "天缠地绕", command: "perform chanrao" },
   ] },
   "ruyi-dao": { name: "如意刀法", actions: [
-    { action: "lianhuan", name: "如意连环刀" },
+    { action: "lianhuan", name: "如意连环刀", command: "perform lianhuan" },
   ] },
   "sanhua-juding": { name: "三花聚顶掌", actions: [
-    { action: "sanhua", name: "三花聚顶" },
+    { action: "sanhua", name: "三花聚顶", command: "perform sanhua" },
   ] },
   "sanyin-zhua": { name: "三阴蜈蚣爪", actions: [
-    { action: "sanyin", name: "三阴化功" },
-    { action: "sayin", name: "三阴化功" },
-    { action: "yiji", name: "一击" },
+    { action: "sanyin", name: "三阴化功", command: "perform sanyin" },
+    { action: "sayin", name: "三阴化功", command: "perform sayin" },
+    { action: "yiji", name: "一击", command: "perform yiji" },
   ] },
   "shiba-pan": { name: "十八盘", actions: [
-    { action: "ruhe", name: "岱宗如何" },
+    { action: "ruhe", name: "岱宗如何", command: "perform ruhe" },
   ] },
   "taiji-jian": { name: "太极剑", actions: [
-    { action: "chan", name: "缠" },
-    { action: "raozhi", name: "绕指柔剑" },
-    { action: "shenmen", name: "神门十三剑" },
-    { action: "taiji", name: "太极心法" },
-    { action: "tongshou", name: "天地同寿" },
+    { action: "chan", name: "缠", command: "perform chan" },
+    { action: "raozhi", name: "绕指柔剑", command: "perform raozhi" },
+    { action: "shenmen", name: "神门十三剑", command: "perform shenmen" },
+    { action: "taiji", name: "太极心法", command: "perform taiji" },
+    { action: "tongshou", name: "天地同寿", command: "perform tongshou" },
   ] },
   "taiji-quan": { name: "太极拳", actions: [
-    { action: "luanhuan", name: "乱环诀" },
-    { action: "nian", name: "粘" },
+    { action: "luanhuan", name: "乱环诀", command: "perform luanhuan" },
+    { action: "nian", name: "粘", command: "perform nian" },
+  ] },
+  "taiyi-jian": { name: "太乙剑法", actions: [
+    { action: "bafang", name: "八方风雨", command: "perform sword.bafang" },
   ] },
   "tanzhi-shentong": { name: "弹指神通", actions: [
-    { action: "jinglei", name: "弹指惊雷" },
+    { action: "jinglei", name: "弹指惊雷", command: "perform jinglei" },
   ] },
   "tianluo-diwang": { name: "天罗地网", actions: [
-    { action: "luowang", name: "天罗地网" },
+    { action: "luowang", name: "天罗地网", command: "perform luowang" },
   ] },
   "tianshan-zhang": { name: "天山六阳掌", actions: [
-    { action: "feizhang", name: "天山飞杖" },
-    { action: "jinxian", name: "大罗金仙化功杖" },
-    { action: "pifeng", name: "披风杖" },
+    { action: "feizhang", name: "天山飞杖", command: "perform feizhang" },
+    { action: "jinxian", name: "大罗金仙化功杖", command: "perform jinxian" },
+    { action: "pifeng", name: "披风杖", command: "perform pifeng" },
   ] },
   "tianyu-qijian": { name: "天羽奇剑", actions: [
-    { action: "san", name: "天女散花" },
+    { action: "san", name: "天女散花", command: "perform san" },
   ] },
   "xianglong-zhang": { name: "降龙十八掌", actions: [
-    { action: "leiting", name: "雷霆降龙" },
-    { action: "sanhui", name: "亢龙三悔" },
-    { action: "xianglong", name: "降龙一击" },
+    { action: "leiting", name: "雷霆降龙", command: "perform leiting" },
+    { action: "sanhui", name: "亢龙三悔", command: "perform sanhui" },
+    { action: "xianglong", name: "降龙一击", command: "perform xianglong" },
   ] },
   "xiaohun-zhang": { name: "黯然销魂掌", actions: [
-    { action: "xiaohun", name: "黯然销魂掌" },
+    { action: "xiaohun", name: "黯然销魂掌", command: "perform xiaohun" },
   ] },
   "xiuluo-dao": { name: "修罗刀法", actions: [
-    { action: "xiuluo", name: "修罗无常斩" },
+    { action: "xiuluo", name: "修罗无常斩", command: "perform xiuluo" },
   ] },
   "xue-dao": { name: "血刀刀法", actions: [
-    { action: "shendao", name: "祭血神刀" },
+    { action: "shendao", name: "祭血神刀", command: "perform shendao" },
   ] },
   "xueshan-jian": { name: "雪山剑法", actions: [
-    { action: "liuchu", name: "雪花六出" },
+    { action: "liuchu", name: "雪花六出", command: "perform liuchu" },
   ] },
   "yanxing-dao": { name: "雁行刀法", actions: [
-    { action: "huanying", name: "无形幻影" },
+    { action: "huanying", name: "无形幻影", command: "perform huanying" },
   ] },
   "yinsuo-jinling": { name: "银索金铃", actions: [
-    { action: "dian", name: "点穴" },
+    { action: "dian", name: "点穴", command: "perform dian" },
   ] },
   "yiyang-zhi": { name: "一阳指", actions: [
-    { action: "qiankun", name: "一指乾坤" },
+    { action: "qiankun", name: "一指乾坤", command: "perform qiankun" },
   ] },
   "yizhi-chan": { name: "一指禅", actions: [
-    { action: "jingmo", name: "惊魔一指" },
+    { action: "jingmo", name: "惊魔一指", command: "perform jingmo" },
   ] },
   "youshen-zhang": { name: "游身八卦掌", actions: [
-    { action: "huayu", name: "漫天花雨" },
+    { action: "huayu", name: "漫天花雨", command: "perform huayu" },
   ] },
   "yunu-jianfa": { name: "玉女剑法", actions: [
-    { action: "hubo", name: "双手互搏" },
-    { action: "jianhebi", name: "双剑合璧" },
-    { action: "suxin", name: "玉女素心" },
+    { action: "hubo", name: "双手互搏", command: "perform hubo" },
+    { action: "jianhebi", name: "双剑合璧", command: "perform jianhebi" },
+    { action: "suxin", name: "玉女素心", command: "perform suxin" },
   ] },
   "yuxiao-jian": { name: "玉箫剑法", actions: [
-    { action: "jianmang", name: "剑芒" },
-    { action: "jianzhi", name: "剑指相配" },
-    { action: "jinglei", name: "弹指惊雷" },
+    { action: "jianmang", name: "剑芒", command: "perform jianmang" },
+    { action: "jianzhi", name: "剑指相配", command: "perform jianzhi" },
+    { action: "jinglei", name: "弹指惊雷", command: "perform jinglei" },
   ] },
   "zhemei-shou": { name: "天山折梅手", actions: [
-    { action: "zhemei", name: "空手折梅" },
+    { action: "zhemei", name: "空手折梅", command: "perform zhemei" },
   ] },
   "zui-gun": { name: "醉棍", actions: [
-    { action: "zuida", name: "八仙醉打" },
+    { action: "zuida", name: "八仙醉打", command: "perform zuida" },
   ] },
 };

@@ -253,10 +253,8 @@ export interface GameState {
   wimpyPct?: number;
   combatLog: string[];
   trainLog: string[];
-  /** 是否正在战斗（仅含「你」的战斗行触发，用于战斗窗弹出/收起）。 */
+  /** 是否正在战斗（仅含「你」的战斗行触发，用于悬浮绝招按钮/自动展开见闻）。 */
   inCombat: boolean;
-  /** 本次战斗中涉及「你」的战斗行（战斗窗正文）。 */
-  myCombatLog: { text: string; html?: string }[];
   assistActive: boolean;
   assistStatus: string;
   /** 毕业属性选择事件数据 */

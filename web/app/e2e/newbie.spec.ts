@@ -301,11 +301,9 @@ test.describe("新手村 35 任务", () => {
     const ws13 = page.locator(".chip.npc").filter({ hasText: /武师/ }).first();
     await ws13.click(); await page.waitForTimeout(600);
     await page.locator(".entity-action-grid button").filter({ hasText: "切磋" }).first().click();
-    // 切磋开打 → 战斗窗自动弹出；尚未拜师学特殊武功，绝招区不显示
-    await expect(page.locator('[data-testid="combat-window"]')).toBeVisible({
-      timeout: 10000,
-    });
-    await expect(page.locator(".combat-window-perf")).toHaveCount(0);
+    // 切磋开打 → 见闻自动展开（战斗信息在见闻展示）；尚未拜师无绝招按钮
+    await expect(page.locator(".log-overlay")).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('[data-testid="floating-perf"]')).toHaveCount(0);
     await page.waitForTimeout(12000);
     await waitOrSkip(page, 14); console.log("✅ Q13");
     // Q14 睡觉（睡眠时长 random(60-con)=0~39s，醒来即推进；轮询等待）
@@ -368,6 +366,11 @@ test.describe("新手村 35 任务", () => {
     const ws27 = page.locator(".chip.npc").filter({ hasText: /武师/ }).first();
     await ws27.click(); await page.waitForTimeout(600);
     await page.locator(".entity-action-grid button").filter({ hasText: "切磋" }).first().click();
+    // 已激发太乙剑法 → 悬浮绝招按钮出现（八方风雨，浮在见闻之上）
+    await expect(page.locator('[data-testid="floating-perf"]')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(page.locator('[data-testid="floating-perf"]')).toContainText("八方风雨");
     await page.waitForTimeout(12000);
     await waitOrSkip(page, 28); console.log("✅ Q27");
     // Q28 练剑

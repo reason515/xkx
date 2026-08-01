@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
-import { CombatWindow, collectPerfGroups } from "./CombatWindow";
+import { FloatingPerfBar, collectPerfGroups } from "./FloatingPerfBar";
 
 describe("collectPerfGroups", () => {
   it("lists 绝招 for enabled skills recorded in PERF_MOVES", () => {
@@ -30,42 +30,26 @@ describe("collectPerfGroups", () => {
   });
 });
 
-describe("CombatWindow", () => {
-  const baseProps = {
-    combatLog: [] as { text: string; html?: string }[],
-    enabled: {},
-    vitals: { qi: 100, maxQi: 200, neili: 500, maxNeili: 1000 },
-    onCmd: () => undefined,
-    onClose: () => undefined,
-  };
-
-  it("renders combat lines and vitals", () => {
+describe("FloatingPerfBar", () => {
+  it("renders nothing when no enabled skill has recorded moves", () => {
     const html = renderToStaticMarkup(
-      <CombatWindow
-        {...baseProps}
-        combatLog={[{ text: "你一招「横扫千军」向老虎攻去。" }]}
-      />
+      <FloatingPerfBar enabled={{}} onCmd={() => undefined} onClose={() => undefined} />
     );
-    expect(html).toContain("你一招「横扫千军」向老虎攻去。");
-    expect(html).toContain("气 100/200");
-    expect(html).toContain("内 500/1000");
+    expect(html).toBe("");
   });
 
   it("renders 绝招 buttons for enabled skills", () => {
     const html = renderToStaticMarkup(
-      <CombatWindow
-        {...baseProps}
+      <FloatingPerfBar
         enabled={{ sword: { skill: "taiji-jian", name: "太极剑", level: 100 } }}
+        onCmd={() => undefined}
+        onClose={() => undefined}
       />
     );
-    expect(html).toContain("太极剑");
+    expect(html).toContain("floating-perf");
     expect(html).toContain("缠");
     expect(html).toContain("绕指柔剑");
-    expect(html).toContain("combat-window-perf");
-  });
-
-  it("hides 绝招 area when no enabled skill has recorded moves", () => {
-    const html = renderToStaticMarkup(<CombatWindow {...baseProps} />);
-    expect(html).not.toContain("combat-window-perf");
+    // 5 个太极剑绝招按钮
+    expect((html.match(/class="chip action"/g) || []).length).toBe(5);
   });
 });
