@@ -87,7 +87,7 @@ export function CombatWindow({
         {combatLog.length === 0 ? (
           <p className="combat-window-empty">交战之中…</p>
         ) : (
-          combatLog.slice(-24).map((l, i) =>
+          combatLog.slice(-40).map((l, i) =>
             l.html ? (
               <p key={i} dangerouslySetInnerHTML={{ __html: l.html }} />
             ) : (

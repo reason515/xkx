@@ -566,30 +566,6 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                     )}
                   </div>
                 )}
-
-                {/* 我的绝招——基于已激发的武功 */}
-                {Object.keys(state.enabled).length > 0 && (
-                  <div className="ctx-block perf-block">
-                    <h2>我的绝招</h2>
-                    <div className="chips">
-                      {Object.entries(state.enabled).map(([slot, ent]) => {
-                        const skill = ent.skill;
-                        if (!skill || skill === "无") return null;
-                        const perfMap: Record<string, [string,string][]> = {
-                          sword: [["八方风雨","perform sword.bafang"]],
-                          strike: [["太乙掌","perform strike.zhang"]],
-                          blade: [["刀法绝招","perform blade.dao"]],
-                          cuff: [["拳法绝招","perform cuff.quan"]],
-                        };
-                        const perfs = perfMap[slot] || [];
-                        return perfs.map(([label, cmd]) => (
-                          <button key={cmd} type="button" className="chip action"
-                            onClick={() => g.cmd(cmd, { feedback: true })}>{label}</button>
-                        ));
-                      })}
-                    </div>
-                  </div>
-                )}
               </section>
             </section>
 

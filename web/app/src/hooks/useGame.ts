@@ -820,7 +820,7 @@ export function useGame(opts?: UseGameOptions) {
               trainLog: [...s.trainLog.slice(-40), line],
             }));
           }
-          // 战斗窗：结束行优先；否则「我」的战斗行保持弹出并续期收起计时器
+          // 战斗窗：结束行优先（收起）；「我」的战斗行只进战斗窗、不进见闻
           if (isCombatEndLine(line)) {
             if (combatEndTimer.current) {
               clearTimeout(combatEndTimer.current);
@@ -836,7 +836,7 @@ export function useGame(opts?: UseGameOptions) {
               ...s,
               inCombat: true,
               myCombatLog: [
-                ...s.myCombatLog.slice(-24),
+                ...s.myCombatLog.slice(-40),
                 { text: line, html },
               ],
             }));
@@ -847,6 +847,8 @@ export function useGame(opts?: UseGameOptions) {
                 s.inCombat ? { ...s, inCombat: false, myCombatLog: [] } : s
               );
             }, COMBAT_IDLE_MS);
+            // 我的战斗行不灌见闻（详情在战斗窗展示）
+            continue;
           }
           // 长文进帮助/告示牌面板，不灌见闻
           if (capturingDoc) continue;

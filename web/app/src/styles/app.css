@@ -3513,7 +3513,7 @@ textarea:focus-visible {
   z-index: 20;
   display: flex;
   flex-direction: column;
-  max-height: 46dvh;
+  max-height: 62dvh;
   background: rgba(17, 16, 14, 0.96);
   border: 1px solid var(--line-strong);
   border-radius: 12px;
@@ -3565,11 +3565,12 @@ textarea:focus-visible {
 }
 
 .combat-window-log {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 8px 10px;
   font-size: 13px;
   line-height: 1.6;
-  max-height: 20dvh;
   color: var(--paper);
 }
 
@@ -3586,6 +3587,7 @@ textarea:focus-visible {
 }
 
 .combat-window-perf {
+  flex-shrink: 0;
   border-top: 1px solid var(--line);
   padding: 8px 10px 10px;
   display: flex;

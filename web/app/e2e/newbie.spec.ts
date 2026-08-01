@@ -49,6 +49,24 @@ async function waitOrSkip(page: any, target: number) {
   await expect.poll(() => questStep(page), { timeout: 10000 }).toMatch(new RegExp(`^${target}/`));
 }
 
+/** sleep 后轮询「醒来→任务推进」（睡眠时长 0~39s 随机），超时则醒来后强制跳 */
+async function sleepAndWait(page: any, target: number) {
+  await sendCmd(page, "sleep", 3000);
+  try {
+    await expect
+      .poll(() => questStep(page), { timeout: 45000 })
+      .toMatch(new RegExp(`^${target}/`));
+    return;
+  } catch {
+    /* 仍在睡或未推进 */
+  }
+  await page.waitForTimeout(5000);
+  await sendCmd(page, `newbietest skip ${target}`, 3000);
+  await expect
+    .poll(() => questStep(page), { timeout: 10000 })
+    .toMatch(new RegExp(`^${target}/`));
+}
+
 test("新手目标在进入游戏后五秒内展示", async ({ page }) => {
   test.setTimeout(60_000);
   await loginAsNewbie(page, { asRegister: true });
@@ -223,7 +241,7 @@ test("登录空闲五分钟后仍可执行指令", async ({ page }) => {
 
 test.describe("新手村 35 任务", () => {
   test("skip 模式全覆盖", async ({ page }) => {
-    test.setTimeout(600_000);
+    test.setTimeout(900_000);
     await loginAsNewbie(page, { asRegister: true });
     await expect(page.locator(".room-title").first()).not.toHaveText("…", { timeout: 30_000 });
     await page.waitForTimeout(4000);
@@ -290,10 +308,9 @@ test.describe("新手村 35 任务", () => {
     await expect(page.locator(".combat-window-perf")).toHaveCount(0);
     await page.waitForTimeout(12000);
     await waitOrSkip(page, 14); console.log("✅ Q13");
-    // Q14 睡觉
+    // Q14 睡觉（睡眠时长 random(60-con)=0~39s，醒来即推进；轮询等待）
     await skipTo(page, 14);
-    await sendCmd(page, "sleep", 12000);
-    await waitOrSkip(page, 15); console.log("✅ Q14");
+    await sleepAndWait(page, 15); console.log("✅ Q14");
     // Q15 打听
     await skipTo(page, 15);
     await sendCmd(page, "ask you about 闯荡江湖", 3000);
