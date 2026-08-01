@@ -28,10 +28,12 @@ void create()
 	set("dex", 25);	
 	set("int", 10);
 
-	set("combat_exp", 2000);
+	/* 任务 30 的关底怪：玩家同期约 650 exp，老虎应略弱于满状态玩家。
+	 * 原 2000 exp（出村打野狼的强度）+ 主动先手 = 1-2 秒秒杀新手。 */
+	set("combat_exp", 400);
 
-	set_temp("apply/attack", 20);
-	set_temp("apply/damage", 10);
+	set_temp("apply/attack", 10);
+	set_temp("apply/damage", 5);
 	set_temp("apply/armor",  0);
 
 	set_weight(150000);
