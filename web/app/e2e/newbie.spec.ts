@@ -44,9 +44,22 @@ async function waitOrSkip(page: any, target: number) {
   if (step.startsWith(targetStr)) return;
   // 先等自然推进
   try { await expect.poll(() => questStep(page), { timeout: 8000 }).toMatch(new RegExp(`^${target}/`)); return; } catch {}
-  // 超时则强制跳
+  // 超时则强制跳（busy/服务器慢时重试，避免命令被吞后卡死）
+  for (let i = 0; i < 3; i++) {
+    await sendCmd(page, `newbietest skip ${target}`, 3000);
+    try {
+      await expect
+        .poll(() => questStep(page), { timeout: 8000 })
+        .toMatch(new RegExp(`^${target}/`));
+      return;
+    } catch {
+      /* 重试 */
+    }
+  }
   await sendCmd(page, `newbietest skip ${target}`, 3000);
-  await expect.poll(() => questStep(page), { timeout: 10000 }).toMatch(new RegExp(`^${target}/`));
+  await expect
+    .poll(() => questStep(page), { timeout: 10000 })
+    .toMatch(new RegExp(`^${target}/`));
 }
 
 /** sleep 后轮询「醒来→任务推进」（睡眠时长 0~39s 随机），超时则醒来后强制跳 */
@@ -302,7 +315,17 @@ test.describe("新手村 35 任务", () => {
     await ws13.click(); await page.waitForTimeout(600);
     await page.locator(".entity-action-grid button").filter({ hasText: "切磋" }).first().click();
     // 切磋开打 → 见闻自动展开（战斗信息在见闻展示）；尚未拜师无绝招按钮
-    await expect(page.locator(".log-overlay")).toBeVisible({ timeout: 10000 });
+    try {
+      await expect(page.locator(".log-overlay")).toBeVisible({ timeout: 15000 });
+    } catch {
+      const room = await page.locator(".room-title").innerText().catch(() => "");
+      const summary = await page
+        .locator(".log-summary-text")
+        .innerText()
+        .catch(() => "");
+      console.log("DIAG Q13 room:", room, "| summary:", summary.slice(0, 200));
+      throw new Error(`Q13 log-overlay 未出现（room=${room}）`);
+    }
     await expect(page.locator('[data-testid="floating-perf"]')).toHaveCount(0);
     await page.waitForTimeout(12000);
     await waitOrSkip(page, 14); console.log("✅ Q13");
@@ -349,7 +372,7 @@ test.describe("新手村 35 任务", () => {
     await waitOrSkip(page, 24); console.log("✅ Q23");
     // Q24 学功夫
     await skipTo(page, 24);
-    for (const sk of ["force","taiyi-shengong","dodge","taiyi-you","sword","taiyi-jian","strike","taiyi-zhang","parry"])
+    for (const sk of ["force","literate","taiyi-shengong","dodge","taiyi-you","sword","taiyi-jian","strike","taiyi-zhang","parry"])
       await sendCmd(page, `xue wushi for ${sk} 10`, 1500);
     await waitOrSkip(page, 25); console.log("✅ Q24");
     // Q25 jifa

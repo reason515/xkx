@@ -45,7 +45,12 @@ int do_du(string arg)
     }
     if (sscanf(arg,"%s for %d",book,times)==2)
     {
-        if (strcmp(book,"book")!=0) return 0;
+        if (strcmp(book,"book")!=0 && strcmp(book,"jianghu zhanggu")!=0) return 0;
+        if (who->query_skill("literate",1) < 1)
+        {
+            tell_object(who,"你大字不识几个，还得先去武师那里学习读书写字(literate)才行。\n");
+            return 1;
+        }
         if (who->query("newbie_village/jianghuzhanggu")==1)
         {
             tell_object(who,"你已经读过这本书了，不需要再读了。\n");

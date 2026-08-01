@@ -157,7 +157,7 @@ export function EntitySheet({
   const extraItemActions: [string, string][] = [];
   if (!!isContainer && !scenery) extraItemActions.push(["打开", `open ${target}`]);
   if (!!isContainer && !scenery) extraItemActions.push(["放入物品", `__put_in__`]);
-  if (!!isBook) extraItemActions.push(["阅读", `read ${target}`]);
+  if (!!isBook) extraItemActions.push(["阅读", `read ${target} for 1`]);
   if (!!canSit) extraItemActions.push(["坐下", `sit ${target}`]);
   if (!!canRide) extraItemActions.push(["骑乘", `ride ${target}`]);
 

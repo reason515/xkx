@@ -80,6 +80,7 @@ void create()
 	
 	set_skill("dodge", 30);
 	set_skill("force", 30);
+	set_skill("literate", 30);
 	set_skill("taiyi-shengong", 30);
 	set_skill("taiyi-you", 30);
 	set_skill("taiyi-zhang", 30);

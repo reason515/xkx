@@ -111,7 +111,7 @@ const DOC_IDLE_MS = 1400;
 const DOC_MAX_MS = 20_000;
 
 /** 战斗窗超时：无「我」的战斗行超过该时长则视为战斗结束收起。 */
-const COMBAT_IDLE_MS = 6_000;
+const COMBAT_IDLE_MS = 8_000;
 
 let logId = 0;
 
