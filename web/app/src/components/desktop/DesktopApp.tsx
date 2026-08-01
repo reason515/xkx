@@ -123,7 +123,7 @@ function DesktopShell({
           tab={g.charTab}
           onTab={g.setCharTab}
           onClose={g.closeSheet}
-          onCmd={(c) => g.cmd(c, { silent: true })}
+          onCmd={(c, opts) => g.cmd(c, { silent: true, ...opts })}
           onSetWimpy={g.setWimpy}
         />
       )}
