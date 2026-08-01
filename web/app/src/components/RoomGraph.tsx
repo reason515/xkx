@@ -50,7 +50,7 @@ function trimToNode(
 
 export function RoomGraph({ map, currentRoomId }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [view, setView] = useState({ x: 0, y: 0, zoom: 1 });
+  const [view, setView] = useState({ x: 0, y: 0, zoom: 1.2 });
   const dragging = useRef(false);
   const lastPt = useRef({ x: 0, y: 0 });
 
@@ -123,7 +123,7 @@ export function RoomGraph({ map, currentRoomId }: Props) {
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
-  const resetView = () => setView({ x: 0, y: 0, zoom: 1 });
+  const resetView = () => setView({ x: 0, y: 0, zoom: 1.2 });
 
   return (
     <div style={{ position: "relative", background: C.bg, borderRadius: 10, overflow: "hidden", touchAction: "none" }}>

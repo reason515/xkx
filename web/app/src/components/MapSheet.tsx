@@ -131,28 +131,30 @@ export function MapSheet({
             世界
           </button>
         </div>
-        <div className="map-tools" aria-label="地图缩放">
-          {roomTitle && (
-            <span className="map-loc-chip" title="当前位置">{roomTitle}</span>
-          )}
-          <button
-            type="button"
-            aria-label="缩小地图"
-            onClick={() => setMapZoom((zoom) => Math.max(0.8, zoom - 0.2))}
-            disabled={mapZoom <= 0.8}
-          >
-            −
-          </button>
-          <span>{Math.round(mapZoom * 100)}%</span>
-          <button
-            type="button"
-            aria-label="放大地图"
-            onClick={() => setMapZoom((zoom) => Math.min(1.6, zoom + 0.2))}
-            disabled={mapZoom >= 1.6}
-          >
-            ＋
-          </button>
-        </div>
+        {!roomGraph && (
+          <div className="map-tools" aria-label="地图缩放">
+            {roomTitle && (
+              <span className="map-loc-chip" title="当前位置">{roomTitle}</span>
+            )}
+            <button
+              type="button"
+              aria-label="缩小地图"
+              onClick={() => setMapZoom((zoom) => Math.max(0.8, zoom - 0.2))}
+              disabled={mapZoom <= 0.8}
+            >
+              −
+            </button>
+            <span>{Math.round(mapZoom * 100)}%</span>
+            <button
+              type="button"
+              aria-label="放大地图"
+              onClick={() => setMapZoom((zoom) => Math.min(1.6, zoom + 0.2))}
+              disabled={mapZoom >= 1.6}
+            >
+              ＋
+            </button>
+          </div>
+        )}
         <div className="sheet-scroll">
           {mode === "region" ? (
             roomGraph ? (
