@@ -206,6 +206,9 @@ export function useGame(opts?: UseGameOptions) {
   const combatHpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** 战斗窗收起计时器（无「我」的战斗行超时后关闭）。 */
   const combatEndTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** look 等工具指令反馈块收集：多行合并 toast，避免拆成 toast+见闻两半。 */
+  const utilCollectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const utilCollectText = useRef<string[]>([]);
   const [state, setState] = useState<GameState>(initialState);
   /** 场景切换时在见闻中插入位置标记。 */
   const prevRoomTitle = useRef(state.room.title);
@@ -303,20 +306,36 @@ export function useGame(opts?: UseGameOptions) {
       isStaticPassageLine(text)
     )
       return;
-    setState((s) => {
-      // 消费待反馈（来自 EntitySheet / 行囊操作）
-      if (pendingFeedback.current && kind !== "sys" && kind !== "combat") {
-        const verb = pendingFeedbackVerb.current;
-        pendingFeedback.current = false;
-        pendingFeedbackVerb.current = "";
-        if (UTILITY_VERBS.has(verb)) {
-          // 吃喝/装水/观察等工具指令：仅 toast，不进见闻
-          toastScheduler.current.show(text);
-          return s;
-        }
-        // 打听/给予/切磋等：toast + 进见闻
-        toastScheduler.current.show(text);
+    // look 等工具指令反馈块的后续行（第一行消费后已启动收集窗口）：
+    // 并入 toast 块，不进见闻（多行 item_desc 不被拆两半）
+    if (utilCollectTimer.current && !pendingFeedback.current) {
+      const t = text.trim();
+      if (t) utilCollectText.current.push(t);
+      return;
+    }
+    // 消费待反馈（来自 EntitySheet / 行囊操作）——移出 setState updater，
+    // 避免 React 批量/延迟执行导致 toast 收集窗口不可靠
+    if (pendingFeedback.current && kind !== "sys" && kind !== "combat") {
+      const verb = pendingFeedbackVerb.current;
+      pendingFeedback.current = false;
+      pendingFeedbackVerb.current = "";
+      if (UTILITY_VERBS.has(verb)) {
+        // 吃喝/装水/观察等工具指令：整块合并 toast，不进见闻。
+        // 300ms 内到达的后续行并入同一块（多行 item_desc 不会被拆两半）
+        utilCollectText.current = [text];
+        if (utilCollectTimer.current) clearTimeout(utilCollectTimer.current);
+        utilCollectTimer.current = setTimeout(() => {
+          utilCollectTimer.current = null;
+          const merged = utilCollectText.current.join("\n").trim();
+          utilCollectText.current = [];
+          if (merged) toastScheduler.current.show(merged);
+        }, 300);
+        return;
       }
+      // 打听/给予/切磋等：toast + 进见闻
+      toastScheduler.current.show(text);
+    }
+    setState((s) => {
       return {
       ...s,
       logs: [
@@ -594,6 +613,11 @@ export function useGame(opts?: UseGameOptions) {
         if (combatEndTimer.current) {
           clearTimeout(combatEndTimer.current);
           combatEndTimer.current = null;
+        }
+        if (utilCollectTimer.current) {
+          clearTimeout(utilCollectTimer.current);
+          utilCollectTimer.current = null;
+          utilCollectText.current = [];
         }
         const intentional = quittingRef.current;
         quittingRef.current = false;
@@ -1202,6 +1226,11 @@ export function useGame(opts?: UseGameOptions) {
         if (combatEndTimer.current) {
           clearTimeout(combatEndTimer.current);
           combatEndTimer.current = null;
+        }
+        if (utilCollectTimer.current) {
+          clearTimeout(utilCollectTimer.current);
+          utilCollectTimer.current = null;
+          utilCollectText.current = [];
         }
         const intentional = quittingRef.current;
         quittingRef.current = false;
