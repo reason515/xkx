@@ -558,6 +558,7 @@ const COMMON_ITEM_LABELS: Record<string, string> = {
   fruit: "野果",
   guo: "野果",
   book: "书",
+  shujia: "书架",
   sword: "剑",
   gangjian: "钢剑",
   jiandao: "剪刀",
@@ -746,6 +747,15 @@ export function labelSuggestedAction(
   if (verb === "fill" && parts[1]) {
     const what = ent(parts.slice(1).join(" "));
     return `${what}装水`;
+  }
+  if (verb === "get" && parts[1]) {
+    const fromIdx = parts.findIndex((p) => p.toLowerCase() === "from");
+    const itemEnd = fromIdx > 0 ? fromIdx : parts.length;
+    const item = ent(parts.slice(1, itemEnd).join(" "));
+    if (fromIdx > 0 && parts[fromIdx + 1]) {
+      return `从${ent(parts.slice(fromIdx + 1).join(" "))}拿起${item}`;
+    }
+    return `拿起${item}`;
   }
   if (verb === "wear" && parts[1]) {
     const what = parts.slice(1).join(" ");
@@ -1450,7 +1460,8 @@ export function sceneryPracticeActions(
   if (/石壁|岩壁/.test(name)) {
     return [{ label: "领悟", command: `study ${idL}` }];
   }
-  if (/书|经|谱|册/.test(name) && !/告示|留言/.test(name)) {
+  // 排除书架/书橱/书柜等容器（「书」后接架橱柜），避免误生成「研读书架」
+  if (/书|经|谱|册/.test(name) && !/书[架橱柜]/.test(name) && !/告示|留言/.test(name)) {
     return [{ label: "研读", command: `du ${idL}` }];
   }
   if (/木桩|木椿/.test(name)) {

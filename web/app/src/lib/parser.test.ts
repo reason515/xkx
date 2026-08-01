@@ -31,6 +31,7 @@ import {
   isLearnFeedbackLine,
   labelAskTopic,
   labelSuggestedAction,
+  sceneryPracticeActions,
   mudCommandTarget,
   parseBoardReadActions,
   parseEntityShort,
@@ -319,6 +320,18 @@ describe("isRoomLookLine", () => {
     expect(
       groundItemActions("book", "线装书", true).map((a) => a.command)
     ).toEqual(["look book", "du book"]);
+  });
+
+  it("书架等容器不误生成「研读书架」，get from 标签中文化", () => {
+    // 书架（容器）不应有研读动作
+    expect(sceneryPracticeActions("shujia", "书架")).toEqual([]);
+    expect(
+      suggestedActionsFromRoomText(
+        "这里排列着好几排的书架(shujia)。"
+      ).map((a) => a.command)
+    ).not.toContain("du shujia");
+    // 藏书阁取书：get book from shujia → 中文标签
+    expect(labelSuggestedAction("get book from shujia")).toBe("从书架拿起书");
   });
 
   it("木桩练功用 strike，勿发战斗 hit", () => {
