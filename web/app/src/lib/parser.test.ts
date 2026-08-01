@@ -1593,6 +1593,27 @@ describe("parseSkills", () => {
     // next level costs (5+1)^2 = 36
     expect(rows[0].learned).toBeLessThan((rows[0].level + 1) ** 2);
   });
+
+  it("parses special-skill rows with english-only id name (e2c dict gap)", () => {
+    const text = `你目前所学过的技能：（共9项技能）
+
+┌         四项特殊功夫    ──────────────────────┐
+│  taiyi-jian (taiyi-jian)                  - 不堪一击     5/     0│
+│  taiyi-shengong (taiyi-shengong)          - 第一重楼     5/     0│
+│  taiyi-you (taiyi-you)                    - 不堪一击     5/     0│
+│  taiyi-zhang (taiyi-zhang)                - 不堪一击     5/     0│
+└────────────────────────────────┘
+`;
+    const rows = parseSkills(text);
+    expect(rows.map((r) => r.id)).toEqual([
+      "taiyi-jian",
+      "taiyi-shengong",
+      "taiyi-you",
+      "taiyi-zhang",
+    ]);
+    expect(rows[0].level).toBe(5);
+    expect(rows[1].masteryLabel).toBe("第一重楼");
+  });
 });
 
 describe("enable / jifa helpers", () => {

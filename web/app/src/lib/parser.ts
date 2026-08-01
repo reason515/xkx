@@ -2125,8 +2125,9 @@ export function parseSkills(text: string): SkillRow[] {
   for (const line of text.split("\n")) {
     const t = line.replace(/[│┃]/g, "").trim();
     // skills.c: 中文 (id) - 精通  level/learned
+    // 特殊功夫行可能只有英文 id（e2c 词典缺词条时，如 taiyi-jian (taiyi-jian)）
     let m = t.match(
-      /^([□√])?\s*([\u4e00-\u9fff][\u4e00-\u9fffA-Za-z0-9_\-·\s]{0,24}?)\s*\(([a-z][a-z0-9_\-]{1,30})\)\s*[-–—]\s*(\S+)\s+(\d+)\s*\/\s*(\d+)/i
+      /^([□√])?\s*((?:[\u4e00-\u9fff][\u4e00-\u9fffA-Za-z0-9_\-·\s]{0,24}?)|(?:[a-z][a-z0-9_\-]{1,30}))\s*\(([a-z][a-z0-9_\-]{1,30})\)\s*[-–—]\s*(\S+)\s+(\d+)\s*\/\s*(\d+)/i
     );
     if (m) {
       const id = m[3].toLowerCase();

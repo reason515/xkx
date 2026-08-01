@@ -27,6 +27,14 @@ void create()
 {
 	seteuid(getuid());
 	restore();
+	// 新手村太乙系列中文名：词典缺失时补充（skills/enable/cha 等处 to_chinese 受益）
+	if (undefinedp(dict["taiyi-jian"])) {
+		dict["taiyi-jian"] = "太乙剑法";
+		dict["taiyi-shengong"] = "太乙神功";
+		dict["taiyi-you"] = "太乙神游";
+		dict["taiyi-zhang"] = "太乙掌法";
+		save();
+	}
 }
 
 void remove()
