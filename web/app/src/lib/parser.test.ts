@@ -1959,9 +1959,21 @@ describe("isMyCombatLine", () => {
     expect(isMyCombatLine("你一招「横扫千军」向店小二攻去。")).toBe(true);
     expect(isMyCombatLine("你身子一侧，闪过了店小二的一击。")).toBe(true);
     expect(isMyCombatLine("老虎向你扑来！")).toBe(true);
+    expect(isMyCombatLine("老虎扑向你！")).toBe(true);
+    expect(isMyCombatLine("你见野兔攻击失误，趁机发动攻击！")).toBe(true);
     expect(isMyCombatLine("张三攻击李四。")).toBe(false);
     expect(isMyCombatLine("你环顾四周。")).toBe(false);
     expect(isMyCombatLine("你看见地上有一把长剑。")).toBe(false);
+  });
+
+  it("does not fire on non-combat interactions with 你", () => {
+    // 回归：见闻中的普通交互不得触发战斗弹出
+    expect(isMyCombatLine("游鲲翼对你竖起了大拇指，道：「好俊的身手！」")).toBe(false);
+    expect(isMyCombatLine("你向北走去，来到了集镇小道。")).toBe(false);
+    expect(isMyCombatLine("你向游鲲翼打听有关「闯荡江湖」的消息。")).toBe(false);
+    expect(isMyCombatLine("你手足并用，飞快的向上攀爬。")).toBe(false);
+    expect(isMyCombatLine("干的不错，你被奖励了二十点经验，一百点潜能！")).toBe(false);
+    expect(isMyCombatLine("丫鬟上前把大门关了起来。")).toBe(false);
   });
 });
 
