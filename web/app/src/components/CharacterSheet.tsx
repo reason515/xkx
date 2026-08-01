@@ -202,7 +202,7 @@ function ForceExertBlock({
   onCmd,
 }: {
   state: GameState;
-  onCmd: (cmd: string) => void;
+  onCmd: (cmd: string, opts?: { feedback?: boolean }) => void;
 }) {
   const mapped = hasMappedForce(state.enabled);
   const learned = hasLearnedForceSkill(state.skills);
@@ -227,7 +227,7 @@ function ForceExertBlock({
                 className="skill-act chip"
                 title={act.hint}
                 data-testid={`force-exert-${act.id}`}
-                onClick={() => onCmd(act.command)}
+                onClick={() => onCmd(act.command, { feedback: true })}
               >
                 {act.label}
               </button>
@@ -601,7 +601,7 @@ export function CharacterSheet({
                 [
                   {
                     key: "qi",
-                    label: "气血",
+                    label: "气",
                     cur: v.qi,
                     cap: vitalCap(v, "qi"),
                     innate: v.maxQi,
@@ -609,7 +609,7 @@ export function CharacterSheet({
                   },
                   {
                     key: "jing",
-                    label: "精神",
+                    label: "精",
                     cur: v.jing,
                     cap: vitalCap(v, "jing"),
                     innate: v.maxJing,
