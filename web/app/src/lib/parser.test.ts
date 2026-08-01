@@ -1851,6 +1851,15 @@ describe("parseInventory", () => {
     });
   });
 
+  it("offers 阅读 for 江湖掌故 (no book keyword in name)", () => {
+    const [book] = parseInventory(`  江湖掌故(jianghu zhanggu)`);
+    expect(book.actions).toContainEqual({
+      label: "阅读",
+      command: "read jianghu zhanggu for 1",
+      kind: "read",
+    });
+  });
+
   it("classifies wear vs wield by id and name", () => {
     expect(classifyInvEquip("cloth", "布衣")).toBe("armor");
     expect(classifyInvEquip("gangdao", "钢刀")).toBe("weapon");

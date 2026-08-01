@@ -2775,7 +2775,8 @@ export function classifyInvActions(id: string, name: string, type: string): InvA
   // Books / scrolls / letters — can be read or studied.
   // Do not treat generic tokens such as 令/牌 as readable: many are quest
   // tokens (for example 赏善令、罚恶令) with no `read` command handler.
-  if (/book|纸|信|经|谱|册|卷|页|图|笺|简|帖|签|簿/i.test(name + id + type)) {
+  // 故（江湖掌故、故事书等）也是可读书籍
+  if (/book|纸|信|经|谱|册|卷|页|图|笺|简|帖|签|簿|故/i.test(name + id + type)) {
     actions.push({ label: "阅读", command: `read ${id} for 1`, kind: "read" });
   }
   if (/经|谱|秘|典|法|功|决|诀|图|解|录|要|术/i.test(name) || /book|paper|shu|jing/i.test(blob)) {
