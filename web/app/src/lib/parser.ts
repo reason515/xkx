@@ -2900,6 +2900,17 @@ export function isTrainLine(text: string): boolean {
   return /(?:打坐|吐纳|练功|缓缓|盘膝|调息)/.test(text);
 }
 
+/**
+ * 学艺（learn）的实际反馈行（学习心得/限制提示），排除「你向X请教…」命令回显。
+ * 挂机学艺时以 toast 直接展示见闻中的反馈文本。
+ */
+export function isLearnFeedbackLine(text: string): boolean {
+  if (!text.includes("你")) return false;
+  return /(?:听了.{0,12}的指导|有些心得|进步了|只能学到五级|潜能不够)/.test(
+    text
+  );
+}
+
 const SKILL_MASTERY =
   /初学乍练|粗通皮毛|半生不熟|马马虎虎|驾轻就熟|出类拔萃|神乎其技|出神入化|登峰造极|一代宗师|新学乍用|初窥门径|略知一二|已有小成|心领神会|了然於胸|豁然贯通|举世无双|震古铄今|深不可测/;
 

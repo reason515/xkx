@@ -16,6 +16,7 @@ import {
   isLoginNoise,
   isMorePromptLine,
   isCombatEndLine,
+  isLearnFeedbackLine,
   isMyCombatLine,
   isProtocolNoise,
   isSelfLookLine,
@@ -657,9 +658,10 @@ export function useGame(opts?: UseGameOptions) {
         if (ev.type === "assist.status") {
           const message = String(ev.message || "").trim();
           if (ev.active) {
-            // 重要提示弹 toast；例行心跳（交手中/等候刷新）只走挂机条，避免刷屏冲掉可读时间
+            // 重要提示弹 toast；例行状态（学艺中/练功中/调息中等）只走挂机条，
+            // 学艺反馈以 isLearnFeedbackLine 走真实文本 toast，避免与见闻不一致
             if (
-              /助手进行中|战斗辅助|前往石室|石壁领悟|精力不足|无法赶路|无法前往|撤回受阻|请先跟随|落点沙滩|动作受阻|改道前往|忙碌中|正在调息|力尽昏迷|学艺中|调息中|等待中|练功中|修炼助手|你的「.+」进步了/.test(
+              /助手进行中|战斗辅助|前往石室|石壁领悟|精力不足|无法赶路|无法前往|撤回受阻|请先跟随|落点沙滩|动作受阻|改道前往|忙碌中|正在调息|力尽昏迷|修炼助手|你的「.+」进步了/.test(
                 message
               )
             ) {
@@ -819,6 +821,10 @@ export function useGame(opts?: UseGameOptions) {
               ...s,
               trainLog: [...s.trainLog.slice(-40), line],
             }));
+          }
+          // 学艺反馈：以 toast 直接展示见闻中的反馈文本（浮层内学艺时也能看到）
+          if (isLearnFeedbackLine(line)) {
+            toastScheduler.current.showUnlessSame(line.trim());
           }
           // 战斗状态（用于触发悬浮绝招按钮/自动展开见闻）：结束行优先收起
           if (isCombatEndLine(line)) {

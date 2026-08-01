@@ -28,6 +28,7 @@ import {
   isRoomLookLine,
   suggestedActionsFromRoomText,
   isTrainLine,
+  isLearnFeedbackLine,
   labelAskTopic,
   labelSuggestedAction,
   mudCommandTarget,
@@ -1977,6 +1978,20 @@ describe("isTrainLine", () => {
   it("detects training-related lines", () => {
     expect(isTrainLine("你盘膝坐下，开始打坐吐纳。")).toBe(true);
     expect(isTrainLine("你向北方走去。")).toBe(false);
+  });
+});
+
+describe("isLearnFeedbackLine", () => {
+  it("detects learning feedback but not the command echo", () => {
+    expect(isLearnFeedbackLine("你听了武师的指导，对「基本内功」这一招似乎有些心得。")).toBe(true);
+    expect(isLearnFeedbackLine("你听了武师的指导，似乎有些心得。")).toBe(true);
+    expect(isLearnFeedbackLine("你的「太乙剑法」进步了！")).toBe(true);
+    expect(isLearnFeedbackLine("你只能学到五级的高级功夫。")).toBe(true);
+    expect(isLearnFeedbackLine("你的潜能不够，没有办法再成长了。")).toBe(true);
+    // 命令回显与无关行不触发
+    expect(isLearnFeedbackLine("你向武师请教有关「基本内功」的疑问。")).toBe(false);
+    expect(isLearnFeedbackLine("你向北方走去。")).toBe(false);
+    expect(isLearnFeedbackLine("张三攻击李四。")).toBe(false);
   });
 });
 
