@@ -6,6 +6,27 @@
 
 > 原版来源 [mudchina/xkx2011](https://github.com/mudchina/xkx2011)（GBK）。本仓库将编码统一为 UTF-8，修复部分兼容问题，并新增轻量 Web 游玩体验。仅供学习交流；如认为涉及版权请联系维护者处理。
 
+## 仓库与推送（重要）
+
+**本项目的 GitHub 仓库是 <https://github.com/reason515/xkx>**，SSH 地址：`git@github.com:reason515/xkx.git`。
+
+本机 clone 的历史 remote 配置容易搞混，请注意：
+
+```bash
+# 当前 remote 一览
+git remote -v
+#   origin  https://github.com/xiongmao86/xkx2001-utf8.git   ← 旧镜像，只读（reason515 无写权限，推送报 403）
+#   xkx     git@github.com:reason515/xkx.git                  ← 真正的仓库，推送用它
+
+# 推送本分支（推荐）
+git push xkx master
+
+# 一键修正 origin，之后直接 git push origin master 即可
+# git remote set-url origin git@github.com:reason515/xkx.git
+```
+
+> 判断标准：push 报 `Permission to xiongmao86/xkx2001-utf8.git denied to reason515` 就是推错仓库了，改用 `xkx` remote。
+
 ## 特性
 
 - **UTF-8 全库**：可在 macOS / Linux / WSL 上运行 FluffOS 驱动
