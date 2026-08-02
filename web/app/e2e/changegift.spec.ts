@@ -34,7 +34,7 @@ test("杏子林游鲲翼可重新设置属性（场景动作 Tab 入口）", asy
   await expect(giftChip).toBeVisible({ timeout: 8000 });
   await giftChip.click();
   // 属性设置界面
-  await expect(page.locator(".changegift-attrs")).toBeVisible({ timeout: 5000 });
+  await expect(page.locator(".attr-cards")).toBeVisible({ timeout: 5000 });
   // 确认（初始 20/20/20/20 = 80 合法）
   await page.locator('[data-testid="changegift-confirm"]').first().click();
   await page.waitForTimeout(3000);
