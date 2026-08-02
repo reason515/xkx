@@ -355,6 +355,8 @@ void send_quest_status(object me)
 	
 	index = me->query("newbie_village/quest_index");
 	if (index < 1) index = 0; /* 毕业/无任务时推 0，前端隐藏新手任务条 */
+	/* 已毕业角色（含修复前遗留 quest_index 的老号）一律推 0，防止任务条在扬州复活 */
+	if (me->query("newbie_village/done")) index = 0;
 	
 	emit_raw(me, sprintf(
 		"{\"v\":1,\"type\":\"newbie.quest_status\",\"index\":%d}",

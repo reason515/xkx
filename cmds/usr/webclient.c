@@ -10,6 +10,10 @@ int main(object me, string arg)
 
 	if (!objectp(me)) return 0;
 	WEBD->mark_web_client(me);
+	/* 历史遗留：修复前毕业的老号保存文件里仍带 quest_index，登录时清除，
+	 * 避免新手任务条在扬州复活；send_quest_status 另有 done 兜底。 */
+	if (me->query("newbie_village/done") && me->query("newbie_village/quest_index"))
+		me->delete("newbie_village/quest_index");
 	/* 已有任务进度的重登玩家立刻收到目标；新角色会在出生剧情设定
 	 * 任务后再由房间推送，避免前端为等任务状态空白数秒。 */
 	WEBD->send_quest_status(me);
