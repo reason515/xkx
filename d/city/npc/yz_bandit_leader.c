@@ -13,6 +13,7 @@ void create()
 	set("str", 28);
 	set("con", 26);
 	set("combat_exp", 3000);
+	set("max_qi", 450);
 	set_skill("unarmed", 30);
 	set_skill("dodge", 30);
 	set_skill("parry", 30);

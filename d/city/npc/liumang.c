@@ -11,6 +11,7 @@ void create()
 	set("long", "他是一个成天游手好闲的流氓，长得倒是白白胖胖的，也许以前有过钱。\n");
 	
 	set("combat_exp", 1000);
+	set("max_qi", 250);
 	set("shen_type", -1);
 
 	set("attitude", "heroism");

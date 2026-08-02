@@ -261,6 +261,14 @@ void do_graduate(object who)
 	pt = 2000 + random(100);
 	who->add("potential", pt);
 
+	// 发放基础兵器（毕业新手伤害来源）
+	if (!present("changjian", who))
+	{
+		object wp = new("/clone/weapon/changjian");
+		if (objectp(wp))
+			wp->move(who);
+	}
+
 	// 更新毕业生标志
 	who->set("newbie_village/done", 1);
 	who->set("startroom", "/d/city/kedian");

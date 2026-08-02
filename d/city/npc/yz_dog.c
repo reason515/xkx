@@ -11,6 +11,7 @@ void create()
 	set("long", "一条瘦削的野狗来回踱步，不时露出尖牙低吼。\n");
 	set("attitude", "peaceful");
 	set("combat_exp", 1000);
+	set("max_qi", 250);
 	set_temp("apply/attack", 16);
 	set_temp("apply/defense", 14);
 	set_temp("apply/damage", 8);

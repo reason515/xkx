@@ -30,8 +30,22 @@ mixed calc_damage(object me, object victim, object weapon, mapping my, mapping y
     if (action["damage"])
         damage += action["damage"] * damage / 100;
 
-    // 膂力加成
+    // 膂力加成（修复：加入技能等级贡献，使练功直接提升伤害）
     damage_bonus = me->query_str();
+    if (martial_skill)
+        damage_bonus += me->query_skill(martial_skill, 1) / 2;
+    // 打怪 exp 伤害贡献（仅对 NPC 生效，避免 PvP 失衡）：
+    // 经验直接转化为对怪物伤害，解决 xkx2001 无武器/技能时打怪效率低的问题
+    if (!userp(victim))
+    {
+        int my_exp = me->query("combat_exp");
+        if (my_exp < 100000)
+            damage_bonus += my_exp / 1000;          // 1万→10, 10万→100
+        else if (my_exp < 1000000)
+            damage_bonus += 100 + (my_exp - 100000) / 1000;  // 100万→1000
+        else
+            damage_bonus += 1000 + (my_exp - 1000000) / 2000; // 1亿→46000
+    }
     if (action["force"])
         damage_bonus += action["force"] * damage_bonus / 100;
 

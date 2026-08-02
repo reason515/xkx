@@ -16,6 +16,7 @@ void create()
 	set("cor", 30);
 
 	set("combat_exp", 1000);
+	set("max_qi", 250);
 
 //	set("chat_chance", 6);
 //	set("chat_msg", ({

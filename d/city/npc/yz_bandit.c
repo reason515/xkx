@@ -11,6 +11,7 @@ void create()
 	set("attitude", "heroism");
 	set("shen_type", -1);
 	set("combat_exp", 2500);
+	set("max_qi", 400);
 	set_skill("unarmed", 25);
 	set_skill("dodge", 25);
 	set_skill("parry", 20);

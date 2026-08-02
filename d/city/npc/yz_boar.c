@@ -13,6 +13,7 @@ void create()
 	set("str", 28);
 	set("con", 25);
 	set("combat_exp", 1500);
+	set("max_qi", 300);
 	set_temp("apply/attack", 20);
 	set_temp("apply/defense", 16);
 	set_temp("apply/damage", 12);

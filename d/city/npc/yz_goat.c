@@ -11,6 +11,7 @@ void create()
 	set("long", "一头野羊低头啃草，粗短的羊角透着一股倔劲。\n");
 	set("attitude", "peaceful");
 	set("combat_exp", 750);
+	set("max_qi", 200);
 	set_temp("apply/attack", 13);
 	set_temp("apply/defense", 12);
 	set_temp("apply/damage", 7);

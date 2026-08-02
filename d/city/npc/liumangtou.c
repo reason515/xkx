@@ -11,6 +11,7 @@ void create()
 	set("long", "他长得奸嘴猴腮的，一看就不像是个好人。\n");
 	
 	set("combat_exp", 7000);
+	set("max_qi", 600);
 	set("shen_type", -1);
 	set("attitude", "heroism");
 	
