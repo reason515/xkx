@@ -78,15 +78,18 @@ export function RoomGraph({ map, currentRoomId }: Props) {
   const VW = cols * gx + pad * 2;
   const VH = rows * gy + pad * 2;
 
-  // Build edge segments
+  // Build edge segments. Route edges are oriented away from the current room
+  // so the exit arrow always points outward from wherever the player stands.
   const edgeSegments = edges.map(e => {
     const from = byId.get(e.from), to = byId.get(e.to);
     if (!from || !to) return null;
-    const fx = pad + px(from.col), fy = pad + py(from.row);
-    const tx = pad + px(to.col), ty = pad + py(to.row);
-    const trimmed = trimToNode(fx, fy, tx, ty, nodeW, nodeH);
     const isRoute = cur && (e.from === cur.id || e.to === cur.id);
     const isClimb = e.from === "huanpo" && e.to === "qingshiqiaotou";
+    const a = isRoute && e.to === cur.id ? to : from;
+    const b = isRoute && e.to === cur.id ? from : to;
+    const fx = pad + px(a.col), fy = pad + py(a.row);
+    const tx = pad + px(b.col), ty = pad + py(b.row);
+    const trimmed = trimToNode(fx, fy, tx, ty, nodeW, nodeH);
     return { ...e, x1: trimmed.x1, y1: trimmed.y1, x2: trimmed.x2, y2: trimmed.y2, isRoute, isClimb };
   }).filter(Boolean) as (MapEdge & { x1: number; y1: number; x2: number; y2: number; isRoute: boolean; isClimb: boolean })[];
 
@@ -152,9 +155,17 @@ export function RoomGraph({ map, currentRoomId }: Props) {
         </g>
 
         {/* Zone labels */}
-        <text x={pad + px(2)} y={pad + py(0) - 8} fill={C.area} fontSize={12} fontWeight={500} letterSpacing={4}>柳 秀 山 庄</text>
-        <text x={pad + px(2)} y={pad + py(9.5)} fill={C.area} fontSize={12} fontWeight={500} letterSpacing={4}>集 镇</text>
-        <text x={pad + px(2)} y={pad + py(14)} fill={C.area} fontSize={12} fontWeight={500} letterSpacing={4}>未 明 谷</text>
+        {map.zones?.map(z => (
+          <text
+            key={z.label}
+            x={pad + px(z.col)}
+            y={pad + py(z.row) + (z.dy ?? 0)}
+            fill={C.area}
+            fontSize={12}
+            fontWeight={500}
+            letterSpacing={z.letterSpacing ?? 4}
+          >{z.label}</text>
+        ))}
 
         {/* Edges */}
         {edgeSegments.map(seg => (

@@ -33,7 +33,7 @@ interface Props {
 export function MapSheet({
   roomTitle,
   roomArea,
-  roomPath: _roomPath,
+  roomPath,
   roomNpcs: _roomNpcs = [],
   roomItems: _roomItems = [],
   roomExits = [],
@@ -59,16 +59,30 @@ export function MapSheet({
     const mapKey =
       area === "newbie_lxsz" || area === "liuxiu-shanzhuang"
         ? "newbie_lxsz"
-        : null;
+        : area === "city" || area === "yangzhou"
+          ? "yangzhou"
+          : null;
     if (!mapKey || !AREA_MAPS[mapKey]) return null;
     const map = AREA_MAPS[mapKey] as RoomMap;
+
+    // 1) 精确匹配：roomPath 对应 LPC 文件名（同名房间如 东大街×3 必须靠它区分）
+    const pathKey = (roomPath || "").toLowerCase().replace(/\.c$/, "");
+    if (pathKey) {
+      const byPath = map.nodes.find(
+        (n) =>
+          n.path &&
+          (n.path.toLowerCase() === pathKey ||
+            pathKey.endsWith(`/${n.path.toLowerCase()}`))
+      );
+      if (byPath) return { map, currentId: byPath.id };
+    }
+
+    // 2) 标题模糊匹配 + 出口去重
     const title = (roomTitle || "").replace(/[【】\[\]「」]/g, "").trim();
-    // Find current room by fuzzy-matching title
-    const candidates = map.nodes.filter((n) =>
-      title.includes(n.name) || n.name.includes(title)
+    const candidates = map.nodes.filter(
+      (n) => title.includes(n.name) || n.name.includes(title)
     );
     let currentId = candidates[0]?.id;
-    // Disambiguate using exit destinations
     if (candidates.length > 1) {
       const exitNames = new Set(roomExits.map((e) => (e.name || "").trim()).filter(Boolean));
       let bestScore = 0;
@@ -87,7 +101,7 @@ export function MapSheet({
       }
     }
     return { map, currentId };
-  }, [roomArea, roomTitle, roomExits]);
+  }, [roomArea, roomTitle, roomExits, roomPath]);
 
   const worldText = getMapText("all") || "";
 
