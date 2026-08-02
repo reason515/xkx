@@ -20,7 +20,7 @@ describe("ChangeGiftSheet", () => {
     expect(html).toContain("根骨");
     expect(html).toContain("身法");
     expect(html).toContain("确认重设");
-    expect(html).toContain("总和 80/80");
+    expect(html).toContain("80 / 80");
   });
 
   it("disables confirm when sum is not 80", () => {

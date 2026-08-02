@@ -15,40 +15,50 @@ const ATTRS: {
   key: "str" | "int" | "con" | "dex";
   label: string;
   desc: string;
+  css: string;
 }[] = [
-  { key: "str", label: "膂力", desc: "近身攻击威力与负重" },
-  { key: "int", label: "悟性", desc: "领悟武功与学习速度" },
-  { key: "con", label: "根骨", desc: "气血上限与体格" },
-  { key: "dex", label: "身法", desc: "闪避与出手速度" },
+  { key: "str", label: "膂力", desc: "近身攻击威力与负重", css: "var(--attr-str)" },
+  { key: "int", label: "悟性", desc: "领悟武功与学习速度", css: "var(--attr-int)" },
+  { key: "con", label: "根骨", desc: "气血上限与体格", css: "var(--attr-con)" },
+  { key: "dex", label: "身法", desc: "闪避与出手速度", css: "var(--attr-dex)" },
 ];
 
 /**
  * 杏子林游鲲翼「重新设置属性」（changegift，一生一次）。
  * 前四项（膂力/悟性/根骨/身法）总和 80，单项 10–30；福缘/容貌保持当前。
+ * 视觉与毕业属性选择（AttributeSheet）一致：属性色卡片 + 分配条。
  */
 export function ChangeGiftSheet({ initial, onConfirm, onClose }: Props) {
-  const [values, setValues] = useState<Record<"str" | "int" | "con" | "dex", number>>({
+  const [vals, setVals] = useState<Record<"str" | "int" | "con" | "dex", number>>({
     str: Math.max(MIN, Math.min(MAX, initial?.str ?? 20)),
     int: Math.max(MIN, Math.min(MAX, initial?.int ?? 20)),
     con: Math.max(MIN, Math.min(MAX, initial?.con ?? 20)),
     dex: Math.max(MIN, Math.min(MAX, initial?.dex ?? 20)),
   });
 
-  const sum = values.str + values.int + values.con + values.dex;
-  const valid = sum === BUDGET && ATTRS.every((a) => values[a.key] >= MIN && values[a.key] <= MAX);
+  const sum = vals.str + vals.int + vals.con + vals.dex;
   const remaining = BUDGET - sum;
+  const valid = remaining === 0 && ATTRS.every((a) => vals[a.key] >= MIN && vals[a.key] <= MAX);
 
-  const setAttr = (key: "str" | "int" | "con" | "dex", delta: number) => {
-    setValues((v) => {
-      const next = Math.max(MIN, Math.min(MAX, v[key] + delta));
-      return { ...v, [key]: next };
+  const adj = (key: "str" | "int" | "con" | "dex", delta: number) => {
+    setVals((prev) => {
+      const next = prev[key] + delta;
+      if (next < MIN || next > MAX) return prev;
+      const nextSum =
+        next +
+        (key === "str" ? 0 : prev.str) +
+        (key === "int" ? 0 : prev.int) +
+        (key === "con" ? 0 : prev.con) +
+        (key === "dex" ? 0 : prev.dex);
+      if (delta > 0 && nextSum > BUDGET) return prev;
+      return { ...prev, [key]: next };
     });
   };
 
   const hint = useMemo(() => {
-    if (sum === BUDGET) return "属性总和刚好 80，可以确认。";
-    return remaining > 0 ? `还需分配 ${remaining} 点` : `超出 ${-remaining} 点`;
-  }, [sum, remaining]);
+    if (valid) return "刚好分满，可以确认。";
+    return remaining > 0 ? `还差 ${remaining} 点` : `超出 ${-remaining} 点`;
+  }, [valid, remaining]);
 
   return (
     <div className="overlay open" onClick={onClose}>
@@ -60,32 +70,49 @@ export function ChangeGiftSheet({ initial, onConfirm, onClose }: Props) {
           </button>
         </div>
         <div className="sheet-scroll">
-          <p className="skill-hint">
+          <p className="attr-intro">
             柳秀山庄所学皆为引路之法。离开此地前，你可依心中所向，重定先天属性一次（福缘、容貌保持不变）。此后不可更改。
           </p>
-          <div className="changegift-attrs">
+
+          <div className="attr-remaining">
+            <span>已分配：</span>
+            <span className={valid ? "remain-ok" : "remain-pending"}>
+              {sum} / {BUDGET}
+            </span>
+            <span className={valid ? "remain-ok" : "remain-pending"}>{hint}</span>
+          </div>
+
+          <div className="attr-cards">
             {ATTRS.map((a) => (
-              <div key={a.key} className="changegift-attr">
-                <div className="changegift-attr-head">
-                  <span className="changegift-attr-label">{a.label}</span>
-                  <span className="changegift-attr-value">{values[a.key]}</span>
-                  <span className="changegift-attr-desc">{a.desc}</span>
+              <div key={a.key} className="attr-card" data-attr={a.key}>
+                <div className="attr-card-top">
+                  <span className="attr-label" style={{ color: a.css }}>
+                    {a.label}
+                  </span>
+                  <span className="attr-numbers">
+                    <span className="attr-init">{initial?.[a.key] ?? 20}</span>
+                    <span className="attr-arrow"> → </span>
+                    <span className="attr-final" style={{ color: a.css }}>
+                      {vals[a.key]}
+                    </span>
+                  </span>
                 </div>
-                <div className="changegift-attr-controls">
+                <p className="attr-desc">{a.desc}</p>
+                <div className="attr-controls">
                   <button
                     type="button"
-                    className="skill-act chip"
-                    disabled={values[a.key] <= MIN}
-                    onClick={() => setAttr(a.key, -1)}
+                    className="attr-btn"
+                    disabled={vals[a.key] <= MIN}
+                    onClick={() => adj(a.key, -1)}
                     aria-label={`降低${a.label}`}
                   >
-                    −
+                    －
                   </button>
                   <button
                     type="button"
-                    className="skill-act chip"
-                    disabled={values[a.key] >= MAX}
-                    onClick={() => setAttr(a.key, 1)}
+                    className="attr-btn"
+                    disabled={vals[a.key] >= MAX}
+                    onClick={() => adj(a.key, 1)}
                     aria-label={`提高${a.label}`}
                   >
                     ＋
@@ -94,9 +121,6 @@ export function ChangeGiftSheet({ initial, onConfirm, onClose }: Props) {
               </div>
             ))}
           </div>
-          <p className={`changegift-sum${valid ? " ok" : ""}`}>
-            总和 {sum}/80 · {hint}
-          </p>
         </div>
         <div className="sheet-acts">
           <button
@@ -104,9 +128,7 @@ export function ChangeGiftSheet({ initial, onConfirm, onClose }: Props) {
             className="go"
             data-testid="changegift-confirm"
             disabled={!valid}
-            onClick={() =>
-              onConfirm(values.str, values.int, values.con, values.dex)
-            }
+            onClick={() => onConfirm(vals.str, vals.int, vals.con, vals.dex)}
           >
             确认重设
           </button>
