@@ -8,9 +8,15 @@ import {
   mudCommandTarget,
   parseBoardReadActions,
 } from "../lib/parser";
-import type { AssistConfig, InvItem, SuggestedAction } from "../lib/types";
+import type {
+  AssistConfig,
+  InvItem,
+  ScoreAttr,
+  SuggestedAction,
+} from "../lib/types";
 import { ChoiceRow } from "./ChoiceRow";
 import { ShopView } from "./ShopView";
+import { ChangeGiftSheet } from "./ChangeGiftSheet";
 
 interface Props {
   id: string;
@@ -29,6 +35,15 @@ interface Props {
   canBeg?: boolean | number;
   canPersuade?: boolean | number;
   canWithdraw?: boolean | number;
+  /** 杏子林游鲲翼：可重新设置先天属性（changegift，一生一次）。 */
+  canChangeGift?: boolean | number;
+  /** 当前先天属性（用于 changegift 界面初始值）。 */
+  initialAttrs?: {
+    str?: ScoreAttr;
+    int?: ScoreAttr;
+    con?: ScoreAttr;
+    dex?: ScoreAttr;
+  };
   isContainer?: boolean | number;
   isBook?: boolean | number;
   canSit?: boolean | number;
@@ -79,6 +94,8 @@ export function EntitySheet({
   canLead = false,
   canBeg = false,
   canPersuade = false,
+  canChangeGift = false,
+  initialAttrs,
   isContainer = false,
   isBook = false,
   canSit = false,
@@ -101,6 +118,7 @@ export function EntitySheet({
   const [learning, setLearning] = useState(false);
   const [giving, setGiving] = useState(false);
   const [shopMode, setShopMode] = useState(initialShopMode);
+  const [changeGiftOpen, setChangeGiftOpen] = useState(false);
   const [learnAction, setLearnAction] = useState<SuggestedAction | null>(null);
   const [learnStop, setLearnStop] = useState<"count" | "potential">("count");
   const [learnCount, setLearnCount] = useState(1);
@@ -508,6 +526,7 @@ export function EntitySheet({
                   <button type="button" onClick={() => setGiving(true)}>给予</button>
                   {!!canApprentice && (<button type="button" className="entity-action-jade" onClick={() => runNpcAction(`apprentice ${askTarget}`)}>拜师</button>)}
                   {(!!canTrade || !!canSell) && (<button type="button" data-testid="entity-trade" className="entity-action-jade" onClick={() => setShopMode(true)}>交易</button>)}
+                  {!!canChangeGift && (<button type="button" data-testid="entity-changegift" className="entity-action-jade" onClick={() => setChangeGiftOpen(true)}>重新设置属性</button>)}
                   {!!canLead && (<button type="button" onClick={() => runNpcAction(`lead ${askTarget}`)}>带领</button>)}
                   <button type="button" onClick={() => runNpcAction(`fight ${askTarget}`)}>切磋</button>
                   <button type="button" className="entity-action-danger" onClick={() => runNpcAction(`kill ${askTarget}`)}>攻击</button>
@@ -581,6 +600,21 @@ export function EntitySheet({
           </div>
         )}
       </div>
+      {changeGiftOpen && (
+        <ChangeGiftSheet
+          initial={{
+            str: initialAttrs?.str?.cur,
+            int: initialAttrs?.int?.cur,
+            con: initialAttrs?.con?.cur,
+            dex: initialAttrs?.dex?.cur,
+          }}
+          onClose={() => setChangeGiftOpen(false)}
+          onConfirm={(str, intel, con, dex) => {
+            onAction(`changegift ${str} ${intel} ${con} ${dex}`);
+            setChangeGiftOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

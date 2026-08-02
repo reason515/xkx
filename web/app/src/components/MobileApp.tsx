@@ -725,6 +725,8 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           canBeg={g.selectedEntity.canBeg}
           canPersuade={g.selectedEntity.canPersuade}
           canWithdraw={g.selectedEntity.canWithdraw}
+          canChangeGift={g.selectedEntity.canChangeGift}
+          initialAttrs={state.score?.attrs}
           initialShopMode={!!(g.selectedEntity?.canTrade || g.selectedEntity?.canSell)}
           isContainer={g.selectedEntity.isContainer}
           isBook={g.selectedEntity.isBook}

@@ -35,6 +35,8 @@ void create()
 
 	set("combat_exp", 50000);
 	set("attitude", "friendly");
+	/* Web 前端展示「重新设置属性」入口（changegift，一生一次） */
+	set("web/can_changegift", 1);
 	
 	setup();
 }
@@ -62,7 +64,14 @@ int do_changegift(string arg)
      if (me->query("marks/changegift"))
           return notify_fail(RANK_D->query_respect(me)+"，每个人一生只有一次这样的机会！\n");
      
-     if ( !arg || sscanf(arg, "%d %d %d %d %d %d", str, ints, con, dex, kar, per) != 6)
+     /* Web 前端提交 4 项（膂力 悟性 根骨 身法），福缘/容貌保持当前；
+      * 兼容文字客户端的 6 项格式 */
+     if (sscanf(arg, "%d %d %d %d %d %d", str, ints, con, dex, kar, per) == 6) {
+         /* 6 项格式 */
+     } else if (sscanf(arg, "%d %d %d %d", str, ints, con, dex) == 4) {
+         kar = me->query("kar");
+         per = me->query("per");
+     } else
      return notify_fail("指令格式：changegift <膂力> <悟性> <根骨> <身法> <福缘> <容貌>。\n");
 
      if(str+ints+con+dex !=80)
