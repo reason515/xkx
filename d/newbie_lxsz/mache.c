@@ -269,6 +269,10 @@ void do_graduate(object who)
 			wp->move(who);
 	}
 
+	// 毕业补给：补满食物饮水（身无分文也能出发）
+	who->set("food", who->max_food_capacity());
+	who->set("water", who->max_water_capacity());
+
 	// 更新毕业生标志
 	who->set("newbie_village/done", 1);
 	who->set("startroom", "/d/city/kedian");

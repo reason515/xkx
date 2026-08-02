@@ -1,6 +1,7 @@
-// fish.c — 钓到的鱼（可卖给酒楼，零战斗挣钱）
+// fish.c — 钓到的鱼（可吃回精力/卖钱，钓鱼挂机自给自足）
 #include <ansi.h>
 inherit ITEM;
+inherit F_FOOD;
 
 void create()
 {
@@ -12,9 +13,11 @@ void create()
 
 	set_name(name, ({ "fresh fish", "yu", "caught" }));
 	set_weight(300);
-	set("long", "一条刚钓上来的" + name + "，还活蹦乱跳的。可以拿到醉仙楼卖给冼老板换几个铜钱。\n");
+	set("long", "一条刚钓上来的" + name + "，还活蹦乱跳的。可以吃(eat)掉补充体力，也可以拿到醉仙楼卖给冼老板换几个铜钱。\n");
 	set("unit", "条");
 	set("value", 80 + random(220));
 	set("no_sell", 0);
+	set("food_remaining", 3);
+	set("food_supply", 40);
 	setup();
 }

@@ -28,6 +28,25 @@ void init()
 {
 	add_action("do_diao", "diao");
 	add_action("do_get", "get");
+	add_action("do_drink", "drink");
+}
+
+// 水塘喝水（免费，零门槛）
+int do_drink(string arg)
+{
+	object me = this_player();
+	int current_water, max_water;
+
+	current_water = me->query("water");
+	max_water = me->max_water_capacity();
+	if (current_water >= max_water)
+		return notify_fail("你已经喝饱了。\n");
+
+	me->add("water", max_water / 2);
+	if (me->query("water") > max_water)
+		me->set("water", max_water);
+	message_vision("$N蹲在水塘边，捧起清水喝了几口。\n", me);
+	return 1;
 }
 
 // 免费钓竿：房间固定放一根，拿走再刷新
