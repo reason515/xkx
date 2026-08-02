@@ -88,8 +88,8 @@ string get_dart(string escort_id, object ob, mapping *dart_info)
 	// 门槛：新手镖局 combat_exp 上限（防止老玩家刷新手镖），过低不可接
 	if (level < 10 && ob->query("combat_exp") > 2000000)
 		return "你已经在新手镖局获得足够经验了，快到大城市去闯荡一番吧。\n";
-	if (ob->query("combat_exp") < 50000)
-		return "护镖是件危险工作，我看" + RANK_D->query_respect(ob) + "还是先练练基本功再来吧（至少五万经验）。";
+	if (ob->query("combat_exp") < 10000)
+		return "护镖是件危险工作，我看" + RANK_D->query_respect(ob) + "还是先练练基本功再来吧（至少一万经验）。";
 	if (eslvl >= 1 && ob->query("combat_exp") < 100000)
 		return "你需要在低一级镖局积累经验后，才能护送如此贵重的镖银。\n";
 

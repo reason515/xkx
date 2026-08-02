@@ -963,6 +963,28 @@ void killer_reward(object killer, object victim)
             if (victim->query("race") == "人类")
                 killer->add("MKS", 1);
             bls = 1;
+            // 杀怪经验奖励（方案A：补新手期 exp 通道，参考 pkuxkx 经典公式适配）
+            if (userp(killer) && !killer->query_temp("free_rider") &&
+                !victim->query("no_gain_exp"))
+            {
+                int exp_gain, v_exp;
+                v_exp = victim->query("combat_exp");
+                if (v_exp > 0 &&
+                    (killer->query("combat_exp") <= 100000 ||
+                     v_exp * 50 >= killer->query("combat_exp")))
+                {
+                    exp_gain = v_exp / 15;
+                    if (exp_gain < 15)
+                        exp_gain = 15;
+                    if (exp_gain > 3000)
+                        exp_gain = 3000;
+                    killer->add("combat_exp", exp_gain);
+                    killer->add("potential", exp_gain / 10);
+                    killer->add("exp/kill", exp_gain);
+                    tell_object(killer, HIW "你获得" + chinese_number(exp_gain) +
+                        "点实战经验，" + chinese_number(exp_gain / 10) + "点潜能！\n" NOR);
+                }
+            }
         }
         //prevent ppl gain any bonus from killing mengzhu.
         if (!objectp(room = find_object("/d/taishan/fengchan")))

@@ -55,6 +55,9 @@ int do_ju()
     {
         me->add("statistics/newbie_target/wg_suo_degree",1);
     }
+    // 练功产出经验（方案A：新手期 exp 通道之一）
+    me->add("combat_exp", 2 + random(4));
+    me->add("potential", 1);
     if (me->query("statistics/newbie_target/wg_suo_degree")>250)
     {
         tell_object(me,"你觉得自己已经把身体练得很棒了，可以去找郭大侠从军了。\n");

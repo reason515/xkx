@@ -83,7 +83,7 @@ void do_change(object ob)
 	if (tempskill > 400)
 		tempskill = 400;
 
-	me->set("combat_exp", exp / 2 + 50000);
+	me->set("combat_exp", exp / 2 + 10000);
 	me->set_skill("force", tempskill);
 	me->set_skill("unarmed", tempskill);
 	me->set_skill("strike", tempskill);

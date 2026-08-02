@@ -238,14 +238,22 @@ void do_graduate(object who)
 	if (who->query("zyhb")) who->delete("zyhb");
 	if (who->query("suxin")) who->delete("suxin");
 
-	// 清除教学经验、教学物品和货币
-	who->set("combat_exp", 0);
+	// 清除教学经验、教学物品和货币（保留 5000 根基经验，使新手能打赢低级怪）
+	who->set("combat_exp", 5000);
 	who->set("balance", 0);
 	if ((sword = present("taiyi jian", who))) destruct(sword);
 	if ((money = present("gold", who))) destruct(money);
 	if ((money = present("silver", who))) destruct(money);
 	if ((money = present("coin", who))) destruct(money);
 	if ((money = present("cash", who))) destruct(money);
+
+	// 补基础技能（毕业清空后给基本功，保证能打赢低级怪）
+	who->set_skill("unarmed", 20);
+	who->set_skill("strike", 20);
+	who->set_skill("dodge", 20);
+	who->set_skill("parry", 20);
+	who->set_skill("force", 20);
+	who->set_skill("literate", 10);
 
 	// 发放毕业潜能奖励
 	if (who->query("potential") > 20000)
