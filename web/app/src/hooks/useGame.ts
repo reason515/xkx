@@ -120,7 +120,15 @@ function moveNarrative(
   move: { dir: string; verb: string; target?: string } | null,
   title: string
 ): string {
-  if (!move) return `—— ${title} ——`;
+  if (!move) {
+    // 无方向信息（乘车/传送/特殊移动）也用一句话描述，不用破折号
+    const fallback = [
+      `你行至${title}。`,
+      `你来到了${title}。`,
+      `你迈步走进${title}。`,
+    ];
+    return fallback[Math.floor(Math.random() * fallback.length)];
+  }
   const { dir, verb, target } = move;
   // 跟随
   if (verb === "follow" && target) {
@@ -174,7 +182,7 @@ function moveNarrative(
   if (phrases && phrases.length) {
     return phrases[Math.floor(Math.random() * phrases.length)].replace("{title}", title);
   }
-  return `—— ${title} ——`;
+  return `你来到了${title}。`;
 }
 
 export type UseGameOptions = {
