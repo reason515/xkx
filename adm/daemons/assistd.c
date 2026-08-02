@@ -2311,19 +2311,14 @@ void do_fishing_tick(string id)
 		return;
 
 	case "fish":
-		/* 自给自足：精力低吃鱼（吃鱼回精力）、饮水低喝塘水、食物低吃鱼 */
-		if (jingli < 30 && present("fresh fish", me)) {
-			me->force_me("eat fresh fish");
-			sessions[id] = cfg;
-			call_out("fishing_tick", 2, id);
-			return;
-		}
+		/* 饮水低 → 喝塘水 */
 		if ((int)my["water"] * 100 / ((int)my["max_water_capacity"] + 1) < 40) {
 			me->force_me("drink");
 			sessions[id] = cfg;
 			call_out("fishing_tick", 2, id);
 			return;
 		}
+		/* 食物低 → 吃（烤）鱼 */
 		if ((int)my["food"] * 100 / ((int)my["max_food_capacity"] + 1) < 30
 		    && present("fresh fish", me)) {
 			me->force_me("eat fresh fish");
@@ -2331,9 +2326,11 @@ void do_fishing_tick(string id)
 			call_out("fishing_tick", 2, id);
 			return;
 		}
-		/* 精力过低且无鱼可吃 → 等恢复 */
-		if (jingli < 10) {
-			WEBD->send_assist_status(me, 1, "钓鱼挂机 · 精力不足，歇息中");
+		/* 精力低 → 有气功回精(yun refresh)则用，否则原地等待恢复 */
+		if (jingli < 30) {
+			if (stringp(me->query_skill_mapped("force")) && (int)my["neili"] > 20)
+				me->force_me("yun refresh");
+			WEBD->send_assist_status(me, 1, "钓鱼挂机 · 精力不足，调息恢复");
 			sessions[id] = cfg;
 			call_out("fishing_tick", 5, id);
 			return;
