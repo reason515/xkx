@@ -6,6 +6,7 @@
 
 inherit NPC;
 inherit F_VENDOR;
+inherit F_DEALER;
 // inherit F_DEALER;
 
 string ask_me();
@@ -55,6 +56,7 @@ void init()
         ::init();
         add_action("do_buy", "buy");
         add_action("do_list", "list");
+        add_action("do_sell", "sell");
 }
 
 int ask_me()

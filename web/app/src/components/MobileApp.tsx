@@ -706,6 +706,10 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             g.startAssist({ mode: "quest" });
             g.closeSheet();
           }}
+          onStartFishing={() => {
+            g.startAssist({ mode: "fishing" });
+            g.closeSheet();
+          }}
           onStopAssist={g.stopAssist}
           onHalt={g.halt}
         />

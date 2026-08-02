@@ -2235,3 +2235,201 @@ int start_quest_assist(object me)
 	call_out("quest_tick", 1, id);
 	return 1;
 }
+
+/* ==================== 钓鱼挂机（fishing：零战斗挣钱）==================== */
+/* 流程：水塘钓(diao)鱼 → 钓够 N 条回醉仙楼卖(sell fish) → 回水塘循环
+ * 收益：鱼卖钱 + 微末经验/潜能（零战斗，新手友好） */
+
+#define YUTANG "/d/city/yutang"
+#define ZUIXIANLOU "/d/city/zuixianlou2"
+#define FISH_SELL_NUM 8
+
+void fishing_tick(string id);
+
+void do_fishing_tick(string id)
+{
+	object me, env;
+	mapping cfg, my;
+	int jingli, max_jingli;
+
+	if (undefinedp(sessions[id])) return;
+	me = find_player(id);
+	if (!objectp(me)) {
+		map_delete(sessions, id);
+		return;
+	}
+	cfg = sessions[id];
+	if (cfg["kind"] != "fishing") return;
+
+	cfg["ticks"]++;
+	if (cfg["ticks"] > MAX_GRIND_TICKS) {
+		stop_assist(me, "挂机时长已达上限");
+		return;
+	}
+	if (!living(me)) {
+		stop_assist(me, "挂机停止 · 你已力尽昏迷");
+		return;
+	}
+	env = environment(me);
+	if (!objectp(env)) {
+		stop_assist(me, "挂机停止 · 位置异常");
+		return;
+	}
+	my = me->query_entire_dbase();
+	jingli = my["jingli"];
+	max_jingli = my["max_jingli"];
+	if (max_jingli < 1) max_jingli = 1;
+
+	switch (cfg["phase"]) {
+	case "go_pond":
+		if (base_name(env) != YUTANG) {
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"]))
+				cfg["path"] = quest_find_path(me, YUTANG);
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "无法前往水塘，已停止挂机");
+				return;
+			}
+			quest_walk(me, cfg);
+			sessions[id] = cfg;
+			call_out("fishing_tick", 2, id);
+			return;
+		}
+		/* 到水塘：开始垂钓（无需钓竿，零门槛） */
+		cfg["phase"] = "fish";
+		cfg["caught"] = 0;
+		sessions[id] = cfg;
+		WEBD->send_assist_status(me, 1, "钓鱼挂机 · 开始垂钓");
+		call_out("fishing_tick", 1, id);
+		return;
+
+	case "fish":
+		/* 精力低 → 等恢复 */
+		if (jingli < 15) {
+			WEBD->send_assist_status(me, 1, "钓鱼挂机 · 精力不足，歇息中");
+			sessions[id] = cfg;
+			call_out("fishing_tick", 5, id);
+			return;
+		}
+		me->force_me("diao");
+		/* 钓到鱼计数 */
+		cfg["caught"] = (int)cfg["caught"] + 1;
+		if ((int)cfg["caught"] >= FISH_SELL_NUM) {
+			cfg["phase"] = "go_sell";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "钓够啦 · 回城卖鱼");
+			call_out("fishing_tick", 2, id);
+			return;
+		}
+		sessions[id] = cfg;
+		call_out("fishing_tick", 2, id);
+		return;
+
+	case "go_sell":
+		if (base_name(env) != ZUIXIANLOU) {
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"]))
+				cfg["path"] = quest_find_path(me, ZUIXIANLOU);
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "无法前往醉仙楼，已停止挂机");
+				return;
+			}
+			quest_walk(me, cfg);
+			sessions[id] = cfg;
+			call_out("fishing_tick", 2, id);
+			return;
+		}
+		cfg["phase"] = "sell";
+		cfg["sell_waits"] = 0;
+		sessions[id] = cfg;
+		WEBD->send_assist_status(me, 1, "钓鱼挂机 · 卖鱼换钱");
+		call_out("fishing_tick", 1, id);
+		return;
+
+	case "sell":
+		/* 卖包里的鱼（直接入账 balance，绕开经济系统现金流上限） */
+		{
+			object *inv;
+			int i, total, v;
+
+			inv = all_inventory(me);
+			total = 0;
+			for (i = 0; i < sizeof(inv); i++)
+			{
+				if (inv[i]->query("id") == "fresh fish")
+				{
+					v = (int)inv[i]->query("value");
+					total += v * 70 / 100;
+					destruct(inv[i]);
+				}
+			}
+			if (total > 0)
+			{
+				me->add("balance", total);
+				tell_object(me, HIW "你卖掉钓来的鱼，钱庄入账" + chinese_number(total) + "文铜钱。
+" NOR);
+				WEBD->notify_vitals(me);
+			}
+		}
+		/* 卖完 → 回水塘循环 */
+		cfg["phase"] = "go_pond";
+		cfg["path"] = ({});
+		cfg["caught"] = 0;
+		sessions[id] = cfg;
+		WEBD->send_assist_status(me, 1, "钓鱼挂机 · 返回水塘");
+		call_out("fishing_tick", 2, id);
+		return;
+	}
+}
+
+void fishing_tick(string id)
+{
+	mixed err;
+
+	if (undefinedp(sessions[id])) return;
+	err = catch(do_fishing_tick(id));
+	if (err) {
+		if (!undefinedp(sessions[id])) {
+			object me;
+			me = find_player(id);
+			if (objectp(me))
+				WEBD->send_assist_status(me, 1, "钓鱼挂机 · 动作受阻，重试中");
+			call_out("fishing_tick", 3, id);
+		}
+	}
+}
+
+int start_fishing_assist(object me)
+{
+	string id;
+	mapping cfg;
+	object env;
+
+	if (!objectp(me)) return 0;
+	env = environment(me);
+	if (!objectp(env)) {
+		WEBD->send_assist_status(me, 0, "当前位置异常，无法挂机");
+		return 0;
+	}
+	if (!PATHD->is_city_room_path(base_name(env))) {
+		WEBD->send_assist_status(me, 0, "仅可在扬州城内挂钓鱼");
+		return 0;
+	}
+
+	id = me->query("id");
+	stop_assist(me, 0);
+
+	cfg = ([
+		"kind" : "fishing",
+		"phase" : "go_pond",
+		"path" : ({}),
+		"caught" : 0,
+		"sell_waits" : 0,
+		"ticks" : 0,
+	]);
+	sessions[id] = cfg;
+	me->set_temp("web_assist", 1);
+	WEBD->mark_web_client(me);
+	WEBD->send_assist_status(me, 1, "钓鱼挂机 · 前往水塘");
+	call_out("fishing_tick", 1, id);
+	return 1;
+}

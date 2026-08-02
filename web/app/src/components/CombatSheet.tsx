@@ -12,6 +12,7 @@ interface Props {
   onStartGrind?: (grindTarget: string, lowHpPct: number) => void;
   onStartStudy?: (skill: string) => void;
   onStartQuest?: () => void;
+  onStartFishing?: () => void;
   onStopAssist: () => void;
   /** 战斗/busy 中停手（不依赖挂机） */
   onHalt?: () => void;
@@ -27,6 +28,7 @@ export function CombatSheet({
   onStartGrind,
   onStartStudy,
   onStartQuest,
+  onStartFishing,
   onStopAssist,
   onHalt,
   assistActive,
@@ -119,6 +121,20 @@ export function CombatSheet({
                   </button>
                   <p className="quest-assist-desc">
                     自动接衙门悬赏 → 前往击杀目标 → 回衙门领赏，循环进行。
+                  </p>
+                </div>
+              )}
+              {grindArea === "yangzhou" && onStartFishing && (
+                <div className="quest-assist-block">
+                  <button
+                    type="button"
+                    className="chip action"
+                    onClick={() => onStartFishing()}
+                  >
+                    钓鱼挂机
+                  </button>
+                  <p className="quest-assist-desc">
+                    自动前往东郊水塘垂钓，钓到的鱼回醉仙楼卖钱，零战斗挣钱。
                   </p>
                 </div>
               )}

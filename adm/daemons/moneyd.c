@@ -12,7 +12,7 @@
 // Made it to use silver as unit to avoid overflow for cashflow coz the amount may be too long as int, 
 // also increased the limit to 4k golds sdong, 4/8/2000
 //
-#define MAX_CASHFLOW_ALLOWED 400000
+#define MAX_CASHFLOW_ALLOWED 4000000
 
 //function prototypes
 string money_str(int amount);

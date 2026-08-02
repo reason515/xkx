@@ -62,6 +62,11 @@ int main(object me, string arg)
 		return 1;
 	}
 
+	if (arg == "fishing") {
+		ASSIST_D->start_fishing_assist(me);
+		return 1;
+	}
+
 	if (sscanf(arg, "grind %s %d", action, low_hp) == 2) {
 		if (low_hp < 5) low_hp = 5;
 		if (low_hp > 80) low_hp = 80;

@@ -59,6 +59,10 @@ describe("buildAssistCommand", () => {
     assert.equal(buildAssistCommand({ mode: "quest" }), "webassist quest");
   });
 
+  it("builds fishing assist", () => {
+    assert.equal(buildAssistCommand({ mode: "fishing" }), "webassist fishing");
+  });
+
   it("builds xiakedao study wall assist", () => {
     assert.equal(
       buildAssistCommand({ mode: "study", skill: "taixuan-gong" }),
