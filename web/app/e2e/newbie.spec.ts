@@ -89,6 +89,57 @@ test("新手目标在进入游戏后五秒内展示", async ({ page }) => {
   await expect(page.locator(".fqb-pill-text")).toBeVisible();
 });
 
+test("车马行声明雇车动作并可通过场景按钮上车", async ({ page }) => {
+  test.setTimeout(90_000);
+  await loginAsNewbie(page, { asRegister: true });
+  await skipTo(page, 35);
+  await expect(page.locator(".room-title").first()).toHaveText(/车马行/, {
+    timeout: 10_000,
+  });
+  // 车马行有“招牌”虚拟物件；关键动作必须默认展示，而非藏在物品页签后。
+  await expect(
+    page.locator('.scene-tabs [role="tab"]').filter({ hasText: "动作" }).first()
+  ).toHaveAttribute("aria-selected", "true");
+  const hire = page.locator(".chip.action").filter({ hasText: "雇车去扬州" }).first();
+  await expect(hire).toBeVisible({ timeout: 10_000 });
+  await hire.click();
+  await expect(page.locator(".room-title").first()).toHaveText(/马车/, {
+    timeout: 10_000,
+  });
+});
+
+test("确认天赋后完成毕业并进入扬州", async ({ page }) => {
+  test.setTimeout(120_000);
+  await loginAsNewbie(page, { asRegister: true });
+  await skipTo(page, 35);
+
+  const hire = page.locator(".chip.action").filter({ hasText: "雇车去扬州" }).first();
+  await expect(hire).toBeVisible({ timeout: 10_000 });
+  await hire.click();
+  await expect(page.locator(".room-title").first()).toHaveText(/马车/, {
+    timeout: 10_000,
+  });
+
+  // 首次确认仅显示不可逆提示；第二次才打开 Web 天赋分配界面。
+  await sendCmd(page, "qu 扬州");
+  await sendCmd(page, "qu 扬州", 3_000);
+  await expect(page.getByRole("button", { name: "确认天赋", exact: true })).toBeVisible({
+    timeout: 10_000,
+  });
+  await page.getByRole("button", { name: "确认天赋", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "确认，踏入江湖", exact: true })
+  ).toBeVisible();
+  await page.getByRole("button", { name: "确认，踏入江湖", exact: true }).click();
+
+  await expect(page.getByRole("button", { name: "确认，踏入江湖", exact: true })).toHaveCount(0, {
+    timeout: 10_000,
+  });
+  await expect(page.locator(".room-title").first()).toHaveText(/扬州.*广场|中央广场/, {
+    timeout: 10_000,
+  });
+});
+
 test("场景物件名称保留有效语义并滤除叙述残片", async ({ page }) => {
   test.setTimeout(60_000);
   await loginAsNewbie(page, { asRegister: true });

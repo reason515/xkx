@@ -395,6 +395,7 @@ const ACTION_VERBS: Record<string, string> = {
   xia: "下车",
   bath: "洗澡",
   hire: "雇车",
+  gu: "雇车",
   withdraw: "取款",
   deposit: "存款",
   fill: "装水",
@@ -806,6 +807,9 @@ export function labelSuggestedAction(
   if ((verb === "qu" || verb === "goto") && parts[1]) {
     return `乘车去${ent(parts.slice(1).join(" "))}`;
   }
+  // `gu` is a common alias of `hire`; destination ids often have no Chinese
+  // display name, so keep the chip clear rather than exposing raw command ids.
+  if (verb === "hire" || verb === "gu") return "雇车";
   if (verb === "wield" && parts[1]) {
     return `${verbLabel}${ent(parts.slice(1).join(" "))}`;
   }

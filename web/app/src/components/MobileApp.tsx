@@ -284,12 +284,14 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
   const hasNpcs = state.room.npcs.length > 0;
   const hasItems = state.room.items.length > 0;
 
-  // 切换房间时重置场景 tab 到第一个可用项
+  // 切换房间时优先展示 LPC 声明的关键场景动作；否则招牌等虚拟物件会把
+  // 「雇车」这类任务入口藏在“动作”页签后面。
   useEffect(() => {
-    if (hasNpcs) setCtxTab("npcs");
+    if ((state.room.declaredActions?.length ?? 0) > 0) setCtxTab("actions");
+    else if (hasNpcs) setCtxTab("npcs");
     else if (hasItems) setCtxTab("items");
     else if (sceneActions.length > 0) setCtxTab("actions");
-  }, [state.room.title]);
+  }, [state.room.title, state.room.declaredActions]);
 
   const hasNewbieQuest = (state.newbieQuestIndex ?? 0) > 0;
 

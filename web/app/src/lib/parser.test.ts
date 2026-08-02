@@ -303,6 +303,14 @@ describe("isRoomLookLine", () => {
     expect(actions.map((a) => a.command)).toContain("yell boat");
   });
 
+  it("recognizes gu as a hire alias in room hints", () => {
+    const actions = suggestedActionsFromRoomText(
+      "如果你准备好了，就可以雇车(gu yangzhou)离开这里。"
+    );
+    expect(actions).toContainEqual({ command: "gu yangzhou", label: "雇车" });
+    expect(labelSuggestedAction("gu yangzhou")).toBe("雇车");
+  });
+
   it("infers study/du practice from scenery like 石壁 and 书", () => {
     const wallRoom =
       "东面是块打磨光滑的大石壁(wall)，石壁旁点燃着火把。";

@@ -42,6 +42,28 @@ function parseDoors(
   return doors;
 }
 
+/** Room actions declared by LPC, independent of prose parsing conventions. */
+function parseDeclaredActions(raw: unknown): RoomState["declaredActions"] {
+  if (!Array.isArray(raw)) return [];
+  const actions: NonNullable<RoomState["declaredActions"]> = [];
+  const commands = new Set<string>();
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object") continue;
+    const command =
+      typeof (entry as { command?: unknown }).command === "string"
+        ? (entry as { command: string }).command.trim().replace(/\s+/g, " ")
+        : "";
+    if (!command || command.length > 80 || commands.has(command)) continue;
+    const rawLabel = (entry as { label?: unknown }).label;
+    const label = typeof rawLabel === "string" && rawLabel.trim()
+      ? rawLabel.trim()
+      : command;
+    commands.add(command);
+    actions.push({ command, label });
+  }
+  return actions;
+}
+
 export function applyEvent(
   event: MudEvent,
   prev: {
@@ -94,6 +116,8 @@ export function applyEvent(
             ? event.path || undefined
             : prev.room.path,
         canSleep: canSleepFlag || roomAllowsSleep({ title, desc }),
+        // Always clear absent declarations so a previous room's actions cannot leak.
+        declaredActions: parseDeclaredActions(event.actions),
         // Empty exits must replace prior room exits (no-exit rooms like 挂名处)
         exits: Array.isArray(rawExits)
           ? rawExits.map((e) => ({

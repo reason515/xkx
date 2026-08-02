@@ -732,6 +732,8 @@ export function useGame(opts?: UseGameOptions) {
             ...roomUtilityActions(applied.room),
             ...inferredShutDoorActions(applied.room),
             ...carriageTravelActions(applied.room),
+            // LPC-declared affordances override prose heuristics and work for new maps.
+            ...(applied.room.declaredActions || []),
           ];
           // Keep ask/learn narrative chips; regenerate door/car/room chips
           const prevKeep = roomChanged

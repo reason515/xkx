@@ -88,6 +88,8 @@ export interface RoomState {
   path?: string;
   /** From room sleep_room (LPC) or desc/title heuristics. */
   canSleep?: boolean;
+  /** Explicit room affordances declared by LPC (`web/actions`), not prose heuristics. */
+  declaredActions?: SuggestedAction[];
   exits: ExitInfo[];
   /** Shut doors that need open/unlock before the exit appears. */
   doors?: DoorInfo[];

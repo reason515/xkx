@@ -61,6 +61,25 @@ describe("applyEvent", () => {
     });
   });
 
+  it("preserves LPC-declared room actions independently of prose", () => {
+    const next = applyEvent(
+      {
+        v: 1,
+        type: "room.update",
+        title: "车马行",
+        long: "这里是一家马车行。",
+        actions: [{ command: "gu yangzhou", label: "雇车去扬州" }],
+        exits: [],
+        npcs: [],
+        items: [],
+      },
+      basePrev()
+    );
+    expect(next.room.declaredActions).toEqual([
+      { command: "gu yangzhou", label: "雇车去扬州" },
+    ]);
+  });
+
   it("merges scenery and canSleep from rest-room room.update", () => {
     const prev = basePrev();
     const next = applyEvent(

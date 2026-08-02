@@ -14,6 +14,11 @@ void create()
 
     set("outdoors","liuxiu-shanzhuang");
 
+    // Web 场景动作声明：不依赖 long 中的括号指令被前端猜出。
+    set("web/actions", ([
+        "gu yangzhou" : "雇车去扬州",
+    ]));
+
     set("item_desc", ([
         "paizi":"竭诚为新玩家提供方便。\n你可以雇车"+HBBLU"(gu或hire)"NOR+"去扬州。\n",
         ]));

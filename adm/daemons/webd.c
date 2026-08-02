@@ -80,13 +80,14 @@ void mark_web(object me)
 
 void send_room(object me, object env)
 {
-	mapping exits, item_desc;
-	string *dirs, *elist, *dlist, dir, dest, door_name, door_status;
+	mapping exits, item_desc, web_actions;
+	string *dirs, *elist, *dlist, *alist, dir, dest, door_name, door_status;
 	object *inv, ob;
 	mapping event;
 	string *npcs, *items, *command_ids, *multi_tails, *singles, *id_parts;
 	string area, file, *parts, item_desc_text, item_key, command_id, candidate;
-	mixed item_value;
+	string action_command, action_label;
+	mixed item_value, action_value;
 	int i, door_st;
 
 	if (!objectp(me) || !objectp(env)) return;
@@ -172,6 +173,26 @@ void send_room(object me, object env)
 	event["exits_json"] = "[" + implode(elist, ",") + "]";
 	event["doors_json"] = "[" + implode(dlist, ",") + "]";
 
+	/*
+	 * Explicit room affordances: map command → player-facing label.
+	 * New maps should declare `set("web/actions", ([ "command": "标签" ]))`
+	 * instead of relying only on parenthesized prose that the Web parser may not know.
+	 */
+	alist = ({});
+	web_actions = env->query("web/actions");
+	if (mapp(web_actions)) {
+		foreach (action_command, action_value in web_actions) {
+			if (!stringp(action_command) || action_command == "") continue;
+			action_label = stringp(action_value) && action_value != ""
+				? action_value : action_command;
+			alist += ({ sprintf(
+				"{\"command\":\"%s\",\"label\":\"%s\"}",
+				json_escape(action_command), json_escape(action_label)
+			) });
+		}
+	}
+	event["actions_json"] = "[" + implode(alist, ",") + "]";
+
 	npcs = ({});
 	items = ({});
 	inv = all_inventory(env);
@@ -244,7 +265,7 @@ void send_room(object me, object env)
 	}
 
 	emit_raw(me, sprintf(
-		"{\"v\":1,\"type\":\"room.update\",\"playerName\":\"%s\",\"title\":\"%s\",\"long\":\"%s\",\"itemDesc\":\"%s\",\"area\":\"%s\",\"path\":\"%s\",\"canSleep\":%d,\"exits\":%s,\"doors\":%s,\"npcs\":[%s],\"items\":[%s]}",
+		"{\"v\":1,\"type\":\"room.update\",\"playerName\":\"%s\",\"title\":\"%s\",\"long\":\"%s\",\"itemDesc\":\"%s\",\"area\":\"%s\",\"path\":\"%s\",\"canSleep\":%d,\"actions\":%s,\"exits\":%s,\"doors\":%s,\"npcs\":[%s],\"items\":[%s]}",
 		json_escape(me->name() || ""),
 		json_escape(env->query("short") || ""),
 		json_escape(env->query("long") || ""),
@@ -252,6 +273,7 @@ void send_room(object me, object env)
 		json_escape(area),
 		json_escape(file),
 		(env->query("sleep_room") && !env->query("no_sleep_room")) ? 1 : 0,
+		event["actions_json"],
 		event["exits_json"],
 		event["doors_json"],
 		implode(npcs, ","),
