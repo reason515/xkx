@@ -297,6 +297,16 @@ test.describe.serial("game smoke", () => {
     await openTopMenu(page);
     await pickTopMenuItem(page, "江湖助手");
     await expect(page.locator(".sheet h3")).toHaveText("江湖助手");
+    // 挂机任务按推荐经验从低到高：钓鱼 → 悬赏 → 石壁领悟
+    const cards = page.locator(".assist-task-card");
+    await expect(cards).toHaveCount(3);
+    await expect(cards.nth(0)).toContainText("钓鱼挂机");
+    await expect(cards.nth(0)).toContainText("推荐经验");
+    await expect(cards.nth(0)).toContainText("可得奖励");
+    await expect(cards.nth(1)).toContainText("悬赏任务");
+    await expect(cards.nth(2)).toContainText("石壁领悟");
+    // 旧刷怪对手列表已移除
+    await expect(page.locator(".grind-target-list, .combat-assist-label")).toHaveCount(0);
   });
 
   test("顶栏帮助可查阅主题且不进见闻", async ({ page }) => {

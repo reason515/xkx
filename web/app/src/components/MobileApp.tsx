@@ -686,24 +686,13 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           onClose={g.closeSheet}
           assistActive={state.assistActive}
           assistStatus={state.assistStatus}
-          grindArea={
+          area={
             (state.room.area || "").toLowerCase() === "xiakedao"
               ? "xiakedao"
               : (state.room.area || "").toLowerCase() === "city"
                 ? "yangzhou"
                 : undefined
           }
-          showGrind={["xiakedao", "city"].includes(
-            (state.room.area || "").toLowerCase()
-          )}
-          onStartGrind={(grindTarget, pct) => {
-            g.startAssist({
-              mode: "grind",
-              grindTarget,
-              lowHpPct: pct,
-            });
-            g.closeSheet();
-          }}
           onStartStudy={(skill) => {
             g.startAssist({
               mode: "study",

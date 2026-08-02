@@ -1,52 +1,112 @@
 import { useState } from "react";
-import {
-  GRIND_TARGETS,
-  STUDY_SKILLS,
-  YANGZHOU_GRIND_TARGETS,
-} from "../lib/grindTargets";
+import { STUDY_SKILLS } from "../lib/grindTargets";
 
-type GrindTab = "fight" | "study";
+type Area = "xiakedao" | "yangzhou";
 
 interface Props {
   onClose: () => void;
-  onStartGrind?: (grindTarget: string, lowHpPct: number) => void;
-  onStartStudy?: (skill: string) => void;
   onStartQuest?: () => void;
   onStartFishing?: () => void;
+  onStartStudy?: (skill: string) => void;
   onStopAssist: () => void;
   /** 战斗/busy 中停手（不依赖挂机） */
   onHalt?: () => void;
   assistActive: boolean;
-  /** 当前可用的挂机区域；石壁领悟仅侠客岛支持。 */
-  grindArea?: "xiakedao" | "yangzhou";
-  showGrind?: boolean;
   assistStatus?: string;
+  /** 当前所在区域；挂机任务按区域开放 */
+  area?: Area;
 }
+
+interface AssistTask {
+  mode: "quest" | "fishing" | "study";
+  name: string;
+  tag: string;
+  /** 推荐经验排序键（从低到高） */
+  expMin: number;
+  expLabel: string;
+  expNote?: string;
+  rewards: string[];
+  flow: string;
+  area: Area;
+  areaName: string;
+  cta: string;
+}
+
+/** 挂机任务：按推荐经验从低到高排列 */
+const TASKS: AssistTask[] = [
+  {
+    mode: "fishing",
+    name: "钓鱼挂机",
+    tag: "零战斗 · 挣钱",
+    expMin: 0,
+    expLabel: "0 起 · 纯新手",
+    rewards: [
+      "每钓一条 1~2 实战经验 · 概率 1 潜能",
+      "鱼可卖 80~300 文铜钱（钓够 8 条回城出售）",
+    ],
+    flow: "自动前往水塘垂钓 → 钓够 8 条回醉仙楼卖钱 → 返回水塘循环；精力不足自动调息，饿了吃烤鱼。",
+    area: "yangzhou",
+    areaName: "扬州城内",
+    cta: "开始钓鱼",
+  },
+  {
+    mode: "quest",
+    name: "悬赏任务",
+    tag: "高收益 · 需战斗",
+    expMin: 1,
+    expLabel: "0 起 · 弱怪起步",
+    expNote: "随经验解锁强敌：野猪 3000 · 强盗 8000 · 流氓头 15000",
+    rewards: [
+      "每单 200~500 实战经验 · 20~50 潜能 · 100~250 铜钱",
+      "连续完成每次 +10% 奖励，最高 +50%",
+    ],
+    flow: "自动在衙门接悬赏 → 前往击杀目标 → 回衙门领赏 → 循环；气血偏低回民屋免费休整。",
+    area: "yangzhou",
+    areaName: "扬州城内",
+    cta: "开始悬赏",
+  },
+  {
+    mode: "study",
+    name: "石壁领悟",
+    tag: "侠客岛 · 修炼",
+    expMin: 2,
+    expLabel: "0 起 · 新手成长",
+    rewards: ["所选武功修为：太玄功 / 流星步 / 吴钩剑法 / 五狱掌法"],
+    flow: "自动前往对应石室领悟；精神不足时先取腊八粥，没有则上山摘野果恢复。",
+    area: "xiakedao",
+    areaName: "侠客岛",
+    cta: "开始领悟",
+  },
+];
 
 export function CombatSheet({
   onClose,
-  onStartGrind,
-  onStartStudy,
   onStartQuest,
   onStartFishing,
+  onStartStudy,
   onStopAssist,
   onHalt,
   assistActive,
-  grindArea,
-  showGrind = false,
   assistStatus = "",
+  area,
 }: Props) {
-  const targets = grindArea === "yangzhou" ? YANGZHOU_GRIND_TARGETS : GRIND_TARGETS;
-  const canStudy = grindArea === "xiakedao";
-  const [tab, setTab] = useState<GrindTab>("fight");
-  const [grindTarget, setGrindTarget] = useState(() => targets[0].id);
-  const [grindLowHp, setGrindLowHp] = useState(30);
   const [studySkill, setStudySkill] = useState("taixuan-gong");
-  const grinding = assistActive && /挂机/.test(assistStatus || "");
-  const displayStatus = assistStatus.replace(/挂机/g, "自动历练");
-  const studying =
-    grinding &&
-    /石壁|领悟|前往石室|摘野果|取粥|喝粥|吃果/.test(assistStatus || "");
+  const running = assistActive && /挂机/.test(assistStatus || "");
+  /** 按推荐经验从低到高排列 */
+  const tasks = [...TASKS].sort((a, b) => a.expMin - b.expMin);
+
+  const hasStart = (t: AssistTask) =>
+    t.mode === "fishing"
+      ? !!onStartFishing
+      : t.mode === "quest"
+        ? !!onStartQuest
+        : !!onStartStudy;
+  const areaOk = (t: AssistTask) => area === t.area;
+  const startFor = (t: AssistTask) => {
+    if (t.mode === "fishing") onStartFishing?.();
+    else if (t.mode === "quest") onStartQuest?.();
+    else onStartStudy?.(studySkill);
+  };
 
   return (
     <div className="overlay open" onClick={onClose}>
@@ -58,192 +118,108 @@ export function CombatSheet({
           </button>
         </div>
         <div className="sheet-scroll">
-          {!showGrind ? (
-            <p className="doc-status">请前往侠客岛，或扬州城内任意地点。</p>
-          ) : grinding ? (
-            <>
-              <p className="combat-assist-label">自动历练进行中</p>
-              <p
-                style={{
-                  fontSize: 14,
-                  color: "var(--jade-bright)",
-                  marginBottom: 16,
-                }}
-              >
-                {displayStatus || "自动历练中"}
-              </p>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "var(--paper-dim)",
-                  marginBottom: 12,
-                }}
-              >
-                {studying
-                  ? "自动前往石室领悟；精神不足时先取腊八粥，没有则上山摘野果。"
-                  : grindArea === "yangzhou"
-                    ? "自动寻怪交手；气血过低会回民屋免费休整，恢复后再回场。"
-                    : "自动寻怪交手；气血过低会撤回休整，恢复后再回场。"}
-              </p>
-            </>
+          {running ? (
+            <div className="assist-running">
+              <p className="assist-running-title">挂机进行中</p>
+              <p className="assist-running-status">{assistStatus}</p>
+            </div>
           ) : (
             <>
-              {canStudy && (
-                <div className="grind-tab-row" role="tablist" aria-label="历练类型">
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={tab === "fight"}
-                    className={`grind-tab${tab === "fight" ? " on" : ""}`}
-                    onClick={() => setTab("fight")}
-                  >
-                    自动战斗
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={tab === "study"}
-                    className={`grind-tab${tab === "study" ? " on" : ""}`}
-                    onClick={() => setTab("study")}
-                  >
-                    自动领悟
-                  </button>
-                </div>
-              )}
-              {grindArea === "yangzhou" && onStartQuest && (
-                <div className="quest-assist-block">
-                  <button
-                    type="button"
-                    className="chip action"
-                    onClick={() => onStartQuest()}
-                  >
-                    悬赏任务挂机
-                  </button>
-                  <p className="quest-assist-desc">
-                    自动接衙门悬赏 → 前往击杀目标 → 回衙门领赏，循环进行。
-                  </p>
-                </div>
-              )}
-              {grindArea === "yangzhou" && onStartFishing && (
-                <div className="quest-assist-block">
-                  <button
-                    type="button"
-                    className="chip action"
-                    onClick={() => onStartFishing()}
-                  >
-                    钓鱼挂机
-                  </button>
-                  <p className="quest-assist-desc">
-                    自动前往东郊水塘垂钓，钓到的鱼回醉仙楼卖钱，零战斗挣钱。
-                  </p>
-                </div>
-              )}
-              {tab === "fight" || !canStudy ? (
-                <>
-                  <p className="combat-assist-label">选择对手</p>
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: "var(--paper-dim)",
-                      marginBottom: 12,
-                    }}
-                  >
-                    {grindArea === "yangzhou"
-                      ? "按由弱到强排列；低血时会回民屋免费休整。"
-                      : "按由弱到强排列；开始后自动寻路前往刷怪点。"}
-                  </p>
-                  <div className="grind-target-list">
-                    {targets.map((t) => (
-                      <button
-                        key={t.id}
-                        type="button"
-                        className={`grind-target${
-                          grindTarget === t.id ? " on" : ""
-                        }`}
-                        onClick={() => setGrindTarget(t.id)}
-                      >
-                        <span className="grind-target-name">{t.label}</span>
-                        <span className="grind-target-hint">{t.hint}</span>
-                      </button>
-                    ))}
-                  </div>
-                  <label
-                    className="combat-assist-threshold"
-                    style={{ marginTop: 14 }}
-                  >
-                    气血低于{" "}
-                    <input
-                      type="number"
-                      min={5}
-                      max={80}
-                      value={grindLowHp}
-                      onChange={(e) => setGrindLowHp(+e.target.value)}
-                    />
-                    % 时撤回休整
-                  </label>
-                </>
-              ) : (
-                <>
-                  <p className="combat-assist-label">选择武功</p>
-                  <p
-                    style={{
-                      fontSize: 13,
-                      color: "var(--paper-dim)",
-                      marginBottom: 12,
-                    }}
-                  >
-                    开始后自动前往对应石室领悟；精神不足时取粥或摘野果恢复。
-                  </p>
-                  <div className="grind-target-list">
-                    {STUDY_SKILLS.map((s) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        className={`grind-target${
-                          studySkill === s.id ? " on" : ""
-                        }`}
-                        onClick={() => setStudySkill(s.id)}
-                      >
-                        <span className="grind-target-name">{s.label}</span>
-                        <span className="grind-target-hint">{s.hint}</span>
-                      </button>
-                    ))}
-                  </div>
-                </>
+              <p className="assist-task-section-title">
+                挂机任务 · 按推荐经验从低到高
+              </p>
+              <div className="assist-task-list">
+                {tasks.map((t) => {
+                  const ok = areaOk(t);
+                  return (
+                    <div key={t.mode} className="assist-task-card">
+                      <div className="assist-task-head">
+                        <span className="assist-task-name">{t.name}</span>
+                        <span className="assist-task-tag">{t.tag}</span>
+                      </div>
+                      <div className="assist-task-meta">
+                        <div className="assist-task-row">
+                          <span className="assist-task-row-key">推荐经验</span>
+                          <span className="assist-task-row-val">
+                            {t.expLabel}
+                            {t.expNote && (
+                              <span className="assist-task-note">{t.expNote}</span>
+                            )}
+                          </span>
+                        </div>
+                        <div className="assist-task-row">
+                          <span className="assist-task-row-key">可得奖励</span>
+                          <span className="assist-task-row-val">
+                            {t.rewards.map((r) => (
+                              <span key={r} className="assist-task-reward-line">
+                                {r}
+                              </span>
+                            ))}
+                          </span>
+                        </div>
+                        <div className="assist-task-row">
+                          <span className="assist-task-row-key">运作流程</span>
+                          <span className="assist-task-row-val">{t.flow}</span>
+                        </div>
+                        {t.mode === "study" && ok && (
+                          <div className="assist-task-row">
+                            <span className="assist-task-row-key">选择武功</span>
+                            <span
+                              className="assist-task-skills"
+                              role="group"
+                              aria-label="选择领悟武功"
+                            >
+                              {STUDY_SKILLS.map((s) => (
+                                <button
+                                  key={s.id}
+                                  type="button"
+                                  className={`chip${studySkill === s.id ? " on" : ""}`}
+                                  onClick={() => setStudySkill(s.id)}
+                                >
+                                  {s.label}
+                                </button>
+                              ))}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="assist-task-footer">
+                        <span className="assist-task-hint">
+                          {ok ? "" : `需在${t.areaName}进行`}
+                        </span>
+                        <button
+                          type="button"
+                          className="chip action"
+                          disabled={!ok || !hasStart(t)}
+                          onClick={() => startFor(t)}
+                        >
+                          {t.cta}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              {!area && (
+                <p className="doc-status">
+                  挂机任务需在扬州城内或侠客岛进行，当前区域暂不支持。
+                </p>
               )}
             </>
           )}
         </div>
-        <div className="sheet-acts">
-          {grinding ? (
+        {running && (
+          <div className="sheet-acts">
             <button type="button" className="danger" onClick={onStopAssist}>
-              停止自动历练
+              停止挂机
             </button>
-          ) : tab === "fight" ? (
-            <button
-              type="button"
-              className="go"
-              disabled={!showGrind || !onStartGrind || !grindTarget}
-              onClick={() => onStartGrind?.(grindTarget, grindLowHp)}
-            >
-              开始自动战斗
-            </button>
-          ) : (
-            <button
-              type="button"
-              className="go"
-              disabled={!showGrind || !onStartStudy || !studySkill}
-              onClick={() => onStartStudy?.(studySkill)}
-            >
-              开始自动领悟
-            </button>
-          )}
-          {onHalt ? (
-            <button type="button" onClick={onHalt}>
-              停手
-            </button>
-          ) : null}
-        </div>
+            {onHalt ? (
+              <button type="button" onClick={onHalt}>
+                停手
+              </button>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );

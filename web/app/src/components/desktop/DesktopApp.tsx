@@ -161,29 +161,26 @@ function DesktopShell({
           onClose={g.closeSheet}
           assistActive={state.assistActive}
           assistStatus={state.assistStatus}
-          grindArea={
+          area={
             (state.room.area || "").toLowerCase() === "xiakedao"
               ? "xiakedao"
               : (state.room.area || "").toLowerCase() === "city"
                 ? "yangzhou"
                 : undefined
           }
-          showGrind={["xiakedao", "city"].includes(
-            (state.room.area || "").toLowerCase()
-          )}
-          onStartGrind={(grindTarget, pct) => {
-            g.startAssist({
-              mode: "grind",
-              grindTarget,
-              lowHpPct: pct,
-            });
-            g.closeSheet();
-          }}
           onStartStudy={(skill) => {
             g.startAssist({
               mode: "study",
               skill,
             });
+            g.closeSheet();
+          }}
+          onStartQuest={() => {
+            g.startAssist({ mode: "quest" });
+            g.closeSheet();
+          }}
+          onStartFishing={() => {
+            g.startAssist({ mode: "fishing" });
             g.closeSheet();
           }}
           onStopAssist={g.stopAssist}

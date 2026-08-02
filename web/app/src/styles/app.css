@@ -41,8 +41,8 @@ textarea:focus-visible {
 .phone .choice-row button,
 .phone .speech-modes button,
 .phone .entity-action-grid button,
-.phone .grind-tab,
-.phone .grind-target,
+.phone .assist-task-skills .chip,
+.phone .assist-task-footer .chip,
 .phone .chip {
   min-height: 44px;
 }
@@ -1922,98 +1922,147 @@ textarea:focus-visible {
   overflow: auto;
 }
 
-.combat-assist {
-  margin-bottom: 14px;
+/* 江湖助手 · 挂机任务（CombatSheet） */
+.assist-task-section-title {
+  margin: 0 0 10px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  color: var(--paper-dim);
+}
+
+.assist-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.assist-task-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line-strong);
+  background: rgba(232, 223, 208, 0.04);
+}
+
+.assist-task-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.assist-task-name {
+  font-family: var(--font-display);
+  font-size: 17px;
+  color: var(--paper);
+}
+
+.assist-task-tag {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(95, 143, 120, 0.5);
+  background: rgba(95, 143, 120, 0.14);
+  color: var(--jade-bright);
+  font-size: 11px;
+}
+
+.assist-task-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.assist-task-row {
+  display: flex;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.assist-task-row-key {
+  flex-shrink: 0;
+  width: 52px;
+  color: var(--paper-dim);
+}
+
+.assist-task-row-val {
+  color: var(--paper);
+  min-width: 0;
+}
+
+.assist-task-reward-line {
+  display: block;
+}
+
+.assist-task-note {
+  display: block;
+  margin-top: 2px;
+  color: var(--paper-dim);
+  font-size: 12px;
+}
+
+.assist-task-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.assist-task-skills .chip {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.assist-task-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+
+.assist-task-hint {
+  font-size: 12px;
+  color: var(--paper-dim);
+}
+
+.assist-task-footer .chip.action {
+  flex-shrink: 0;
+  padding: 8px 16px;
   font-size: 13px;
 }
 
-.combat-assist-label {
-  color: var(--paper-dim);
-  margin: 0 0 8px;
+.assist-task-footer .chip.action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
-.combat-assist-threshold {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 10px;
-  color: var(--paper);
-}
-
-.combat-assist-threshold input {
-  width: 48px;
-  padding: 4px 6px;
-  border-radius: 6px;
-  border: 1px solid var(--line);
-  background: var(--ink);
-  color: var(--paper);
-  font-family: var(--font-body);
-}
-
-.combat-assist .choice-row {
-  margin-bottom: 0;
-}
-
-.grind-tab-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 14px;
-}
-
-.grind-tab {
-  flex: 1;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: rgba(232, 223, 208, 0.04);
-  color: var(--paper-dim);
-  font-family: var(--font-display);
-  font-size: 15px;
-  cursor: pointer;
-}
-
-.grind-tab.on {
-  border-color: var(--jade);
-  background: rgba(95, 143, 120, 0.18);
-  color: var(--paper);
-}
-
-.grind-target-list {
+/* 挂机进行中 */
+.assist-running {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(95, 143, 120, 0.45);
+  background: rgba(95, 143, 120, 0.14);
 }
 
-.grind-target {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: rgba(232, 223, 208, 0.04);
-  color: var(--paper);
-  font-family: var(--font-body);
-  text-align: left;
-  cursor: pointer;
-}
-
-.grind-target.on {
-  border-color: var(--jade);
-  background: rgba(95, 143, 120, 0.18);
-}
-
-.grind-target-name {
+.assist-running-title {
   font-family: var(--font-display);
   font-size: 16px;
+  color: var(--jade-bright);
 }
 
-.grind-target-hint {
-  font-size: 12px;
-  color: var(--paper-dim);
-  white-space: nowrap;
+.assist-running-status {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--paper);
 }
 
 .grind-banner {
@@ -3598,25 +3647,3 @@ textarea:focus-visible {
   border-top: 1px solid var(--line);
 }
 
-/* 悬赏任务挂机（CombatSheet） */
-.quest-assist-block {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 16px;
-  padding: 12px;
-  border-radius: 10px;
-  border: 1px solid var(--line-strong);
-  background: rgba(95, 143, 120, 0.08);
-}
-
-.quest-assist-block .chip.action {
-  align-self: flex-start;
-}
-
-.quest-assist-desc {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--paper-dim);
-}
