@@ -15,7 +15,7 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | yanzhougrind | studyrecoverprep | haidaowo | dadong | yingbin | jizhen | huanpo | luanshizhen | xingzilin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | givemoney | givesellitem | givesellrabbit | grantskills | grantforce\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | yanzhougrind | studyrecoverprep | haidaowo | dadong | yingbin | jizhen | huanpo | luanshizhen | xingzilin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | givemoney | givesellitem | givesellrabbit | grantskills | grantforce | grantexp\n");
 
 	if (arg == "dadong") {
 		ob = load_object("/d/xiakedao/dadong");
@@ -377,6 +377,21 @@ int main(object me, string arg)
 		me->set("neili", 220);
 		me->map_skill("force", "taixuan-gong");
 		tell_object(me, "（测试）已激发太玄功，可运功回气疗伤。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_skills_enable(me);
+		WEBD->send_vitals(me);
+		return 1;
+	}
+
+	if (arg == "grantexp") {
+		/* 押镖 e2e：给足经验和基础技能过门槛 */
+		me->set("combat_exp", 100000);
+		me->set_skill("force", 50);
+		me->set_skill("taixuan-gong", 30);
+		me->set("max_neili", 220);
+		me->set("neili", 220);
+		me->map_skill("force", "taixuan-gong");
+		tell_object(me, "（测试）已授予经验与基础技能（押镖 e2e）。\n");
 		WEBD->mark_web_client(me);
 		WEBD->send_skills_enable(me);
 		WEBD->send_vitals(me);

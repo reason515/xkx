@@ -192,6 +192,52 @@ test("毕业进入扬州后可到太乙武馆练功", async ({ page }) => {
   await expect(page.getByText(/武馆教头/).first()).toBeVisible({ timeout: 10_000 });
 });
 
+test("毕业进入扬州后可在福威镖局接押镖任务", async ({ page }) => {
+  test.setTimeout(150_000);
+  await loginAsNewbie(page, { asRegister: true });
+  await skipTo(page, 35);
+
+  const hire = page.locator(".chip.action").filter({ hasText: "雇车去扬州" }).first();
+  await expect(hire).toBeVisible({ timeout: 10_000 });
+  await hire.click();
+  await expect(page.locator(".room-title").first()).toHaveText(/马车/, {
+    timeout: 10_000,
+  });
+  await sendCmd(page, "qu 扬州");
+  await sendCmd(page, "qu 扬州", 3_000);
+  await expect(page.getByRole("button", { name: "确认天赋", exact: true })).toBeVisible({
+    timeout: 10_000,
+  });
+  await page.getByRole("button", { name: "确认天赋", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "确认，踏入江湖", exact: true })
+  ).toBeVisible();
+  await page.getByRole("button", { name: "确认，踏入江湖", exact: true }).click();
+  await expect(page.getByRole("button", { name: "确认，踏入江湖", exact: true })).toHaveCount(0, {
+    timeout: 10_000,
+  });
+  await expect(page.locator(".room-title").first()).toHaveText(/扬州.*广场|中央广场/, {
+    timeout: 10_000,
+  });
+
+  // 广场 → 西大街 → 福威镖局
+  await sendCmd(page, "go west", 2_000);
+  await sendCmd(page, "go west", 2_000);
+  await sendCmd(page, "go west", 2_000);
+  await sendCmd(page, "go south", 2_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/福威镖局/, {
+    timeout: 10_000,
+  });
+  // 总镖头林震南在场
+  await expect(page.getByText(/林震南/).first()).toBeVisible({ timeout: 10_000 });
+
+  // 过押镖门槛（e2e 辅助）后接镖
+  await sendCmd(page, "xkxe2e grantexp", 2_000);
+  await sendCmd(page, "ask lin zhennan about 押镖", 3_000);
+  // 接镖成功：镖车出现
+  await expect(page.getByText(/镖车/).first()).toBeVisible({ timeout: 10_000 });
+});
+
 test("场景物件名称保留有效语义并滤除叙述残片", async ({ page }) => {
   test.setTimeout(60_000);
   await loginAsNewbie(page, { asRegister: true });

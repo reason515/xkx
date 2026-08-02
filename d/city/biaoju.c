@@ -11,6 +11,7 @@ void create()
 {
 	set("short", "福威镖局");
 	set("outdoors", "city");
+	set("no_fight", 1);
         set("long",
 "你来到一座结构宏伟的建筑前，左右石坛上各插着一根两丈多高的旗杆，杆
 上青旗飘扬。右首旗子用金线绣着一头张牙舞爪的狮子，狮子上头有一只蝙蝠飞
@@ -25,6 +26,7 @@ void create()
 
 	set("objects", ([
 		__DIR__"npc/linpingzhi" : 1,
+		__DIR__"npc/linzhennan" : 1,
 		__DIR__"npc/biaotou" : 2,
 	]));
 
