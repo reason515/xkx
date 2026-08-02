@@ -102,7 +102,7 @@ void init()
 
 void greeting(object me)
 {
-	if (!me->query(NEWBIE_VILLAGE_INDEX))
+	if (!me->query(NEWBIE_VILLAGE_INDEX) && !me->query("newbie_village/done"))
 	{
 		me->set(NEWBIE_VILLAGE_INDEX,1);
 		me->set("food",1);
