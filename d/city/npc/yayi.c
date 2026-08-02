@@ -1,7 +1,8 @@
 //Cracked by Roath
-// yayi.c  官府衙役
+// yayi.c  官府衙役（挂接新手悬赏任务）
 #include <ansi.h>
 inherit NPC;
+inherit F_QUEST_TASK;
 
 void create()
 {
@@ -15,6 +16,15 @@ void create()
 	set("shen_type", 1);
         set_skill("unarmed", 30);
         set_skill("dodge", 30);
+	set("inquiry", ([
+		"任务" : (: ask_task :),
+		"job" : (: ask_task :),
+		"悬赏" : (: ask_task :),
+		"完成" : (: do_report :),
+		"report" : (: do_report :),
+		"领赏" : (: do_report :),
+		"放弃" : (: do_giveup :),
+	]));
 	setup();
 	carry_object(__DIR__"obj/yayifu")->wear();
 }

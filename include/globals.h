@@ -127,6 +127,7 @@
 #define F_DEALER		"/feature/dealer.c"
 #define F_EDIT			"/feature/edit.c"
 #define F_ESCORT			"/feature/escort.c"
+#define F_QUEST_TASK		"/feature/quest_task.c"
 #define F_EQUIP			"/feature/equip.c"
 #define F_FINANCE		"/feature/finance.c"
 #define F_FOOD			"/feature/food.c"

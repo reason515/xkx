@@ -963,6 +963,9 @@ void killer_reward(object killer, object victim)
             if (victim->query("race") == "人类")
                 killer->add("MKS", 1);
             bls = 1;
+            // 杀怪任务完成判定（新手悬赏任务钩子）
+            if (userp(killer))
+                F_QUEST_TASK->quest_kill(victim, killer);
             // 杀怪经验奖励（方案A：补新手期 exp 通道，参考 pkuxkx 经典公式适配）
             if (userp(killer) && !killer->query_temp("free_rider") &&
                 !victim->query("no_gain_exp"))
