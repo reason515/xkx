@@ -15,6 +15,7 @@ import { GuideTip } from "./GuideTip";
 import { FloatingQuestBar } from "./FloatingQuestBar";
 import { AttributeSheet } from "./AttributeSheet";
 import { BankingPrompt } from "./BankingPrompt";
+import { ChangeGiftSheet } from "./ChangeGiftSheet";
 import { inferredShutDoorActions, sceneActionChips, vitalCap } from "../lib/parser";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ExitInfo, LogEntry } from "../lib/types";
@@ -228,6 +229,8 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
   const [showCmd, setShowCmd] = useState(false);
   const [ctxTab, setCtxTab] = useState<"npcs" | "items" | "actions">("npcs");
   const [bankingCmd, setBankingCmd] = useState<"cun" | "qu" | null>(null);
+  /** 杏子林游鲲翼：重新设置属性（changegift）。 */
+  const [changeGiftOpen, setChangeGiftOpen] = useState(false);
   const [logExpanded, setLogExpanded] = useState(false);
   /** 玩家手动收起悬浮绝招按钮：本次战斗不再显示，下次战斗重新出现。 */
   const [perfDismissed, setPerfDismissed] = useState(false);
@@ -577,7 +580,7 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
                             key={a.command}
                             type="button"
                             className="chip action"
-                            onClick={() => { if (a.command === 'cun' || a.command === 'qu') setBankingCmd(a.command as 'cun' | 'qu'); else if (a.command.startsWith('__shop__:')) { const cmdId = a.command.slice(9); const npc = state.room.npcs.find(n => (n.commandId || n.id) === cmdId); if (npc) { g.setSelectedEntity(npc); g.openSheet('entity'); } } else g.cmd(a.command, { feedback: true }); }}
+                            onClick={() => { if (a.command === 'cun' || a.command === 'qu') setBankingCmd(a.command as 'cun' | 'qu'); else if (a.command === '__changegift__') setChangeGiftOpen(true); else if (a.command.startsWith('__shop__:')) { const cmdId = a.command.slice(9); const npc = state.room.npcs.find(n => (n.commandId || n.id) === cmdId); if (npc) { g.setSelectedEntity(npc); g.openSheet('entity'); } } else g.cmd(a.command, { feedback: true }); }}
                           >
                             {a.label}
                           </button>
@@ -819,6 +822,21 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
           command={bankingCmd}
           onConfirm={(fullCmd) => { g.cmd(fullCmd, { feedback: true }); setBankingCmd(null); }}
           onClose={() => setBankingCmd(null)}
+        />
+      )}
+      {changeGiftOpen && (
+        <ChangeGiftSheet
+          initial={{
+            str: state.score?.attrs?.str?.cur,
+            int: state.score?.attrs?.int?.cur,
+            con: state.score?.attrs?.con?.cur,
+            dex: state.score?.attrs?.dex?.cur,
+          }}
+          onConfirm={(str, intel, con, dex) => {
+            g.cmd(`changegift ${str} ${intel} ${con} ${dex}`, { feedback: true });
+            setChangeGiftOpen(false);
+          }}
+          onClose={() => setChangeGiftOpen(false)}
         />
       )}
     </div>

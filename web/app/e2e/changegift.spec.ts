@@ -20,17 +20,19 @@ async function sendCmd(page: any, text: string, wait = 1500) {
   await page.waitForTimeout(wait);
 }
 
-test("杏子林游鲲翼可重新设置属性（changegift 按钮 + 界面）", async ({ page }) => {
+test("杏子林游鲲翼可重新设置属性（场景动作 Tab 入口）", async ({ page }) => {
   test.setTimeout(150_000);
   await loginAsNewbie(page);
   await sendCmd(page, "newbietest skip 34", 4000);
-  // 点游鲲翼 → 应有「重新设置属性」按钮
-  const you = page.locator(".chip.npc").filter({ hasText: /游鲲翼/ }).first();
-  await you.click();
-  await page.waitForTimeout(800);
-  const giftBtn = page.locator('[data-testid="entity-changegift"]').first();
-  await expect(giftBtn).toBeVisible({ timeout: 8000 });
-  await giftBtn.click();
+  // 场景动作 Tab：点「重新设置属性」chip
+  await page.locator(".scene-tabs button").filter({ hasText: "动作" }).first().click();
+  await page.waitForTimeout(400);
+  const giftChip = page
+    .locator(".chip.action")
+    .filter({ hasText: "重新设置属性" })
+    .first();
+  await expect(giftChip).toBeVisible({ timeout: 8000 });
+  await giftChip.click();
   // 属性设置界面
   await expect(page.locator(".changegift-attrs")).toBeVisible({ timeout: 5000 });
   // 确认（初始 20/20/20/20 = 80 合法）

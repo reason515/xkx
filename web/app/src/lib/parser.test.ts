@@ -29,6 +29,7 @@ import {
   suggestedActionsFromRoomText,
   isTrainLine,
   isLearnFeedbackLine,
+  inferNpcCapabilityActions,
   labelAskTopic,
   labelSuggestedAction,
   sceneryPracticeActions,
@@ -2091,5 +2092,22 @@ chat  公共聊天频道，说的话全侠客行可以看到。
     expect(out).not.toMatch(/与世隔绝的\n什么小岛/);
     expect(out).toContain("【出生】");
     expect(out).toMatch(/可以看到。\n例子：/);
+  });
+});
+
+describe("inferNpcCapabilityActions", () => {
+  it("generates 重新设置属性 for canChangeGift NPCs", () => {
+    const actions = inferNpcCapabilityActions([
+      { id: "you kunyi", name: "游鲲翼", kind: "npc", canChangeGift: 1 } as never,
+    ]);
+    expect(actions).toContainEqual({
+      command: "__changegift__",
+      label: "重新设置属性",
+    });
+  });
+
+  it("does not add gift action without capability", () => {
+    const actions = inferNpcCapabilityActions([]);
+    expect(actions.map((a) => a.command)).not.toContain("__changegift__");
   });
 });

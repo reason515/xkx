@@ -1418,6 +1418,7 @@ export function inferNpcCapabilityActions(npcs: Entity[]): SuggestedAction[] {
   const actions: SuggestedAction[] = [];
   const banker = npcs.find((n) => n.canWithdraw);
   const trader = npcs.find((n) => n.canTrade || n.canSell);
+  const gifter = npcs.find((n) => n.canChangeGift);
 
   if (banker) {
     actions.push({ command: "check", label: "查账" });
@@ -1427,6 +1428,10 @@ export function inferNpcCapabilityActions(npcs: Entity[]): SuggestedAction[] {
   if (trader) {
     const cmdId = trader.commandId || trader.id;
     actions.push({ command: `__shop__:${cmdId}`, label: "逛店" });
+  }
+  if (gifter) {
+    // 特殊命令：前端拦截打开 ChangeGiftSheet（需参数与确认，不能直接发命令）
+    actions.push({ command: "__changegift__", label: "重新设置属性" });
   }
   return actions;
 }
