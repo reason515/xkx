@@ -688,24 +688,8 @@ export function useGame(opts?: UseGameOptions) {
           roomFromEvent.current = true;
         }
         if (ev.type === "assist.status") {
-          const message = String(ev.message || "").trim();
-          if (ev.active) {
-            // 重要提示弹 toast；例行状态（学艺中/练功中/调息中等）只走挂机条，
-            // 学艺反馈以 isLearnFeedbackLine 走真实文本 toast，避免与见闻不一致
-            if (
-              /助手进行中|战斗辅助|前往石室|石壁领悟|精力不足|无法赶路|无法前往|撤回受阻|请先跟随|落点沙滩|动作受阻|改道前往|忙碌中|正在调息|力尽昏迷|修炼助手|你的「.+」进步了/.test(
-                message
-              )
-            ) {
-              toastScheduler.current.showUnlessSame(message);
-            }
-          } else if (
-            message &&
-            message !== "已停止" &&
-            message !== "手动停止"
-          ) {
-            toastScheduler.current.show(message);
-          }
+          // 挂机提示统一走场景区挂机条（GrindBanner）展示，不弹 toast；
+          // 停止原因也由挂机条呈现（玩家点「知道了」关闭）。
         }
         setState((s) => {
           const applied = applyEvent(ev, s);

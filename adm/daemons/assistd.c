@@ -2246,6 +2246,20 @@ int start_quest_assist(object me)
 
 void fishing_tick(string id);
 
+/* 统计背包中的鱼（数据驱动，不解析文本） */
+int fishing_count_fish(object me)
+{
+	object *inv;
+	int i, n;
+
+	inv = all_inventory(me);
+	n = 0;
+	for (i = 0; i < sizeof(inv); i++)
+		if (inv[i]->query("id") == "fresh fish")
+			n++;
+	return n;
+}
+
 void do_fishing_tick(string id)
 {
 	object me, env;
@@ -2311,44 +2325,56 @@ void do_fishing_tick(string id)
 		return;
 
 	case "fish":
-		/* 饮水低 → 喝塘水 */
-		if ((int)my["water"] * 100 / ((int)my["max_water_capacity"] + 1) < 40) {
-			me->force_me("drink");
+		{
+			int max_water, max_food, before;
+
+			/* 食物/饮水上限是函数（feature/damage.c），非 dbase 字段 */
+			max_water = me->max_water_capacity();
+			max_food = me->max_food_capacity();
+			if (max_water < 1) max_water = 1;
+			if (max_food < 1) max_food = 1;
+			/* 饮水低 → 喝塘水 */
+			if ((int)my["water"] * 100 / max_water < 40) {
+				me->force_me("drink");
+				sessions[id] = cfg;
+				call_out("fishing_tick", 2, id);
+				return;
+			}
+			/* 食物低且有鱼可吃 → 吃（烤）鱼充饥 */
+			if ((int)my["food"] * 100 / max_food < 30
+			    && present("fresh fish", me)) {
+				me->force_me("eat fresh fish");
+				WEBD->send_assist_status(me, 1, "钓鱼挂机 · 吃鱼充饥");
+				sessions[id] = cfg;
+				call_out("fishing_tick", 2, id);
+				return;
+			}
+			/* 精力低 → 有气功回精(yun refresh)则用，否则原地等待恢复 */
+			if (jingli < 30) {
+				if (stringp(me->query_skill_mapped("force")) && (int)my["neili"] > 20)
+					me->force_me("yun refresh");
+				WEBD->send_assist_status(me, 1, "钓鱼挂机 · 精力不足，调息恢复");
+				sessions[id] = cfg;
+				call_out("fishing_tick", 5, id);
+				return;
+			}
+			/* 垂钓：钓到鱼才计数（diao 前后对比背包 fresh fish 数） */
+			before = fishing_count_fish(me);
+			me->force_me("diao");
+			if (fishing_count_fish(me) > before)
+				cfg["caught"] = (int)cfg["caught"] + 1;
+			if ((int)cfg["caught"] >= FISH_SELL_NUM) {
+				cfg["phase"] = "go_sell";
+				cfg["path"] = ({});
+				sessions[id] = cfg;
+				WEBD->send_assist_status(me, 1, "钓够啦 · 回城卖鱼");
+				call_out("fishing_tick", 2, id);
+				return;
+			}
 			sessions[id] = cfg;
 			call_out("fishing_tick", 2, id);
 			return;
 		}
-		/* 食物低 → 吃（烤）鱼 */
-		if ((int)my["food"] * 100 / ((int)my["max_food_capacity"] + 1) < 30
-		    && present("fresh fish", me)) {
-			me->force_me("eat fresh fish");
-			sessions[id] = cfg;
-			call_out("fishing_tick", 2, id);
-			return;
-		}
-		/* 精力低 → 有气功回精(yun refresh)则用，否则原地等待恢复 */
-		if (jingli < 30) {
-			if (stringp(me->query_skill_mapped("force")) && (int)my["neili"] > 20)
-				me->force_me("yun refresh");
-			WEBD->send_assist_status(me, 1, "钓鱼挂机 · 精力不足，调息恢复");
-			sessions[id] = cfg;
-			call_out("fishing_tick", 5, id);
-			return;
-		}
-		me->force_me("diao");
-		/* 钓到鱼计数 */
-		cfg["caught"] = (int)cfg["caught"] + 1;
-		if ((int)cfg["caught"] >= FISH_SELL_NUM) {
-			cfg["phase"] = "go_sell";
-			cfg["path"] = ({});
-			sessions[id] = cfg;
-			WEBD->send_assist_status(me, 1, "钓够啦 · 回城卖鱼");
-			call_out("fishing_tick", 2, id);
-			return;
-		}
-		sessions[id] = cfg;
-		call_out("fishing_tick", 2, id);
-		return;
 
 	case "go_sell":
 		if (base_name(env) != ZUIXIANLOU) {
