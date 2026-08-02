@@ -252,6 +252,25 @@ test("登录空闲五分钟后仍可执行指令", async ({ page }) => {
   });
 });
 
+test("新手任务 34 的发言道别按钮会立即推进", async ({ page }) => {
+  test.setTimeout(120_000);
+  await loginAsNewbie(page, { asRegister: true });
+  await skipTo(page, 34);
+  await expect(page.locator(".room-title").first()).toHaveText(/杏子林/, {
+    timeout: 10_000,
+  });
+
+  await page.getByRole("button", { name: "菜单" }).click();
+  await page.getByRole("menuitem", { name: "发言" }).click();
+  const farewell = page.getByRole("button", { name: /道别游鲲翼/ }).first();
+  await expect(farewell).toBeVisible({ timeout: 10_000 });
+  await farewell.click();
+
+  await expect
+    .poll(() => questStep(page), { timeout: 12_000 })
+    .toMatch(/^35\/35$/);
+});
+
 test.describe("新手村 35 任务", () => {
   test("skip 模式全覆盖", async ({ page }) => {
     test.setTimeout(900_000);
@@ -423,7 +442,7 @@ test.describe("新手村 35 任务", () => {
     await waitOrSkip(page, 34); console.log("✅ Q33");
     // Q34 道别
     await skipTo(page, 34);
-    await sendCmd(page, "chat bye you", 3000);
+    await sendCmd(page, "chat* bye you", 3000);
     await waitOrSkip(page, 35); console.log("✅ Q34");
     // Q35 雇车
     await skipTo(page, 35);

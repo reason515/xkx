@@ -158,7 +158,7 @@ export function SpeechSheet({ nearby, onClose, onSend }: Props) {
                 {nearby.slice(0,5).map((person) => (
                   <button key={`bye-${person.id}`} type="button"
                     className="chip action"
-                    onClick={() => { onSend(`chat bye ${person.commandId || person.id}`); onClose(); }}>
+                    onClick={() => { onSend(`chat* bye ${person.commandId || person.id}`); onClose(); }}>
                     道别{person.name}
                   </button>
                 ))}
