@@ -702,6 +702,10 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             });
             g.closeSheet();
           }}
+          onStartQuest={() => {
+            g.startAssist({ mode: "quest" });
+            g.closeSheet();
+          }}
           onStopAssist={g.stopAssist}
           onHalt={g.halt}
         />

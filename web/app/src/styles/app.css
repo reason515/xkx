@@ -3563,3 +3563,26 @@ textarea:focus-visible {
   padding: 10px 2px 2px;
   border-top: 1px solid var(--line);
 }
+
+/* 悬赏任务挂机（CombatSheet） */
+.quest-assist-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line-strong);
+  background: rgba(95, 143, 120, 0.08);
+}
+
+.quest-assist-block .chip.action {
+  align-self: flex-start;
+}
+
+.quest-assist-desc {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--paper-dim);
+}

@@ -1925,3 +1925,313 @@ int try_survival(object me)
 	stop_assist(me, 0);
 	return 0;
 }
+
+/* ==================== 新手任务挂机（quest 悬赏循环）==================== */
+/* 流程：衙门 ask 接悬赏 → 前往目标怪房击杀 → 回衙门领赏 → 循环
+ * 状态读取：me->query_temp("quest_task")（quest_task.c 维护）
+ * 完成标记：quest_task/done（quest_kill 在 killer_reward 中设置） */
+
+#define YAMEN "/d/city/yamen"
+#define QUEST_MAX_ASK_WAIT 15      /* ask 重试上限（约30秒） */
+#define QUEST_MAX_KILL_WAIT 75     /* 击杀等待上限（约150秒） */
+
+string *quest_find_path(object me, string dest)
+{
+	string *path;
+
+	path = 0;
+	if (!stringp(dest) || dest == "") return 0;
+	catch(path = PATHD->find_path(PATHD->room_path(environment(me)), dest));
+	return path;
+}
+
+int quest_walk(object me, mapping cfg)
+{
+	string *path;
+
+	path = cfg["path"];
+	if (!arrayp(path) || !sizeof(path)) return 1;
+	path = PATHD->advance_path(me, path);
+	cfg["path"] = path;
+	return sizeof(path) == 0;
+}
+
+void quest_tick(string id);
+
+void do_quest_tick(string id)
+{
+	object me, env;
+	mapping cfg, q, my;
+	string dest;
+	int pct;
+
+	if (undefinedp(sessions[id])) return;
+	me = find_player(id);
+	if (!objectp(me)) {
+		map_delete(sessions, id);
+		return;
+	}
+	cfg = sessions[id];
+	if (cfg["kind"] != "quest") return;
+
+	cfg["ticks"]++;
+	if (cfg["ticks"] > MAX_GRIND_TICKS) {
+		stop_assist(me, "挂机时长已达上限");
+		return;
+	}
+	if (!living(me)) {
+		stop_assist(me, "挂机停止 · 你已力尽昏迷");
+		return;
+	}
+	env = environment(me);
+	if (!objectp(env)) {
+		stop_assist(me, "挂机停止 · 位置异常");
+		return;
+	}
+	my = me->query_entire_dbase();
+
+	/* 低血保护：回民屋休整（任务怪可磨，恢复后继续） */
+	pct = me->query("qi") * 100 / (me->query("max_qi") + 1);
+	if (pct < 40 && cfg["phase"] != "back" && cfg["phase"] != "report"
+	    && cfg["phase"] != "rest") {
+		me->force_me("halt");
+		if (!stringp(cfg["return_phase"]) || cfg["return_phase"] == "")
+			cfg["return_phase"] = cfg["phase"];
+		cfg["phase"] = "rest";
+		cfg["path"] = ({});
+		sessions[id] = cfg;
+		WEBD->send_assist_status(me, 1, "任务挂机 · 气血偏低，回民屋休整");
+		call_out("quest_tick", 2, id);
+		return;
+	}
+
+	q = me->query_temp("quest_task");
+
+	switch (cfg["phase"]) {
+	case "ask":
+		/* 衙门接悬赏 */
+		if (base_name(env) != YAMEN) {
+			if (!quest_walk(me, cfg)) {
+				sessions[id] = cfg;
+				call_out("quest_tick", 2, id);
+				return;
+			}
+			/* 路径走完仍不在衙门 → 重算 */
+			cfg["path"] = quest_find_path(me, YAMEN);
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "任务挂机 · 前往衙门");
+			call_out("quest_tick", 2, id);
+			return;
+		}
+		if (!mapp(q)) {
+			/* 没任务 → 发接单 */
+			me->force_me("ask ya about job");
+			cfg["ask_wait"] = (int)cfg["ask_wait"] + 1;
+			if ((int)cfg["ask_wait"] > QUEST_MAX_ASK_WAIT) {
+				stop_assist(me, "接取悬赏超时，已停止挂机");
+				return;
+			}
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "任务挂机 · 领取悬赏");
+			call_out("quest_tick", 2, id);
+			return;
+		}
+		/* 接单成功 → 去杀怪 */
+		cfg["phase"] = "hunt";
+		cfg["ask_wait"] = 0;
+		cfg["kill_waits"] = 0;
+		cfg["path"] = ({});
+		sessions[id] = cfg;
+		WEBD->send_assist_status(me, 1, "任务挂机 · 前往" + q["area"]);
+		call_out("quest_tick", 1, id);
+		return;
+
+	case "hunt":
+		if (!mapp(q) || !stringp(q["room"])) {
+			cfg["phase"] = "ask";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			call_out("quest_tick", 1, id);
+			return;
+		}
+		if (base_name(env) != q["room"]) {
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"]))
+				cfg["path"] = quest_find_path(me, q["room"]);
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "无法前往任务目标区域，已停止");
+				return;
+			}
+			quest_walk(me, cfg);
+			sessions[id] = cfg;
+			call_out("quest_tick", 2, id);
+			return;
+		}
+		/* 到达目标房 → 击杀 */
+		cfg["phase"] = "fight";
+		cfg["kill_waits"] = 0;
+		sessions[id] = cfg;
+		me->force_me("kill " + q["target"]);
+		WEBD->send_assist_status(me, 1, "任务挂机 · 击杀" + q["name"]);
+		call_out("quest_tick", 2, id);
+		return;
+
+	case "fight":
+		if (!mapp(q)) {
+			cfg["phase"] = "ask";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			call_out("quest_tick", 1, id);
+			return;
+		}
+		if (me->query_temp("quest_task/done")) {
+			/* 完成 → 回衙门 */
+			cfg["phase"] = "back";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "任务完成 · 回衙门领赏");
+			call_out("quest_tick", 1, id);
+			return;
+		}
+		cfg["kill_waits"] = (int)cfg["kill_waits"] + 1;
+		if ((int)cfg["kill_waits"] > QUEST_MAX_KILL_WAIT) {
+			me->force_me("halt");
+			stop_assist(me, "击杀任务目标超时，已停止挂机");
+			return;
+		}
+		if (!me->is_fighting()) {
+			/* 目标可能已被杀/未刷出 → 重新击杀 */
+			me->force_me("kill " + q["target"]);
+		}
+		sessions[id] = cfg;
+		call_out("quest_tick", 2, id);
+		return;
+
+	case "back":
+		if (base_name(env) != YAMEN) {
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"]))
+				cfg["path"] = quest_find_path(me, YAMEN);
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "无法返回衙门，已停止挂机");
+				return;
+			}
+			quest_walk(me, cfg);
+			sessions[id] = cfg;
+			call_out("quest_tick", 2, id);
+			return;
+		}
+		cfg["phase"] = "report";
+		sessions[id] = cfg;
+		me->force_me("ask ya about report");
+		WEBD->send_assist_status(me, 1, "任务挂机 · 领取赏钱");
+		call_out("quest_tick", 3, id);
+		return;
+
+	case "report":
+		/* 领赏成功（quest_task 清空）→ 继续接单 */
+		if (!mapp(me->query_temp("quest_task"))) {
+			cfg["phase"] = "ask";
+			cfg["ask_wait"] = 0;
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "任务挂机 · 继续接单");
+			call_out("quest_tick", 2, id);
+			return;
+		}
+		me->force_me("ask ya about report");
+		sessions[id] = cfg;
+		call_out("quest_tick", 3, id);
+		return;
+
+	case "rest":
+		/* 民屋休整：导航 → 睡觉 → 恢复后回原相位 */
+		if (PATHD->room_path(env) != "/d/city/minwu1") {
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"]))
+				cfg["path"] = quest_find_path(me, "/d/city/minwu1");
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "无法前往民屋休整，已停止挂机");
+				return;
+			}
+			quest_walk(me, cfg);
+			sessions[id] = cfg;
+			call_out("quest_tick", 2, id);
+			return;
+		}
+		if (!assist_is_sleeping(me)
+		    && my["qi"] * 100 / (my["max_qi"] + 1) < 95) {
+			me->force_me("sleep");
+			cfg["slept"] = 1;
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "任务挂机 · 民屋睡觉恢复");
+			call_out("quest_tick", 4, id);
+			return;
+		}
+		if (my["qi"] * 100 / (my["max_qi"] + 1) >= 90
+		    && my["jing"] * 100 / (my["max_jing"] + 1) >= 60) {
+			assist_finish_sleep(me);
+			cfg["phase"] = cfg["return_phase"];
+			cfg["return_phase"] = "";
+			cfg["path"] = ({});
+			cfg["slept"] = 0;
+			WEBD->send_assist_status(me, 1, "任务挂机 · 恢复完成，继续任务");
+			sessions[id] = cfg;
+			call_out("quest_tick", 2, id);
+			return;
+		}
+		sessions[id] = cfg;
+		call_out("quest_tick", 4, id);
+		return;
+	}
+}
+
+void quest_tick(string id)
+{
+	mixed err;
+
+	if (undefinedp(sessions[id])) return;
+	err = catch(do_quest_tick(id));
+	if (err) {
+		if (!undefinedp(sessions[id])) {
+			object me;
+			me = find_player(id);
+			if (objectp(me))
+				WEBD->send_assist_status(me, 1, "任务挂机 · 动作受阻，重试中");
+			call_out("quest_tick", 3, id);
+		}
+	}
+}
+
+int start_quest_assist(object me)
+{
+	string id;
+	mapping cfg;
+	object env;
+
+	if (!objectp(me)) return 0;
+	env = environment(me);
+	if (!objectp(env)) {
+		WEBD->send_assist_status(me, 0, "当前位置异常，无法挂机");
+		return 0;
+	}
+	if (!PATHD->is_city_room_path(base_name(env))) {
+		WEBD->send_assist_status(me, 0, "仅可在扬州城内挂悬赏任务");
+		return 0;
+	}
+
+	id = me->query("id");
+	stop_assist(me, 0);
+
+	cfg = ([
+		"kind" : "quest",
+		"phase" : "ask",
+		"path" : ({}),
+		"ask_wait" : 0,
+		"kill_waits" : 0,
+		"ticks" : 0,
+	]);
+	sessions[id] = cfg;
+	me->set_temp("web_assist", 1);
+	WEBD->mark_web_client(me);
+	WEBD->send_assist_status(me, 1, "任务挂机 · 前往衙门");
+	call_out("quest_tick", 1, id);
+	return 1;
+}

@@ -2,6 +2,7 @@ const TOKEN = /^[a-z][a-z0-9_-]*$/i;
 
 export function buildAssistCommand(config = {}) {
   if (config.action === "stop") return "webassist stop";
+  if (config.mode === "quest") return "webassist quest";
   if (config.mode === "grind") {
     const target = String(config.grindTarget || "haigui_s").toLowerCase();
     if (!TOKEN.test(target)) return null;

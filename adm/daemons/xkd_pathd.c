@@ -91,6 +91,7 @@ string *city_whitelist()
 		CITY_PREFIX + "dongdajie1", CITY_PREFIX + "dongdajie2", CITY_PREFIX + "dongdajie3",
 		CITY_PREFIX + "xidajie1", CITY_PREFIX + "xidajie2", CITY_PREFIX + "xidajie3",
 		CITY_PREFIX + "dongnanjie", CITY_PREFIX + "xiangnanjie", YZ_REST,
+		CITY_PREFIX + "yamen", CITY_PREFIX + "biaoju",
 		CITY_PREFIX + "beimen", CITY_PREFIX + "nanmen",
 		CITY_PREFIX + "dongmen", CITY_PREFIX + "ximen",
 		CITY_PREFIX + "beijiao1", CITY_PREFIX + "beijiao2", CITY_PREFIX + "beijiao3", CITY_PREFIX + "beijiao4",

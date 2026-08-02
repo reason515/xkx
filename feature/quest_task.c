@@ -7,15 +7,15 @@
 
 #include <ansi.h>
 
-// 任务配置：宿主 NPC 可覆盖 quest_list() 提供自定义任务表
+// 任务配置：宿主 NPC 可覆盖 quest_list() 提供自定义任务表（min_exp 为接取门槛）
 mapping *quest_list()
 {
 	return ({
-		(["target" : "liu mang", "name" : "流氓", "area" : "扬州广场", "exp" : 200, "pot" : 20, "money" : 100]),
-		(["target" : "yz dog", "name" : "野狗", "area" : "扬州磨坊附近", "exp" : 200, "pot" : 20, "money" : 100]),
-		(["target" : "yz boar", "name" : "野猪", "area" : "扬州野猪林", "exp" : 300, "pot" : 30, "money" : 150]),
-		(["target" : "yz bandit", "name" : "强盗", "area" : "扬州匪窝", "exp" : 400, "pot" : 40, "money" : 200]),
-		(["target" : "liu mang tou", "name" : "流氓头", "area" : "扬州广场", "exp" : 500, "pot" : 50, "money" : 250]),
+		(["target" : "liu mang", "name" : "流氓", "area" : "扬州广场", "room" : "/d/city/guangchang", "min_exp" : 0, "exp" : 200, "pot" : 20, "money" : 100]),
+		(["target" : "yz dog", "name" : "野狗", "area" : "扬州磨坊附近", "room" : "/d/city/yangzhou_grind4", "min_exp" : 0, "exp" : 200, "pot" : 20, "money" : 100]),
+		(["target" : "yz boar", "name" : "野猪", "area" : "扬州野猪林", "room" : "/d/city/yangzhou_grind5", "min_exp" : 3000, "exp" : 300, "pot" : 30, "money" : 150]),
+		(["target" : "yz bandit", "name" : "强盗", "area" : "扬州匪窝", "room" : "/d/city/yangzhou_grind7", "min_exp" : 8000, "exp" : 400, "pot" : 40, "money" : 200]),
+		(["target" : "liu mang tou", "name" : "流氓头", "area" : "扬州广场", "room" : "/d/city/guangchang", "min_exp" : 15000, "exp" : 500, "pot" : 50, "money" : 250]),
 	});
 }
 
@@ -23,7 +23,7 @@ mapping *quest_list()
 string ask_task()
 {
 	object me = this_player();
-	mapping *qs, q;
+	mapping *qs, *cand, q;
 	int i, bonus, lianxu;
 
 	if (!userp(me))
@@ -35,7 +35,15 @@ string ask_task()
 	if (!sizeof(qs))
 		return "现在没有什么任务，你稍后再来。";
 
-	q = qs[random(sizeof(qs))];
+	// 按玩家经验过滤任务（新手只接弱怪悬赏，避免分到打不过的目标）
+	cand = ({});
+	for (i = 0; i < sizeof(qs); i++)
+		if (me->query("combat_exp") >= (int)qs[i]["min_exp"])
+			cand += ({ qs[i] });
+	if (!sizeof(cand))
+		cand = qs;
+
+	q = cand[random(sizeof(cand))];
 	// 连续完成任务加成
 	lianxu = me->query("quest_task/lianxu");
 	bonus = 100 + (lianxu > 5 ? 50 : lianxu * 10);

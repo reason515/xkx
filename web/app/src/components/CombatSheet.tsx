@@ -11,6 +11,7 @@ interface Props {
   onClose: () => void;
   onStartGrind?: (grindTarget: string, lowHpPct: number) => void;
   onStartStudy?: (skill: string) => void;
+  onStartQuest?: () => void;
   onStopAssist: () => void;
   /** 战斗/busy 中停手（不依赖挂机） */
   onHalt?: () => void;
@@ -25,6 +26,7 @@ export function CombatSheet({
   onClose,
   onStartGrind,
   onStartStudy,
+  onStartQuest,
   onStopAssist,
   onHalt,
   assistActive,
@@ -104,6 +106,20 @@ export function CombatSheet({
                   >
                     自动领悟
                   </button>
+                </div>
+              )}
+              {grindArea === "yangzhou" && onStartQuest && (
+                <div className="quest-assist-block">
+                  <button
+                    type="button"
+                    className="chip action"
+                    onClick={() => onStartQuest()}
+                  >
+                    悬赏任务挂机
+                  </button>
+                  <p className="quest-assist-desc">
+                    自动接衙门悬赏 → 前往击杀目标 → 回衙门领赏，循环进行。
+                  </p>
                 </div>
               )}
               {tab === "fight" || !canStudy ? (
