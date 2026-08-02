@@ -21,6 +21,7 @@ LONG
 		"south" : __DIR__"zahuopu",
 		"west" : __DIR__"guangchang",
 		"north" : __DIR__"shuyuan",
+		"northwest" : "/d/wuguan/wuguan_damen",
 	]));
         set("objects", ([
                 __DIR__"npc/xunbu" : 1,

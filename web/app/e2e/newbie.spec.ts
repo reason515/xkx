@@ -140,6 +140,58 @@ test("确认天赋后完成毕业并进入扬州", async ({ page }) => {
   });
 });
 
+test("毕业进入扬州后可到太乙武馆练功", async ({ page }) => {
+  test.setTimeout(150_000);
+  await loginAsNewbie(page, { asRegister: true });
+  await skipTo(page, 35);
+
+  const hire = page.locator(".chip.action").filter({ hasText: "雇车去扬州" }).first();
+  await expect(hire).toBeVisible({ timeout: 10_000 });
+  await hire.click();
+  await expect(page.locator(".room-title").first()).toHaveText(/马车/, {
+    timeout: 10_000,
+  });
+
+  await sendCmd(page, "qu 扬州");
+  await sendCmd(page, "qu 扬州", 3_000);
+  await expect(page.getByRole("button", { name: "确认天赋", exact: true })).toBeVisible({
+    timeout: 10_000,
+  });
+  await page.getByRole("button", { name: "确认天赋", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "确认，踏入江湖", exact: true })
+  ).toBeVisible();
+  await page.getByRole("button", { name: "确认，踏入江湖", exact: true }).click();
+  await expect(page.getByRole("button", { name: "确认，踏入江湖", exact: true })).toHaveCount(0, {
+    timeout: 10_000,
+  });
+  await expect(page.locator(".room-title").first()).toHaveText(/扬州.*广场|中央广场/, {
+    timeout: 10_000,
+  });
+
+  // 广场 → 东大街（武馆入口在西北方向）
+  await sendCmd(page, "go east", 2_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/东大街/, {
+    timeout: 10_000,
+  });
+  // 武馆入口必须展示为可点出口（西北方向）
+  const wgExit = page.locator(".exit-pad .cell.open").filter({ hasText: "西北" }).first();
+  await expect(wgExit).toBeVisible({ timeout: 10_000 });
+  await wgExit.click();
+  // 出口预览面板中点击“前往”
+  await page.getByRole("button", { name: "前往", exact: true }).click();
+  await expect(page.locator(".room-title").first()).toHaveText(/太乙武馆大门/, {
+    timeout: 10_000,
+  });
+
+  // 进大厅见教头，验证太乙武馆 NPC 正常加载
+  await sendCmd(page, "go south", 2_000);
+  await expect(page.locator(".room-title").first()).toHaveText(/武馆大厅/, {
+    timeout: 10_000,
+  });
+  await expect(page.getByText(/武馆教头/).first()).toBeVisible({ timeout: 10_000 });
+});
+
 test("场景物件名称保留有效语义并滤除叙述残片", async ({ page }) => {
   test.setTimeout(60_000);
   await loginAsNewbie(page, { asRegister: true });
