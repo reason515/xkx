@@ -354,7 +354,7 @@ void send_quest_status(object me)
 	if (!me->query_temp("web_client")) return;
 	
 	index = me->query("newbie_village/quest_index");
-	if (index < 1) return;
+	if (index < 1) index = 0; /* 毕业/无任务时推 0，前端隐藏新手任务条 */
 	
 	emit_raw(me, sprintf(
 		"{\"v\":1,\"type\":\"newbie.quest_status\",\"index\":%d}",

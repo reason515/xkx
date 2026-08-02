@@ -276,6 +276,9 @@ void do_graduate(object who)
 	// 更新毕业生标志
 	who->set("newbie_village/done", 1);
 	who->set("startroom", "/d/city/kedian");
+	// 离开新手村：清除任务进度，隐藏底部新手任务条
+	who->delete("newbie_village/quest_index");
+	WEBD->send_quest_status(who);
 	who->save();
 
 	tell_object(who, HIC "\n你的潜能增加了" + chinese_number(pt) + "点。\n" NOR);
