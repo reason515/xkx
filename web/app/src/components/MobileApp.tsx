@@ -54,8 +54,8 @@ function EventLog({
   const [expanded, setExpanded] = useState(false);
   const [cmdDraft, setCmdDraft] = useState("");
   const lastLogId = logs.length ? logs[logs.length - 1]!.id : 0;
-  // Show last 2 entries so collapsed summary fills ~2 lines
-  const latestTwo = logs.length ? logs.slice(-2) : [];
+  // Show last 4 entries so collapsed summary fills ~4 lines
+  const latestFour = logs.length ? logs.slice(-4) : [];
 
   const pinToBottom = () => {
     const panel = panelRef.current;
@@ -141,10 +141,20 @@ function EventLog({
         aria-expanded={expanded}
         onClick={openLog}
       >
-        <span className="log-summary-title">见闻</span>
-        <span className={`log-summary-text${latestTwo.length > 0 && latestTwo[latestTwo.length - 1]?.kind === "combat" ? " hl" : ""}`}>
-          {latestTwo.length > 0 ? (
-            latestTwo.map((entry) => (
+        <span className="log-summary-head">
+          <span className="log-summary-title">见闻</span>
+          <span className="log-summary-open">
+            展开
+            <span className="log-summary-open-caret" aria-hidden="true">
+              ▾
+            </span>
+          </span>
+        </span>
+        <span
+          className={`log-summary-text${latestFour.length > 0 && latestFour[latestFour.length - 1]?.kind === "combat" ? " hl" : ""}`}
+        >
+          {latestFour.length > 0 ? (
+            latestFour.map((entry) => (
               <span key={entry.id} className="log-summary-line">
                 {entry.html ? (
                   <span dangerouslySetInnerHTML={{ __html: entry.html }} />
@@ -157,7 +167,6 @@ function EventLog({
             <span className="log-summary-line">尚无新的见闻</span>
           )}
         </span>
-        <span className="log-summary-open">展开</span>
       </button>
       {showCmd && !expanded && cmdForm}
       {expanded && (

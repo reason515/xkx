@@ -334,13 +334,12 @@ textarea:focus-visible {
 }
 
 .log-summary {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
   width: 100%;
-  min-height: 48px;
-  padding: 9px 10px;
+  min-height: 0;
+  padding: 8px 10px 9px;
   border: 1px solid var(--line);
   border-radius: 10px;
   background: var(--ink-lift);
@@ -351,20 +350,61 @@ textarea:focus-visible {
   cursor: pointer;
 }
 
+.log-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--line);
+}
+
 .log-summary-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   color: var(--jade-bright);
   font-family: var(--font-display);
+  font-size: 14px;
   letter-spacing: 0.14em;
+}
+
+.log-summary-title::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--jade);
+  box-shadow: 0 0 0 3px rgba(95, 143, 120, 0.18);
+}
+
+.log-summary-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--jade);
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid rgba(95, 143, 120, 0.4);
+  border-radius: 999px;
+  padding: 2px 10px;
+  background: rgba(95, 143, 120, 0.08);
+  letter-spacing: 0.06em;
+}
+
+.log-summary-open-caret {
+  font-size: 10px;
+  transform: translateY(1px);
 }
 
 .log-summary-text {
   min-width: 0;
   overflow: hidden;
-  max-height: 3.4em;
+  max-height: 6.6em;
   line-height: 1.55;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
 .log-summary-line {
   display: block;
@@ -375,12 +415,6 @@ textarea:focus-visible {
 
 .log-summary-text.hl {
   color: var(--cinnabar);
-}
-
-.log-summary-open {
-  color: var(--jade);
-  font-size: 12px;
-  font-weight: 500;
 }
 
 .log-sheet {
