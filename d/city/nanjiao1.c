@@ -25,6 +25,7 @@ LONG
         set("exits", ([
                 "east" : __DIR__"nanjiao2",
                 "west" : __DIR__"nanmen",
+                "south" : __DIR__"yutang",
         ]));
 	set("outdoors","city");
 	set("resource/grass", 1);

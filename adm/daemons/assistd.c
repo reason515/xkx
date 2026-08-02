@@ -2270,6 +2270,14 @@ void do_fishing_tick(string id)
 		stop_assist(me, "挂机停止 · 你已力尽昏迷");
 		return;
 	}
+	/* 途中遇敌（非钓鱼目标）→ 停手脱战继续走，保持零战斗 */
+	if (me->is_fighting()) {
+		me->force_me("halt");
+		WEBD->send_assist_status(me, 1, "钓鱼挂机 · 避让路遇");
+		sessions[id] = cfg;
+		call_out("fishing_tick", 2, id);
+		return;
+	}
 	env = environment(me);
 	if (!objectp(env)) {
 		stop_assist(me, "挂机停止 · 位置异常");

@@ -7,9 +7,9 @@ inherit ROOM;
 
 void create()
 {
-	set("short", "东郊水塘");
+	set("short", "南郊水塘");
 	set("long", @LONG
-这里是扬州东郊的一处水塘，塘边绿柳成荫，水面波光粼粼。塘边放着
+这里是扬州南郊的一处水塘，塘边绿柳成荫，水面波光粼粼。塘边放着
 一根破旧的钓竿(yugan)，看起来是哪个渔夫留下的。不少闲人都喜欢在这里
 钓(diao)上几竿，钓得的鱼可以拿到城里醉仙楼去卖几个铜钱。
 LONG );
@@ -17,7 +17,7 @@ LONG );
 		"yugan" : "一根破旧的钓竿，可以拿(get yugan)起来去钓鱼。\n",
 	]));
 	set("exits", ([
-		"west" : __DIR__"dongjiao1",
+		"north" : __DIR__"nanjiao1",
 	]));
 	set("outdoors", "city");
 	set("cost", 2);
