@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAsNewbie } from "./helpers";
+import { loginAsNewbie, waitForInGameMobile } from "./helpers";
 
 async function sendCmd(page: any, text: string, wait = 1500) {
   // 确保指令输入框可见——移动端默认隐藏，需先通过菜单切换
@@ -138,6 +138,53 @@ test("确认天赋后完成毕业并进入扬州", async ({ page }) => {
   await expect(page.locator(".room-title").first()).toHaveText(/扬州.*广场|中央广场/, {
     timeout: 10_000,
   });
+
+  // 毕业离开新手村后，底部新手任务提醒条必须消失
+  await expect(page.locator(".fqb-pill")).toHaveCount(0, { timeout: 10_000 });
+});
+
+test("毕业老号遗留 quest_index 重登不再显示新手任务条", async ({ page }) => {
+  test.setTimeout(180_000);
+  const creds = await loginAsNewbie(page, { asRegister: true });
+  await skipTo(page, 35);
+
+  const hire = page.locator(".chip.action").filter({ hasText: "雇车去扬州" }).first();
+  await expect(hire).toBeVisible({ timeout: 10_000 });
+  await hire.click();
+  await expect(page.locator(".room-title").first()).toHaveText(/马车/, {
+    timeout: 10_000,
+  });
+  await sendCmd(page, "qu 扬州");
+  await sendCmd(page, "qu 扬州", 3_000);
+  await expect(page.getByRole("button", { name: "确认天赋", exact: true })).toBeVisible({
+    timeout: 10_000,
+  });
+  await page.getByRole("button", { name: "确认天赋", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "确认，踏入江湖", exact: true })
+  ).toBeVisible();
+  await page.getByRole("button", { name: "确认，踏入江湖", exact: true }).click();
+  await expect(page.locator(".room-title").first()).toHaveText(/扬州.*广场|中央广场/, {
+    timeout: 10_000,
+  });
+  await expect(page.locator(".fqb-pill")).toHaveCount(0, { timeout: 10_000 });
+
+  // 模拟修复前遗留：毕业老号的保存文件仍带 quest_index（newbietest skip 会写回）
+  await sendCmd(page, "newbietest skip 5", 3_000);
+  await page.waitForTimeout(1_500);
+
+  // 重登：退出后重新进入
+  await page.getByRole("button", { name: "菜单" }).click();
+  await page.locator('[role="menuitem"]').filter({ hasText: "退出" }).click();
+  await page.waitForTimeout(2_000);
+  await page.getByRole("tab", { name: "登录" }).click();
+  await page.getByLabel("账号（英文 ID）").fill(creds.id);
+  await page.getByLabel("密码", { exact: true }).fill(creds.password);
+  await page.getByRole("button", { name: "进入游戏" }).click();
+  await waitForInGameMobile(page);
+
+  // done 角色即使带遗留 quest_index 也不显示新手任务条
+  await expect(page.locator(".fqb-pill")).toHaveCount(0, { timeout: 10_000 });
 });
 
 test("毕业进入扬州后可到太乙武馆练功", async ({ page }) => {
