@@ -59,23 +59,17 @@ async function waitForBodyText(page: any, pattern: RegExp, timeout = 20_000) {
 }
 
 async function walkToYaopu(page: any) {
-  await sendCmd(page, "xkxe2e qianzhuang", 3_000);
-  await expect(page.locator(".room-title").first()).toHaveText(/钱庄/, {
+  // 一键直达扬州药铺（毕业新手状态：经验 6000、基础技能 20、存款 5000）
+  await sendCmd(page, "newbietest prep yaopu", 2_500);
+  await expect(page.locator(".room-title").first()).toHaveText(/药铺/, {
     timeout: 15_000,
   });
-  await sendCmd(page, "south", 2_000);
-  await expect(page.locator(".room-title").first()).toHaveText(/东大街/, { timeout: 15_000 });
-  await sendCmd(page, "west", 2_000);
-  await expect(page.locator(".room-title").first()).toHaveText(/东大街/, { timeout: 15_000 });
-  await sendCmd(page, "north", 2_000);
-  await expect(page.locator(".room-title").first()).toHaveText(/药铺/, { timeout: 15_000 });
 }
 
 test("配药打工挂机：领药方→配药→交药领赏闭环", async ({ page }) => {
   test.setTimeout(180_000);
   await loginAsE2eAccount(page);
-  // 固定账号状态重置（上一测试可能毕业/留技能）
-  await sendCmd(page, "newbietest reset", 3_000);
+  // prep yaopu：清状态 + 传送扬州药铺（毕业新手 6000 经验），一步到位
   await walkToYaopu(page);
 
   // 打开江湖助手 → 配药打工
@@ -103,11 +97,8 @@ test("配药打工挂机：领药方→配药→交药领赏闭环", async ({ pa
 test("配药任务：毕业新手（6000经验）可接单，超20000才拒绝", async ({ page }) => {
   test.setTimeout(150_000);
   await loginAsE2eAccount(page, { index: 1 });
-  await sendCmd(page, "newbietest reset", 3_000);
+  // prep yaopu：经验 6000（毕业 5000 + 少量增长），正好在配药门槛内
   await walkToYaopu(page);
-
-  // 模拟毕业后经验（5000 毕业 + 少量增长 → 6000）
-  await sendCmd(page, "xkxe2e grantexpnum", 3_000);
 
   // 6000 经验：应能领到药方（收到"药方"字样，且不是拒绝文案）
   await sendCmd(page, "ask ping about 工作", 3_000);
