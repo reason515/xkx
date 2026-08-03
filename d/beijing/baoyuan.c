@@ -20,6 +20,12 @@ LONG
 钱庄业务：存款(deposit)，取款(withdraw)，兑换(convert)。
 \n",
         ]));
+        // Web 场景动作声明：钱庄业务按钮（查账/存款/取款）由房间显式声明。
+        set("web/actions", ([
+            "check" : "查账",
+            "cun"   : "存款",
+            "qu"    : "取款",
+        ]));
         set("objects", ([
 	       __DIR__"npc/bankhuoji" : 1,
         ]));

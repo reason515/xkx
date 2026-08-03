@@ -40,6 +40,8 @@ void create()
 
 
         create_family("华山派",21,"弟子");
+	// Web：向客户端声明本 NPC 具备钱庄业务能力，驱动查账/存款/取款按钮。
+	set("web/can_withdraw", 1);
 	setup();
 	add_money("coin", 188);
 	add_money("silver", 88);

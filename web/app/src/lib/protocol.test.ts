@@ -80,6 +80,31 @@ describe("applyEvent", () => {
     ]);
   });
 
+  it("parses bank room actions into declaredActions", () => {
+    const next = applyEvent(
+      {
+        v: 1,
+        type: "room.update",
+        title: "钱庄",
+        long: "这是一家老字号的钱庄。",
+        actions: [
+          { command: "check", label: "查账" },
+          { command: "cun", label: "存款" },
+          { command: "qu", label: "取款" },
+        ],
+        exits: [],
+        npcs: [],
+        items: [],
+      },
+      basePrev()
+    );
+    expect(next.room.declaredActions).toEqual([
+      { command: "check", label: "查账" },
+      { command: "cun", label: "存款" },
+      { command: "qu", label: "取款" },
+    ]);
+  });
+
   it("merges scenery and canSleep from rest-room room.update", () => {
     const prev = basePrev();
     const next = applyEvent(

@@ -15,7 +15,7 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | yanzhougrind | studyrecoverprep | haidaowo | dadong | yingbin | jizhen | huanpo | luanshizhen | xingzilin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | givemoney | givesellitem | givesellrabbit | grantskills | grantforce | grantexp\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | yanzhougrind | studyrecoverprep | haidaowo | dadong | yingbin | jizhen | huanpo | luanshizhen | xingzilin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | qianzhuang | givemoney | givesellitem | givesellrabbit | grantskills | grantforce | grantexp\n");
 
 	if (arg == "dadong") {
 		ob = load_object("/d/xiakedao/dadong");
@@ -235,6 +235,17 @@ int main(object me, string arg)
 		return 1;
 	}
 
+	if (arg == "qianzhuang") {
+		ob = load_object("/d/city/qianzhuang");
+		if (!objectp(ob))
+			return notify_fail("（测试）无法加载扬州钱庄。\n");
+		me->move(ob);
+		tell_object(me, "（测试）你来到扬州钱庄。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_room(me, ob);
+		return 1;
+	}
+
 	if (arg == "yanzhougrind") {
 		ob = load_object("/d/city/minwu1");
 		if (!objectp(ob))
@@ -420,6 +431,7 @@ int help(object me)
   tovoid      — 传送到 VOID（最後乐园）并污染 startroom，供落点救援回归
   zuixianlou  — 传送到扬州醉仙楼（店小二商店）
   dangpu      — 传送到扬州当铺（出售物品回归）
+  qianzhuang  — 传送到扬州钱庄（钱庄业务按钮回归）
   givemoney   — 发放二十两白银供购买回归
   givesellitem — 发放一柄长剑供当铺出售回归
   givesellrabbit — 发放一块兔肉供多词物品 ID 回归

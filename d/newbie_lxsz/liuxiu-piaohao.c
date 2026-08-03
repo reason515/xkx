@@ -19,6 +19,13 @@ LONG
 	]));
 
 
+	// Web 场景动作声明：票号业务按钮（查账/存款/取款）由房间显式声明。
+	set("web/actions", ([
+		"check" : "查账",
+		"cun"   : "存款",
+		"qu"    : "取款",
+	]));
+
 	set("no_drop",1);
 	set("exits", ([
 		"west" : __DIR__"shanzhuang-damen",

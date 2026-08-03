@@ -30,6 +30,7 @@ import {
   isTrainLine,
   isLearnFeedbackLine,
   inferNpcCapabilityActions,
+  mergeSuggestedActions,
   labelAskTopic,
   labelSuggestedAction,
   sceneryPracticeActions,
@@ -2117,5 +2118,46 @@ describe("inferNpcCapabilityActions", () => {
   it("does not add gift action without capability", () => {
     const actions = inferNpcCapabilityActions([]);
     expect(actions.map((a) => a.command)).not.toContain("__changegift__");
+  });
+
+  it("generates 查账/存款/取款 for banker NPCs (canWithdraw)", () => {
+    const actions = inferNpcCapabilityActions([
+      { id: "huang", name: "黄真", kind: "npc", canWithdraw: 1 } as never,
+    ]);
+    expect(actions).toContainEqual({ command: "check", label: "查账" });
+    expect(actions).toContainEqual({ command: "cun", label: "存款" });
+    expect(actions).toContainEqual({ command: "qu", label: "取款" });
+  });
+
+  it("does not generate bank chips without a banker NPC", () => {
+    const actions = inferNpcCapabilityActions([
+      { id: "xiaoer", name: "小二", kind: "npc" } as never,
+    ]);
+    expect(actions.map((a) => a.command)).toEqual([]);
+  });
+
+  it("merges room-declared bank actions without duplicating NPC-inferred ones", () => {
+    const merged = mergeSuggestedActions(
+      [],
+      [
+        // NPC 能力推断生成的银行芯片
+        { command: "check", label: "查账" },
+        { command: "cun", label: "存款" },
+        { command: "qu", label: "取款" },
+        // 房间显式声明的银行动作（同样三个命令）
+        { command: "check", label: "查账" },
+        { command: "cun", label: "存款" },
+        { command: "qu", label: "取款" },
+      ],
+      [{ id: "huang", name: "黄真", kind: "npc", canWithdraw: 1 } as never]
+    );
+    const cmds = merged.map((a) => a.command);
+    // 按 command 去重：查账/存款/取款各出现一次
+    expect(cmds.filter((c) => c === "check")).toHaveLength(1);
+    expect(cmds.filter((c) => c === "cun")).toHaveLength(1);
+    expect(cmds.filter((c) => c === "qu")).toHaveLength(1);
+    expect(merged).toContainEqual({ command: "check", label: "查账" });
+    expect(merged).toContainEqual({ command: "cun", label: "存款" });
+    expect(merged).toContainEqual({ command: "qu", label: "取款" });
   });
 });

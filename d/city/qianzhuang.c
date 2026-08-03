@@ -26,6 +26,14 @@ LONG
 \n",
 	]));
 
+	// Web 场景动作声明：钱庄业务按钮（查账/存款/取款）由房间显式声明，
+	// 不依赖前端从 long/item_desc 文案猜测，也不依赖 NPC 能力标记是否齐全。
+	set("web/actions", ([
+		"check" : "查账",
+		"cun"   : "存款",
+		"qu"    : "取款",
+	]));
+
 	set("no_drop",1);
 	set("exits", ([
 		"south" : __DIR__"dongdajie3",
