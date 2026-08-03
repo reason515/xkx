@@ -281,30 +281,32 @@ int heal_up()
 	if( my["water"] > 0 ) { my["water"] -= 1; update_flag++; }
 	if( my["food"] > 0 ) { my["food"] -= 1; update_flag++; }
 
-	if( my["water"] < 1 && userp(this_object()) ) return update_flag;
-	if( my["food"] < 1 && userp(this_object()) ) return update_flag;
-	
+	/* 饥饿/干渴（仅玩家）：气血不再自然恢复（保留生存惩罚），
+	   但精力/内力照常缓慢恢复——否则会形成死锁：食物为0 →
+	   精力不恢复 → go.c 拒绝移动（jingli < max/10）→ 找不到
+	   食物/睡眠点 → 永远卡死（挂机 rest/钓鱼调息同样被卡）。 */
+	if( !((my["water"] < 1 || my["food"] < 1) && userp(this_object())) ) {
+		if( this_object()->is_fighting() )
+			my["jing"] += my["con"] / 9 + my["max_jingli"] / 30;
+		else
+			my["jing"] += my["con"] / 3 + my["max_jingli"] / 10;
 
-	if( this_object()->is_fighting() )
-		my["jing"] += my["con"] / 9 + my["max_jingli"] / 30;
-	else
-		my["jing"] += my["con"] / 3 + my["max_jingli"] / 10;
-
-	if( my["jing"] >= my["eff_jing"] ) {
-		my["jing"] = my["eff_jing"];
-		if( my["eff_jing"] < my["max_jing"] ) { my["eff_jing"] ++; update_flag++; }
-	} else update_flag++;
+		if( my["jing"] >= my["eff_jing"] ) {
+			my["jing"] = my["eff_jing"];
+			if( my["eff_jing"] < my["max_jing"] ) { my["eff_jing"] ++; update_flag++; }
+		} else update_flag++;
 
 
-	if( this_object()->is_fighting() )
-		my["qi"] += my["con"] / 9 + my["max_neili"] / 30;
-	else
-		my["qi"] += my["con"] / 3 + my["max_neili"] / 10;
+		if( this_object()->is_fighting() )
+			my["qi"] += my["con"] / 9 + my["max_neili"] / 30;
+		else
+			my["qi"] += my["con"] / 3 + my["max_neili"] / 10;
 
-	if( my["qi"] >= my["eff_qi"] ) {
-		my["qi"] = my["eff_qi"];
-		if( my["eff_qi"] < my["max_qi"] ) { my["eff_qi"] ++; update_flag++; }
-	} else update_flag++;
+		if( my["qi"] >= my["eff_qi"] ) {
+			my["qi"] = my["eff_qi"];
+			if( my["eff_qi"] < my["max_qi"] ) { my["eff_qi"] ++; update_flag++; }
+		} else update_flag++;
+	}
 
 
 	if( my["max_jingli"] && my["jingli"] < my["max_jingli"] ) {

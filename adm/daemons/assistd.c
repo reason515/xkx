@@ -1999,6 +1999,7 @@ void do_quest_tick(string id)
 			cfg["return_phase"] = cfg["phase"];
 		cfg["phase"] = "rest";
 		cfg["path"] = ({});
+		cfg["rest_waits"] = 0;
 		sessions[id] = cfg;
 		WEBD->send_assist_status(me, 1, "任务挂机 · 气血偏低，回民屋休整");
 		call_out("quest_tick", 2, id);
@@ -2175,6 +2176,13 @@ void do_quest_tick(string id)
 			WEBD->send_assist_status(me, 1, "任务挂机 · 恢复完成，继续任务");
 			sessions[id] = cfg;
 			call_out("quest_tick", 2, id);
+			return;
+		}
+		/* 兜底：伤势过重或食水耗尽时 qi 无法自愈到 90%，
+		   无限睡下去会卡死——超时停止并给出原因 */
+		cfg["rest_waits"] = (int)cfg["rest_waits"] + 1;
+		if ((int)cfg["rest_waits"] > 90) {
+			stop_assist(me, "伤势过重或食水耗尽，无法恢复，已停止挂机");
 			return;
 		}
 		sessions[id] = cfg;

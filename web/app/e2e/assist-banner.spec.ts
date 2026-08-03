@@ -7,7 +7,7 @@ test("挂机提示只走挂机条，不弹 toast", async ({ page }) => {
 
   // 固定测试账号（已在扬州中央广场，钓鱼挂机可用）
   await loginAsNewbie(page, {
-    id: "assistqa",
+    id: "assistqb",
     password: "Test1234",
     asRegister: false,
   });

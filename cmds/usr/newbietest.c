@@ -32,9 +32,13 @@ int main(object me, string arg)
     if (!me->query_temp("web_client") && !wizardp(me)) {
         write("仅 Web 客户端可用。\n"); return 1;
     }
+    // FluffOS sscanf 部分匹配返回 0：单 token 子命令（hunger/advance）
+    // 需降级为 %s 单格式再解析一次
     if (!arg || sscanf(arg, "%s %s", cmd, param) < 1) {
-        write("用法：newbietest skip <1-35> | gold <amount> | advance\n");
-        return 1;
+        if (!arg || sscanf(arg, "%s", cmd) != 1) {
+            write("用法：newbietest skip <1-35> | gold <amount> | hunger | advance\n");
+            return 1;
+        }
     }
 
     if (cmd == "skip") {
@@ -66,6 +70,15 @@ int main(object me, string arg)
             WEBD->send_quest_status(me);
         }
         write(sprintf("存款=%d\n", n));
+        return 1;
+    }
+
+    if (cmd == "hunger") {
+        // 测试辅助：直接构造饥饿/干渴（食物饮水归零），用于验证
+        // 「食物为0时精力仍恢复、可走动」等场景（e2e 亦可用）
+        me->set("food", 0);
+        me->set("water", 0);
+        write("已设置食物/饮水为 0（饥饿状态）。\n");
         return 1;
     }
 
