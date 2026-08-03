@@ -4,6 +4,9 @@
 inherit NPC;
 inherit F_DEALER;
 
+string ask_job();
+string ask_fail();
+
 void create()
 {
 	set_name("平一指", ({ "ping yizhi", "ping", "yizhi" }));
@@ -33,8 +36,47 @@ void create()
 
 	set("vendor_goods", ({}));
 
+	set("inquiry", ([
+		"工作" : (: ask_job :),
+		"job" : (: ask_job :),
+		"配药" : (: ask_job :),
+		"失败" : (: ask_fail :),
+	]));
+
 	setup();
 	add_money("gold", 1);
+}
+
+/* ===== 新手配药任务（移植自 pkuxkx，新手专属：20000 经验内） ===== */
+string ask_job()
+{
+	object ppl = this_player(), yaofang;
+
+	if (ppl->query("combat_exp") > 20000)
+		return "在我这里配药太埋没您拉，您还是去干点别的吧。\n";
+
+	if (ppl->query_temp("peiyao/in_job"))
+		return "你上次的工作还没有完成！";
+
+	yaofang = new(__DIR__"obj/yaofang");
+	yaofang->move(ppl);
+	ppl->set_temp("peiyao/in_job", 1);
+	ppl->set_temp("peiyao/ok", 0);
+	return "我们现在正好缺少一种药，这是药方，你去配吧";
+}
+
+string ask_fail()
+{
+	object ppl = this_player();
+
+	if (!ppl->query_temp("peiyao/in_job"))
+		return "我没有让你配药呀？";
+	if (ppl->query_temp("peiyao/ok"))
+		return "你不是已经把药配好了吗？";
+	ppl->set_temp("peiyao/in_job", 0);
+	ppl->set_temp("peiyao/ok", 0);
+	write("平一指叹了口气，说道：这点小事都干不好，还想在江湖上混？\n");
+	return "你走吧，我看见你就来气";
 }
 
 void init()
@@ -58,6 +100,12 @@ void init()
 int accept_object(object ob, object obj)
 {
 	object me = this_object();
+
+	/* 新手配药任务：交回成药领赏 */
+	if (obj->query("id") == "cheng yao" && ob->query_temp("peiyao/in_job")) {
+		if (obj->give_chengyao(me, ob))
+			return 1;
+	}
 
 	if( obj->query("id") == "shou jiao" && ob->query_temp("jiao_giver") ) {
 		message_vision("\n平一指微笑道：“好小子，稍等一会，我这就替你做一颗辟水灵珠！\n", ob);

@@ -2482,3 +2482,244 @@ int start_fishing_assist(object me)
 	call_out("fishing_tick", 1, id);
 	return 1;
 }
+
+/* ==================== 配药挂机（peiyao：新手零战斗打工）==================== */
+/* 流程：药铺 ask 平一指工作领药方 → 配药房 peiyao 配药 → 回药铺 give 成药 → 循环
+ * 收益：每单 10~19 经验 + 300~499 铜钱入钱庄（零战斗，新手专属 ≤20000 经验）
+ * 状态读取：me->query_temp("peiyao/in_job") / peiyao/ok；成药判 present("cheng yao") */
+
+#define PEIYAO_YAOPU "/d/city/yaopu"
+#define PEIYAO_FANG "/d/city/peiyaofang"
+#define PEIYAO_MAX_EXP 20000         /* 新手专属门槛（毕业 5000→押镖 1万；与 ping.c ask_job 一致，覆盖整个新手期） */
+#define PEIYAO_MAX_ASK_WAIT 15       /* ask 重试上限（约30秒） */
+#define PEIYAO_MAX_PEITIME_WAIT 30   /* 配药等待上限（约60秒） */
+#define PEIYAO_MAX_GIVE_WAIT 15      /* 交药重试上限（约30秒） */
+
+void peiyao_tick(string id);
+
+void do_peiyao_tick(string id)
+{
+	object me, env;
+	mapping cfg, my;
+	string dest;
+	int pct;
+
+	if (undefinedp(sessions[id])) return;
+	me = find_player(id);
+	if (!objectp(me)) {
+		map_delete(sessions, id);
+		return;
+	}
+	cfg = sessions[id];
+	if (cfg["kind"] != "peiyao") return;
+
+	cfg["ticks"]++;
+	if (cfg["ticks"] > MAX_GRIND_TICKS) {
+		stop_assist(me, "挂机时长已达上限");
+		return;
+	}
+	if (!living(me)) {
+		stop_assist(me, "挂机停止 · 你已力尽昏迷");
+		return;
+	}
+	env = environment(me);
+	if (!objectp(env)) {
+		stop_assist(me, "挂机停止 · 位置异常");
+		return;
+	}
+	my = me->query_entire_dbase();
+	pct = my["qi"] * 100 / (my["max_qi"] + 1);
+
+	/* 经验超门槛：任务永久不可接，停止并说明 */
+	if ((int)me->query("combat_exp") > PEIYAO_MAX_EXP) {
+		stop_assist(me, "配药任务只适合 20000 经验内的新手，你已毕业，试试其他挂机吧");
+		return;
+	}
+
+	switch (cfg["phase"]) {
+	case "init":
+		/* 前往药铺（领药方处） */
+		if (PATHD->room_path(env) != PEIYAO_YAOPU) {
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"]))
+				cfg["path"] = quest_find_path(me, PEIYAO_YAOPU);
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "无法前往药铺，已停止挂机");
+				return;
+			}
+			quest_walk(me, cfg);
+			sessions[id] = cfg;
+			call_out("peiyao_tick", 2, id);
+			return;
+		}
+		cfg["phase"] = "ask_job";
+		cfg["ask_wait"] = 0;
+		sessions[id] = cfg;
+		WEBD->send_assist_status(me, 1, "配药挂机 · 向平一指领药方");
+		call_out("peiyao_tick", 1, id);
+		return;
+
+	case "ask_job":
+		if (!me->query_temp("peiyao/in_job")) {
+			me->force_me("ask ping about 工作");
+			cfg["ask_wait"] = (int)cfg["ask_wait"] + 1;
+			if ((int)cfg["ask_wait"] > PEIYAO_MAX_ASK_WAIT) {
+				stop_assist(me, "领取药方超时，已停止挂机");
+				return;
+			}
+			sessions[id] = cfg;
+			call_out("peiyao_tick", 2, id);
+			return;
+		}
+		cfg["phase"] = "go_room";
+		cfg["path"] = ({});
+		sessions[id] = cfg;
+		WEBD->send_assist_status(me, 1, "配药挂机 · 前往配药房");
+		call_out("peiyao_tick", 1, id);
+		return;
+
+	case "go_room":
+		if (PATHD->room_path(env) != PEIYAO_FANG) {
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"]))
+				cfg["path"] = quest_find_path(me, PEIYAO_FANG);
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "无法前往配药房，已停止挂机");
+				return;
+			}
+			quest_walk(me, cfg);
+			sessions[id] = cfg;
+			call_out("peiyao_tick", 2, id);
+			return;
+		}
+		cfg["phase"] = "peiyao";
+		cfg["peiyao_waits"] = 0;
+		sessions[id] = cfg;
+		call_out("peiyao_tick", 1, id);
+		return;
+
+	case "peiyao":
+		/* 任务意外失效（如 ask_fail）→ 重新领 */
+		if (!me->query_temp("peiyao/in_job")) {
+			cfg["phase"] = "ask_job";
+			cfg["ask_wait"] = 0;
+			sessions[id] = cfg;
+			call_out("peiyao_tick", 2, id);
+			return;
+		}
+		/* 配好了：数据驱动（peiyao/ok 或包里有成药） */
+		if (me->query_temp("peiyao/ok") || present("cheng yao", me)) {
+			cfg["phase"] = "back";
+			cfg["path"] = ({});
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "配药挂机 · 药已配好，回药铺");
+			call_out("peiyao_tick", 1, id);
+			return;
+		}
+		if (!me->is_busy()) {
+			me->force_me("peiyao");
+			WEBD->send_assist_status(me, 1, "配药挂机 · 正在配药");
+		}
+		cfg["peiyao_waits"] = (int)cfg["peiyao_waits"] + 1;
+		if ((int)cfg["peiyao_waits"] > PEIYAO_MAX_PEITIME_WAIT) {
+			stop_assist(me, "配药超时，已停止挂机");
+			return;
+		}
+		sessions[id] = cfg;
+		call_out("peiyao_tick", 2, id);
+		return;
+
+	case "back":
+		if (PATHD->room_path(env) != PEIYAO_YAOPU) {
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"]))
+				cfg["path"] = quest_find_path(me, PEIYAO_YAOPU);
+			if (!arrayp(cfg["path"]) || !sizeof(cfg["path"])) {
+				stop_assist(me, "无法返回药铺，已停止挂机");
+				return;
+			}
+			quest_walk(me, cfg);
+			sessions[id] = cfg;
+			call_out("peiyao_tick", 2, id);
+			return;
+		}
+		cfg["phase"] = "give";
+		cfg["give_wait"] = 0;
+		sessions[id] = cfg;
+		call_out("peiyao_tick", 1, id);
+		return;
+
+	case "give":
+		/* 领赏完成：in_job 清零且包中无成药 → 下一单 */
+		if (!me->query_temp("peiyao/in_job") && !present("cheng yao", me)) {
+			cfg["phase"] = "ask_job";
+			cfg["ask_wait"] = 0;
+			sessions[id] = cfg;
+			WEBD->send_assist_status(me, 1, "配药挂机 · 已领赏，接下一单");
+			call_out("peiyao_tick", 2, id);
+			return;
+		}
+		if (present("cheng yao", me) && !me->is_busy()) {
+			me->force_me("give cheng yao to ping");
+		}
+		cfg["give_wait"] = (int)cfg["give_wait"] + 1;
+		if ((int)cfg["give_wait"] > PEIYAO_MAX_GIVE_WAIT) {
+			stop_assist(me, "交药超时，已停止挂机");
+			return;
+		}
+		sessions[id] = cfg;
+		call_out("peiyao_tick", 2, id);
+		return;
+	}
+}
+
+void peiyao_tick(string id)
+{
+	mixed err;
+
+	if (undefinedp(sessions[id])) return;
+	err = catch(do_peiyao_tick(id));
+	if (err) {
+		if (!undefinedp(sessions[id])) {
+			object me;
+			me = find_player(id);
+			if (objectp(me))
+				WEBD->send_assist_status(me, 1, "配药挂机 · 动作受阻，重试中");
+			call_out("peiyao_tick", 3, id);
+		}
+	}
+}
+
+int start_peiyao_assist(object me)
+{
+	string id;
+	mapping cfg;
+	object env;
+
+	if (!objectp(me)) return 0;
+	env = environment(me);
+	if (!objectp(env)) {
+		WEBD->send_assist_status(me, 0, "当前位置异常，无法挂机");
+		return 0;
+	}
+	if (!PATHD->is_city_room_path(base_name(env))) {
+		WEBD->send_assist_status(me, 0, "仅可在扬州城内挂配药");
+		return 0;
+	}
+
+	id = me->query("id");
+	stop_assist(me, 0);
+
+	cfg = ([
+		"kind" : "peiyao",
+		"phase" : "init",
+		"path" : ({}),
+		"ask_wait" : 0,
+		"peiyao_waits" : 0,
+		"give_wait" : 0,
+		"ticks" : 0,
+	]);
+	sessions[id] = cfg;
+	me->set_temp("web_assist", 1);
+	WEBD->mark_web_client(me);
+	WEBD->send_assist_status(me, 1, "配药挂机 · 前往药铺");
+	call_out("peiyao_tick", 1, id);
+	return 1;
+}

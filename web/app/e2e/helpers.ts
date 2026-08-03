@@ -99,6 +99,48 @@ export async function loginAsNewbie(
   throw new Error("登录/注册失败：重试次数已用尽");
 }
 
+/**
+ * e2e 账号池：固定账号复用，避免每次测试注册新号触发 MUD 注册限流
+ * （网关 maxRegisterPerHour=30/IP，撞限流后 helpers 退避重试可拖数分钟）。
+ * 每个账号首次使用时注册一次，之后登录 + newbietest reset 回到初始状态。
+ */
+export const E2E_ACCOUNTS = [
+  { id: "testera", password: "E2ePass123" },
+  { id: "testerb", password: "E2ePass123" },
+  { id: "testerc", password: "E2ePass123" },
+  { id: "testerd", password: "E2ePass123" },
+];
+
+/**
+ * 登录账号池账号：优先登录已有账号（asRegister=false，3~5 秒）；
+ * 账号不存在（首次）自动注册。按 TEST_WORKER_INDEX 分配账号，多 worker 并行不互踢。
+ * 登录后调用方自行 newbietest reset / skip 到目标状态。
+ */
+export async function loginAsE2eAccount(
+  page: Page,
+  opts?: { desktop?: boolean; index?: number }
+) {
+  const worker = Number(process.env.TEST_WORKER_INDEX ?? 0);
+  const account =
+    E2E_ACCOUNTS[(opts?.index ?? worker) % E2E_ACCOUNTS.length];
+  try {
+    return await loginAsNewbie(page, {
+      desktop: opts?.desktop,
+      asRegister: false,
+      id: account.id,
+      password: account.password,
+    });
+  } catch {
+    // 账号不存在：注册创建（限流窗口内只有首次会撞，之后都是登录）
+    return loginAsNewbie(page, {
+      desktop: opts?.desktop,
+      asRegister: true,
+      id: account.id,
+      password: account.password,
+    });
+  }
+}
+
 export async function readTerminalText(page: Page): Promise<string> {
   const term = page.locator('[data-testid="desktop-terminal"]');
   await expect(term).toBeVisible({ timeout: 15_000 });

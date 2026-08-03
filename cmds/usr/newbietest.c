@@ -27,7 +27,8 @@ string *quest_rooms = ({
 int main(object me, string arg)
 {
     string cmd, param;
-    int n, idx;
+    string *sk;
+    int n, idx, i;
 
     // 与 xkxe2e 同款开关：仅 e2e/调试环境开启，防止正式玩家利用测试指令白拿技能/进度
     if (file_size("/adm/etc/xkd_e2e") < 0)
@@ -97,6 +98,32 @@ int main(object me, string arg)
         } else {
             write("已是最后一步。\n");
         }
+        return 1;
+    }
+
+    if (cmd == "reset") {
+        /* 账号池复用：把角色重置回新手村初始状态（清技能/门派/任务/余额/经验），
+         * 供 e2e 固定账号反复登录使用，避免每次注册新号触发限流。 */
+        if (mapp(me->query_skills())) {
+            sk = keys(me->query_skills());
+            for (i = 0; i < sizeof(sk); i++)
+                me->delete_skill(sk[i]);
+        }
+        me->delete("newbie_village");
+        me->delete("family");
+        me->delete("class");
+        me->delete("learned_points");
+        me->delete("pot");
+        me->set("combat_exp", 0);
+        me->set("balance", 0);
+        me->set("potential", 100);
+        me->set("max_potential", 100);
+        me->set("food", me->max_food_capacity());
+        me->set("water", me->max_water_capacity());
+        me->set("startroom", "/d/newbie_lxsz/weiminggu");
+        me->move("/d/newbie_lxsz/weiminggu");
+        WEBD->send_quest_status(me);
+        write("已重置回新手村初始状态（账号池复用）。\n");
         return 1;
     }
 

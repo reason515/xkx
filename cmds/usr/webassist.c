@@ -67,6 +67,11 @@ int main(object me, string arg)
 		return 1;
 	}
 
+	if (arg == "peiyao") {
+		ASSIST_D->start_peiyao_assist(me);
+		return 1;
+	}
+
 	if (sscanf(arg, "grind %s %d", action, low_hp) == 2) {
 		if (low_hp < 5) low_hp = 5;
 		if (low_hp > 80) low_hp = 80;
@@ -94,6 +99,7 @@ webassist learn shi literate potential 1 1 — 读书至潜能耗尽（按精批
 webassist combat 30 flee         — 自动普攻，低于 30% 逃跑
 webassist grind yz_crow 30    — 挂机打怪（yz_crow|yz_monkey|yz_goat|yz_dog|yz_boar|yz_wolf|yz_bandit|yz_bandit_leader）
 webassist study taixuan-gong     — 侠客岛石壁领悟太玄功
+webassist peiyao                 — 新手配药打工（20000经验内，零战斗）
 webassist stop                   — 停止
 
 HELP);

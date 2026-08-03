@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAsNewbie } from "./helpers";
+import { loginAsE2eAccount } from "./helpers";
 
 async function sendCmd(page: any, text: string, wait = 2500) {
   const input = page.locator(".log-cmd-input");
@@ -48,7 +48,8 @@ async function openLog(page: any): Promise<string> {
  */
 test("newbietest skip 20+ 授予技能必须有测试数据提示", async ({ page }) => {
   test.setTimeout(120_000);
-  await loginAsNewbie(page);
+  await loginAsE2eAccount(page);
+  await sendCmd(page, "newbietest reset", 3000);
 
   // 跳过任务 23（尚武堂·学艺阶段）
   await sendCmd(page, "newbietest skip 23", 4_000);
@@ -78,7 +79,8 @@ test("newbietest skip 20+ 授予技能必须有测试数据提示", async ({ pag
  */
 test("只学读书写字不会获得其他武功（abandon 后学习）", async ({ page }) => {
   test.setTimeout(180_000);
-  await loginAsNewbie(page);
+  await loginAsE2eAccount(page);
+  await sendCmd(page, "newbietest reset", 3000);
   await sendCmd(page, "newbietest skip 23", 4_000);
 
   // 清空测试授予的武功，模拟「什么武功都不会」

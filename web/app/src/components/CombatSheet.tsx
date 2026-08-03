@@ -11,6 +11,7 @@ interface Props {
   onClose: () => void;
   onStartQuest?: () => void;
   onStartFishing?: () => void;
+  onStartPeiyao?: () => void;
   onStartGrind?: (target: string, lowHpPct?: number) => void;
   onStartStudy?: (skill: string) => void;
   onStopAssist: () => void;
@@ -23,7 +24,7 @@ interface Props {
 }
 
 interface AssistTask {
-  mode: "quest" | "fishing" | "study" | "grind";
+  mode: "quest" | "fishing" | "study" | "grind" | "peiyao";
   name: string;
   tag: string;
   /** 推荐经验排序键（从低到高） */
@@ -53,6 +54,22 @@ const TASKS: AssistTask[] = [
     area: "yangzhou",
     areaName: "扬州城内",
     cta: "开始钓鱼",
+  },
+  {
+    mode: "peiyao",
+    name: "配药打工",
+    tag: "零战斗 · 新手专属",
+    expMin: 0,
+    expLabel: "0~20000 · 新手期",
+    expNote: "超过 20000 经验后平一指不再收徒，自动停止",
+    rewards: [
+      "每单 10~19 实战经验 + 300~499 铜钱入钱庄",
+      "无战斗风险：药铺↔配药房两步往返",
+    ],
+    flow: "自动向平一指领药方 → 进配药房配药 → 回药铺交药领赏 → 循环。",
+    area: "yangzhou",
+    areaName: "扬州城内",
+    cta: "开始配药",
   },
   {
     mode: "quest",
@@ -104,6 +121,7 @@ export function CombatSheet({
   onClose,
   onStartQuest,
   onStartFishing,
+  onStartPeiyao,
   onStartGrind,
   onStartStudy,
   onStopAssist,
@@ -123,13 +141,16 @@ export function CombatSheet({
       ? !!onStartFishing
       : t.mode === "quest"
         ? !!onStartQuest
-        : t.mode === "grind"
-          ? !!onStartGrind
-          : !!onStartStudy;
+        : t.mode === "peiyao"
+          ? !!onStartPeiyao
+          : t.mode === "grind"
+            ? !!onStartGrind
+            : !!onStartStudy;
   const areaOk = (t: AssistTask) => area === t.area;
   const startFor = (t: AssistTask) => {
     if (t.mode === "fishing") onStartFishing?.();
     else if (t.mode === "quest") onStartQuest?.();
+    else if (t.mode === "peiyao") onStartPeiyao?.();
     else if (t.mode === "grind") onStartGrind?.(grindTarget, 30);
     else onStartStudy?.(studySkill);
   };

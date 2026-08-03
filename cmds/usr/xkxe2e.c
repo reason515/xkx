@@ -409,6 +409,22 @@ int main(object me, string arg)
 		return 1;
 	}
 
+	if (arg == "grantexpnum") {
+		/* 数值经验（配药边界 e2e）：grantskill 同款基础技能，避免空手测试 */
+		me->set("combat_exp", 6000);
+		me->set_skill("force", 20);
+		me->set_skill("dodge", 20);
+		me->set_skill("parry", 20);
+		me->set_skill("strike", 20);
+		me->set_skill("unarmed", 20);
+		me->set_skill("literate", 10);
+		tell_object(me, "（测试）已授予 6000 经验与基础技能（配药边界 e2e）。\n");
+		WEBD->mark_web_client(me);
+		WEBD->send_skills_enable(me);
+		WEBD->send_vitals(me);
+		return 1;
+	}
+
 	return notify_fail("未知子命令。\n");
 }
 
