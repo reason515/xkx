@@ -92,7 +92,7 @@ webassist train lian count 10 1    — 练功 10 次
 webassist learn dizi strike count 10 1 — 向弟子学掌法 10 次（一次 learn N）
 webassist learn shi literate potential 1 1 — 读书至潜能耗尽（按精批量 learn）
 webassist combat 30 flee         — 自动普攻，低于 30% 逃跑
-webassist grind haigui_s 30      — 挂机打怪（monkey|haigui_s|haigui|maque|wuya|haidao_*）
+webassist grind yz_crow 30    — 挂机打怪（yz_crow|yz_monkey|yz_goat|yz_dog|yz_boar|yz_wolf|yz_bandit|yz_bandit_leader）
 webassist study taixuan-gong     — 侠客岛石壁领悟太玄功
 webassist stop                   — 停止
 

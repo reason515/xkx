@@ -196,7 +196,7 @@ export interface AssistConfig {
   lowHpPct?: number;
   lowHpAction?: "warn" | "flee" | "stop";
   stopOnCombat?: boolean;
-  /** 侠客岛挂机目标，如 haigui_s */
+  /** 扬州城南练级目标，如 yz_dog */
   grindTarget?: string;
 }
 

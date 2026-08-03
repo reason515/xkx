@@ -147,9 +147,10 @@ int is_yangzhou_grind(object env)
 	return is_city_room_path(file);
 }
 
+/* 打怪挂机区域：仅扬州城南练级路（新手任务已不在侠客岛，侠客岛目标停用） */
 int is_grind_area(object env)
 {
-	return is_xiakedao(env) || is_yangzhou_grind(env);
+	return is_yangzhou_grind(env);
 }
 
 int is_yangzhou_target(string target_key)

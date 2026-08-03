@@ -2015,6 +2015,20 @@ textarea:focus-visible {
   font-size: 12px;
 }
 
+/* 打怪目标 chip：名称 + 推荐经验区间（两行/紧凑） */
+.grind-chip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  line-height: 1.25;
+}
+
+.grind-chip-exp {
+  font-size: 10px;
+  opacity: 0.65;
+  font-variant-numeric: tabular-nums;
+}
+
 .assist-task-footer {
   display: flex;
   align-items: center;

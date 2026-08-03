@@ -1,31 +1,46 @@
-/** 侠客岛新人挂机目标：由弱到强（combat_exp，与 adm/daemons 一致） */
+/**
+ * 扬州城南练级挂机目标：由弱到强（怪 combat_exp 与 adm/daemons/xkd_pathd.c 一致）。
+ *
+ * 收益规则（adm/daemons/combatd.c killer_reward）：
+ *   - 每次击杀收益 = 怪 combat_exp / 15，下限 15，上限 3000
+ *   - 玩家 combat_exp ≤ 100000 时任意怪有效；超过后需 玩家exp ≤ 怪exp×50 才有效
+ * 推荐玩家经验区间 [怪exp, 怪exp×50]，超过上限该档无收益，应换下一档。
+ */
 export type GrindTarget = {
   id: string;
   label: string;
+  /** 刷怪地点 */
   hint: string;
+  /** 怪 combat_exp（MUD 数值） */
+  exp: number;
+  /** 每杀收益 = floor(怪exp/15)，封顶 3000 */
+  gain: number;
 };
 
-export const GRIND_TARGETS: GrindTarget[] = [
-  { id: "monkey", label: "小猴子", hint: "最弱 · 石壁" },
-  { id: "haigui_s", label: "小海龟", hint: "弱 · 多处沙滩" },
-  { id: "haigui", label: "海龟", hint: "稍强 · 多处沙滩" },
-  { id: "maque", label: "麻雀", hint: "中弱 · 上山路" },
-  { id: "wuya", label: "乌鸦", hint: "中等 · 山顶南下野林" },
-  { id: "haidao_w", label: "受伤海盗", hint: "较强 · 野林进海盗窝" },
-  { id: "haidao_s", label: "小海盗", hint: "强 · 野林进海盗窝" },
-  { id: "haidao_o", label: "老海盗", hint: "最强 · 野林进海盗窝" },
-];
+/** 将数值格式化为界面友好的经验文案：<1万 原样，≥1万 显示 x.x万 */
+export function formatExp(n: number): string {
+  if (n >= 10000) {
+    const w = n / 10000;
+    return `${w % 1 === 0 ? w.toFixed(0) : w.toFixed(1)}万`;
+  }
+  return String(n);
+}
+
+/** 推荐玩家经验区间文案（怪exp ~ 怪exp×50） */
+export function recExpRange(t: GrindTarget): string {
+  return `${formatExp(t.exp)}~${formatExp(t.exp * 50)}`;
+}
 
 /** 扬州城南练级路：民屋后门起，低血自动回免费民屋休整。 */
 export const YANGZHOU_GRIND_TARGETS: GrindTarget[] = [
-  { id: "yz_crow", label: "乌鸦", hint: "300 · 城南小径" },
-  { id: "yz_monkey", label: "野猴", hint: "500 · 荒草坡" },
-  { id: "yz_goat", label: "野羊", hint: "750 · 野羊坡" },
-  { id: "yz_dog", label: "野狗", hint: "1000 · 枯藤径" },
-  { id: "yz_boar", label: "野猪", hint: "1500 · 泥潭边" },
-  { id: "yz_wolf", label: "野狼", hint: "2000 · 狼嚎谷" },
-  { id: "yz_bandit", label: "山贼喽啰", hint: "2500 · 断桥" },
-  { id: "yz_bandit_leader", label: "山贼头目", hint: "3000 · 寨口" },
+  { id: "yz_crow", label: "乌鸦", hint: "城南小径", exp: 300, gain: 20 },
+  { id: "yz_monkey", label: "野猴", hint: "荒草坡", exp: 500, gain: 33 },
+  { id: "yz_goat", label: "野羊", hint: "野羊坡", exp: 750, gain: 50 },
+  { id: "yz_dog", label: "野狗", hint: "枯藤径", exp: 1000, gain: 66 },
+  { id: "yz_boar", label: "野猪", hint: "泥潭边", exp: 1500, gain: 100 },
+  { id: "yz_wolf", label: "野狼", hint: "狼嚎谷", exp: 2000, gain: 133 },
+  { id: "yz_bandit", label: "山贼喽啰", hint: "断桥", exp: 2500, gain: 166 },
+  { id: "yz_bandit_leader", label: "山贼头目", hint: "寨口", exp: 3000, gain: 200 },
 ];
 
 /** 侠客岛石壁领悟武功（与 d/xiakedao/xkx.h flag 1–4 一致） */

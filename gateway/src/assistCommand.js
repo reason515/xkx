@@ -5,7 +5,7 @@ export function buildAssistCommand(config = {}) {
   if (config.mode === "quest") return "webassist quest";
   if (config.mode === "fishing") return "webassist fishing";
   if (config.mode === "grind") {
-    const target = String(config.grindTarget || "haigui_s").toLowerCase();
+    const target = String(config.grindTarget || "yz_crow").toLowerCase();
     if (!TOKEN.test(target)) return null;
     const pct = Math.min(80, Math.max(5, Number(config.lowHpPct) || 30));
     return `webassist grind ${target} ${pct}`;

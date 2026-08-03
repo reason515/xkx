@@ -1,5 +1,9 @@
 import { useState } from "react";
-import { STUDY_SKILLS } from "../lib/grindTargets";
+import {
+  STUDY_SKILLS,
+  YANGZHOU_GRIND_TARGETS,
+  recExpRange,
+} from "../lib/grindTargets";
 
 type Area = "xiakedao" | "yangzhou";
 
@@ -7,6 +11,7 @@ interface Props {
   onClose: () => void;
   onStartQuest?: () => void;
   onStartFishing?: () => void;
+  onStartGrind?: (target: string, lowHpPct?: number) => void;
   onStartStudy?: (skill: string) => void;
   onStopAssist: () => void;
   /** 战斗/busy 中停手（不依赖挂机） */
@@ -18,7 +23,7 @@ interface Props {
 }
 
 interface AssistTask {
-  mode: "quest" | "fishing" | "study";
+  mode: "quest" | "fishing" | "study" | "grind";
   name: string;
   tag: string;
   /** 推荐经验排序键（从低到高） */
@@ -77,12 +82,29 @@ const TASKS: AssistTask[] = [
     areaName: "侠客岛",
     cta: "开始领悟",
   },
+  {
+    mode: "grind",
+    name: "打怪练级",
+    tag: "需战斗 · 逐步升级",
+    expMin: 0,
+    expLabel: "0 起 · 从最弱开刷",
+    expNote: "按推荐经验区间选档：超过上限的怪不再给经验，换下一档",
+    rewards: [
+      "每杀 20~200 实战经验（按所选目标）· 每杀 2~20 潜能",
+      "低血自动回民屋免费休整，无需手动吃药",
+    ],
+    flow: "自动前往所选怪点 → 反复击杀 → 低血回免费民屋睡觉恢复 → 返回继续；按难度从低到高换档。",
+    area: "yangzhou",
+    areaName: "扬州城内",
+    cta: "开始打怪",
+  },
 ];
 
 export function CombatSheet({
   onClose,
   onStartQuest,
   onStartFishing,
+  onStartGrind,
   onStartStudy,
   onStopAssist,
   onHalt,
@@ -91,6 +113,7 @@ export function CombatSheet({
   area,
 }: Props) {
   const [studySkill, setStudySkill] = useState("taixuan-gong");
+  const [grindTarget, setGrindTarget] = useState(YANGZHOU_GRIND_TARGETS[0].id);
   const running = assistActive && /挂机/.test(assistStatus || "");
   /** 按推荐经验从低到高排列 */
   const tasks = [...TASKS].sort((a, b) => a.expMin - b.expMin);
@@ -100,11 +123,14 @@ export function CombatSheet({
       ? !!onStartFishing
       : t.mode === "quest"
         ? !!onStartQuest
-        : !!onStartStudy;
+        : t.mode === "grind"
+          ? !!onStartGrind
+          : !!onStartStudy;
   const areaOk = (t: AssistTask) => area === t.area;
   const startFor = (t: AssistTask) => {
     if (t.mode === "fishing") onStartFishing?.();
     else if (t.mode === "quest") onStartQuest?.();
+    else if (t.mode === "grind") onStartGrind?.(grindTarget, 30);
     else onStartStudy?.(studySkill);
   };
 
@@ -177,6 +203,29 @@ export function CombatSheet({
                                   onClick={() => setStudySkill(s.id)}
                                 >
                                   {s.label}
+                                </button>
+                              ))}
+                            </span>
+                          </div>
+                        )}
+                        {t.mode === "grind" && ok && (
+                          <div className="assist-task-row">
+                            <span className="assist-task-row-key">选择目标</span>
+                            <span
+                              className="assist-task-skills"
+                              role="group"
+                              aria-label="选择打怪目标"
+                            >
+                              {YANGZHOU_GRIND_TARGETS.map((g) => (
+                                <button
+                                  key={g.id}
+                                  type="button"
+                                  className={`chip grind-chip${grindTarget === g.id ? " on" : ""}`}
+                                  onClick={() => setGrindTarget(g.id)}
+                                  title={`推荐玩家经验 ${recExpRange(g)} · 每杀 ${g.gain} 经验`}
+                                >
+                                  {g.label}
+                                  <span className="grind-chip-exp">{recExpRange(g)}</span>
                                 </button>
                               ))}
                             </span>

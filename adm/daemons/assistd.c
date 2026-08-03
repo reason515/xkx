@@ -721,14 +721,6 @@ void grind_set_spawn_path(mapping cfg, object me, string target_key)
 
 string grind_target_label(string target_key)
 {
-	if (target_key == "monkey") return "小猴子";
-	if (target_key == "haigui_s") return "小海龟";
-	if (target_key == "haigui") return "海龟";
-	if (target_key == "maque") return "麻雀";
-	if (target_key == "wuya") return "乌鸦";
-	if (target_key == "haidao_w") return "受伤海盗";
-	if (target_key == "haidao_s") return "小海盗";
-	if (target_key == "haidao_o") return "老海盗";
 	if (target_key == "yz_crow") return "乌鸦";
 	if (target_key == "yz_monkey") return "野猴";
 	if (target_key == "yz_goat") return "野羊";
@@ -748,7 +740,7 @@ string grind_unreachable_spawn_msg(object me, string target_key)
 		return "无法前往刷怪点";
 	here = PATHD->room_path(environment(me));
 	if (!PATHD->in_whitelist(here))
-		return "无法前往刷怪点 · 请先走到侠客岛路线或扬州民屋后门再挂机";
+		return "无法前往刷怪点 · 请先走到扬州民屋后门再挂机";
 	return "无法前往" + grind_target_label(target_key) + "的刷怪点";
 }
 
@@ -1421,12 +1413,10 @@ int start_grind(object me, string target_key, int low_hp)
 	if (!objectp(me)) return 0;
 	env = environment(me);
 	if (!objectp(env) || !PATHD->is_grind_area(env)) {
-		WEBD->send_assist_status(me, 0, "仅可在侠客岛或扬州城南练级路挂机");
+		WEBD->send_assist_status(me, 0, "仅可在扬州城南练级路挂机");
 		return 0;
 	}
 	if (member_array(target_key, ({
-		"monkey", "haigui_s", "haigui", "maque", "wuya",
-		"haidao_w", "haidao_s", "haidao_o",
 		"yz_crow", "yz_monkey", "yz_goat", "yz_dog",
 		"yz_boar", "yz_wolf", "yz_bandit", "yz_bandit_leader"
 	})) == -1) {

@@ -44,10 +44,14 @@ describe("buildAssistCommand", () => {
     assert.equal(buildAssistCommand({ mode: "lian" }), null);
   });
 
-  it("builds xiakedao grind assist", () => {
+  it("builds yangzhou grind assist (default yz_crow)", () => {
     assert.equal(
-      buildAssistCommand({ mode: "grind", grindTarget: "haigui_s", lowHpPct: 30 }),
-      "webassist grind haigui_s 30"
+      buildAssistCommand({ mode: "grind", grindTarget: "yz_dog", lowHpPct: 30 }),
+      "webassist grind yz_dog 30"
+    );
+    assert.equal(
+      buildAssistCommand({ mode: "grind" }),
+      "webassist grind yz_crow 30"
     );
     assert.equal(
       buildAssistCommand({ mode: "grind", grindTarget: "bad;target" }),
