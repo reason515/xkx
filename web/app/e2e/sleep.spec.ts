@@ -21,12 +21,12 @@ test.describe("sleep wake statusbar regression", () => {
       timeout: 60_000,
     });
 
-    // 顶部 vitals 应已显示
-    const hpBar = page.locator(".vital.hp .n");
+    // 顶部 vitals 应已显示（2026-08-01 UI 改版后为纯进度条，无 .n 数字）
+    const hpBar = page.locator(".vital.hp .fill");
     await expect(hpBar.first()).toBeVisible({ timeout: 15_000 });
-    const hpBefore = await hpBar.first().textContent();
+    const hpBefore = await hpBar.first().getAttribute("style");
     expect(hpBefore).toBeTruthy();
-    expect(/\d+/.test(hpBefore || "")).toBeTruthy();
+    expect(/\d+%/.test(hpBefore || "")).toBeTruthy();
 
     // 打开指令输入框
     const menuBtn = page.locator(".menu-btn");
@@ -82,11 +82,16 @@ test.describe("sleep wake statusbar regression", () => {
     // 睡觉
     await cmd("sleep", 2000);
 
-    // 等待醒来（随机 1-60 秒，给足时间）
+    // 等待醒来（随机 1-60 秒，给足时间）；需展开见闻面板才能读到完整日志
     const log = page.locator(".log");
     await expect
       .poll(
         async () => {
+          const summary = page.locator(".log-summary").first();
+          const expanded = await summary
+            .getAttribute("aria-expanded")
+            .catch(() => "false");
+          if (expanded !== "true") await summary.click().catch(() => {});
           const text = (await log.textContent()) || "";
           return /一觉醒来/.test(text);
         },
@@ -97,9 +102,9 @@ test.describe("sleep wake statusbar regression", () => {
     // 醒来后等前端 hp 拉取完成
     await page.waitForTimeout(4000);
 
-    // 验证状态条仍显示数值（醒来后被刷新）
-    const hpAfter = await hpBar.first().textContent();
+    // 验证状态条仍显示（醒来后被刷新）
+    const hpAfter = await hpBar.first().getAttribute("style");
     expect(hpAfter).toBeTruthy();
-    expect(/\d+/.test(hpAfter || "")).toBeTruthy();
+    expect(/\d+%/.test(hpAfter || "")).toBeTruthy();
   });
 });
