@@ -191,7 +191,6 @@ export const YANGZHOU_MAP: RoomMap = {
     { id: "yuelao",        name: "月老亭",   col: 7, row: 6, path: "yuelao" },
 
     // ===== 南城区 =====
-    { id: "eproom",        name: "拱猪房",   col: 2, row: 7, path: "eproom" },
     { id: "duchang",       name: "赌场",     col: 3, row: 7, path: "duchang" },
     { id: "nandajie1",     name: "南集市",   col: 4, row: 7, path: "nandajie1" },
     { id: "dangpu",        name: "当铺",     col: 5, row: 7, path: "dangpu" },
@@ -262,7 +261,8 @@ export const YANGZHOU_MAP: RoomMap = {
     { from: "yuelao", to: "dongdajie3", dir: "north" },
 
     // ---- 南城区 ----
-    { from: "eproom", to: "duchang", dir: "east" },
+    // 中央广场→南集市（缺失连线，修复）
+    { from: "guangchang", to: "nandajie1", dir: "south" },
     { from: "duchang", to: "nandajie1", dir: "east" },
     { from: "nandajie1", to: "dangpu", dir: "east" },
     { from: "nandajie1", to: "nandajie2", dir: "south" },
@@ -276,10 +276,13 @@ export const YANGZHOU_MAP: RoomMap = {
     { from: "minwu1", to: "yangzhou_grind1", dir: "south" },
     { from: "xiaotulu", to: "xiangnanjie", dir: "west" },
     { from: "xiaotulu", to: "minwu2", dir: "east" },
+    // 小土路→小庙（LPC southeast 出口，补齐）
+    { from: "xiaotulu", to: "xiaomiao", dir: "southeast" },
     { from: "minwu2", to: "xiaomiao", dir: "south" },
     { from: "xiaomiao", to: "dayuan", dir: "east" },
     { from: "nandajie2", to: "nandajie3", dir: "south" },
-    { from: "chaguan1", to: "nandajie3", dir: "east" },
+    // 南春来茶馆经高升酒馆接入南大街（修复原边穿越酒馆节点、且房间实际不可达的问题）
+    { from: "chaguan1", to: "jiuguan", dir: "east" },
     { from: "jiuguan", to: "nandajie3", dir: "east" },
     { from: "nandajie3", to: "lichunyuan", dir: "east" },
     { from: "nandajie3", to: "nanmen", dir: "south" },

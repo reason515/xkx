@@ -18,6 +18,7 @@ LONG
 
         set("exits", ([
                 "east" : __DIR__"nandajie3",
+                "west" : __DIR__"chaguan1",
                 "up" : __DIR__"jiuguan2",
 
         ]));

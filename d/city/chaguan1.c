@@ -17,7 +17,7 @@ LONG
 	set("resource/water", 1);
 
 	set("exits", ([
-		"east" : __DIR__"nandajie3",
+		"east" : __DIR__"jiuguan",
 	]));
 
 	set("objects", ([
