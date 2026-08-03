@@ -378,6 +378,8 @@ test("新手村主要NPC房间首次加载不重复", async ({ page }) => {
   await expect(page.locator(".room-title").first()).toHaveText(/票号/, {
     timeout: 10_000,
   });
+  // 票号声明了钱庄业务动作，「动作」页签默认选中；NPC 芯片需切到「人物」页签
+  await switchSceneTab(page, "人物");
   await expect(page.locator(".chip.npc").filter({ hasText: "柳住钱" })).toHaveCount(1);
   console.log("✅ 票号");
 

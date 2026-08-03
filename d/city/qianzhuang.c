@@ -48,17 +48,29 @@ LONG
 }
 void init()
 {
+	object me, npc;
 	int balance;
 
-	if( !this_player()->query("newsaver") ) 
+	me = this_player();
+	if (!objectp(me) || !interactive(me)) return;
+
+	// 确保钱庄掌柜已加载（Web 客户端连接时 reset 可能未触发），
+	// 否则 check/cun/qu 等业务命令无 NPC 注册、按钮点击全部失败。
+	if (!present("huang zhen", this_object()))
 	{
-		balance = this_player()->query("balance");
+		npc = new(__DIR__"npc/huang");
+		if (npc) npc->move(this_object());
+	}
+
+	if( !me->query("newsaver") ) 
+	{
+		balance = me->query("balance");
 		if( balance >= 1000000 ) balance = balance/10;
 		if( balance >= 1000000 ) balance = 1000000;
-		this_player()->set("balance", balance);
-		this_player()->set("newsaver", 1);
+		me->set("balance", balance);
+		me->set("newsaver", 1);
 	}
 	
-	this_player()->save();
+	me->save();
 }
 

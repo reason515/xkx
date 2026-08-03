@@ -23,10 +23,15 @@ async function sendCmd(page: any, text: string, wait = 1500) {
   await page.waitForTimeout(wait);
 }
 
-/** 打开见闻页签并返回全文（钱庄业务反馈都在 MUD 文本里）。 */
+/** 展开见闻面板并返回全文（钱庄业务反馈都在 MUD 文本里）。 */
 async function logText(page: any): Promise<string> {
-  const log = page.locator('[data-testid="tab-log"]');
-  if (await log.isVisible().catch(() => false)) await log.click();
+  const summary = page.locator('[data-testid="event-log"]');
+  const expanded = await summary
+    .getAttribute("aria-expanded")
+    .catch(() => "false");
+  if (expanded !== "true") {
+    await summary.click().catch(() => {});
+  }
   return (await page.locator(".log").textContent()) || "";
 }
 
@@ -34,6 +39,9 @@ async function waitForLogPattern(page: any, pattern: RegExp, timeout = 20_000) {
   await expect
     .poll(async () => await logText(page), { timeout })
     .toMatch(pattern);
+  // 匹配后收起见闻面板，避免遮挡场景按钮
+  const close = page.locator(".log-overlay .sheet .close");
+  if (await close.isVisible().catch(() => false)) await close.click();
 }
 
 /**
@@ -50,9 +58,6 @@ test("扬州钱庄声明钱庄业务按钮并完成存取款闭环", async ({ pa
     timeout: 10_000,
   });
 
-  // 钱庄掌柜在场景中
-  await expect(page.locator(".chip.npc").filter({ hasText: "黄真" })).toHaveCount(1);
-
   // LPC 房间声明 web/actions → 「动作」页签默认选中，按钮无需切页签即可见
   await expect(
     page.locator('.scene-tabs [role="tab"]').filter({ hasText: "动作" }).first()
@@ -63,6 +68,19 @@ test("扬州钱庄声明钱庄业务按钮并完成存取款闭环", async ({ pa
   await expect(check).toBeVisible({ timeout: 10_000 });
   await expect(cun).toBeVisible();
   await expect(qu).toBeVisible();
+
+  // 钱庄掌柜在场景「人物」页签中（动作页签默认选中时不展示 NPC 芯片）
+  await page
+    .locator('.scene-tabs [role="tab"]')
+    .filter({ hasText: "人物" })
+    .first()
+    .click();
+  await expect(page.locator(".chip.npc").filter({ hasText: "黄真" })).toHaveCount(1);
+  await page
+    .locator('.scene-tabs [role="tab"]')
+    .filter({ hasText: "动作" })
+    .first()
+    .click();
 
   // 先查账：没有存款
   await check.click();

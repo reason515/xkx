@@ -40,4 +40,17 @@ LONG
         setup();
 }
 
+void init()
+{
+	object npc;
+
+	// 确保钱庄伙计已加载（Web 客户端连接时 reset 可能未触发），
+	// 否则 check/cun/qu 等业务命令无 NPC 注册、按钮点击全部失败。
+	if (!present("huoji", this_object()))
+	{
+		npc = new(__DIR__"npc/bankhuoji");
+		if (npc) npc->move(this_object());
+	}
+}
+
 
