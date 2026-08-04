@@ -6,6 +6,7 @@ import { WebSocketServer } from "ws";
 import { MudSession } from "./session.js";
 import { Metrics } from "./metrics.js";
 import { buildAssistCommand } from "./assistCommand.js";
+import { shouldReapClient } from "./heartbeat.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const configPath = join(__dirname, "..", "config.json");
@@ -88,6 +89,8 @@ wss.on("connection", (ws, req) => {
   // WebSocket protocol pong is handled by browsers automatically. Keep a
   // connected but idle player alive; only reap an actually dead browser.
   let clientAlive = true;
+  // 容忍偶发丢包：连续多次未回 pong 才 terminate（见 heartbeat.js）
+  let missedPings = 0;
 
   const cleanup = () => {
     clearInterval(heartbeat);
@@ -111,6 +114,13 @@ wss.on("connection", (ws, req) => {
       }
 
       if (msg.type === "login") {
+        // 断线自动重连可能复用同一 ws：先丢弃旧 MUD 会话，避免其残留
+        // close 事件把刚重连上的前端再次踢下线。
+        if (mud) {
+          mud.removeAllListeners();
+          mud.close();
+          mud = null;
+        }
         const { id, password, name, gender, register } = msg;
         if (!validateId(id) || !validatePassword(password)) {
           ws.send(
@@ -217,6 +227,7 @@ wss.on("connection", (ws, req) => {
 
   ws.on("pong", () => {
     clientAlive = true;
+    missedPings = 0;
   });
 
   ws.on("close", cleanup);
@@ -224,8 +235,11 @@ wss.on("connection", (ws, req) => {
   heartbeat = setInterval(() => {
     if (ws.readyState !== ws.OPEN) return;
     if (!clientAlive) {
-      log("info", sessionId, "client ping timeout");
-      ws.terminate();
+      missedPings += 1;
+      if (shouldReapClient(missedPings)) {
+        log("info", sessionId, `client ping timeout (${missedPings} missed)`);
+        ws.terminate();
+      }
       return;
     }
     clientAlive = false;

@@ -3661,3 +3661,71 @@ textarea:focus-visible {
   border-top: 1px solid var(--line);
 }
 
+
+/* 断线自动重连浮层：游戏界面保持可见，浮层居中提示重连进度 */
+.reconnect-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(8, 10, 9, 0.72);
+  backdrop-filter: blur(3px);
+}
+
+.reconnect-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 240px;
+  max-width: 320px;
+  padding: 26px 28px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: linear-gradient(165deg, #1b201c, #121512);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+}
+
+.reconnect-spinner {
+  width: 34px;
+  height: 34px;
+  border: 3px solid rgba(143, 191, 166, 0.25);
+  border-top-color: var(--jade-bright);
+  border-radius: 50%;
+  animation: reconnect-spin 0.9s linear infinite;
+}
+
+@keyframes reconnect-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.reconnect-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--paper);
+}
+
+.reconnect-detail {
+  font-size: 12px;
+  color: var(--paper-dim);
+}
+
+.reconnect-cancel {
+  margin-top: 6px;
+  padding: 8px 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--paper-dim);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.reconnect-cancel:hover {
+  border-color: var(--jade);
+  color: var(--paper);
+}

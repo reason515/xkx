@@ -2,6 +2,7 @@ import { useCallback, useRef, useState } from "react";
 import { DesktopApp } from "./components/desktop/DesktopApp";
 import { LoginPage } from "./components/LoginPage";
 import { MobileApp } from "./components/MobileApp";
+import { ReconnectingOverlay } from "./components/ReconnectingOverlay";
 import { useGame } from "./hooks/useGame";
 import { resolveUiMode, writeUiMode, type UiMode } from "./lib/uiMode";
 
@@ -24,18 +25,24 @@ export default function App() {
     );
   }
 
-  if (mode === "desktop") {
-    return (
-      <DesktopApp
-        game={g}
-        rawSinkRef={rawSinkRef}
-        mode={mode}
-        onModeChange={onModeChange}
-      />
-    );
-  }
-
   return (
-    <MobileApp game={g} mode={mode} onModeChange={onModeChange} />
+    <>
+      {g.state.reconnecting && (
+        <ReconnectingOverlay
+          attempt={g.state.reconnectAttempt}
+          onCancel={g.cancelReconnect}
+        />
+      )}
+      {mode === "desktop" ? (
+        <DesktopApp
+          game={g}
+          rawSinkRef={rawSinkRef}
+          mode={mode}
+          onModeChange={onModeChange}
+        />
+      ) : (
+        <MobileApp game={g} mode={mode} onModeChange={onModeChange} />
+      )}
+    </>
   );
 }

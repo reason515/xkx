@@ -257,6 +257,10 @@ export interface GameState {
   wimpyPct?: number;
   combatLog: string[];
   trainLog: string[];
+  /** 断线后是否处于自动重连中（保持游戏界面，不闪现登录页）。 */
+  reconnecting: boolean;
+  /** 当前重连尝试次数（1 起）。 */
+  reconnectAttempt: number;
   /** 是否正在战斗（仅含「你」的战斗行触发，用于悬浮绝招按钮/自动展开见闻）。 */
   inCombat: boolean;
   assistActive: boolean;

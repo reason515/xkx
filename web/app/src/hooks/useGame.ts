@@ -72,6 +72,10 @@ import type {
   SheetKind,
 } from "../lib/types";
 import { GameSocket } from "../lib/ws";
+import {
+  nextReconnectDelay,
+  shouldGiveUpReconnect,
+} from "../lib/reconnect";
 
 const initialState = (): GameState => ({
   connected: false,
@@ -95,6 +99,8 @@ const initialState = (): GameState => ({
   combatLog: [],
   trainLog: [],
   inCombat: false,
+  reconnecting: false,
+  reconnectAttempt: 0,
 
   assistActive: false,
   assistStatus: "",
@@ -209,6 +215,15 @@ export function useGame(opts?: UseGameOptions) {
   } | null>(null);
   /** Intentional quit → softer disconnect toast. */
   const quittingRef = useRef(false);
+  /** 自动重连：保存最近一次登录凭据，断线后静默重登恢复。 */
+  const credentialsRef = useRef<{
+    id: string;
+    password: string;
+    name?: string;
+    gender?: string;
+  } | null>(null);
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectAttemptRef = useRef(0);
   const roomRefreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** 战斗文案时节流补 hp，兜底尚未推送的 player.vitals。 */
   const combatHpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -249,6 +264,123 @@ export function useGame(opts?: UseGameOptions) {
   const showToast = useCallback((msg: string) => {
     toastScheduler.current.show(msg);
   }, []);
+
+  const clearReconnectTimer = useCallback(() => {
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
+  }, []);
+
+  /** 重连成功（收到 ready / 文本回退判定进游戏）后复位重连状态。 */
+  const markReconnected = useCallback(() => {
+    clearReconnectTimer();
+    reconnectAttemptRef.current = 0;
+    setState((s) =>
+      s.reconnecting ? { ...s, reconnecting: false, reconnectAttempt: 0 } : s
+    );
+  }, [clearReconnectTimer]);
+
+  /** 一次重连尝试：用保存的凭据重新登录；超时未 ready 则按退避再试。 */
+  const attemptReconnect = useCallback(() => {
+    const attempt = reconnectAttemptRef.current + 1;
+    reconnectAttemptRef.current = attempt;
+    if (shouldGiveUpReconnect(attempt)) {
+      // 多次尝试均失败：回登录页（MUD 侧角色仍保留 15 分钟，手动重登即可恢复）
+      reconnectAttemptRef.current = 0;
+      clearReconnectTimer();
+      setState((s) => ({
+        ...s,
+        connected: false,
+        inGame: false,
+        inCombat: false,
+        reconnecting: false,
+        reconnectAttempt: 0,
+      }));
+      setLoginError("连接已断开，请重新登录");
+      showToast("连接已断开，请重新登录");
+      return;
+    }
+    setState((s) => ({ ...s, reconnecting: true, reconnectAttempt: attempt }));
+    const creds = credentialsRef.current;
+    // 重连不携带 register：账号已存在，避免误触发网关注册限流
+    if (creds) socket.current.login({ ...creds, register: false });
+    clearReconnectTimer();
+    reconnectTimerRef.current = setTimeout(() => {
+      // 本次尝试未收到 ready：ws 未连上（网关未启动）或登录未完成，继续退避重试
+      attemptReconnect();
+    }, nextReconnectDelay(attempt));
+  }, [clearReconnectTimer, showToast]);
+
+  /**
+   * 断线统一入口：主动退出或无可重连凭据 → 回登录页；
+   * 否则保持游戏界面，进入自动重连循环（不再闪现登录页）。
+   */
+  const handleDisconnect = useCallback(() => {
+    enteredGame.current = false;
+    roomFromEvent.current = false;
+    textBuf.current = "";
+    if (combatEndTimer.current) {
+      clearTimeout(combatEndTimer.current);
+      combatEndTimer.current = null;
+    }
+    if (utilCollectTimer.current) {
+      clearTimeout(utilCollectTimer.current);
+      utilCollectTimer.current = null;
+      utilCollectText.current = [];
+    }
+    const intentional = quittingRef.current;
+    quittingRef.current = false;
+    if (intentional || !credentialsRef.current) {
+      clearReconnectTimer();
+      reconnectAttemptRef.current = 0;
+      setState((s) => ({
+        ...s,
+        connected: false,
+        inGame: false,
+        inCombat: false,
+        reconnecting: false,
+        reconnectAttempt: 0,
+      }));
+      showToast(intentional ? "已退出" : "与服务器断开");
+      return;
+    }
+    if (reconnectAttemptRef.current === 0) {
+      // 首次断线：保持游戏界面，启动自动重连循环
+      setState((s) => ({
+        ...s,
+        connected: false,
+        inCombat: false,
+        reconnecting: true,
+        reconnectAttempt: 1,
+      }));
+      showToast("连接断开，正在自动重连…");
+      attemptReconnect();
+    } else {
+      // 已在重连循环中（ws close 与 disconnected 可能先后到达），不重复开循环
+      setState((s) => ({
+        ...s,
+        connected: false,
+        inCombat: false,
+        reconnecting: true,
+      }));
+    }
+  }, [attemptReconnect, clearReconnectTimer, showToast]);
+
+  /** 用户主动放弃重连：回登录页。 */
+  const cancelReconnect = useCallback(() => {
+    clearReconnectTimer();
+    reconnectAttemptRef.current = 0;
+    quittingRef.current = false;
+    setState((s) => ({
+      ...s,
+      connected: false,
+      inGame: false,
+      inCombat: false,
+      reconnecting: false,
+      reconnectAttempt: 0,
+    }));
+  }, [clearReconnectTimer]);
 
   useEffect(() => {
     if ((state.room.area || "").toLowerCase() !== "xiakedao") return;
@@ -617,25 +749,11 @@ export function useGame(opts?: UseGameOptions) {
         return;
       }
       if (msg.type === "disconnected") {
-        enteredGame.current = false;
-        roomFromEvent.current = false;
-        textBuf.current = "";
-        if (combatEndTimer.current) {
-          clearTimeout(combatEndTimer.current);
-          combatEndTimer.current = null;
-        }
-        if (utilCollectTimer.current) {
-          clearTimeout(utilCollectTimer.current);
-          utilCollectTimer.current = null;
-          utilCollectText.current = [];
-        }
-        const intentional = quittingRef.current;
-        quittingRef.current = false;
-        setState((s) => ({ ...s, connected: false, inGame: false, inCombat: false }));
-        showToast(intentional ? "已退出" : "与服务器断开");
+        handleDisconnect();
         return;
       }
       if (msg.type === "ready") {
+        markReconnected();
         enterGame(true);
         return;
       }
@@ -756,6 +874,7 @@ export function useGame(opts?: UseGameOptions) {
 
         // Fallback if gateway did not emit ready (older build)
         if (!enteredGame.current && /目前权限|重新连线回到这个世界/.test(textBuf.current)) {
+          markReconnected();
           enterGame(false);
         }
 
@@ -1216,24 +1335,9 @@ export function useGame(opts?: UseGameOptions) {
         return;
       }
       // Gateway/reverse-proxy 断开时未必能收到业务层 disconnected 消息；
-      // 必须退出游戏状态，避免界面仍显示在游戏中而后续指令被静默丢弃。
+      // 断线统一走 handleDisconnect：自动重连，重连失败才回登录页。
       if (status === "closed" && enteredGame.current) {
-        enteredGame.current = false;
-        roomFromEvent.current = false;
-        textBuf.current = "";
-        if (combatEndTimer.current) {
-          clearTimeout(combatEndTimer.current);
-          combatEndTimer.current = null;
-        }
-        if (utilCollectTimer.current) {
-          clearTimeout(utilCollectTimer.current);
-          utilCollectTimer.current = null;
-          utilCollectText.current = [];
-        }
-        const intentional = quittingRef.current;
-        quittingRef.current = false;
-        setState((s) => ({ ...s, connected: false, inGame: false, inCombat: false }));
-        showToast(intentional ? "已退出" : "与服务器断开");
+        handleDisconnect();
       }
     });
     return () => {
@@ -1248,7 +1352,8 @@ export function useGame(opts?: UseGameOptions) {
     cmd,
     scheduleEquipRefresh,
     scheduleRoomRefresh,
-    scheduleCombatHpRefresh,
+    handleDisconnect,
+    markReconnected,
   ]);
 
   const login = useCallback(
@@ -1259,6 +1364,15 @@ export function useGame(opts?: UseGameOptions) {
       gender?: string;
       register?: boolean;
     }) => {
+      // 保存凭据供断线自动重连（重连不携带 register，避免误触发注册限流）
+      credentialsRef.current = {
+        id: opts.id,
+        password: opts.password,
+        name: opts.name,
+        gender: opts.gender,
+      };
+      clearReconnectTimer();
+      reconnectAttemptRef.current = 0;
       setLoginError("");
       enteredGame.current = false;
       roomFromEvent.current = false;
@@ -1269,12 +1383,14 @@ export function useGame(opts?: UseGameOptions) {
         ...s,
         playerName: opts.name || opts.id,
         inGame: false,
+        reconnecting: false,
+        reconnectAttempt: 0,
         docText: "",
         docLoading: false,
         docTarget: null,
       }));
     },
-    [finishDocCapture]
+    [clearReconnectTimer, finishDocCapture]
   );
 
   const openSheet = useCallback((sheet: SheetKind) => {
@@ -1376,10 +1492,16 @@ export function useGame(opts?: UseGameOptions) {
 
   // e2e / 调试：允许 page.evaluate 发静默指令（如 xkxe2e grantleave）
   useEffect(() => {
-    const w = window as unknown as { __xkxCmd?: (c: string) => void };
+    const w = window as unknown as {
+      __xkxCmd?: (c: string) => void;
+      __xkxWsClose?: () => void;
+    };
     w.__xkxCmd = (c: string) => cmd(c, { silent: true });
+    // e2e 模拟断线（网络抖动）：关闭底层 WebSocket，触发自动重连路径
+    w.__xkxWsClose = () => socket.current.close();
     return () => {
       delete w.__xkxCmd;
+      delete w.__xkxWsClose;
     };
   }, [cmd]);
 
@@ -1466,6 +1588,7 @@ export function useGame(opts?: UseGameOptions) {
     showToast,
     refreshCharacter,
     setWimpy,
+    cancelReconnect,
   };
 }
 
