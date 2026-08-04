@@ -221,13 +221,23 @@ test("毕业进入扬州后可到太乙武馆练功", async ({ page }) => {
   await expect(page.locator(".room-title").first()).toHaveText(/东大街/, {
     timeout: 10_000,
   });
-  // 行走见闻须为一句文字描述（非破折号+地名）
-  await expect(page.locator(".log-summary-line").last()).not.toContainText(/^——/, {
-    timeout: 10_000,
-  });
-  await expect(page.locator(".log-summary-line").last()).toContainText(/你.*东大街/, {
-    timeout: 10_000,
-  });
+  // 行走见闻须为一句文字描述（非破折号+地名）。NPC 走动行（如 纪晓芙急步往西北离开）
+  // 可能插在玩家行走行之后，不能依赖 .last()——轮询整份见闻：有玩家行走描述且无旧格式
+  await expect
+    .poll(
+      async () => {
+        const lines = await page
+          .locator(".log-summary-line")
+          .allTextContents()
+          .catch(() => []);
+        return (
+          lines.some((t) => /你.*东大街/.test(t)) &&
+          !lines.some((t) => /^——.*东大街/.test(t.trim()))
+        );
+      },
+      { timeout: 15_000 }
+    )
+    .toBe(true);
   // 武馆入口必须展示为可点出口（西北方向）
   const wgExit = page.locator(".exit-pad .cell.open").filter({ hasText: "西北" }).first();
   await expect(wgExit).toBeVisible({ timeout: 10_000 });
