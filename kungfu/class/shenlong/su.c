@@ -188,12 +188,12 @@ int do_learn(string arg)
                 printf("你听了%s的指导，对%s似乎有些心得。\n",
                         name(), to_chinese(skill));
                 me->improve_skill(skill, random(me->query_int()));
+                me->receive_damage("jing", gin_cost);
         } else {
-                gin_cost = me->query("jing") > 0 ? (int)me->query("jing") : 0;
+                /* 精不足：什么都学不到，但不再把剩余精气一次性扣光 */
                 write("你今天太累了，结果什么也没有学到。\n");
         }
 
-        me->receive_damage("jing", gin_cost);
         return 1;
 }
 

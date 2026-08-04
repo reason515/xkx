@@ -39,7 +39,7 @@ int do_qingjiao(string arg)
 	string skill, teacher, master, skill_name, slow_msg;
 	object ob;
 	int master_skill, my_skill, gin_cost,i,teach_falg,slow_factor;
-	int tmp, learn_times;
+	int tmp, learn_times, learned;
 
 	mixed master_allskill;
 	
@@ -112,7 +112,7 @@ int do_qingjiao(string arg)
     slow_msg = "";
 
         
-	gin_cost = 150 / (int)me->query("int");
+	gin_cost = 60 / (int)me->query("int");
     if( !my_skill ) 
 	{
 		gin_cost *= 2;
@@ -125,45 +125,53 @@ int do_qingjiao(string arg)
 
 	 tell_object(ob, sprintf("%s向你请教有关「%s」的问题。\n", me->name(), to_chinese(skill)));
 
-    if( (int)ob->query("jing") > learn_times*gin_cost/5 + 1 ) {
-            if( userp(ob) ) ob->receive_damage("jing", learn_times*gin_cost/5 + 1);
-    } else {
-            write("但是" + ob->name() + "显然太累了，没有办法教你什么。\n");
-            tell_object(ob, "但是你太累了，没有办法教" + me->name() + "。\n");
-            return 1;
-    }
+	/* 逐次学习：精/潜能够几次就学几次，不再整批拒学、
+	 * 不再把剩余精气一次性扣光（与 cmds/skill/learn.c 同款修复）。 */
+	learned = 0;
+	tmp = 0;
+	for (i=0; i<learn_times; i++) {
+		if ( (int)me->query("potential") < 1 )
+			break;
 
-	gin_cost = learn_times * gin_cost*3/2;
-        
-        if( (int)me->query("jing") > gin_cost ) {
-                if( (string)SKILL_D(skill)->type()=="martial"
-                &&      my_skill * my_skill * my_skill / 10 > (int)me->query("combat_exp") ) {
-                        printf("也许是缺乏实战经验，你对%s的回答总是无法领会。\n", ob->name() );
-                } else {
-                    if(skill_name = SKILL_D(skill)->query_skill_name(my_skill)) {
-                            printf("你听了%s的指导，%s对「%s」这一招似乎有些心得。\n", 
-                                    ob->name(), slow_msg, skill_name);
-                    }
-                    else
-                        printf("你听了%s的指导，%s似乎有些心得。\n", ob->name(), slow_msg);
+		my_skill = me->query_skill(skill, 1);
+		if( my_skill >= master_skill )
+			break;
 
-                    me->add("potential", -learn_times);
+		if( (int)ob->query("jing") <= gin_cost/5 + 1 ) {
+			write("但是" + ob->name() + "显然太累了，没有办法教你什么。\n");
+			tell_object(ob, "但是你太累了，没有办法教" + me->name() + "。\n");
+			break;
+		}
+		if( userp(ob) ) ob->receive_damage("jing", gin_cost/5 + 1);
 
-                    tmp = 0;
-                    for (i=0; i<learn_times; i++)  tmp += random(me->query_int());
-        
-	     me->improve_skill(skill, tmp/slow_factor);
+		if( (int)me->query("jing") <= gin_cost*3/2 ) {
+			write("你现在精神不够，无法向"+ob->name()+"请教"+to_chinese(skill)+"。\n");
+			break;
+		}
 
-                }
-        } else {
-                gin_cost = me->query("jing") > 0 ? (int)me->query("jing") : 0;
-                write("你现在精神不够，无法向"+ob->name()+"请教"+to_chinese(skill)+"。\n");
-				return 1;
-        }
+		if( (string)SKILL_D(skill)->type()=="martial"
+		&&	my_skill * my_skill * my_skill / 10 > (int)me->query("combat_exp") ) {
+			printf("也许是缺乏实战经验，你对%s的回答总是无法领会。\n", ob->name() );
+			break;
+		}
 
-        me->receive_damage("jing", gin_cost);
+		me->add("potential", -1);
+		tmp += random(me->query_int());
+		me->receive_damage("jing", gin_cost*3/2);
+		learned++;
+	}
 
-        return 1;
+	if( learned > 0 ) {
+		me->improve_skill(skill, tmp/slow_factor);
+		if(skill_name = SKILL_D(skill)->query_skill_name(me->query_skill(skill, 1))) {
+			printf("你听了%s的指导，%s对「%s」这一招似乎有些心得。\n", 
+				ob->name(), slow_msg, skill_name);
+		}
+		else
+			printf("你听了%s的指导，%s似乎有些心得。\n", ob->name(), slow_msg);
+	}
+
+	return 1;
 }
 
 

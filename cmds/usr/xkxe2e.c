@@ -15,7 +15,7 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | yanzhougrind | studyrecoverprep | haidaowo | dadong | yingbin | jizhen | huanpo | luanshizhen | xingzilin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | qianzhuang | givemoney | givesellitem | givesellrabbit | grantskills | grantforce | grantexp\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | yanzhougrind | studyrecoverprep | learnprep | haidaowo | dadong | yingbin | jizhen | huanpo | luanshizhen | xingzilin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | qianzhuang | givemoney | givesellitem | givesellrabbit | grantskills | grantforce | grantexp\n");
 
 	if (arg == "dadong") {
 		ob = load_object("/d/xiakedao/dadong");
@@ -162,6 +162,36 @@ int main(object me, string arg)
 		WEBD->mark_web_client(me);
 		WEBD->send_room(me, ob);
 		WEBD->send_vitals(me);
+		return 1;
+	}
+
+	if (arg == "learnprep") {
+		int maxj;
+		/* 学艺回归前置：潜能拉满、精气压低（≤500），并让书院夫子精气充足，
+		 * 保证 learn <师父> <技能> 999 必然卡在“自己精不足”这一环：
+		 * 修复前整批拒学并把精气扣光，修复后逐次学到精尽为止且精气不为零。 */
+		me->delete("learned_points");
+		me->set("potential", 2000);
+		me->set("max_potential", 2000);
+		maxj = (int)me->query("max_jing");
+		if (maxj < 1) maxj = 1;
+		if (maxj > 500) maxj = 500;
+		me->set("jing", maxj);
+		if ((int)me->query("eff_jing") < maxj)
+			me->set("eff_jing", maxj);
+		me->set("food", me->max_food_capacity());
+		me->set("water", me->max_water_capacity());
+		me->set_skill("literate", 10);
+		ob = load_object("/d/city/shuyuan");
+		if (objectp(ob))
+			ob = present("fuzi", ob);
+		if (objectp(ob)) {
+			ob->set("max_jing", 5000);
+			ob->set("eff_jing", 5000);
+			ob->set("jing", 5000);
+		}
+		WEBD->send_vitals(me);
+		tell_object(me, sprintf("（测试）学艺回归前置：潜能2000，精=%d（夫子精气5000）。\n", maxj));
 		return 1;
 	}
 

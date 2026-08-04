@@ -538,7 +538,7 @@ int do_learn(string arg)
 	string skill, teacher, master, skill_name, slow_msg;
 	object ob,me;
 	int master_skill, my_skill, gin_cost, slow_factor;
-  	int i, tmp, learn_times;
+  	int i, tmp, learn_times, learned;
 
 	me=this_player();
 
@@ -664,13 +664,43 @@ int do_learn(string arg)
 
 	// assistd 已通过 learn_max_times 确保精神足够
 	if (learn_times < 1) learn_times = 1;
-	gin_cost = learn_times * gin_cost * 3 / 2;
 
-	if( (string)SKILL_D(skill)->type()=="martial"
-		&&	my_skill * my_skill * my_skill / 10 > (int)me->query("combat_exp") ) {
-			printf("也许是缺乏实战经验，你对%s的回答总是无法领会。\n", ob->name() );
-		} else {
-		    if(skill_name = SKILL_D(skill)->query_skill_name(my_skill)) {
+	/* 逐次学习：精够几次就学几次，学满五级即止；不再一次性扣光剩余精气
+	 * （修复 xue wushi force 100 时精瞬间归零却一无所获的缺陷）。 */
+	learned = 0;
+	for (i=0; i<learn_times; i++) {
+		/* 潜能耗尽兜底（每学一次扣一点 learned_points） */
+		if ( (int)me->query("potential") - (int)me->query("learned_points") < 1 )
+			break;
+
+		my_skill = me->query_skill(skill, 1);
+		if ( my_skill >= master_skill )
+			break;
+		/* 武师只教到五级：中途达到上限即止，避免大次数把技能顶破上限 */
+		if ( my_skill >= 5 && (skill == "dodge" || skill == "force" || skill == "parry" || skill == "strike" || skill == "sword" || skill == "taiyi-shengong" || skill == "taiyi-you" || skill == "taiyi-zhang" || skill == "taiyi-jian") )
+			break;
+
+		if( (string)SKILL_D(skill)->type()=="martial"
+			&&	my_skill * my_skill * my_skill / 10 > (int)me->query("combat_exp") ) {
+				printf("也许是缺乏实战经验，你对%s的回答总是无法领会。\n", ob->name() );
+				break;
+		}
+
+		/* 自己精力不足：学到哪算哪，剩余精气保留 */
+		if( (int)me->query("jing") <= gin_cost*3/2 ) {
+			write("你今天太累了，暂时学不动了。\n");
+			break;
+		}
+
+		me->add("learned_points", 1 );
+		tmp = random(me->query_int());
+		me->improve_skill(skill, tmp/slow_factor);
+		me->receive_damage("jing", gin_cost*3/2);
+		learned++;
+	}
+
+	if( learned > 0 ) {
+		if(skill_name = SKILL_D(skill)->query_skill_name(me->query_skill(skill, 1))) {
 			if ( skill=="linji-zhuang" )
 			    printf("你听了%s的指导，%s对「%s」的修养似乎有所提高。\n", 
 				    ob->name(), slow_msg, skill_name);
@@ -680,16 +710,7 @@ int do_learn(string arg)
 		    }
 		    else
 			printf("你听了%s的指导，%s似乎有些心得。\n", ob->name(), slow_msg);
-			
-            me->add("learned_points", learn_times );
-
-		    for (i=0; i<learn_times; i++) {
-			tmp = random(me->query_int());
-			me->improve_skill(skill, tmp/slow_factor);
-		    }
-		}
-
-	me->receive_damage("jing", gin_cost);
+	}
     
     if (me->query_skill("dodge",1) >= 5 && me->query_skill("force",1) >= 5 && me->query_skill("parry",1) >= 5 && me->query_skill("strike",1) >= 5 && me->query_skill("sword",1)
 && me->query_skill("taiyi-shengong",1) >= 5 && me->query_skill("taiyi-you",1) >= 5 && me->query_skill("taiyi-zhang",1) >= 5 && me->query_skill("taiyi-jian",1) >= 5)
