@@ -115,3 +115,37 @@ test("配药任务：毕业新手（6000经验）可接单，超20000才拒绝",
   const log2 = (await page.locator(".log").textContent().catch(() => "")) || "";
   expect(log2).toContain("太埋没您拉");
 });
+
+test("配药房夜晚不被困：店内可回药铺，临街入口仍关闭", async ({ page }) => {
+  test.setTimeout(150_000);
+  await loginAsE2eAccount(page, { index: 2 });
+  await walkToYaopu(page);
+
+  // 临时切到夜晚（e2e 辅助：45 秒后自动恢复真实时段）
+  await sendCmd(page, "xkxe2e night", 1_500);
+
+  // 1) 临街入口：东大街 → 药铺 夜晚仍被拦（"晚上不开"）——夜晚锁语义保留
+  await sendCmd(page, "south", 2_500); // 药铺 → 东大街（出店不拦）
+  await expect(page.locator(".room-title").first()).toHaveText(/东大街/, {
+    timeout: 10_000,
+  });
+  await sendCmd(page, "north", 2_500); // 东大街 → 药铺（夜晚临街应拦）
+  await expect(page.locator(".room-title").first()).toHaveText(/东大街/, {
+    timeout: 10_000,
+  });
+  await waitForLog(page, /晚上不开/, 15_000);
+
+  // 2) 店内通道：配药房 → 药铺 不再被锁（修复后不被困）
+  await walkToYaopu(page); // prep 直达药铺（绕过临街锁）
+  await sendCmd(page, "north", 2_500); // 药铺 → 配药房（配药房非 day_shop，可进）
+  await expect(page.locator(".room-title").first()).toHaveText(/配药房/, {
+    timeout: 10_000,
+  });
+  await sendCmd(page, "south", 3_000); // 配药房 → 药铺（修复后放行，不再困人）
+  await expect(page.locator(".room-title").first()).toHaveText(/药铺/, {
+    timeout: 10_000,
+  });
+
+  // 3) 收尾：提前恢复真实时段，缩短全局夜晚窗口
+  await sendCmd(page, "xkxe2e restorephase", 1_500);
+});

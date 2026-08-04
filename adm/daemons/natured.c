@@ -156,6 +156,34 @@ string game_time()
 	return CHINESE_D->chinese_date(TIME_TICK);
 }
 
+// —— e2e 测试辅助：临时切换当前时段（如切到夜晚验证 day_shop 夜晚锁）——
+// 仅由 xkxe2e（/adm/etc/xkd_e2e 开关）调用；keep_seconds 后自动按真实时间恢复。
+void test_force_phase(string phase, int keep_seconds)
+{
+	int i;
+
+	for (i = 0; i < sizeof(day_phase); i++)
+		if (day_phase[i]["event_fun"] == phase)
+			break;
+	if (i >= sizeof(day_phase))
+		return;
+
+	remove_call_out("update_day_phase");
+	remove_call_out("test_restore_phase");
+	current_day_phase = i;
+	message("outdoor:vision", day_phase[current_day_phase]["time_msg"] + "\n", users());
+	if (keep_seconds > 0)
+		call_out("test_restore_phase", keep_seconds);
+}
+
+void test_restore_phase()
+{
+	remove_call_out("test_restore_phase");
+	remove_call_out("update_day_phase");
+	init_day_phase();
+	message("outdoor:vision", day_phase[current_day_phase]["time_msg"] + "\n", users());
+}
+
 // This function is to read a regular type of data table for day_phase and
 // etc.
 mapping *read_table(string file)

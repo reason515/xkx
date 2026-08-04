@@ -15,7 +15,21 @@ int main(object me, string arg)
 		return notify_fail("什么？\n");
 
 	if (!arg || arg == "")
-		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | yanzhougrind | studyrecoverprep | learnprep | haidaowo | dadong | yingbin | jizhen | huanpo | luanshizhen | xingzilin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | qianzhuang | givemoney | givesellitem | givesellrabbit | grantskills | grantforce | grantexp\n");
+		return notify_fail("用法：xkxe2e grantleave | givearmor | giveweapon | gate | closedoor | hurt | wound | lowqi | lowjingli | grindprep | yanzhougrind | studyrecoverprep | learnprep | haidaowo | dadong | yingbin | jizhen | huanpo | luanshizhen | xingzilin | yongdao2 | bingqi | shanding | shanxia | tovoid | zuixianlou | dangpu | qianzhuang | givemoney | givesellitem | givesellrabbit | grantskills | grantforce | grantexp | night | restorephase\n");
+
+	if (arg == "night") {
+		/* e2e：临时切到夜晚（day_shop 夜晚锁回归：临街拦门、店内不困人），
+		 * 45 秒后自动按真实时间恢复；测试结束后也可用 restorephase 提前恢复。 */
+		NATURE_D->test_force_phase("event_night", 45);
+		tell_object(me, "（测试）已临时切换到夜晚，45 秒后自动恢复。\n");
+		return 1;
+	}
+
+	if (arg == "restorephase") {
+		NATURE_D->test_restore_phase();
+		tell_object(me, "（测试）已恢复真实时段。\n");
+		return 1;
+	}
 
 	if (arg == "dadong") {
 		ob = load_object("/d/xiakedao/dadong");
@@ -490,6 +504,8 @@ int help(object me)
   bingqi      — 传送到兵器房（取用器械回归）
   shanding    — 传送到山顶（黄衣弟子/中伯 dizi 歧义回归）
   shanxia     — 传送到山脚下（木桩 strike 回归）
+  night       — 临时切换到夜晚（45 秒后自动恢复），验证 day_shop 夜晚锁
+  restorephase — 立即恢复真实时段（配合 night 使用）
 HELP
 	);
 	return 1;

@@ -99,7 +99,10 @@ int main(object me, string arg)
                 rided_name = rided->name();
         else me->delete("rided");
              
+        /* 日间店铺（day_shop）夜晚只锁临街大门：仅从户外街道进入才拦下（晚上不开）。
+         * 若已身处店铺内室（如配药房→药铺），放行，避免玩家夜间被困在店内出不来。 */
         if( obj->query("day_shop")
+        && env->query("outdoors")
         && ( day_event() == "event_night" || day_event() == "event_midnight"))
         return notify_fail(obj->query("short")+"晚上不开，请天亮了再来！\n");
 

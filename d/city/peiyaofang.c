@@ -1,5 +1,9 @@
 // Room: /city/peiyaofang.c   平一指的配药房
 // 移植自 pkuxkx d/city/peiyaofang.c（新手配药任务专用房间）
+//
+// 注意：本房间必须保持「室内房」（不要加 set("outdoors")）。
+// 药铺(yaopu)带 day_shop，夜晚 go.c 只锁“从户外临街进入”；
+// 若本房间被标成户外，玩家夜晚将困在配药房里回不了药铺。
 
 inherit ROOM;
 
