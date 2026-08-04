@@ -871,10 +871,12 @@ describe("parseSuggestedActions", () => {
   });
 
   it("discovers nested scenery and binds item_desc bare actions", () => {
+    // webd.c 现行格式：item_desc 拼接为 "key: value" 行；裸动词(move)
+    // 应绑定到所在 item 的 key（stone），而不是更早提到的 fish。
     const text =
       "亭旁的大石(stone)後好象有什麽东西。\n" +
-      "@@ITEM:stream@@\n涧水清澈，不时有鱼儿(fish)跃出水面。\n" +
-      "@@ITEM:stone@@\n这是一块大山石，想看看後面是什麽，就要把大石移开(move)。";
+      "stream: 涧水清澈，不时有鱼儿(fish)跃出水面。\n" +
+      "stone: 这是一块大山石，想看看後面是什麽，就要把大石移开(move)。";
     expect(parseSceneryFromDesc(text)).toEqual(
       expect.arrayContaining([
         { id: "fish", name: "鱼儿", kind: "item", scenery: true },
@@ -1462,7 +1464,11 @@ describe("parseLearnOfferActions", () => {
       buildLearnTopicActions("zhang sanfeng", "张三丰", [], panel).map(
         (a) => a.label
       )
-    ).toEqual(["基本内功", "太极剑", "轻功"]);
+    ).toEqual([
+      "基本内功 · 深不可测 · Lv200",
+      "太极剑 · 出神入化 · Lv180",
+      "轻功 · 登峰造极 · Lv150",
+    ]);
   });
 
   it("skills refuse yields no learn topics", () => {

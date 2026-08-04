@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { readdirSync, readFileSync } from "node:fs";
+import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import path from "node:path";
 import { AREA_MAPS, DIR, YANGZHOU_MAP } from "./roomMaps";
 
@@ -44,28 +44,45 @@ describe("八向约束（所有区域地图）", () => {
   }
 });
 
-describe("YANGZHOU_MAP 与 d/city 房间一致性", () => {
-  const cityDir = path.resolve(__dirname, "../../../../d/city");
-  const shorts = new Set<string>();
-  for (const fn of readdirSync(cityDir)) {
-    if (!fn.endsWith(".c")) continue;
-    const src = readFileSync(path.join(cityDir, fn), "utf8");
-    const m = src.match(/set\("short",\s*(?:"([^"]+)"|([A-Z_]+)\+?"([^"]+)")/);
-    if (!m) continue;
-    const short = (m[1] || m[3] || "").replace(/\$[A-Z]+\$/g, "").trim();
-    if (short) shorts.add(short);
+describe("YANGZHOU_MAP 与 d/ 房间一致性", () => {
+  const dDir = path.resolve(__dirname, "../../../../d");
+  const areas = readdirSync(dDir).filter((a) =>
+    statSync(path.join(dDir, a)).isDirectory()
+  );
+
+  /** 按节点 path（basename）在 d/ 各区域下定位房间文件，返回其 short 集合。
+   *  跨区域同名文件取并集；找不到返回空集。 */
+  function roomShorts(nodePath: string): Set<string> {
+    const out = new Set<string>();
+    for (const area of areas) {
+      const f = path.join(dDir, area, `${nodePath}.c`);
+      if (!existsSync(f)) continue;
+      const src = readFileSync(f, "utf8");
+      // 兼容 set("short",...) / set  ("short",...) / HIW"象棋棋苑"NOR 颜色前缀写法
+      const m = src.match(
+        /set[ \t]*\([ \t]*"short",[ \t]*(?:[A-Z_]+[ \t]*\+?[ \t]*)?"([^"]+)"[ \t]*[A-Z]*[ \t]*\)/
+      );
+      if (!m) continue;
+      const short = (m[1] || "").replace(/\$[A-Z]+\$/g, "").trim();
+      if (short) out.add(short);
+    }
+    return out;
   }
 
   it("每个扬州节点的名称都对应真实房间 short", () => {
     const missing = YANGZHOU_MAP.nodes
-      .filter((n) => !shorts.has(n.name))
+      .filter((n) => n.path && !roomShorts(n.path).has(n.name))
       .map((n) => `${n.id}(${n.name})`);
     expect(missing).toEqual([]);
   });
 
-  it("每个节点 path 在 d/city 中存在对应文件", () => {
+  it("每个节点 path 在 d/ 中存在对应文件", () => {
     const files = new Set(
-      readdirSync(cityDir).filter((f) => f.endsWith(".c")).map((f) => f.replace(/\.c$/, ""))
+      areas.flatMap((a) =>
+        readdirSync(path.join(dDir, a))
+          .filter((f) => f.endsWith(".c"))
+          .map((f) => f.replace(/\.c$/, ""))
+      )
     );
     const missing = YANGZHOU_MAP.nodes
       .filter((n) => n.path && !files.has(n.path))

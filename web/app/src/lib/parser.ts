@@ -1351,10 +1351,19 @@ export function parseSuggestedActions(
         // current item marker; fall back to the nearest preceding id mention.
         const fullBefore = text.slice(0, hintAt);
         const before = text.slice(Math.max(0, hintAt - 180), hintAt);
-        const markers = [
-          ...fullBefore.matchAll(/##ITEM:([a-z][a-z0-9_\-]{1,30})##/gi),
-        ];
-        const currentItemId = markers[markers.length - 1]?.[1]?.toLowerCase();
+        // 历史 marker 格式 ##ITEM:key## / @@ITEM:key@@（webd.c 旧版）
+        const markHits = [
+          ...fullBefore.matchAll(
+            /##ITEM:([a-z][a-z0-9_\-]{1,30})##|@@ITEM:([a-z][a-z0-9_\-]{1,30})@@/gi
+          ),
+        ].map((m) => ({ i: m.index ?? 0, id: m[1] || m[2] || "" }));
+        // 现行 webd.c 格式：item_desc 拼接为 "key: value" 行，行首 key 即当前 item
+        const lineHits = [
+          ...fullBefore.matchAll(/^\s*([a-z][a-z0-9_\-]{1,30}):\s/gm),
+        ].map((m) => ({ i: m.index ?? 0, id: m[1] || "" }));
+        const currentItemId =
+          [...markHits, ...lineHits].sort((a, b) => a.i - b.i)
+            .at(-1)?.id.toLowerCase() || "";
         const mentions = [
           ...before.matchAll(
             /([\u4e00-\u9fff]{1,10})\s*[（(]\s*([a-z][a-z0-9_\-]{1,30})\s*[）)]/gi

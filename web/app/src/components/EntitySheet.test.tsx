@@ -16,7 +16,7 @@ describe("EntitySheet NPC actions", () => {
     for (const text of [
       "查看",
       "打听",
-      "请教",
+      "学艺",
       "跟随",
       "给予",
       "江湖手段",
@@ -34,8 +34,7 @@ describe("EntitySheet NPC actions", () => {
   it("only shows apprentice and trade when server capabilities allow them", () => {
     const ordinary = renderToStaticMarkup(<EntitySheet {...baseProps} />);
     expect(ordinary).not.toContain("拜师");
-    expect(ordinary).not.toContain("购买");
-    expect(ordinary).not.toContain("卖出");
+    expect(ordinary).not.toContain("交易");
 
     const capable = renderToStaticMarkup(
       <EntitySheet
@@ -46,8 +45,7 @@ describe("EntitySheet NPC actions", () => {
       />
     );
     expect(capable).toContain("拜师");
-    expect(capable).toContain("购买");
-    expect(capable).toContain("卖出");
+    expect(capable).toContain("交易");
   });
 
   it("keeps learn assist opt-in behind the skill selection", () => {
@@ -57,7 +55,7 @@ describe("EntitySheet NPC actions", () => {
         askHints={[{ command: "learn master force", label: "向师父学内功" }]}
       />
     );
-    expect(html).toContain("请教");
+    expect(html).toContain("学艺");
     expect(html).not.toContain("学到潜能耗尽");
     expect(html).not.toContain("开始学习");
   });

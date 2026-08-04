@@ -170,7 +170,7 @@ export const YANGZHOU_MAP: RoomMap = {
     { id: "shuyuan",       name: "书院",     col: 5, row: 4, path: "shuyuan" },
     { id: "yaopu",         name: "药铺",     col: 6, row: 4, path: "yaopu" },
     { id: "qianzhuang",    name: "钱庄",     col: 7, row: 4, path: "qianzhuang" },
-    { id: "wuguan_damen",  name: "太乙武馆", col: 4, row: 4, path: "wuguan_damen" },
+    { id: "wuguan_damen",  name: "太乙武馆大门", col: 4, row: 4, path: "wuguan_damen" },
 
     // ===== 主街：西门－西大街×3－中央广场－东大街×3－东门 =====
     { id: "ximen",         name: "西门",     col: 0, row: 5, path: "ximen" },
@@ -186,7 +186,7 @@ export const YANGZHOU_MAP: RoomMap = {
     // ===== 主街两侧 =====
     { id: "biaoju",        name: "福威镖局", col: 1, row: 6, path: "biaoju" },
     { id: "yamen",         name: "衙门",     col: 2, row: 6, path: "yamen" },
-    { id: "weiqi_qiyuan",  name: "象棋棋苑", col: 3, row: 6, path: "weiqi_qiyuan" },
+    { id: "weiqi_qiyuan",  name: "轩辕棋苑", col: 3, row: 6, path: "weiqi_qiyuan" },
     { id: "zahuopu",       name: "杂货铺",   col: 5, row: 6, path: "zahuopu" },
     { id: "datiepu",       name: "打铁铺",   col: 6, row: 6, path: "datiepu" },
     { id: "yuelao",        name: "月老亭",   col: 7, row: 6, path: "yuelao" },
