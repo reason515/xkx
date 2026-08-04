@@ -187,6 +187,16 @@ void prep_go(object me, string scene)
     me->delete("learned_points");
     me->delete("pot");
 
+    /* 清残留任务临时态（如配药 in_job/ok），并移除身上的药方/成药，
+     * 否则共享测试账号上次未交药会返回「你上次的工作还没有完成！」 */
+    me->delete_temp("peiyao");
+    foreach (ob in all_inventory(me)) {
+        if (ob->is_character())
+            continue;
+        if (ob->query("id") == "yao fang" || ob->query("id") == "cheng yao")
+            destruct(ob);
+    }
+
     /* 毕业新手状态：根基经验 + 基础技能 20 + 少量存款 */
     me->set("combat_exp", s["exp"]);
     me->set("balance", s["balance"]);
