@@ -43,11 +43,14 @@ export class LoginFsm {
     this.credentials = credentials || {};
     this.state = LoginState.INIT;
     this.buffer = "";
+    /** 入口文案提示词一旦出现即永久生效，不依赖缓冲窗口（见 onOutput）。 */
+    this.hintSeen = false;
   }
 
   reset() {
     this.state = LoginState.INIT;
     this.buffer = "";
+    this.hintSeen = false;
   }
 
   email() {
@@ -56,7 +59,8 @@ export class LoginFsm {
   }
 
   onOutput(text) {
-    this.buffer += text;
+    // 登录期缓冲：封顶防内存无限增长（登录期最长文案数 KB 级）。
+    this.buffer = (this.buffer + text).slice(-20000);
     const tail = this.buffer.slice(-1200);
 
     if (this.state === LoginState.IN_GAME) return null;
@@ -165,11 +169,15 @@ export class LoginFsm {
     }
 
     // Do NOT treat lone "> " as in-game — appears during login banners
+    // 用 flag 而非 tail 窗口判定进游戏：入口文案的「目前权限」可能被冗长的
+    // 房间/NPC 列表（新手村聚集大量 netdead 玩家时可达数千字符）挤出
+    // tail 窗口，只看尾部会让注册永远卡在 GENDER 状态。
+    if (IN_GAME_HINT.test(text)) this.hintSeen = true;
     if (
       this.state !== LoginState.INIT &&
       this.state !== LoginState.BIG5 &&
       this.state !== LoginState.ID &&
-      IN_GAME_HINT.test(tail)
+      this.hintSeen
     ) {
       this.state = LoginState.IN_GAME;
     }

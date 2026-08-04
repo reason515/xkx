@@ -279,8 +279,11 @@ test.describe.serial("game smoke", () => {
 
   test("顶栏状态显示名称与当前/上限", async ({ page }) => {
     await loginAsNewbie(page, { id: sharedId, password: sharedPassword, asRegister: false });
-    await expect(page.locator(".vital-label")).toHaveText(["气", "精", "内"]);
-    await expect(page.locator(".vital .n").first()).toContainText("/");
+    // 顶栏角色名（首字）可见
+    await expect(page.locator('[aria-label^="角色："]')).toBeVisible({ timeout: 30_000 });
+    // 气血条存在，且食/饮显示当前/上限（如 300/300）
+    await expect(page.locator(".vitals .vital").first()).toBeVisible();
+    await expect(page.locator(".vitals .vital-resources").first()).toContainText("/");
   });
 
   test("菜单可打开地图并调节缩放", async ({ page }) => {

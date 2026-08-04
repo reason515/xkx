@@ -97,6 +97,32 @@ describe("LoginFsm", () => {
     assert.equal(fsm.isInGame(), true);
   });
 
+  it("regression: 入口文案被冗长房间/NPC 列表挤出 tail 窗口仍判定进游戏", () => {
+    // 新手村聚集大量 netdead 玩家时，房间列表可达数千字符，
+    // 「目前权限」会落在 tail(1200) 窗口之外；旧实现永远卡在注册流程。
+    const fsm = new LoginFsm({ id: "newbie", password: "secret1", name: "张三" });
+    fsm.state = LoginState.CONFIRM_PASSWORD;
+    assert.equal(
+      fsm.onOutput("您要扮演男性(m)的角色或女性(f)的角色？"),
+      "m\n"
+    );
+    assert.equal(fsm.state, LoginState.GENDER);
+
+    // 先发较长的入口文案（目前权限在早期，后随超长 NPC/物品列表）
+    const crowd = Array.from(
+      { length: 200 },
+      (_, i) => `  普通百姓 测x${i}(Xx${i}) <断线中>\r\n  布衣(Cloth)\r\n`
+    ).join("");
+    const entry =
+      "\n目前权限：(player)\r\n" +
+      "未明谷 - \r\n    山谷中绿树成荫。\r\n    这里明显的出口是 south、east 和 west。\r\n" +
+      crowd +
+      "> \r\n一只云粉蝶飞来飞去。\r\n";
+    assert.ok(entry.length > 2000, "前置：模拟入口文案超过 tail 窗口");
+    fsm.onOutput(entry);
+    assert.equal(fsm.isInGame(), true);
+  });
+
   it("does not treat lone prompt as in-game during login", () => {
     const fsm = new LoginFsm({ id: "hero", password: "secret" });
     fsm.state = LoginState.BIG5;
