@@ -170,6 +170,7 @@ export const YANGZHOU_MAP: RoomMap = {
     { id: "shuyuan",       name: "书院",     col: 5, row: 4, path: "shuyuan" },
     { id: "yaopu",         name: "药铺",     col: 6, row: 4, path: "yaopu" },
     { id: "qianzhuang",    name: "钱庄",     col: 7, row: 4, path: "qianzhuang" },
+    { id: "wuguan_damen",  name: "太乙武馆", col: 4, row: 4, path: "wuguan_damen" },
 
     // ===== 主街：西门－西大街×3－中央广场－东大街×3－东门 =====
     { id: "ximen",         name: "西门",     col: 0, row: 5, path: "ximen" },
@@ -249,6 +250,7 @@ export const YANGZHOU_MAP: RoomMap = {
     { from: "xidajie1", to: "guangchang", dir: "east" },
     { from: "guangchang", to: "dongdajie1", dir: "east" },
     { from: "dongdajie1", to: "dongdajie2", dir: "east" },
+    { from: "dongdajie1", to: "wuguan_damen", dir: "northwest" },
     { from: "dongdajie2", to: "dongdajie3", dir: "east" },
     { from: "dongdajie3", to: "dongmen", dir: "east" },
 

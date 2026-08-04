@@ -35,9 +35,10 @@ LONG
         
         set("objects", ([
                 __DIR__"npc/zhu": 1,
+                __DIR__"npc/fuzi": 1,
         ]));
 
-        set("day_shop", 1);
+        // 书院全天开放（学习场所，与 pkuxkx 一致；day_shop 会导致晚上进不来）
         set("cost", 0);
         setup();
 }

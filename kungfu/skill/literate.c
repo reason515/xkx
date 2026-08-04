@@ -11,6 +11,7 @@ void skill_improved(object me)
 int valid_learn(object me)
 {
 	if (!me->query_temp("mark/朱")
+		&& !me->query_temp("mark/fuzi")
 		&& (me->query("class") != "bonze"
 			 || (me->query("family/family_name") != "峨嵋派" &&
 			me->query("family/family_name") != "少林派"

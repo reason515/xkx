@@ -91,6 +91,8 @@ void init()
 	}
 	add_action("do_decide", "decide");
 	add_action("do_skill", "skill");
+	add_action("do_skill", "skills");
+	add_action("do_skill", "cha");
 //行动判定，decide加入，skill查看技能
 }
 
@@ -161,9 +163,12 @@ int do_decide()
 //decide指令
 }
 
-int do_skill()
+int do_skill(string arg)
 {
 	object player = this_player();
+	/* 有参且非查教头（如查自己/他人）→ 交回标准 skills 命令 */
+	if (arg && arg != "" && arg != "wuguan jiaotou" && arg != "jiaotou")
+		return 0;
 	if (!player->query("wuguan")) return 0;
 	tell_object(player, "武馆教头目前所学过的技能：（共十项技能）\n");
 	tell_object(player, "\n");

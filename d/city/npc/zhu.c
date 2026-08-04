@@ -59,6 +59,8 @@ private void go_home()
 
 void init()
 {
+        add_action("do_cha", "cha");
+        add_action("do_cha", "skills");
         if( environment() != load_object("/d/city/shuyuan") ) {
 		remove_call_out("go_home");
 		call_out("go_home", 1);
@@ -70,6 +72,29 @@ int recognize_apprentice(object ob)
 	if (!(int)ob->query_temp("mark/朱"))
 		return 0; 
 	ob->add_temp("mark/朱", -1);
+	return 1;
+}
+
+/* 前端学艺入口：拦截 skills/cha 自绘面板（朱熹无门派师徒关系，标准 skills.c 会拒绝） */
+int do_cha(string arg)
+{
+	object me = this_player();
+
+	if (!arg || arg == "" || (arg != "zhu xi" && arg != "zhu" && arg != "xi"))
+		return 0;
+	if (!present("zhu xi", environment(me)))
+		return 0;
+
+	write("你目前所学过的技能：（共4项技能）\n\n");
+	write("┌──1项知识──────────────────────────┐\n");
+	write("│  读书识字 (literate)                  - 深不可测 500/     0│\n");
+	write("└────────────────────────────────┘\n");
+	write("┌──3项基本功夫────────────────────────┐\n");
+	write("│  基本拳脚 (unarmed)                  - 普普通通 100/     0│\n");
+	write("│  基本轻功 (dodge)                    - 普普通通 100/     0│\n");
+	write("│  基本招架 (parry)                    - 普普通通 100/     0│\n");
+	write("└────────────────────────────────┘\n");
+	write("求学需先「给予」二两银子学费；读书写字 30 级以下请找书院夫子（免费）学习。\n");
 	return 1;
 }
 
@@ -108,7 +133,7 @@ int accept_object(object who, object ob)
 		return 0;
 	}
 	if (who->query_skill("literate", 1) < 30){
-		message_vision("朱熹摇摇头对$N说：你先去跟村里的老秀才学学识字，再到我这儿来吧。\n", who);
+		message_vision("朱熹摇摇头对$N说：你先去跟书院的夫子学学识字，再到我这儿来吧。\n", who);
 		return 0;
 	}
 //add by wzfeng  
