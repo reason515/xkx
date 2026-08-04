@@ -33,6 +33,9 @@ test("挂机提示只走挂机条，不弹 toast", async ({ page }) => {
     password: "Test1234",
     asRegister: false,
   });
+  // 上轮残留的钓鱼挂机会话会在重登后自动续跑（assist 会话按 id 复用），
+  // 先停掉保证初始状态干净，否则会自行走到水塘干扰本用例
+  await sendCmd(page, "webassist stop", 1_500).catch(() => {});
   await expect(page.locator(".room-title").first()).not.toHaveText("…", {
     timeout: 60_000,
   });
@@ -65,6 +68,8 @@ test("挂机提示只走挂机条，不弹 toast", async ({ page }) => {
     timeout: 40_000,
   });
   await expect(page.locator(".toast.show")).toHaveCount(0);
+  // 收尾：停止挂机，避免残留会话在下一轮用例重登后自动续跑（同账号复用）
+  await sendCmd(page, "webassist stop", 1_500).catch(() => {});
 });
 
 test("请教挂机状态走挂机条并可停止，不弹 toast", async ({ page }) => {
@@ -77,14 +82,19 @@ test("请教挂机状态走挂机条并可停止，不弹 toast", async ({ page 
   await sendCmd(page, "xkxe2e learnprep", 3_500);
   await sendCmd(page, "abandon force", 2_500);
 
-  // 直接以 webassist 启动请教挂机（学习 25 次，会经历精不足→调息）
-  await sendCmd(page, "webassist learn wushi force count 25 1", 2_500);
+  // 直接以 webassist 启动请教挂机（count 200 超过单轮精限制，必多轮进行）
+  await sendCmd(page, "webassist learn wushi force count 200 1", 2_500);
 
   // 挂机条出现且显示「请教挂机」状态（不再依赖 toast）
   await expect(page.locator(".grind-banner")).toBeVisible({ timeout: 15_000 });
   await expect(page.locator(".grind-banner-text")).toContainText("请教挂机", {
     timeout: 15_000,
   });
+  // 挂机条处于「进行中」（带停止按钮，而非已完成的「知道了」）
+  const stopBtn = page
+    .locator(".grind-banner-stop")
+    .filter({ hasText: "停止" });
+  await expect(stopBtn).toBeVisible({ timeout: 60_000 });
   // 状态推进（已学 N 次 / 精不足调息），全程不弹 toast
   await expect(page.locator(".grind-banner-text")).toContainText(/已学|调息|精不足/, {
     timeout: 30_000,
@@ -92,7 +102,7 @@ test("请教挂机状态走挂机条并可停止，不弹 toast", async ({ page 
   await expect(page.locator(".toast.show")).toHaveCount(0);
 
   // 挂机条上的「停止」按钮可结束请教挂机
-  await page.locator(".grind-banner-stop").click();
+  await stopBtn.click();
   await expect(page.locator(".grind-banner")).toBeHidden({ timeout: 10_000 });
   // 停止后不再有学习反馈 toast（会话已结束）
   await expect(page.locator(".toast.show")).toHaveCount(0);
