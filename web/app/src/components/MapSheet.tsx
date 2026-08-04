@@ -8,7 +8,7 @@ import {
   resolveRegionMapKey,
   worldHighlightMarkers,
 } from "../data/maps";
-import { AREA_MAPS } from "../data/roomMaps";
+import { AREA_MAPS, resolveRegionGraphMapKey } from "../data/roomMaps";
 import type { RoomMap } from "../data/roomMaps";
 import type { Entity } from "../lib/types";
 
@@ -55,13 +55,7 @@ export function MapSheet({
 
   // Structured room-graph map for known areas
   const roomGraph = useMemo(() => {
-    const area = (roomArea || "").toLowerCase();
-    const mapKey =
-      area === "newbie_lxsz" || area === "liuxiu-shanzhuang"
-        ? "newbie_lxsz"
-        : area === "city" || area === "yangzhou"
-          ? "yangzhou"
-          : null;
+    const mapKey = resolveRegionGraphMapKey(roomArea);
     if (!mapKey || !AREA_MAPS[mapKey]) return null;
     const map = AREA_MAPS[mapKey] as RoomMap;
 

@@ -11,6 +11,7 @@ const AREA_WORLD_MARKERS: Record<string, string[]> = {
   xiakedao: ["侠客岛"],
   yangzhou: ["扬州城", "扬州"],
   city: ["扬州城", "扬州"],
+  wuguan: ["扬州城", "扬州"],
   hangzhou: ["杭州"],
   beijing: ["京师"],
   shaolin: ["少林寺", "少林"],

@@ -140,9 +140,12 @@ export const LXSz_MAP: RoomMap = {
 /**
  * 扬州城八向网格地图
  *
- * 拓扑完全对照 d/city/*.c 的 exits：
+ * 拓扑完全对照 d/city/*.c + d/wuguan/*.c 的 exits：
  * - 北城区：北门→北集市→北集市→中央广场
- * - 主街：西门－西大街×3－中央广场－东大街×3－东门
+ * - 主街：西门－西大街×3－中央广场－东大街×2－东门
+ *   （东大街1 西北接太乙武馆，故东大街1 与中央广场之间留一格）
+ * - 武馆：太乙武馆大门→武馆大厅，大厅西练功场 / 东休息室
+ * - 北城东侧：书院(上白鹿藏书阁) / 药铺(北配药房) / 钱庄
  * - 南城区：中央广场→南集市→南大街→南大街→南门
  * - 城南野径（挂机区）：民屋→城南小径→…→寨口
  */
@@ -150,78 +153,84 @@ export const YANGZHOU_MAP: RoomMap = {
   grid: { x: 88, y: 80 },
   zones: [
     { label: "扬 州 城", col: 1.2, row: 0.35 },
-    { label: "城 南 野 径", col: 8.6, row: 12.4, letterSpacing: 3 },
+    { label: "城 南 野 径", col: 8.6, row: 13.2, letterSpacing: 3 },
   ],
   nodes: [
     // ===== 北城区 =====
-    { id: "beimen",        name: "北门",     col: 4, row: 0, path: "beimen" },
-    { id: "wumiao",        name: "武庙",     col: 3, row: 1, path: "wumiao" },
-    { id: "beidajie2",     name: "北集市",   col: 4, row: 1, path: "beidajie2" },
-    { id: "zuixianlou",    name: "醉仙楼",   col: 5, row: 1, path: "zuixianlou" },
-    { id: "majiu",         name: "马厩",     col: 3, row: 2, path: "majiu" },
-    { id: "huadian",       name: "鲜花店",   col: 2, row: 3, path: "huadian" },
-    { id: "kedian",        name: "客店",     col: 3, row: 3, path: "kedian" },
-    { id: "beidajie1",     name: "北集市",   col: 4, row: 3, path: "beidajie1" },
-    { id: "tianbaoge",     name: "天宝阁",   col: 5, row: 3, path: "tianbaoge" },
-    { id: "cangshuge",     name: "白鹿藏书阁", col: 6, row: 3, path: "cangshuge" },
-    { id: "caizhu",        name: "翰林府门", col: 1, row: 4, path: "caizhu" },
-    { id: "bingyindamen",  name: "兵营大门", col: 2, row: 4, path: "bingyindamen" },
-    { id: "chaguan",       name: "春来茶馆", col: 3, row: 4, path: "chaguan" },
-    { id: "shuyuan",       name: "书院",     col: 5, row: 4, path: "shuyuan" },
-    { id: "yaopu",         name: "药铺",     col: 6, row: 4, path: "yaopu" },
-    { id: "qianzhuang",    name: "钱庄",     col: 7, row: 4, path: "qianzhuang" },
-    { id: "wuguan_damen",  name: "太乙武馆大门", col: 4, row: 4, path: "wuguan_damen" },
+    { id: "beimen",          name: "北门",       col: 4, row: 0, path: "beimen" },
+    { id: "wumiao",          name: "武庙",       col: 3, row: 1, path: "wumiao" },
+    { id: "beidajie2",       name: "北集市",     col: 4, row: 1, path: "beidajie2" },
+    { id: "zuixianlou",      name: "醉仙楼",     col: 5, row: 1, path: "zuixianlou" },
+    { id: "majiu",           name: "马厩",       col: 3, row: 2, path: "majiu" },
+    { id: "huadian",         name: "鲜花店",     col: 2, row: 3, path: "huadian" },
+    { id: "kedian",          name: "客店",       col: 3, row: 3, path: "kedian" },
+    { id: "beidajie1",       name: "北集市",     col: 4, row: 3, path: "beidajie1" },
+    { id: "tianbaoge",       name: "天宝阁",     col: 5, row: 3, path: "tianbaoge" },
+    { id: "cangshuge",       name: "白鹿藏书阁", col: 6, row: 3, path: "cangshuge" },
+    { id: "peiyaofang",      name: "配药房",     col: 7, row: 3, path: "peiyaofang" },
+    { id: "caizhu",          name: "翰林府门",   col: 1, row: 4, path: "caizhu" },
+    { id: "bingyindamen",    name: "兵营大门",   col: 2, row: 4, path: "bingyindamen" },
+    { id: "chaguan",         name: "春来茶馆",   col: 3, row: 4, path: "chaguan" },
+    { id: "wuguan_damen",    name: "太乙武馆大门", col: 4, row: 4, path: "wuguan_damen" },
+    { id: "shuyuan",         name: "书院",       col: 6, row: 4, path: "shuyuan" },
+    { id: "yaopu",           name: "药铺",       col: 7, row: 4, path: "yaopu" },
+    { id: "qianzhuang",      name: "钱庄",       col: 8, row: 4, path: "qianzhuang" },
 
-    // ===== 主街：西门－西大街×3－中央广场－东大街×3－东门 =====
-    { id: "ximen",         name: "西门",     col: 0, row: 5, path: "ximen" },
-    { id: "xidajie3",      name: "西大街",   col: 1, row: 5, path: "xidajie3" },
-    { id: "xidajie2",      name: "西大街",   col: 2, row: 5, path: "xidajie2" },
-    { id: "xidajie1",      name: "西大街",   col: 3, row: 5, path: "xidajie1" },
-    { id: "guangchang",    name: "中央广场", col: 4, row: 5, path: "guangchang" },
-    { id: "dongdajie1",    name: "东大街",   col: 5, row: 5, path: "dongdajie1" },
-    { id: "dongdajie2",    name: "东大街",   col: 6, row: 5, path: "dongdajie2" },
-    { id: "dongdajie3",    name: "东大街",   col: 7, row: 5, path: "dongdajie3" },
-    { id: "dongmen",       name: "东门",     col: 8, row: 5, path: "dongmen" },
+    // ===== 武馆内部（大门→大厅，西练功场 / 东休息室）=====
+    { id: "wuguan_liangong", name: "练功场",     col: 3, row: 5, path: "wuguan_liangong" },
+    { id: "wuguan_dating",   name: "武馆大厅",   col: 4, row: 5, path: "wuguan_dating" },
+    { id: "wuguan_xiuxi",    name: "休息室",     col: 5, row: 5, path: "wuguan_xiuxi" },
+
+    // ===== 主街：西门－西大街×3－中央广场－东大街×2－东门 =====
+    { id: "ximen",           name: "西门",       col: 0, row: 6, path: "ximen" },
+    { id: "xidajie3",        name: "西大街",     col: 1, row: 6, path: "xidajie3" },
+    { id: "xidajie2",        name: "西大街",     col: 2, row: 6, path: "xidajie2" },
+    { id: "xidajie1",        name: "西大街",     col: 3, row: 6, path: "xidajie1" },
+    { id: "guangchang",      name: "中央广场",   col: 4, row: 6, path: "guangchang" },
+    { id: "dongdajie1",      name: "东大街",     col: 6, row: 6, path: "dongdajie1" },
+    { id: "dongdajie2",      name: "东大街",     col: 7, row: 6, path: "dongdajie2" },
+    { id: "dongdajie3",      name: "东大街",     col: 8, row: 6, path: "dongdajie3" },
+    { id: "dongmen",         name: "东门",       col: 9, row: 6, path: "dongmen" },
 
     // ===== 主街两侧 =====
-    { id: "biaoju",        name: "福威镖局", col: 1, row: 6, path: "biaoju" },
-    { id: "yamen",         name: "衙门",     col: 2, row: 6, path: "yamen" },
-    { id: "weiqi_qiyuan",  name: "轩辕棋苑", col: 3, row: 6, path: "weiqi_qiyuan" },
-    { id: "zahuopu",       name: "杂货铺",   col: 5, row: 6, path: "zahuopu" },
-    { id: "datiepu",       name: "打铁铺",   col: 6, row: 6, path: "datiepu" },
-    { id: "yuelao",        name: "月老亭",   col: 7, row: 6, path: "yuelao" },
+    { id: "biaoju",          name: "福威镖局",   col: 1, row: 7, path: "biaoju" },
+    { id: "yamen",           name: "衙门",       col: 2, row: 7, path: "yamen" },
+    { id: "weiqi_qiyuan",    name: "轩辕棋苑",   col: 3, row: 7, path: "weiqi_qiyuan" },
+    { id: "zahuopu",         name: "杂货铺",     col: 6, row: 7, path: "zahuopu" },
+    { id: "datiepu",         name: "打铁铺",     col: 7, row: 7, path: "datiepu" },
+    { id: "yuelao",          name: "月老亭",     col: 8, row: 7, path: "yuelao" },
 
     // ===== 南城区 =====
-    { id: "duchang",       name: "赌场",     col: 3, row: 7, path: "duchang" },
-    { id: "nandajie1",     name: "南集市",   col: 4, row: 7, path: "nandajie1" },
-    { id: "dangpu",        name: "当铺",     col: 5, row: 7, path: "dangpu" },
-    { id: "xiaobaozhai",   name: "小宝斋",   col: 6, row: 7, path: "xiaobaozhai" },
-    { id: "minwu1",        name: "民屋",     col: 7, row: 7, path: "minwu1" },
-    { id: "jujinge",       name: "聚金阁",   col: 3, row: 8, path: "jujinge" },
-    { id: "nandajie2",     name: "南大街",   col: 4, row: 8, path: "nandajie2" },
-    { id: "dongnanjie",    name: "东南街",   col: 5, row: 8, path: "dongnanjie" },
-    { id: "xiangnanjie",   name: "象南街",   col: 6, row: 8, path: "xiangnanjie" },
-    { id: "yangzhou_grind1", name: "城南小径", col: 7, row: 8, path: "yangzhou_grind1" },
-    { id: "xiaotulu",      name: "小土路",   col: 8, row: 8, path: "xiaotulu" },
-    { id: "minwu2",        name: "民屋",     col: 9, row: 8, path: "minwu2" },
-    { id: "guopintan",     name: "果品摊",   col: 5, row: 9, path: "guopintan" },
-    { id: "mipu",          name: "米铺",     col: 6, row: 9, path: "mipu" },
-    { id: "yangzhou_grind2", name: "荒草坡", col: 7, row: 9, path: "yangzhou_grind2" },
-    { id: "xiaomiao",      name: "小庙",     col: 9, row: 9, path: "xiaomiao" },
-    { id: "dayuan",        name: "大院子",   col: 10, row: 9, path: "dayuan" },
-    { id: "chaguan1",      name: "春来茶馆", col: 2, row: 10, path: "chaguan1" },
-    { id: "jiuguan",       name: "高升酒馆", col: 3, row: 10, path: "jiuguan" },
-    { id: "nandajie3",     name: "南大街",   col: 4, row: 10, path: "nandajie3" },
-    { id: "lichunyuan",    name: "丽春院",   col: 5, row: 10, path: "lichunyuan" },
-    { id: "nanmen",        name: "南门",     col: 4, row: 11, path: "nanmen" },
+    { id: "duchang",         name: "赌场",       col: 3, row: 8, path: "duchang" },
+    { id: "nandajie1",       name: "南集市",     col: 4, row: 8, path: "nandajie1" },
+    { id: "dangpu",          name: "当铺",       col: 5, row: 8, path: "dangpu" },
+    { id: "xiaobaozhai",     name: "小宝斋",     col: 6, row: 8, path: "xiaobaozhai" },
+    { id: "minwu1",          name: "民屋",       col: 7, row: 8, path: "minwu1" },
+    { id: "jujinge",         name: "聚金阁",     col: 3, row: 9, path: "jujinge" },
+    { id: "nandajie2",       name: "南大街",     col: 4, row: 9, path: "nandajie2" },
+    { id: "dongnanjie",      name: "东南街",     col: 5, row: 9, path: "dongnanjie" },
+    { id: "xiangnanjie",     name: "象南街",     col: 6, row: 9, path: "xiangnanjie" },
+    { id: "yangzhou_grind1", name: "城南小径",   col: 7, row: 9, path: "yangzhou_grind1" },
+    { id: "xiaotulu",        name: "小土路",     col: 8, row: 9, path: "xiaotulu" },
+    { id: "minwu2",          name: "民屋",       col: 9, row: 9, path: "minwu2" },
+    { id: "guopintan",       name: "果品摊",     col: 5, row: 10, path: "guopintan" },
+    { id: "mipu",            name: "米铺",       col: 6, row: 10, path: "mipu" },
+    { id: "yangzhou_grind2", name: "荒草坡",     col: 7, row: 10, path: "yangzhou_grind2" },
+    { id: "xiaomiao",        name: "小庙",       col: 9, row: 10, path: "xiaomiao" },
+    { id: "dayuan",          name: "大院子",     col: 10, row: 10, path: "dayuan" },
+    { id: "chaguan1",        name: "春来茶馆",   col: 2, row: 11, path: "chaguan1" },
+    { id: "jiuguan",         name: "高升酒馆",   col: 3, row: 11, path: "jiuguan" },
+    { id: "nandajie3",       name: "南大街",     col: 4, row: 11, path: "nandajie3" },
+    { id: "lichunyuan",      name: "丽春院",     col: 5, row: 11, path: "lichunyuan" },
+    { id: "yangzhou_grind3", name: "野羊坡",     col: 7, row: 11, path: "yangzhou_grind3" },
+    { id: "nanmen",          name: "南门",       col: 4, row: 12, path: "nanmen" },
+    { id: "yangzhou_grind4", name: "枯藤径",     col: 7, row: 12, path: "yangzhou_grind4" },
 
     // ===== 城南野径（挂机区）=====
-    { id: "yangzhou_grind3", name: "野羊坡", col: 7, row: 10, path: "yangzhou_grind3" },
-    { id: "yangzhou_grind4", name: "枯藤径", col: 7, row: 11, path: "yangzhou_grind4" },
-    { id: "yangzhou_grind5", name: "泥潭边", col: 7, row: 12, path: "yangzhou_grind5" },
-    { id: "yangzhou_grind6", name: "狼嚎谷", col: 7, row: 13, path: "yangzhou_grind6" },
-    { id: "yangzhou_grind7", name: "断桥",   col: 7, row: 14, path: "yangzhou_grind7" },
-    { id: "yangzhou_grind8", name: "寨口",   col: 7, row: 15, path: "yangzhou_grind8" },
+    { id: "yangzhou_grind5", name: "泥潭边",     col: 7, row: 13, path: "yangzhou_grind5" },
+    { id: "yangzhou_grind6", name: "狼嚎谷",     col: 7, row: 14, path: "yangzhou_grind6" },
+    { id: "yangzhou_grind7", name: "断桥",       col: 7, row: 15, path: "yangzhou_grind7" },
+    { id: "yangzhou_grind8", name: "寨口",       col: 7, row: 16, path: "yangzhou_grind8" },
   ],
   edges: [
     // ---- 北城区 ----
@@ -235,11 +244,20 @@ export const YANGZHOU_MAP: RoomMap = {
     { from: "kedian", to: "beidajie1", dir: "east" },
     { from: "beidajie1", to: "tianbaoge", dir: "east" },
     { from: "beidajie1", to: "guangchang", dir: "south" },
-    { from: "shuyuan", to: "cangshuge", dir: "northeast" },
     { from: "caizhu", to: "xidajie3", dir: "south" },
     { from: "bingyindamen", to: "xidajie2", dir: "south" },
     { from: "chaguan", to: "xidajie1", dir: "south" },
+
+    // ---- 武馆 ----
+    { from: "dongdajie1", to: "wuguan_damen", dir: "northwest" },
+    { from: "wuguan_damen", to: "wuguan_dating", dir: "south" },
+    { from: "wuguan_dating", to: "wuguan_liangong", dir: "west" },
+    { from: "wuguan_dating", to: "wuguan_xiuxi", dir: "east" },
+
+    // ---- 北城东侧：书院(藏书阁) / 药铺(配药房) / 钱庄 ----
+    { from: "shuyuan", to: "cangshuge", dir: "north" },
     { from: "shuyuan", to: "dongdajie1", dir: "south" },
+    { from: "peiyaofang", to: "yaopu", dir: "south" },
     { from: "yaopu", to: "dongdajie2", dir: "south" },
     { from: "qianzhuang", to: "dongdajie3", dir: "south" },
 
@@ -250,7 +268,6 @@ export const YANGZHOU_MAP: RoomMap = {
     { from: "xidajie1", to: "guangchang", dir: "east" },
     { from: "guangchang", to: "dongdajie1", dir: "east" },
     { from: "dongdajie1", to: "dongdajie2", dir: "east" },
-    { from: "dongdajie1", to: "wuguan_damen", dir: "northwest" },
     { from: "dongdajie2", to: "dongdajie3", dir: "east" },
     { from: "dongdajie3", to: "dongmen", dir: "east" },
 
@@ -263,7 +280,6 @@ export const YANGZHOU_MAP: RoomMap = {
     { from: "yuelao", to: "dongdajie3", dir: "north" },
 
     // ---- 南城区 ----
-    // 中央广场→南集市（缺失连线，修复）
     { from: "guangchang", to: "nandajie1", dir: "south" },
     { from: "duchang", to: "nandajie1", dir: "east" },
     { from: "nandajie1", to: "dangpu", dir: "east" },
@@ -278,12 +294,10 @@ export const YANGZHOU_MAP: RoomMap = {
     { from: "minwu1", to: "yangzhou_grind1", dir: "south" },
     { from: "xiaotulu", to: "xiangnanjie", dir: "west" },
     { from: "xiaotulu", to: "minwu2", dir: "east" },
-    // 小土路→小庙（LPC southeast 出口，补齐）
     { from: "xiaotulu", to: "xiaomiao", dir: "southeast" },
     { from: "minwu2", to: "xiaomiao", dir: "south" },
     { from: "xiaomiao", to: "dayuan", dir: "east" },
     { from: "nandajie2", to: "nandajie3", dir: "south" },
-    // 南春来茶馆经高升酒馆接入南大街（修复原边穿越酒馆节点、且房间实际不可达的问题）
     { from: "chaguan1", to: "jiuguan", dir: "east" },
     { from: "jiuguan", to: "nandajie3", dir: "east" },
     { from: "nandajie3", to: "lichunyuan", dir: "east" },
@@ -299,6 +313,18 @@ export const YANGZHOU_MAP: RoomMap = {
     { from: "yangzhou_grind7", to: "yangzhou_grind8", dir: "south" },
   ],
 };
+
+/**
+ * 结构化区域地图选择：根据 MUD 下发的 area（outdoors 或 /d/<area> 路径回退）
+ * 决定使用哪张 RoomGraph SVG 地图。
+ * 太乙武馆（d/wuguan/*.c）无 outdoors，回退 area="wuguan"，但属于扬州城。
+ */
+export function resolveRegionGraphMapKey(area?: string): string | null {
+  const a = (area || "").toLowerCase();
+  if (a === "newbie_lxsz" || a === "liuxiu-shanzhuang") return "newbie_lxsz";
+  if (a === "city" || a === "yangzhou" || a === "wuguan") return "yangzhou";
+  return null;
+}
 
 export const AREA_MAPS: Record<string, RoomMap> = {
   "newbie_lxsz": LXSz_MAP,

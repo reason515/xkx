@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readdirSync, readFileSync, existsSync, statSync } from "node:fs";
 import path from "node:path";
-import { AREA_MAPS, DIR, YANGZHOU_MAP } from "./roomMaps";
+import { AREA_MAPS, DIR, YANGZHOU_MAP, resolveRegionGraphMapKey } from "./roomMaps";
 
 describe("八向约束（所有区域地图）", () => {
   for (const [key, map] of Object.entries(AREA_MAPS)) {
@@ -95,5 +95,48 @@ describe("YANGZHOU_MAP 与 d/ 房间一致性", () => {
     for (const room of ["北门", "南门", "西门", "东门", "中央广场", "北集市", "南集市", "西大街", "东大街", "南大街"]) {
       expect(names.has(room), `缺少 ${room}`).toBe(true);
     }
+  });
+
+  it("覆盖新增地标：配药房与太乙武馆内部", () => {
+    const byId = new Map(YANGZHOU_MAP.nodes.map((n) => [n.id, n]));
+    const expectNode = (id: string, name: string, path: string) => {
+      const n = byId.get(id);
+      expect(n, `缺少节点 ${id}`).toBeDefined();
+      expect(n!.name).toBe(name);
+      expect(n!.path).toBe(path);
+    };
+    // 配药房在药铺正北（同列相邻）
+    expectNode("peiyaofang", "配药房", "peiyaofang");
+    expectNode("wuguan_damen", "太乙武馆大门", "wuguan_damen");
+    expectNode("wuguan_dating", "武馆大厅", "wuguan_dating");
+    expectNode("wuguan_liangong", "练功场", "wuguan_liangong");
+    expectNode("wuguan_xiuxi", "休息室", "wuguan_xiuxi");
+    const yaopu = byId.get("yaopu")!;
+    const peiyaofang = byId.get("peiyaofang")!;
+    expect(yaopu.col).toBe(peiyaofang.col);
+    expect(yaopu.row).toBe(peiyaofang.row + 1);
+    // 武馆拓扑：大门→大厅，大厅西练功场 / 东休息室
+    const edgeKeys = new Set(YANGZHOU_MAP.edges.map((e) => `${e.from}->${e.to}:${e.dir}`));
+    expect(edgeKeys.has("wuguan_damen->wuguan_dating:south")).toBe(true);
+    expect(edgeKeys.has("wuguan_dating->wuguan_liangong:west")).toBe(true);
+    expect(edgeKeys.has("wuguan_dating->wuguan_xiuxi:east")).toBe(true);
+    expect(edgeKeys.has("dongdajie1->wuguan_damen:northwest")).toBe(true);
+  });
+});
+
+describe("resolveRegionGraphMapKey", () => {
+  it("扬州城各区域映射到 yangzhou 地图", () => {
+    expect(resolveRegionGraphMapKey("city")).toBe("yangzhou");
+    expect(resolveRegionGraphMapKey("yangzhou")).toBe("yangzhou");
+    // 太乙武馆无 outdoors，回退 area=wuguan，应仍显示扬州城地图
+    expect(resolveRegionGraphMapKey("wuguan")).toBe("yangzhou");
+    expect(resolveRegionGraphMapKey("WUGUAN")).toBe("yangzhou");
+    expect(resolveRegionGraphMapKey(undefined)).toBeNull();
+    expect(resolveRegionGraphMapKey("xiakedao")).toBeNull();
+  });
+
+  it("柳秀山庄映射到 newbie_lxsz 地图", () => {
+    expect(resolveRegionGraphMapKey("newbie_lxsz")).toBe("newbie_lxsz");
+    expect(resolveRegionGraphMapKey("liuxiu-shanzhuang")).toBe("newbie_lxsz");
   });
 });
