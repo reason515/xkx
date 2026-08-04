@@ -319,7 +319,18 @@ export function EntitySheet({
                         min={1}
                         max={999}
                         value={learnCountRaw}
-                        onChange={(e) => setLearnCountRaw(e.target.value)}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          const n = parseInt(raw, 10);
+                          // 即时钳位：挂机学习次数服务端上限 999
+                          // （gateway assistCommand / webassist.c / assistd MAX_LEARN_TICKS），
+                          // 输入框不允许超限；空串保留以便清空重输
+                          setLearnCountRaw(
+                            Number.isNaN(n)
+                              ? raw
+                              : String(Math.min(999, Math.max(1, n)))
+                          );
+                        }}
                         onBlur={() => {
                           const n = parseInt(learnCountRaw, 10);
                           if (!n || n < 1) { setLearnCountRaw("1"); setLearnCount(1); }
@@ -343,7 +354,10 @@ export function EntitySheet({
                         teacher,
                         skill,
                         stopWhen: learnStop,
-                        stopCount: learnStop === "count" ? learnCount : 1,
+                        stopCount:
+                          learnStop === "count"
+                            ? Math.min(999, Math.max(1, learnCount || 1))
+                            : 1,
                         stopOnCombat: true,
                       });
                       onClose();
