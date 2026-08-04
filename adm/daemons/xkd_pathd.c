@@ -98,6 +98,7 @@ string *city_whitelist()
 		CITY_PREFIX + "nanjiao1", CITY_PREFIX + "nanjiao2", CITY_PREFIX + "nanjiao3", CITY_PREFIX + "nanjiao4",
 		CITY_PREFIX + "dongjiao1", CITY_PREFIX + "dongjiao2", CITY_PREFIX + "dongjiao3", CITY_PREFIX + "dongjiao4",
 		CITY_PREFIX + "yutang", CITY_PREFIX + "zuixianlou", CITY_PREFIX + "zuixianlou2", CITY_PREFIX + "datang",
+		CITY_PREFIX + "yaopu", CITY_PREFIX + "peiyaofang",
 		CITY_PREFIX + "xijiao1", CITY_PREFIX + "xijiao2", CITY_PREFIX + "xijiao3", CITY_PREFIX + "xijiao4",
 		YZ_PREFIX + "1", YZ_PREFIX + "2", YZ_PREFIX + "3", YZ_PREFIX + "4",
 		YZ_PREFIX + "5", YZ_PREFIX + "6", YZ_PREFIX + "7", YZ_PREFIX + "8",

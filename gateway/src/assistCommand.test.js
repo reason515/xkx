@@ -63,6 +63,10 @@ describe("buildAssistCommand", () => {
     assert.equal(buildAssistCommand({ mode: "quest" }), "webassist quest");
   });
 
+  it("builds peiyao assist", () => {
+    assert.equal(buildAssistCommand({ mode: "peiyao" }), "webassist peiyao");
+  });
+
   it("builds fishing assist", () => {
     assert.equal(buildAssistCommand({ mode: "fishing" }), "webassist fishing");
   });

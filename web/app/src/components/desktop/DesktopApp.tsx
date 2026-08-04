@@ -183,6 +183,10 @@ function DesktopShell({
             g.startAssist({ mode: "fishing" });
             g.closeSheet();
           }}
+          onStartPeiyao={() => {
+            g.startAssist({ mode: "peiyao" });
+            g.closeSheet();
+          }}
           onStartGrind={(target, lowHpPct) => {
             g.startAssist({ mode: "grind", grindTarget: target, lowHpPct });
             g.closeSheet();

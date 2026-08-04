@@ -188,7 +188,7 @@ export interface InvAction {
 }
 
 export interface AssistConfig {
-  mode: "dazuo" | "tuna" | "lian" | "learn" | "combat" | "grind" | "study" | "quest" | "fishing";
+  mode: "dazuo" | "tuna" | "lian" | "learn" | "combat" | "grind" | "study" | "quest" | "fishing" | "peiyao";
   stopWhen?: "full" | "count" | "potential";
   stopCount?: number;
   skill?: string;

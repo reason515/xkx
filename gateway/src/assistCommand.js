@@ -4,6 +4,7 @@ export function buildAssistCommand(config = {}) {
   if (config.action === "stop") return "webassist stop";
   if (config.mode === "quest") return "webassist quest";
   if (config.mode === "fishing") return "webassist fishing";
+  if (config.mode === "peiyao") return "webassist peiyao";
   if (config.mode === "grind") {
     const target = String(config.grindTarget || "yz_crow").toLowerCase();
     if (!TOKEN.test(target)) return null;

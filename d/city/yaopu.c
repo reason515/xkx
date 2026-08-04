@@ -32,6 +32,7 @@ LONG
 	]));
 
 	set("exits", ([
+		"north" : __DIR__"peiyaofang",
 		"south" : __DIR__"dongdajie2",
 	]));
 

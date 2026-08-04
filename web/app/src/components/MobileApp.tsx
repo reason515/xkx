@@ -708,6 +708,10 @@ export function MobileApp({ game: g, mode, onModeChange }: { game: GameApi; mode
             g.startAssist({ mode: "fishing" });
             g.closeSheet();
           }}
+          onStartPeiyao={() => {
+            g.startAssist({ mode: "peiyao" });
+            g.closeSheet();
+          }}
           onStartGrind={(target, lowHpPct) => {
             g.startAssist({ mode: "grind", grindTarget: target, lowHpPct });
             g.closeSheet();
