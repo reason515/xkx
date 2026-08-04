@@ -69,6 +69,9 @@ async function walkToYaopu(page: any) {
 test("配药打工挂机：领药方→配药→交药领赏闭环", async ({ page }) => {
   test.setTimeout(180_000);
   await loginAsE2eAccount(page);
+  // 若上一轮用例残留挂机（断线后 assist 会话可能仍存活），先停掉再 prep，
+  // 否则残留挂机会自行走动（如走进配药房），破坏本用例的初始状态假设
+  await sendCmd(page, "webassist stop", 1_500).catch(() => {});
   // prep yaopu：清状态 + 传送扬州药铺（毕业新手 6000 经验），一步到位
   await walkToYaopu(page);
 
@@ -92,11 +95,16 @@ test("配药打工挂机：领药方→配药→交药领赏闭环", async ({ pa
   );
   // 展开见闻确认完成了一单（有交药奖励）
   await waitForLog(page, /领赏|银子的奖励|经验.*奖励/, 30_000);
+
+  // 收尾：停止挂机，避免残留会话影响下一轮用例（同账号复用）
+  await sendCmd(page, "webassist stop", 1_500).catch(() => {});
 });
 
 test("配药任务：毕业新手（6000经验）可接单，超20000才拒绝", async ({ page }) => {
   test.setTimeout(150_000);
   await loginAsE2eAccount(page, { index: 1 });
+  // 同账号复用：先停掉可能残留的挂机，防止其走动干扰 ask ping
+  await sendCmd(page, "webassist stop", 1_500).catch(() => {});
   // prep yaopu：经验 6000（毕业 5000 + 少量增长），正好在配药门槛内
   await walkToYaopu(page);
 
@@ -119,6 +127,8 @@ test("配药任务：毕业新手（6000经验）可接单，超20000才拒绝",
 test("配药房夜晚不被困：店内可回药铺，临街入口仍关闭", async ({ page }) => {
   test.setTimeout(150_000);
   await loginAsE2eAccount(page, { index: 2 });
+  // 同账号复用：先停掉可能残留的挂机，防止其走动干扰位置断言
+  await sendCmd(page, "webassist stop", 1_500).catch(() => {});
   await walkToYaopu(page);
 
   // 临时切到夜晚（e2e 辅助：45 秒后自动恢复真实时段）
