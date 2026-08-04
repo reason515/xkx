@@ -214,6 +214,8 @@ export function useGame(opts?: UseGameOptions) {
   const combatHpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   /** 战斗窗收起计时器（无「我」的战斗行超时后关闭）。 */
   const combatEndTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** 挂机进行中标记（ref 供消息回调同步读取）：挂机请教时不弹学艺 toast */
+  const assistActiveRef = useRef(false);
   /** look 等工具指令反馈块收集：多行合并 toast，避免拆成 toast+见闻两半。 */
   const utilCollectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const utilCollectText = useRef<string[]>([]);
@@ -690,6 +692,7 @@ export function useGame(opts?: UseGameOptions) {
         if (ev.type === "assist.status") {
           // 挂机提示统一走场景区挂机条（GrindBanner）展示，不弹 toast；
           // 停止原因也由挂机条呈现（玩家点「知道了」关闭）。
+          assistActiveRef.current = !!ev.active;
         }
         setState((s) => {
           const applied = applyEvent(ev, s);
@@ -840,8 +843,9 @@ export function useGame(opts?: UseGameOptions) {
               trainLog: [...s.trainLog.slice(-40), line],
             }));
           }
-          // 学艺反馈：以 toast 直接展示见闻中的反馈文本（浮层内学艺时也能看到）
-          if (isLearnFeedbackLine(line)) {
+          // 学艺反馈：以 toast 直接展示见闻中的反馈文本（浮层内学艺时也能看到）。
+          // 挂机请教时不弹 toast——状态走绿色挂机条，避免每轮学习刷屏
+          if (isLearnFeedbackLine(line) && !assistActiveRef.current) {
             toastScheduler.current.showUnlessSame(line.trim());
           }
           // 战斗状态（用于触发悬浮绝招按钮/自动展开见闻）：结束行优先收起
@@ -1392,6 +1396,7 @@ export function useGame(opts?: UseGameOptions) {
 
   const startAssist = useCallback((config: AssistConfig) => {
     socket.current.assist(config);
+    assistActiveRef.current = false;
     // 等服务端 assist.status 确认再标「进行中」，避免失败时卡在「挂机中…」。
     setState((s) => ({
       ...s,
@@ -1414,6 +1419,7 @@ export function useGame(opts?: UseGameOptions) {
   const stopAssist = useCallback(() => {
     socket.current.assist({ action: "stop" });
     cmd("halt");
+    assistActiveRef.current = false;
     setState((s) => ({ ...s, assistActive: false, assistStatus: "已停止" }));
   }, [cmd]);
 
