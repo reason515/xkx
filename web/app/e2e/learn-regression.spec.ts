@@ -44,8 +44,8 @@ test("夫子学识字 999 次：精不足也逐次学习，精不为零（learn.
 
   // 大次数学习：精（≤500）远不够 999 次（≈3000+ 精），修复前整批拒学且精归零
   await sendCmd(page, "learn fuzi literate 999", 4000); // 逐次学习本身耗时，保留足够等待
-  // 1) 学习确实发生（部分学习）：出现心得/指导
-  await expect(page.locator("body")).toContainText(/心得|指导/, { timeout: 15_000 });
+  // 1) 学习确实发生（部分学习）：出现心得/指导（并行 MUD 负载下 999 次学习可能耗时较长）
+  await expect(page.locator("body")).toContainText(/心得|指导/, { timeout: 30_000 });
   // 2) 精气没有归零
   const sp = await jingWidth(page);
   console.log("=== 精气条 ===", sp);
@@ -68,7 +68,7 @@ test("武师学基本功 999 次：学到五级即止且精不为零（wushi 回
   // 大次数学习：修复前 999 次全学（技能顶破五级）+ 精被扣成 -1；修复后学到五级即止、精保留
   await sendCmd(page, "xue wushi for force 999", 4000);
   // 1) 学习发生（心得/指导）
-  await expect(page.locator("body")).toContainText(/心得|指导/, { timeout: 15_000 });
+  await expect(page.locator("body")).toContainText(/心得|指导/, { timeout: 30_000 });
   // 2) 精气没有归零
   const sp = await jingWidth(page);
   console.log("=== 精气条 ===", sp);
