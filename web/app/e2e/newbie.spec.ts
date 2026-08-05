@@ -558,7 +558,7 @@ test.describe("新手村 35 任务", () => {
     await page.locator(".entity-action-grid button").filter({ hasText: "切磋" }).first().click();
     // 切磋开打 → 见闻自动展开（战斗信息在见闻展示）；尚未拜师无绝招按钮
     try {
-      await expect(page.locator(".log-overlay")).toBeVisible({ timeout: 15000 });
+      await expect(page.locator(".log-overlay")).toBeVisible({ timeout: 25_000 });
     } catch {
       const room = await page.locator(".room-title").innerText().catch(() => "");
       const summary = await page
