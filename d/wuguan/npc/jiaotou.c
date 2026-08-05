@@ -169,8 +169,10 @@ int do_decide()
 int do_skill(string arg)
 {
 	object player = this_player();
-	/* 有参且非查教头（如查自己/他人）→ 交回标准 skills 命令 */
-	if (arg && arg != "" && arg != "wuguan jiaotou" && arg != "jiaotou")
+	/* 裸 skills/cha（查自己）或查他人 → 交回标准命令。
+	 * 否则 Web 武功面板（发裸 skills）会把教头的技能列表当成玩家自己的武功
+	 * 显示，出现「学太乙神功后一堆功夫变 100 级」的假象。 */
+	if (!arg || arg == "" || (arg != "wuguan jiaotou" && arg != "jiaotou"))
 		return 0;
 	/* 查看技能不要求加入武馆：否则 Web 学艺面板在加入前拿不到技能列表。
 	 * 学习仍需先交学费（recognize_apprentice / accept_object）。 */
