@@ -384,7 +384,7 @@ test("新手村主要NPC房间首次加载不重复", async ({ page }) => {
   test.setTimeout(180_000);
   await loginAsE2eAccount(page);
 
-  await sendCmd(page, "newbietest skip 17", 4_000);
+  await sendCmd(page, "newbietest skip 17", 5_000);
   await expect(page.locator(".room-title").first()).toHaveText(/票号/, {
     timeout: 10_000,
   });
@@ -393,7 +393,7 @@ test("新手村主要NPC房间首次加载不重复", async ({ page }) => {
   await expect(page.locator(".chip.npc").filter({ hasText: "柳住钱" })).toHaveCount(1);
   console.log("✅ 票号");
 
-  await sendCmd(page, "newbietest skip 8", 4_000);
+  await sendCmd(page, "newbietest skip 8", 5_000);
   await expect(page.locator(".room-title").first()).toHaveText(/柳秀山庄正厅/, {
     timeout: 10_000,
   });
@@ -401,12 +401,12 @@ test("新手村主要NPC房间首次加载不重复", async ({ page }) => {
   await expect(page.locator(".chip.npc").filter({ hasText: "阿姝" })).toHaveCount(1);
   console.log("✅ 正厅");
 
-  await sendCmd(page, "newbietest skip 11", 4_000);
+  await sendCmd(page, "newbietest skip 11", 5_000);
   await expect(page.locator(".room-title").first()).toHaveText(/男浴室/);
   await expect(page.locator(".chip.npc").filter({ hasText: "男侍童" })).toHaveCount(1);
   console.log("✅ 男浴室");
 
-  await sendCmd(page, "newbietest skip 13", 4_000);
+  await sendCmd(page, "newbietest skip 13", 5_000);
   await expect(page.locator(".room-title").first()).toHaveText(/尚武堂/);
   await expect(page.locator(".chip.npc").filter({ hasText: "武师" })).toHaveCount(1);
   console.log("✅ 尚武堂");

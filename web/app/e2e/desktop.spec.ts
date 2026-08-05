@@ -126,10 +126,12 @@ test.describe.serial("桌面工作台", () => {
 
   test("桌面点击人物可 look", async ({ page }) => {
     await enterDesktop(page);
+    // 账号在串行用例间会移动：先 prep 到有钱庄 NPC 的房间，保证有人物可点
+    await desktopSend(page, "newbietest prep qianzhuang");
     await desktopSend(page, "look");
     const npc = page
       .locator(".desktop-left .chip.npc")
-      .filter({ hasText: /渔夫|百姓|张三|李四/ })
+      .filter({ hasText: /黄真|百姓|钱庄/ })
       .or(page.locator(".desktop-left .chip.npc"))
       .first();
     await expect(npc).toBeVisible({ timeout: 60_000 });

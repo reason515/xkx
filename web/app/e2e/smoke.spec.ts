@@ -329,7 +329,7 @@ test.describe.serial("game smoke", () => {
     await loginAsNewbie(page, { id: sharedId, password: sharedPassword, asRegister: false });
     await openTopMenu(page);
     await pickTopMenuItem(page, "帮助");
-    await expect(page.locator(".help-section")).toBeVisible({ timeout: 10_000 });
+    await expect(page.locator(".help-section").first()).toBeVisible({ timeout: 10_000 });
     await page.locator(".sheet .close").click();
   });
 
