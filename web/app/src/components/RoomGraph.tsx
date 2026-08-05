@@ -80,18 +80,33 @@ export function RoomGraph({ map, currentRoomId }: Props) {
 
   // Build edge segments. Route edges are oriented away from the current room
   // so the exit arrow always points outward from wherever the player stands.
-  const edgeSegments = edges.map(e => {
+  // Edges with `via` are polylines: each segment stays 八向, and only the
+  // final segment is trimmed into the target node.
+  const edgeSegments = edges.flatMap(e => {
     const from = byId.get(e.from), to = byId.get(e.to);
-    if (!from || !to) return null;
+    if (!from || !to) return [];
     const isRoute = cur && (e.from === cur.id || e.to === cur.id);
     const isClimb = e.from === "huanpo" && e.to === "qingshiqiaotou";
     const a = isRoute && e.to === cur.id ? to : from;
     const b = isRoute && e.to === cur.id ? from : to;
-    const fx = pad + px(a.col), fy = pad + py(a.row);
-    const tx = pad + px(b.col), ty = pad + py(b.row);
-    const trimmed = trimToNode(fx, fy, tx, ty, nodeW, nodeH);
-    return { ...e, x1: trimmed.x1, y1: trimmed.y1, x2: trimmed.x2, y2: trimmed.y2, isRoute, isClimb };
-  }).filter(Boolean) as (MapEdge & { x1: number; y1: number; x2: number; y2: number; isRoute: boolean; isClimb: boolean })[];
+    const pts = [{ col: a.col, row: a.row }];
+    if (Array.isArray(e.via) && e.via.length > 0) {
+      for (const [vc, vr] of e.via) pts.push({ col: vc, row: vr });
+    }
+    pts.push({ col: b.col, row: b.row });
+    const segs: ({ x1: number; y1: number; x2: number; y2: number; arrowEnd: boolean })[] = [];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i], p1 = pts[i + 1];
+      const fx = pad + px(p0.col), fy = pad + py(p0.row);
+      const tx = pad + px(p1.col), ty = pad + py(p1.row);
+      const isLast = i === pts.length - 2;
+      const trimmed = isLast
+        ? trimToNode(fx, fy, tx, ty, nodeW, nodeH)
+        : { x2: tx, y2: ty };
+      segs.push({ x1: fx, y1: fy, x2: trimmed.x2, y2: trimmed.y2, arrowEnd: isLast });
+    }
+    return segs.map(s => ({ ...e, ...s, isRoute, isClimb }));
+  });
 
   const handlePointerDown = useCallback((e: React.PointerEvent) => {
     dragging.current = true;
@@ -168,8 +183,8 @@ export function RoomGraph({ map, currentRoomId }: Props) {
         ))}
 
         {/* Edges */}
-        {edgeSegments.map(seg => (
-          <g key={edgeKey(seg)}>
+        {edgeSegments.map((seg, segIdx) => (
+          <g key={`${edgeKey(seg)}-${segIdx}`}>
             <line
               x1={seg.x1} y1={seg.y1} x2={seg.x2} y2={seg.y2}
               stroke={seg.isRoute ? C.edgeRoute : seg.isClimb ? C.climb : isVisited(seg.from) && isVisited(seg.to) ? C.edgeVisited : C.edge}
@@ -177,8 +192,8 @@ export function RoomGraph({ map, currentRoomId }: Props) {
               strokeDasharray={seg.isClimb ? "5 4" : undefined}
               opacity={seg.isClimb ? 0.6 : seg.isRoute ? 1 : 0.7}
             />
-            {/* Arrow for route edges FROM current */}
-            {seg.isRoute && seg.from === cur?.id && (
+            {/* Arrow for route edges FROM current — only on the final segment */}
+            {seg.isRoute && seg.from === cur?.id && seg.arrowEnd && (
               <polygon
                 points={`${seg.x2},${seg.y2} ${seg.x2 - 6},${seg.y2 - 4} ${seg.x2 - 6},${seg.y2 + 4}`}
                 fill={C.edgeArrow}

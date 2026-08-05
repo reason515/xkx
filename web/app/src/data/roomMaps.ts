@@ -249,7 +249,8 @@ export const YANGZHOU_MAP: RoomMap = {
     { from: "chaguan", to: "xidajie1", dir: "south" },
 
     // ---- 武馆 ----
-    { from: "dongdajie1", to: "wuguan_damen", dir: "northwest" },
+    // 东大街1→武馆大门 西北斜线经 (6,5)(5,4) 绕行，避开休息室/大厅（via 每段仍八向）
+    { from: "dongdajie1", to: "wuguan_damen", dir: "northwest", via: [[6, 5], [5, 4]] },
     { from: "wuguan_damen", to: "wuguan_dating", dir: "south" },
     { from: "wuguan_dating", to: "wuguan_liangong", dir: "west" },
     { from: "wuguan_dating", to: "wuguan_xiuxi", dir: "east" },
