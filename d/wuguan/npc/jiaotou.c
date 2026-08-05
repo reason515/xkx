@@ -43,10 +43,13 @@ void create()
 			"加入武馆" : (: do_join :),
             "练功" : (: do_lg :),
             "练臂力" : (: do_lg :),
-			"skill" : "武馆弟子输入skill可以查看教头技能。",
-			"skills" : "武馆弟子输入skill可以查看教头技能。",
-			"技能" : "武馆弟子输入skill可以查看教头技能。",
-			"查看技能" : "武馆弟子输入skill可以查看教头技能。",
+			"学费" : "先交十两银子学费，我便指点你一番（give 10 silver to 教头）；每两银子可学十次功夫。\n",
+			"怎么学" : "想学太乙功夫，先交学费：给我十两银子（give 10 silver to 教头），我便指点你。\n",
+			"学艺" : "想学太乙功夫，先交学费：给我十两银子（give 10 silver to 教头），我便指点你。\n",
+			"skill" : "输入 skills 教头 可以查看我的功夫（太乙武馆不收门派弟子，交学费即可学艺）。",
+			"skills" : "输入 skills 教头 可以查看我的功夫（太乙武馆不收门派弟子，交学费即可学艺）。",
+			"技能" : "输入 skills 教头 可以查看我的功夫（太乙武馆不收门派弟子，交学费即可学艺）。",
+			"查看技能" : "输入 skills 教头 可以查看我的功夫（太乙武馆不收门派弟子，交学费即可学艺）。",
 		    "称号" : (: do_rank :),
             "rank" : (: do_rank :),
             "title" : (: do_rank :),
@@ -169,7 +172,8 @@ int do_skill(string arg)
 	/* 有参且非查教头（如查自己/他人）→ 交回标准 skills 命令 */
 	if (arg && arg != "" && arg != "wuguan jiaotou" && arg != "jiaotou")
 		return 0;
-	if (!player->query("wuguan")) return 0;
+	/* 查看技能不要求加入武馆：否则 Web 学艺面板在加入前拿不到技能列表。
+	 * 学习仍需先交学费（recognize_apprentice / accept_object）。 */
 	tell_object(player, "武馆教头目前所学过的技能：（共十项技能）\n");
 	tell_object(player, "\n");
 	tell_object(player, "┌──一项基本知识────────────────────────┐\n");
