@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginAsNewbie, waitForInGameMobile } from "./helpers";
+import { loginAsE2eAccount, loginAsNewbie, waitForInGameMobile } from "./helpers";
 
 async function sendCmd(page: any, text: string, wait = 1500) {
   // 确保指令输入框可见——移动端默认隐藏，需先通过菜单切换
@@ -91,7 +91,7 @@ test("新手目标在进入游戏后五秒内展示", async ({ page }) => {
 
 test("车马行声明雇车动作并可通过场景按钮上车", async ({ page }) => {
   test.setTimeout(90_000);
-  await loginAsNewbie(page, { asRegister: true });
+  await loginAsE2eAccount(page);
   await skipTo(page, 35);
   await expect(page.locator(".room-title").first()).toHaveText(/车马行/, {
     timeout: 10_000,
@@ -304,7 +304,7 @@ test("毕业进入扬州后可在福威镖局接押镖任务", async ({ page }) 
 
 test("场景物件名称保留有效语义并滤除叙述残片", async ({ page }) => {
   test.setTimeout(60_000);
-  await loginAsNewbie(page, { asRegister: true });
+  await loginAsE2eAccount(page);
   await sendCmd(page, "xkxe2e huanpo", 3_000);
   await expect(page.locator(".room-title").first()).toHaveText(/缓坡/, {
     timeout: 10_000,
@@ -332,7 +332,7 @@ test("场景物件名称保留有效语义并滤除叙述残片", async ({ page 
 
 test("集镇东北远眺预览药铺且仍可继续操作", async ({ page }) => {
   test.setTimeout(90_000);
-  await loginAsNewbie(page, { asRegister: true });
+  await loginAsE2eAccount(page);
   await sendCmd(page, "xkxe2e jizhen", 3_000);
   await expect(page.locator(".room-title").first()).toHaveText(/集镇小道/, {
     timeout: 10_000,
@@ -358,7 +358,7 @@ test("集镇东北远眺预览药铺且仍可继续操作", async ({ page }) => 
 
 test("集镇东北前往进入药铺且NPC不重复", async ({ page }) => {
   test.setTimeout(90_000);
-  await loginAsNewbie(page, { asRegister: true });
+  await loginAsE2eAccount(page);
   await sendCmd(page, "xkxe2e jizhen", 3_000);
   await expect(page.locator(".room-title").first()).toHaveText(/集镇小道/, {
     timeout: 10_000,
@@ -382,7 +382,7 @@ test("集镇东北前往进入药铺且NPC不重复", async ({ page }) => {
 
 test("新手村主要NPC房间首次加载不重复", async ({ page }) => {
   test.setTimeout(180_000);
-  await loginAsNewbie(page, { asRegister: true });
+  await loginAsE2eAccount(page);
 
   await sendCmd(page, "newbietest skip 17", 4_000);
   await expect(page.locator(".room-title").first()).toHaveText(/票号/, {
@@ -453,7 +453,7 @@ test("新手村主要NPC房间首次加载不重复", async ({ page }) => {
 
 test("登录空闲五分钟后仍可执行指令", async ({ page }) => {
   test.setTimeout(420_000);
-  await loginAsNewbie(page, { asRegister: true });
+  await loginAsE2eAccount(page);
   await expect(page.locator(".room-title").first()).not.toHaveText("…", {
     timeout: 30_000,
   });
@@ -469,7 +469,7 @@ test("登录空闲五分钟后仍可执行指令", async ({ page }) => {
 
 test("新手任务 34 的发言道别按钮会立即推进", async ({ page }) => {
   test.setTimeout(120_000);
-  await loginAsNewbie(page, { asRegister: true });
+  await loginAsE2eAccount(page);
   await skipTo(page, 34);
   await expect(page.locator(".room-title").first()).toHaveText(/杏子林/, {
     timeout: 10_000,
@@ -489,7 +489,9 @@ test("新手任务 34 的发言道别按钮会立即推进", async ({ page }) =>
 test.describe("新手村 35 任务", () => {
   test("skip 模式全覆盖", async ({ page }) => {
     test.setTimeout(900_000);
-    await loginAsNewbie(page, { asRegister: true });
+    await loginAsE2eAccount(page);
+    // 账号池账号可能残留前一测试的任务进度：reset 回新手村初始（任务 1）
+    await sendCmd(page, "newbietest reset", 1_500);
     await expect(page.locator(".room-title").first()).not.toHaveText("…", { timeout: 30_000 });
     await page.waitForTimeout(4000);
 

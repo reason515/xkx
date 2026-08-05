@@ -311,14 +311,16 @@ test.describe.serial("game smoke", () => {
     await openTopMenu(page);
     await pickTopMenuItem(page, "江湖助手");
     await expect(page.locator(".sheet h3")).toHaveText("江湖助手");
-    // 挂机任务按推荐经验从低到高：钓鱼 → 悬赏 → 石壁领悟
+    // 挂机任务按推荐经验从低到高：钓鱼 → 配药 → 悬赏 → 石壁 → 打怪
     const cards = page.locator(".assist-task-card");
-    await expect(cards).toHaveCount(3);
+    await expect(cards).toHaveCount(5);
     await expect(cards.nth(0)).toContainText("钓鱼挂机");
     await expect(cards.nth(0)).toContainText("推荐经验");
     await expect(cards.nth(0)).toContainText("可得奖励");
-    await expect(cards.nth(1)).toContainText("悬赏任务");
-    await expect(cards.nth(2)).toContainText("石壁领悟");
+    await expect(cards.nth(1)).toContainText("配药打工");
+    await expect(cards.nth(2)).toContainText("悬赏任务");
+    await expect(cards.nth(3)).toContainText("石壁领悟");
+    await expect(cards.nth(4)).toContainText("打怪练级");
     // 旧刷怪对手列表已移除
     await expect(page.locator(".grind-target-list, .combat-assist-label")).toHaveCount(0);
   });

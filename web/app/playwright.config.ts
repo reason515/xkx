@@ -10,9 +10,11 @@ export default defineConfig({
   timeout: 120_000,
   expect: { timeout: 60_000 },
   retries: againstLocal ? 0 : 1,
-  // 账号池 4 个（testera~testerd）：每 worker 一个账号，平行跑不互踢。
+  // 账号池 4 个（testera~testerd）。workers=2 为平衡点：
+  // 4 worker 时新注册用例（newbie/smoke/bank）并发注册会触发网关限流
+  // （“过于频繁”→ 每次退避 45s+），反而拖慢全量与引发大量重试。
   // 测试文件之间并行（fullyParallel=false），文件内用例串行复用同账号（prep 清状态）。
-  workers: 4,
+  workers: 2,
   fullyParallel: false,
   use: {
     baseURL,
