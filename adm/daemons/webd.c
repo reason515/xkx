@@ -198,6 +198,9 @@ void send_room(object me, object env)
 	inv = all_inventory(env);
 	foreach (ob in inv) {
 		if (ob == me || !me->visible(ob)) continue;
+		/* 断线玩家的尸体不可交互（无法拜师/学艺/切磋）：不再作为「人物」chip 展示，
+		 * 否则新手村「点击武师选择拜师」时容易点到残留玩家，误以为 NPC 没有拜师选项。 */
+		if (userp(ob) && !interactive(ob)) continue;
 		/* Prefer a unique single-token id. Skip generic suffixes of
 		 * multi-word ids (e.g. "dizi" from "huangyi dizi") so present()
 		 * does not hit the wrong NPC when several share that alias.
