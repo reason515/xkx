@@ -74,7 +74,7 @@ test("挂机提示只走挂机条，不弹 toast", async ({ page }) => {
 
 test("请教挂机状态走挂机条并可停止，不弹 toast", async ({ page }) => {
   test.setTimeout(180_000);
-  await loginAsE2eAccount(page, { index: 3 });
+  await loginAsE2eAccount(page);
   // 残留挂机会话先停掉（幂等），保证初始状态干净
   await sendCmd(page, "webassist stop", 1_500).catch(() => {});
   // 跳到尚武堂任务 20（武师在旁）→ 学艺前置（潜能/精气）→ 放弃基本内功制造可学状态

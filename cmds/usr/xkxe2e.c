@@ -19,9 +19,9 @@ int main(object me, string arg)
 
 	if (arg == "night") {
 		/* e2e：临时切到夜晚（day_shop 夜晚锁回归：临街拦门、店内不困人），
-		 * 45 秒后自动按真实时间恢复；测试结束后也可用 restorephase 提前恢复。 */
-		NATURE_D->test_force_phase("event_night", 45);
-		tell_object(me, "（测试）已临时切换到夜晚，45 秒后自动恢复。\n");
+		 * 25 秒后自动按真实时间恢复；测试结束后也可用 restorephase 提前恢复。 */
+		NATURE_D->test_force_phase("event_night", 25);
+		tell_object(me, "（测试）已临时切换到夜晚，25 秒后自动恢复。\n");
 		return 1;
 	}
 
@@ -504,7 +504,7 @@ int help(object me)
   bingqi      — 传送到兵器房（取用器械回归）
   shanding    — 传送到山顶（黄衣弟子/中伯 dizi 歧义回归）
   shanxia     — 传送到山脚下（木桩 strike 回归）
-  night       — 临时切换到夜晚（45 秒后自动恢复），验证 day_shop 夜晚锁
+  night       — 临时切换到夜晚（25 秒后自动恢复），验证 day_shop 夜晚锁
   restorephase — 立即恢复真实时段（配合 night 使用）
 HELP
 	);

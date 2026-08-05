@@ -153,6 +153,132 @@ export async function readTerminalText(page: Page): Promise<string> {
   });
 }
 
+/* ================== 快速命令与条件等待（e2e 提速核心） ================== */
+
+/**
+ * 发送一条 MUD 指令（快版）：指令发出后仅等 settleMs 让首帧渲染，
+ * 结果确认一律用 waitForRoomText / waitForLogText / waitForBodyText 条件等待。
+ * 旧实现每个命令固定睡 2.5~4s，实际响应 0.5~1.5s 即到——这是 e2e 耗时的最大浪费。
+ */
+export async function sendCmd(
+  page: Page,
+  text: string,
+  settleMs = 600
+) {
+  const input = page.locator(".log-cmd-input");
+  if (!(await input.isVisible({ timeout: 1000 }).catch(() => false))) {
+    // 菜单→指令：showCmd 初始为 false 时输入框不在 DOM
+    const menuBtn = page.getByRole("button", { name: "菜单" });
+    if (await menuBtn.isVisible({ timeout: 1500 }).catch(() => false)) {
+      await menuBtn.click();
+      await page.waitForTimeout(300);
+    }
+    const item = page
+      .locator('[role="menuitem"]')
+      .filter({ hasText: "指令" })
+      .first();
+    if (await item.isVisible({ timeout: 1500 }).catch(() => false)) {
+      await item.click();
+      await page.waitForTimeout(300);
+    }
+    // 有界等待：输入框必须可见，避免 fill 无限等待拖垮用例
+    await input.waitFor({ state: "visible", timeout: 5000 });
+  }
+  await input.fill(text);
+  await page.locator(".log-cmd-send").click();
+  if (settleMs > 0) await page.waitForTimeout(settleMs);
+}
+
+/** 展开见闻面板（折叠时 .log 不在 DOM）。 */
+export async function openLogPanel(page: Page) {
+  const summary = page.locator(".log-summary").first();
+  const expanded = await summary
+    .getAttribute("aria-expanded")
+    .catch(() => "false");
+  if (expanded !== "true") await summary.click().catch(() => {});
+  await page.waitForTimeout(200);
+}
+
+/** 条件等待：房间标题匹配（替代固定 sleep + 后续断言）。 */
+export async function waitForRoomText(
+  page: Page,
+  re: RegExp,
+  timeout = 15_000
+) {
+  await expect(page.locator(".room-title").first()).toHaveText(re, {
+    timeout,
+  });
+}
+
+/** 条件等待：展开后的见闻日志出现目标文本。 */
+export async function waitForLogText(
+  page: Page,
+  re: RegExp,
+  timeout = 15_000
+) {
+  await expect
+    .poll(
+      async () => {
+        await openLogPanel(page);
+        const t =
+          (await page.locator(".log").textContent().catch(() => "")) || "";
+        return re.test(t);
+      },
+      { timeout }
+    )
+    .toBeTruthy();
+}
+
+/** 条件等待：页面任意位置（含挂机条/见闻/场景）出现目标文本。 */
+export async function waitForBodyText(
+  page: Page,
+  re: RegExp,
+  timeout = 15_000
+) {
+  await expect
+    .poll(async () => {
+      const t = (await page.locator("body").innerText().catch(() => "")) || "";
+      return re.test(t);
+    }, { timeout })
+    .toBeTruthy();
+}
+
+/**
+ * newbietest prep 直达 + 等房间标题（替代固定 3.5~4.5s sleep）。
+ * prep 自带清状态/技能/经验/钱并传送，是 e2e 最快的位置初始化。
+ */
+export async function prepTo(
+  page: Page,
+  scene: string,
+  roomRe: RegExp,
+  timeout = 15_000
+) {
+  await sendCmd(page, `newbietest prep ${scene}`);
+  await waitForRoomText(page, roomRe, timeout);
+}
+
+/** 发送命令 + 等房间标题（移动类命令的快速确认）。 */
+export async function cmdToRoom(
+  page: Page,
+  text: string,
+  roomRe: RegExp,
+  timeout = 15_000
+) {
+  await sendCmd(page, text);
+  await waitForRoomText(page, roomRe, timeout);
+}
+
+/** 发送命令 + 等见闻出现目标文本（ask/give/learn 等需结果确认的指令）。 */
+export async function cmdExpectLog(
+  page: Page,
+  text: string,
+  re: RegExp,
+  timeout = 15_000
+) {
+  await sendCmd(page, text);
+  await waitForLogText(page, re, timeout);
+}
+
 export async function desktopSend(page: Page, command: string) {
   const input = page.locator('[data-testid="desktop-cmd-input"]');
   await expect(input).toBeVisible();

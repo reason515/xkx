@@ -10,9 +10,15 @@ export default defineConfig({
   timeout: 120_000,
   expect: { timeout: 60_000 },
   retries: againstLocal ? 0 : 1,
+  // 账号池 4 个（testera~testerd）：每 worker 一个账号，平行跑不互踢。
+  // 测试文件之间并行（fullyParallel=false），文件内用例串行复用同账号（prep 清状态）。
+  workers: 4,
+  fullyParallel: false,
   use: {
     baseURL,
     trace: "on-first-retry",
+    // 本机 HTTP_PROXY 会把页面加载拖慢一倍（14s→30s）；e2e 直连生产站
+    launchOptions: { args: ["--no-proxy-server"] },
   },
   // 本地才起 Vite；生产站不启 webServer
   ...(againstLocal

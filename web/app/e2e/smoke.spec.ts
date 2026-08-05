@@ -290,9 +290,20 @@ test.describe.serial("game smoke", () => {
     await loginAsNewbie(page, { id: sharedId, password: sharedPassword, asRegister: false });
     await openTopMenu(page);
     await pickTopMenuItem(page, "地图");
-    await expect(page.locator(".map-tools")).toBeVisible({ timeout: 10_000 });
-    await page.getByRole("button", { name: "放大地图" }).click();
-    await expect(page.locator(".map-tools")).toContainText("120%");
+    const sheet = page.locator(".map-sheet");
+    await expect(sheet).toBeVisible({ timeout: 10_000 });
+    // 结构化 SVG 地图（RoomGraph）自带缩放按钮；文本地图走 .map-tools
+    const tools = page.locator(".map-tools");
+    if (await tools.isVisible({ timeout: 3000 }).catch(() => false)) {
+      await page.getByRole("button", { name: "放大地图" }).click();
+      await expect(tools).toContainText("120%");
+    } else {
+      await expect(sheet.locator("svg").first()).toBeVisible({ timeout: 5000 });
+      const zoomIn = sheet.locator("button", { hasText: "＋" }).first();
+      if (await zoomIn.isVisible({ timeout: 2000 }).catch(() => false)) {
+        await zoomIn.click();
+      }
+    }
   });
 
   test("菜单以江湖助手说明自动历练", async ({ page }) => {

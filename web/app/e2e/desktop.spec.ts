@@ -92,6 +92,19 @@ test.describe.serial("桌面工作台", () => {
 
   test("桌面点击出口可换房", async ({ page }) => {
     await enterDesktop(page);
+    // 新注册角色食水为 0，MUD 拒绝一切移动（“你又渴又饿，浑身无力”）。
+    // prep 补满食水并传送到钱庄，再验证桌面出口点击可换房。
+    await desktopSend(page, "newbietest prep qianzhuang");
+    await expect
+      .poll(async () => {
+        const t = (
+          (await page
+            .locator('[data-testid="desktop-room-title"]')
+            .textContent()) || ""
+        ).trim();
+        return t === "钱庄";
+      }, { timeout: 30_000 })
+      .toBeTruthy();
     const titleBefore = (
       (await page.locator('[data-testid="desktop-room-title"]').textContent()) ||
       ""
@@ -131,10 +144,12 @@ test.describe.serial("桌面工作台", () => {
 
   test("桌面点击物品可 get", async ({ page }) => {
     await enterDesktop(page);
-    await desktopSend(page, "drop money");
+    // 先确保有可掉落的钱：prep 只给存款，需取出后再 drop 到地上
+    await desktopSend(page, "newbietest prep qianzhuang");
+    await desktopSend(page, "withdraw 20 silver");
+    await desktopSend(page, "drop silver");
     await desktopSend(page, "look");
     const item = page.locator(".desktop-left .chip.item").first();
-    // 沙滩常见大石头；若无钱币则点任意地面物
     await expect(item).toBeVisible({ timeout: 30_000 });
     const before = await readTerminalText(page);
     await item.click();

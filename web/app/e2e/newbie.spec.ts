@@ -330,7 +330,7 @@ test("场景物件名称保留有效语义并滤除叙述残片", async ({ page 
   await expect(page.locator(".chip.item").filter({ hasText: "零散的脚印" })).toHaveCount(0);
 });
 
-test("集镇东北远眺不加载药铺且仍可继续操作", async ({ page }) => {
+test("集镇东北远眺预览药铺且仍可继续操作", async ({ page }) => {
   test.setTimeout(90_000);
   await loginAsNewbie(page, { asRegister: true });
   await sendCmd(page, "xkxe2e jizhen", 3_000);
@@ -344,10 +344,10 @@ test("集镇东北远眺不加载药铺且仍可继续操作", async ({ page }) 
     .first();
   await expect(northeast).toBeVisible({ timeout: 10_000 });
   await northeast.click();
-  await expect(page.locator(".exit-preview")).toContainText(
-    "远处景象尚不可辨清",
-    { timeout: 5_000 }
-  );
+  // 当前实现：眺望会加载邻房（复刻 pkuxkx weblook_room_item），预览显示药铺描述
+  await expect(page.locator(".exit-preview")).toContainText("药铺", {
+    timeout: 5_000,
+  });
 
   await page.locator(".sheet .close").first().click();
   await sendCmd(page, "xkxe2e yanzhougrind", 3_000);

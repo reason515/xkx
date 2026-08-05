@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { loginAsE2eAccount } from "./helpers";
+import {
+  loginAsE2eAccount,
+  sendCmd,
+  prepTo,
+  cmdToRoom,
+  openLogPanel,
+} from "./helpers";
 
 /**
  * 学艺回归：learn <师父> <技能> <大次数> 时，
@@ -8,37 +14,10 @@ import { loginAsE2eAccount } from "./helpers";
  * 修复后预期：逐次学习，精够几次学几次；学完精气仍 > 0。
  * 修复前预期（钉死）：无任何心得/指导，精气条 0%。
  */
-async function cmd(page: any, text: string, wait = 2200) {
-  const input = page.locator(".log-cmd-input");
-  let vis = await input.isVisible({ timeout: 800 }).catch(() => false);
-  if (!vis) {
-    const menuBtn = page.getByRole("button", { name: "菜单" });
-    if (await menuBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await menuBtn.click();
-      await page.waitForTimeout(400);
-    }
-    const item = page.locator('[role="menuitem"]').filter({ hasText: "指令" }).first();
-    if (await item.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await item.click();
-      await page.waitForTimeout(400);
-    }
-  }
-  await input.fill(text);
-  await page.locator(".log-cmd-send").click();
-  await page.waitForTimeout(wait);
-}
-
-async function openLog(page: any): Promise<string> {
-  const summary = page.locator(".log-summary").first();
-  const expanded = await summary.getAttribute("aria-expanded").catch(() => "false");
-  if (expanded !== "true") await summary.click().catch(() => {});
-  await page.waitForTimeout(300);
-  return (await page.locator(".log").textContent().catch(() => "")) || "";
-}
 
 /** 读取精气条的填充百分比样式，如 "width: 2%"；0% 表示精气归零。 */
-async function jingWidth(page: any): Promise<string> {
-  await page.waitForTimeout(800);
+async function jingWidth(page: import("@playwright/test").Page): Promise<string> {
+  await page.waitForTimeout(400);
   return (
     (await page
       .locator(".vital.sp .fill")
@@ -49,50 +28,47 @@ async function jingWidth(page: any): Promise<string> {
 }
 
 test("夫子学识字 999 次：精不足也逐次学习，精不为零（learn.c 回归）", async ({ page }) => {
-  test.setTimeout(150_000);
+  test.setTimeout(180_000);
   await loginAsE2eAccount(page);
   // 钱庄就绪（毕业新手状态，literate 10）→ 学艺前置（潜能 2000、精压低、夫子精气充足）
-  await cmd(page, "newbietest prep qianzhuang", 3500);
-  await cmd(page, "xkxe2e learnprep", 3500);
+  await prepTo(page, "qianzhuang", /钱庄/);
+  await sendCmd(page, "xkxe2e learnprep", 800);
   // 走到书院（东大街3 → 东大街2 → 东大街1 → 书院）
-  await cmd(page, "south", 2000);
-  await cmd(page, "west", 2000);
-  await cmd(page, "west", 2000);
-  await cmd(page, "north", 2500);
+  await cmdToRoom(page, "south", /东大街/);
+  await cmdToRoom(page, "west", /东大街/);
+  await cmdToRoom(page, "west", /东大街/);
+  await cmdToRoom(page, "north", /书院/);
   await expect(
     page.locator(".chip.npc").filter({ hasText: "夫子" }).first()
   ).toBeVisible({ timeout: 10_000 });
 
   // 大次数学习：精（≤500）远不够 999 次（≈3000+ 精），修复前整批拒学且精归零
-  await cmd(page, "learn fuzi literate 999", 4000);
-  const log = await openLog(page);
-  console.log("=== learn 999 结果 ===", log.replace(/\n+/g, " | ").slice(-300));
-
+  await sendCmd(page, "learn fuzi literate 999", 4000); // 逐次学习本身耗时，保留足够等待
   // 1) 学习确实发生（部分学习）：出现心得/指导
-  await expect(page.locator("body")).toContainText(/心得|指导/, { timeout: 10_000 });
+  await expect(page.locator("body")).toContainText(/心得|指导/, { timeout: 15_000 });
   // 2) 精气没有归零
   const sp = await jingWidth(page);
   console.log("=== 精气条 ===", sp);
   expect(sp).not.toMatch(/width:\s*0%/);
   // 3) 不应出现“什么也没有学到”的整批拒学文案
+  await openLogPanel(page);
+  const log =
+    (await page.locator(".log").textContent().catch(() => "")) || "";
   expect(log).not.toContain("结果什么也没有学到");
 });
 
 test("武师学基本功 999 次：学到五级即止且精不为零（wushi 回归）", async ({ page }) => {
-  test.setTimeout(150_000);
-  await loginAsE2eAccount(page, { index: 1 });
+  test.setTimeout(180_000);
+  await loginAsE2eAccount(page);
   // 跳到尚武堂任务 20（九项技能 5 级 + 武师徒弟）
-  await cmd(page, "newbietest skip 20", 4000);
-  await cmd(page, "xkxe2e learnprep", 3500);
+  await sendCmd(page, "newbietest skip 20", 800);
+  await sendCmd(page, "xkxe2e learnprep", 800);
   // 放弃基本内功，制造可学状态
-  await cmd(page, "abandon force", 2500);
+  await sendCmd(page, "abandon force", 800);
   // 大次数学习：修复前 999 次全学（技能顶破五级）+ 精被扣成 -1；修复后学到五级即止、精保留
-  await cmd(page, "xue wushi for force 999", 4000);
-  const log = await openLog(page);
-  console.log("=== xue wushi 999 结果 ===", log.replace(/\n+/g, " | ").slice(-300));
-
+  await sendCmd(page, "xue wushi for force 999", 4000);
   // 1) 学习发生（心得/指导）
-  await expect(page.locator("body")).toContainText(/心得|指导/, { timeout: 10_000 });
+  await expect(page.locator("body")).toContainText(/心得|指导/, { timeout: 15_000 });
   // 2) 精气没有归零
   const sp = await jingWidth(page);
   console.log("=== 精气条 ===", sp);
